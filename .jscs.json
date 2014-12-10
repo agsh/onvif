@@ -1,0 +1,38 @@
+{
+  "requireCurlyBraces": [ "if", "else", "for", "while", "do", "try", "catch" ],
+  "requireSpaceAfterKeywords": [
+    "do",
+    "for",
+    "if",
+    "else",
+    "switch",
+    "case",
+    "try",
+    "void",
+    "while",
+    "with",
+    "return",
+    "typeof"
+  ],
+  "requireSpacesInFunctionExpression": {
+    "beforeOpeningCurlyBrace": true
+  },
+  "disallowSpacesInFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "disallowSpacesInCallExpression": true,
+  "requireSpaceBeforeBinaryOperators": ["+", "-", "/", "*", "=", "==", "===", "!=", "!=="],
+  "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-"],
+  "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
+  "disallowKeywords": [ "with" ],
+  "disallowKeywordsOnNewLine": [ "else" ],
+  "disallowSpaceAfterObjectKeys": true,
+  "validateLineBreaks": "LF",
+  "disallowMixedSpacesAndTabs": true,
+  "requireSpacesInConditionalExpression": {
+    "afterTest": true,
+    "beforeConsequent": true,
+    "afterConsequent": true,
+    "beforeAlternate": true
+  }
+}
