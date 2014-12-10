@@ -11,9 +11,8 @@
     cam = new Cam({
       hostname: '192.168.68.111'
     });
-    return it('sould return current date', function(done) {
+    return it('should return current date', function(done) {
       return cam.getSystemDateAndTime(function(err, data) {
-        console.log(err, data);
         assert.equal(err, null);
         assert.deepEqual(Object.keys(data), ['year', 'month', 'day', 'hour', 'minute', 'second']);
         assert.ok(Object.keys(data).every(function(key) {
