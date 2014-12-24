@@ -19,6 +19,9 @@ listener = (req, res) ->
       when 'GetCapabilities' then fs.createReadStream(__dirname + '/serverMockup/getCapabilities.xml').pipe(res)
       when 'GetVideoSources' then fs.createReadStream(__dirname + '/serverMockup/getVideoSources.xml').pipe(res)
       when 'GetProfiles' then fs.createReadStream(__dirname + '/serverMockup/getProfiles.xml').pipe(res)
+      when 'GetDeviceInformation' then fs.createReadStream(__dirname + '/serverMockup/getDeviceInformation.xml').pipe(res)
+      when 'GetServices' then fs.createReadStream(__dirname + '/serverMockup/getServices.xml').pipe(res)
+      when 'GetSystemDataAndTime' then fs.createReadStream(__dirname + '/serverMockup/getSystemDateAndTime.xml').pipe(res)
     #res.end(xml)
 
 http
