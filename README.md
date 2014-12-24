@@ -29,4 +29,20 @@ When the cam object created it automatically sends three command to the ONVIF de
   - $.token
   - framerate
   - resolution
-+ profiles
++ profiles, array of profile object
+  - name
+  - videoSourceConfiguration
+  - videoEncoderConfiguration
+  - PTZConfiguration
++ defaultProfile (link to the first profile in profiles)
++ activeSource (based on the default profile)
+  - sourceToken
+  - profileToken
+  - encoding
+  - width
+  - height
+  - fps
+  - bitrate
+  - ptz
+
+See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
