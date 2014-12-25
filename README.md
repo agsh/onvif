@@ -24,7 +24,7 @@ When the cam object created it automatically sends three command to the ONVIF de
   - media
   - PTZ
   - extension
-+ PTZUri (this is link to ~capabilities.PTZ.XAddr)
++ ptzUri (this is link to ~capabilities.PTZ.XAddr)
 + videoSources
   - $.token
   - framerate
@@ -46,3 +46,5 @@ When the cam object created it automatically sends three command to the ONVIF de
   - ptz
 
 See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
+
+There are several common methods that work without credentials. Here are they: `getSystemDateAndTime`
