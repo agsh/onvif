@@ -4,6 +4,8 @@
 
 ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
 
+![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)
+
 ##Supported methods
 * GetSystemDateAndTime
 * GetCapabilities

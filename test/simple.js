@@ -22,16 +22,7 @@
     return describe('getSystemDateAndTime', function() {
       return it('should return valid date', function(done) {
         return cam.getSystemDateAndTime(function(err, data) {
-          assert.equal(err, null);
-          assert.deepEqual(Object.keys(data), ['time', 'date']);
-          assert.deepEqual(Object.keys(data.time), ['hour', 'minute', 'second']);
-          assert.deepEqual(Object.keys(data.date), ['year', 'month', 'day']);
-          assert.ok(Object.keys(data.time).every(function(key) {
-            return typeof data.time[key] === 'number';
-          }));
-          assert.ok(Object.keys(data.date).every(function(key) {
-            return typeof data.date[key] === 'number';
-          }));
+          assert.ok(data instanceof Date);
           return done();
         });
       });
