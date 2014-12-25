@@ -12,8 +12,20 @@ describe 'Simple and common get functions', () ->
       , port: 10101
     }, done
 
+  #describe 'object '
+
   describe 'getSystemDateAndTime', () ->
     it 'should return valid date', (done) ->
       cam.getSystemDateAndTime (err, data) ->
+        assert.equal err, null
         assert.ok (data instanceof Date)
+        done()
+
+  describe 'getServices', () ->
+    it 'should return an array of services objects', (done) ->
+      cam.getServices (err, data) ->
+        assert.equal err, null
+        assert.ok Array.isArray data
+        assert.ok data.every (service) ->
+          service.namespace and service.XAddr and service.version
         done()

@@ -1,10 +1,11 @@
 # ONVIF
 
 [![Build Status](https://travis-ci.org/agsh/onvif.png)](https://travis-ci.org/agsh/onvif)
+[![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 
 ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
 
-![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)
+[![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
 ##Supported methods
 * GetSystemDateAndTime
@@ -74,4 +75,7 @@ Returns an object with camera DateTime
 
 And with credentials (with passed `username` and `password` in object):
 
-### getVideoSources
+### getServices(callback)
+Returns in callback and assigns to #services property an array consists of objects with properties: `namespace`, `XAddr`, `version`
+
+

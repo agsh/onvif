@@ -19,10 +19,23 @@
         port: 10101
       }, done);
     });
-    return describe('getSystemDateAndTime', function() {
+    describe('getSystemDateAndTime', function() {
       return it('should return valid date', function(done) {
         return cam.getSystemDateAndTime(function(err, data) {
+          assert.equal(err, null);
           assert.ok(data instanceof Date);
+          return done();
+        });
+      });
+    });
+    return describe('getServices', function() {
+      return it('should return an array of services objects', function(done) {
+        return cam.getServices(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          assert.ok(data.every(function(service) {
+            return service.namespace && service.XAddr && service.version;
+          }));
           return done();
         });
       });
