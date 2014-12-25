@@ -19,6 +19,34 @@
         port: 10101
       }, done);
     });
+    describe('getCapabilities', function() {
+      it('should return an capabilities object with correspondent properties and also set them into capability property', function(done) {
+        return cam.getCapabilities(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['device', 'events', 'imaging', 'media', 'PTZ', 'extension'].every(function(prop) {
+            return data[prop];
+          }));
+          assert.equal(cam.capabilities, data);
+          return done();
+        });
+      });
+      return it('should store PTZ link in ptzUri property', function(done) {
+        assert.equal(cam.ptzUri.href, cam.capabilities.PTZ.XAddr);
+        return done();
+      });
+    });
+    describe('getVideoSources', function() {
+      return it('should return a videosources object with correspondent properties and also set them into videoSources property', function(done) {
+        return cam.getVideoSources(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['$', 'framerate', 'resolution'].every(function(prop) {
+            return data[prop];
+          }));
+          assert.equal(cam.videoSources, data);
+          return done();
+        });
+      });
+    });
     describe('getSystemDateAndTime', function() {
       return it('should return valid date', function(done) {
         return cam.getSystemDateAndTime(function(err, data) {

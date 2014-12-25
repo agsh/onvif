@@ -12,7 +12,24 @@ describe 'Simple and common get functions', () ->
       , port: 10101
     }, done
 
-  #describe 'object '
+  describe 'getCapabilities', () ->
+    it 'should return an capabilities object with correspondent properties and also set them into capability property', (done) ->
+      cam.getCapabilities (err, data) ->
+        assert.equal err, null
+        assert.ok ['device', 'events', 'imaging', 'media', 'PTZ', 'extension'].every (prop) -> data[prop]
+        assert.equal cam.capabilities, data
+        done()
+    it 'should store PTZ link in ptzUri property', (done) ->
+      assert.equal cam.ptzUri.href, cam.capabilities.PTZ.XAddr
+      done()
+
+  describe 'getVideoSources', () ->
+    it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
+      cam.getVideoSources (err, data) ->
+        assert.equal err, null
+        assert.ok ['$', 'framerate', 'resolution'].every (prop) -> data[prop]
+        assert.equal cam.videoSources, data
+        done()
 
   describe 'getSystemDateAndTime', () ->
     it 'should return valid date', (done) ->

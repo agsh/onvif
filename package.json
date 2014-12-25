@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "async": ">=0.9.0",
-    "coveralls": "^2.11.2",
+    "coveralls": ">=2.11.2",
     "mocha-lcov-reporter": "0.0.1",
     "xml2js": ">=0.4.4"
   },
