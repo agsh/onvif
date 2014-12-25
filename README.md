@@ -45,7 +45,7 @@ When the cam object creates it automatically sends three command to the ONVIF de
   - media
   - PTZ
   - extension
-+ ptzUri (this is link to ~capabilities.PTZ.XAddr)
++ ptzUri (this is a link to #capabilities.PTZ.XAddr)
 + videoSources
   - $.token
   - framerate
@@ -71,11 +71,28 @@ After cam initialisation we can run several ONVIF commands.
 There are several common methods that work without credentials. Here are they: `getSystemDateAndTime`.
 
 ### getSystemDateAndTime(callback)
-Returns an object with camera DateTime
+Returns an Date object with current camera datetime
+
+### getDeviceInformation(callback)
+Returns a device information, such as manufacturer, model and firmware version
 
 And with credentials (with passed `username` and `password` in object):
 
 ### getServices(callback)
-Returns in callback and assigns to #services property an array consists of objects with properties: `namespace`, `XAddr`, `version`
+Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
 
+### getStreamUri(options, callback)
+Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
+The options are:
 
+* `stream` (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'
+* `protocol` (optional) - defines the network protocol for streaming. Possible values are: 'UDP', 'TCP', 'RTSP' (default), 'HTTP'
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+
+### getPresets(options, callback)
+Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
+This method also stores the presets information in a `#presets` property of an object.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
