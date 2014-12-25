@@ -24,6 +24,6 @@
     "node": ">=0.6"
   },
   "devDependencies": {
-    "mocha": "^2.0.1"
+    "mocha": ">=2.1.0"
   }
 }

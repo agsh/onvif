@@ -1,5 +1,6 @@
 # ONVIF
 ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
+[![Build Status](https://travis-ci.org/agsh/onvif.png)](https://travis-ci.org/agsh/onvif)
 
 ##Supported methods
 * getSystemDateAndTime
