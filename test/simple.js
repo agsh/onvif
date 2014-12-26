@@ -13,18 +13,19 @@
     cam = null;
     before(function(done) {
       return cam = new Cam({
-        hostname: 'localhost',
+        hostname: '192.168.68.111',
         username: 'admin',
-        password: '9999',
-        port: 10101
+        password: '9999'
       }, done);
     });
     describe('getCapabilities', function() {
       it('should return an capabilities object with correspondent properties and also set them into capability property', function(done) {
         return cam.getCapabilities(function(err, data) {
           assert.equal(err, null);
-          assert.ok(['device', 'events', 'imaging', 'media', 'PTZ', 'extension'].every(function(prop) {
-            return data[prop];
+          assert.ok(cam.profiles.every(function(profile) {
+            return ['name', 'videoSourceConfiguration', 'videoEncoderConfiguration', 'PTZConfiguration'].every(function(prop) {
+              return profile[prop];
+            });
           }));
           assert.equal(cam.capabilities, data);
           return done();
@@ -40,7 +41,19 @@
         return cam.getVideoSources(function(err, data) {
           assert.equal(err, null);
           assert.ok(['$', 'framerate', 'resolution'].every(function(prop) {
-            return data[prop];
+            return data[prop] !== void 0;
+          }));
+          assert.equal(cam.videoSources, data);
+          return done();
+        });
+      });
+    });
+    describe('getProfiles', function() {
+      return it('should create an array of profile objects with correspondent properties', function(done) {
+        return cam.getVideoSources(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['$', 'framerate', 'resolution'].every(function(prop) {
+            return data[prop] !== void 0;
           }));
           assert.equal(cam.videoSources, data);
           return done();
@@ -56,7 +69,7 @@
         });
       });
     });
-    return describe('getServices', function() {
+    describe('getServices', function() {
       return it('should return an array of services objects', function(done) {
         return cam.getServices(function(err, data) {
           assert.equal(err, null);
@@ -64,6 +77,43 @@
           assert.ok(data.every(function(service) {
             return service.namespace && service.XAddr && service.version;
           }));
+          return done();
+        });
+      });
+    });
+    describe('getDeviceInformation', function() {
+      return it('should return an information about device', function(done) {
+        return cam.getDeviceInformation(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['manufacturer', 'model', 'firmwareVersion', 'serialNumber', 'hardwareId'].every(function(prop) {
+            return data[prop] !== void 0;
+          }));
+          assert.equal(cam.deviceInformation, data);
+          return done();
+        });
+      });
+    });
+    describe('getStreamUri', function() {
+      return it('should return a media stream uri', function(done) {
+        return cam.getStreamUri({
+          protocol: 'HTTP'
+        }, function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every(function(prop) {
+            return data[prop] !== void 0;
+          }));
+          return done();
+        });
+      });
+    });
+    return describe('getPresets', function() {
+      return it('should return array of preset objects', function(done) {
+        return cam.getPresets({}, function(err, data) {
+          assert.equal(err, null);
+          assert.ok(Object.keys(data).every(function(presetName) {
+            return typeof data[presetName] === 'string';
+          }));
+          assert.equal(cam.presets, data);
           return done();
         });
       });

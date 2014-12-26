@@ -1,9 +1,9 @@
 _linerase = (require '../lib/onvif')._linerase
+_cropName = (require '../lib/onvif')._cropName
 assert = require 'assert'
 parseString = (require 'xml2js').parseString
 
 describe 'linerase function', () ->
-
   it 'should handle tag', (done) ->
     parseString '<a><b>text</b><c>text</c></a>', (err, result) ->
       assert.deepEqual _linerase(result), {
@@ -57,3 +57,11 @@ describe 'linerase function', () ->
         }
       }
       done()
+
+describe 'crop function', () ->
+  it 'should remove xml namespaces', () ->
+    assert.equal (_cropName 'ns:name'), 'name'
+  it 'should camelcase name remaining uppercase words', () ->
+    assert.equal (_cropName 'Abc'), 'abc'
+    assert.equal (_cropName 'ABC'), 'ABC'
+    assert.equal (_cropName 'abc'), 'abc'
