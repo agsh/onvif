@@ -28,6 +28,7 @@
     "node": ">=0.6"
   },
   "devDependencies": {
+    "jscs": ">=1.9.0",
     "mocha": ">=2.1.0"
   }
 }
