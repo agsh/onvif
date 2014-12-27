@@ -5,9 +5,10 @@
   "description": "ONVIF client",
   "main": "lib/onvif.js",
   "scripts": {
-    "test": "mocha",
-    "test-cov": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec",
-    "test-coveralls": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage"
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha",
+    "test-on-travis": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly",
+    "test-coveralls": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
+    "upload-to-coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
