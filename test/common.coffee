@@ -6,11 +6,10 @@ describe 'Simple and common get functions', () ->
   cam = null
   before (done) ->
     options = {
-      hostname: 'localhost'
-      # hostname: '192.168.68.111'
+      hostname: process.env.HOSTNAME || 'localhost'
       username: 'admin'
       password: '9999'
-      port: 10101
+      port: if process.env.PORT then parseInt(process.env.PORT) else 10101
     }
     cam = new Cam options, done
 

@@ -5,3 +5,7 @@ node_js:
   - "0.8"
 notifications:
   email: true
+env:
+  global:
+    - HOSTNAME=127.0.0.1
+    - PORT=10101

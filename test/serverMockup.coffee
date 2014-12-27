@@ -19,4 +19,4 @@ listener = (req, res) ->
 
 module.exports = http
   .createServer listener
-  .listen 10101
+  .listen process.env.PORT || 10101
