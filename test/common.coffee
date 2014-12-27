@@ -5,13 +5,14 @@ serverMockup = require('./serverMockup')
 describe 'Simple and common get functions', () ->
   cam = null
   before (done) ->
-    cam = new Cam {
-      #hostname: 'localhost'
-      hostname: '192.168.68.111'
+    options = {
+      hostname: 'localhost'
+      # hostname: '192.168.68.111'
       username: 'admin'
       password: '9999'
-      #port: 10101
-    }, done
+      port: 10101
+    }
+    cam = new Cam options, done
 
   describe 'getCapabilities', () ->
     it 'should return an capabilities object with correspondent properties and also set them into capability property', (done) ->
