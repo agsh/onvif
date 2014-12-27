@@ -5,7 +5,9 @@
   "description": "ONVIF client",
   "main": "lib/onvif.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "test-cov": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -R spec",
+    "test-coveralls": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage"
   },
   "repository": {
     "type": "git",
@@ -26,9 +28,9 @@
     "node": ">=0.6"
   },
   "devDependencies": {
-    "jscs": ">=1.9.0",
     "coveralls": ">=2.11.2",
-    "mocha-lcov-reporter": "0.0.1",
-    "mocha": ">=2.1.0"
+    "istanbul": "^0.3.5",
+    "mocha": ">=2.1.0",
+    "mocha-lcov-reporter": "0.0.1"
   }
 }
