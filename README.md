@@ -96,3 +96,13 @@ This method also stores the presets information in a `#presets` property of an o
 The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+
+### ptzRelativeMove(options, callback)
+This is a relative pan-tilt method. Options for this method is a delta between desired and current position of the camera.
+The options are:
+
+* `translationPanTiltX` (optional)
+* `translationPanTiltY` (optional)
+* `speedPanTiltX` (optional)
+* `speedPanTiltY` (optional)
+* `zoom` (optional)
