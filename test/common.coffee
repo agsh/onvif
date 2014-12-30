@@ -85,3 +85,35 @@ describe 'Simple and common get functions', () ->
           typeof data[presetName] == 'string'
         assert.equal cam.presets, data
         done()
+
+  describe 'absolute move', () ->
+    it 'should returns empty RelativeResponseObject', (done) ->
+      cam.ptzAbsoluteMove({
+        positionPanTiltX: 1
+        positionPanTiltY: 1
+        zoom: 1
+      }, done)
+    it 'should works without callback', () ->
+      cam.ptzAbsoluteMove({
+        positionPanTiltX: 1
+        positionPanTiltY: 1
+        zoom: 1
+      })
+
+  describe 'relative move', () ->
+    it 'should returns empty RelativeResponseObject', (done) ->
+      cam.ptzAbsoluteMove({
+        speedPanTiltX: 1
+        speedPanTiltY: 1
+        translationPanTiltX: 1
+        translationPanTiltY: 1
+        zoom: 1
+      }, done)
+    it 'should works without callback', () ->
+      cam.ptzAbsoluteMove({
+        speedPanTiltX: 1
+        speedPanTiltY: 1
+        translationPanTiltX: 1
+        translationPanTiltY: 1
+        zoom: 1
+      })
