@@ -35,8 +35,11 @@ describe 'Simple and common get functions', () ->
         cam.hostname = host
         done()
     it 'should not work with the PTZ option but without ptzUri property', (done) ->
+      ptzUri = cam.ptzUri
+      delete cam.ptzUri
       cam._request {body: 'test', ptz: true}, (err) ->
         assert.notEqual err, null
+        cam.ptzUri = ptzUri
         done()
     it 'should work nice with the proper request body', (done) ->
       cam._request {body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
