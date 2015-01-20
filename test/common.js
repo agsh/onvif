@@ -21,6 +21,88 @@
       };
       return cam = new Cam(options, done);
     });
+    describe('_request', function() {
+      it('brokes when no arguments are passed', function(done) {
+        assert.throws(function() {
+          return cam._request();
+        });
+        return done();
+      });
+      it('brokes when no callback is passed', function(done) {
+        assert.throws(function() {
+          return cam._request({});
+        });
+        return done();
+      });
+      it('brokes when no options.body is passed', function(done) {
+        assert.throws(function() {
+          return cam._request({}, function() {
+            return {};
+          });
+        });
+        return done();
+      });
+      it('should return an error message when request is bad', function(done) {
+        return cam._request({
+          body: 'test'
+        }, function(err) {
+          assert.notEqual(err, null);
+          return done();
+        });
+      });
+      it('should return an error message when the network is unreachible', function(done) {
+        var host;
+        host = cam.hostname;
+        cam.hostname = 'wrong hostname';
+        return cam._request({
+          body: 'test'
+        }, function(err) {
+          assert.notEqual(err, null);
+          cam.hostname = host;
+          return done();
+        });
+      });
+      it('should not work with the PTZ option but without ptzUri property', function(done) {
+        return cam._request({
+          body: 'test',
+          ptz: true
+        }, function(err) {
+          assert.notEqual(err, null);
+          return done();
+        });
+      });
+      return it('should work nice with the proper request body', function(done) {
+        return cam._request({
+          body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' + '</s:Body>' + '</s:Envelope>'
+        }, function(err) {
+          assert.equal(err, null);
+          return done();
+        });
+      });
+    });
+    describe('connect', function() {
+      return it('should connect to the cam, fill startup properties', function(done) {
+        return cam.connect(function(err) {
+          assert.equal(err, null);
+          assert.ok(cam.capabilities);
+          assert.ok(cam.ptzUri);
+          assert.ok(cam.videoSources);
+          assert.ok(cam.profiles);
+          assert.ok(cam.defaultProfile);
+          assert.ok(cam.activeSource);
+          return done();
+        });
+      });
+    });
+    describe('getSystemDateAndTime', function() {
+      return it('should return valid date', function(done) {
+        return cam.getSystemDateAndTime(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(data instanceof Date);
+          return done();
+        });
+      });
+    });
     describe('getCapabilities', function() {
       it('should return an capabilities object with correspondent properties and also set them into capability property', function(done) {
         return cam.getCapabilities(function(err, data) {
@@ -59,15 +141,6 @@
             return data[prop] !== void 0;
           }));
           assert.equal(cam.videoSources, data);
-          return done();
-        });
-      });
-    });
-    describe('getSystemDateAndTime', function() {
-      return it('should return valid date', function(done) {
-        return cam.getSystemDateAndTime(function(err, data) {
-          assert.equal(err, null);
-          assert.ok(data instanceof Date);
           return done();
         });
       });

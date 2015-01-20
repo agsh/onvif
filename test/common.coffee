@@ -13,6 +13,60 @@ describe 'Simple and common get functions', () ->
     }
     cam = new Cam options, done
 
+  describe '_request', () ->
+    it 'brokes when no arguments are passed', (done) ->
+      assert.throws () -> cam._request()
+      done()
+    it 'brokes when no callback is passed', (done) ->
+      assert.throws () -> cam._request({})
+      done()
+    it 'brokes when no options.body is passed', (done) ->
+      assert.throws () -> cam._request({}, () -> {})
+      done()
+    it 'should return an error message when request is bad', (done) ->
+      cam._request {body: 'test'}, (err) ->
+        assert.notEqual err, null
+        done()
+    it 'should return an error message when the network is unreachible', (done) ->
+      host = cam.hostname
+      cam.hostname = 'wrong hostname'
+      cam._request {body: 'test'}, (err) ->
+        assert.notEqual err, null
+        cam.hostname = host
+        done()
+    it 'should not work with the PTZ option but without ptzUri property', (done) ->
+      cam._request {body: 'test', ptz: true}, (err) ->
+        assert.notEqual err, null
+        done()
+    it 'should work nice with the proper request body', (done) ->
+      cam._request {body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
+        '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+        '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' +
+        '</s:Body>' +
+        '</s:Envelope>'}
+      , (err) ->
+        assert.equal err, null
+        done()
+
+  describe 'connect', () ->
+    it 'should connect to the cam, fill startup properties', (done) ->
+      cam.connect (err) ->
+        assert.equal err, null
+        assert.ok cam.capabilities
+        assert.ok cam.ptzUri
+        assert.ok cam.videoSources
+        assert.ok cam.profiles
+        assert.ok cam.defaultProfile
+        assert.ok cam.activeSource
+        done()
+
+  describe 'getSystemDateAndTime', () ->
+    it 'should return valid date', (done) ->
+      cam.getSystemDateAndTime (err, data) ->
+        assert.equal err, null
+        assert.ok (data instanceof Date)
+        done()
+
   describe 'getCapabilities', () ->
     it 'should return an capabilities object with correspondent properties and also set them into capability property', (done) ->
       cam.getCapabilities (err, data) ->
@@ -42,13 +96,6 @@ describe 'Simple and common get functions', () ->
         assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
           data[prop] != undefined
         assert.equal cam.videoSources, data
-        done()
-
-  describe 'getSystemDateAndTime', () ->
-    it 'should return valid date', (done) ->
-      cam.getSystemDateAndTime (err, data) ->
-        assert.equal err, null
-        assert.ok (data instanceof Date)
         done()
 
   describe 'getServices', () ->
