@@ -63,11 +63,15 @@
         });
       });
       it('should not work with the PTZ option but without ptzUri property', function(done) {
+        var ptzUri;
+        ptzUri = cam.ptzUri;
+        delete cam.ptzUri;
         return cam._request({
           body: 'test',
           ptz: true
         }, function(err) {
           assert.notEqual(err, null);
+          cam.ptzUri = ptzUri;
           return done();
         });
       });
