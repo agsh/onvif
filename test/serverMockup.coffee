@@ -11,8 +11,9 @@ listener = (req, res) ->
     buf.push chunk
   req.on 'end', () ->
     request = Buffer.concat buf
-    body = reBody.exec(request)[1]
+    body = reBody.exec(request)
     return res.end() if !body
+    body = body[1]
     command = reCommand.exec(body)[1]
     return res.end() if !command
     fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)

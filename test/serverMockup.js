@@ -22,10 +22,11 @@
     return req.on('end', function() {
       var body, command, request;
       request = Buffer.concat(buf);
-      body = reBody.exec(request)[1];
+      body = reBody.exec(request);
       if (!body) {
         return res.end();
       }
+      body = body[1];
       command = reCommand.exec(body)[1];
       if (!command) {
         return res.end();
