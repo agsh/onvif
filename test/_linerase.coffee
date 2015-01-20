@@ -1,5 +1,5 @@
-_linerase = (require '../lib/onvif')._linerase
-_cropName = (require '../lib/onvif')._cropName
+_linerase = (require '../lib/soapHelpers')._linerase
+_cropName = (require '../lib/soapHelpers')._cropName
 assert = require 'assert'
 parseString = (require 'xml2js').parseString
 

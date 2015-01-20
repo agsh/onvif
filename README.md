@@ -66,6 +66,9 @@ When the cam object creates it automatically sends three command to the ONVIF de
   - bitrate
   - ptz
 
+### connect(callback)
+Connect to the camera and fill device information properties with `getCapabilities`, `getVideoSources`, `getProfiles` methods
+
 See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
 After cam initialisation we can run several ONVIF commands.
 There are several common methods that work without credentials. Here are they: `getSystemDateAndTime`.
