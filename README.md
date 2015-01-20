@@ -4,6 +4,8 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 
 ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
+This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
+device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
@@ -111,3 +113,4 @@ The options are:
 * `zoom` (optional)
 
 ### getStatus(options, callback)
+Returns an object with the current PTZ values.
