@@ -61,7 +61,7 @@
         return done();
       });
     });
-    return it('should camelcase names', function(done) {
+    it('should camelcase names', function(done) {
       return parseString('<ns:Abc><q:ABC>text</q:ABC><abc>text</abc></ns:Abc>', function(err, result) {
         assert.deepEqual(_linerase(result), {
           abc: {
@@ -70,6 +70,20 @@
           }
         });
         return done();
+      });
+    });
+    it('should deals with numbers', function() {
+      return assert.deepEqual(_linerase({
+        a: '34.23'
+      }), {
+        a: 34.23
+      });
+    });
+    return it('should deals with datetime and not converts it to number', function() {
+      return assert.deepEqual(_linerase({
+        a: '2015-01-20T16:33:03Z'
+      }), {
+        a: '2015-01-20T16:33:03Z'
       });
     });
   });

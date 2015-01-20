@@ -58,6 +58,12 @@ describe 'linerase function', () ->
       }
       done()
 
+  it 'should deals with numbers', () ->
+    assert.deepEqual _linerase({a: '34.23'}), {a: 34.23}
+
+  it 'should deals with datetime and not converts it to number', () ->
+    assert.deepEqual _linerase({a: '2015-01-20T16:33:03Z'}), {a: '2015-01-20T16:33:03Z'}
+
 describe 'crop function', () ->
   it 'should remove xml namespaces', () ->
     assert.equal (_cropName 'ns:name'), 'name'

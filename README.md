@@ -109,3 +109,5 @@ The options are:
 * `speedPanTiltX` (optional)
 * `speedPanTiltY` (optional)
 * `zoom` (optional)
+
+### getStatus(options, callback)

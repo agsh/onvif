@@ -138,32 +138,38 @@ describe 'Simple and common get functions', () ->
 
   describe 'absolute move', () ->
     it 'should returns empty RelativeResponseObject', (done) ->
-      cam.ptzAbsoluteMove({
+      cam.ptzAbsoluteMove {
         positionPanTiltX: 1
         positionPanTiltY: 1
         zoom: 1
-      }, done)
+      }, done
     it 'should works without callback', () ->
-      cam.ptzAbsoluteMove({
+      cam.ptzAbsoluteMove {
         positionPanTiltX: 1
         positionPanTiltY: 1
         zoom: 1
-      })
+      }
 
   describe 'relative move', () ->
     it 'should returns empty RelativeResponseObject', (done) ->
-      cam.ptzAbsoluteMove({
+      cam.ptzAbsoluteMove {
         speedPanTiltX: 1
         speedPanTiltY: 1
         translationPanTiltX: 1
         translationPanTiltY: 1
         zoom: 1
-      }, done)
+      }, done
     it 'should works without callback', () ->
-      cam.ptzAbsoluteMove({
+      cam.ptzAbsoluteMove {
         speedPanTiltX: 1
         speedPanTiltY: 1
         translationPanTiltX: 1
         translationPanTiltY: 1
         zoom: 1
-      })
+      }
+
+  describe 'getStatus', () ->
+    it 'should returns position status', (done) ->
+      cam.getStatus {}, (err, data) ->
+        assert.equal err, null
+        done()

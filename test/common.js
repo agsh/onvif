@@ -214,7 +214,7 @@
         });
       });
     });
-    return describe('relative move', function() {
+    describe('relative move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
         return cam.ptzAbsoluteMove({
           speedPanTiltX: 1,
@@ -231,6 +231,14 @@
           translationPanTiltX: 1,
           translationPanTiltY: 1,
           zoom: 1
+        });
+      });
+    });
+    return describe('getStatus', function() {
+      return it('should returns position status', function(done) {
+        return cam.getStatus({}, function(err, data) {
+          assert.equal(err, null);
+          return done();
         });
       });
     });
