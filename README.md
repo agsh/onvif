@@ -31,23 +31,21 @@ In the library directory run
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
 container which translates video from the camera.
 ```javascript
-var http = require('http')
-	, Cam = require('./lib/onvif').Cam
-	;
+var http = require('http'),
+	Cam = require('onvif').Cam;
 
-new Cam({hostname: CAMERA_HOSTNAME, username: USERNAME, password: PASSWORD}, function(err) {
-	this.ptzAbsoluteMove({
-		positionPanTiltX: 1
-		, positionPanTiltY: 1
-		, zoom: 1
-	});
+new Cam({
+	hostname: CAMERA_HOST,
+	username: USERNAME,
+	password: PASSWORD
+}, function(err) {
+	this.absoluteMove({x: 1, y: 1, zoom: 1});
 	this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
 		http.createServer(function (req, res) {
 			res.writeHead(200, {'Content-Type': 'text/html'});
 			res.end(
 				'<html><body>' +
-					'<embed type="application/x-vlc-plugin" name="video" id="video" autoplay="yes"' +
-						'loop="yes" height="240" width="320" target="' + stream.uri + '"></embed>' +
+				'<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
 				'</boby></html>');
 		}).listen(3030);
 	});
@@ -136,15 +134,53 @@ The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
-### ptzRelativeMove(options, callback)
-This is a relative pan-tilt method. Options for this method is a delta between desired and current position of the camera.
+### relativeMove(options, callback)
+This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.
 The options are:
+```javascript
+{
+	x: 'Pan, number or a string within -1 to 1, optional',
+	y: 'Tilt, number or a string within -1 to 1, optional',
+	zoom: 'Zoom, number or a string within -1 to 1, optional',
+	speed: { // If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
+		x: 'Pan speed',
+		y: 'Tilt speed',
+		zoom: 'Zoom speed'
+	}
+}
+```
 
-* `translationPanTiltX` (optional)
-* `translationPanTiltY` (optional)
-* `speedPanTiltX` (optional)
-* `speedPanTiltY` (optional)
-* `zoom` (optional)
+### absoluteMove(options, callback)
+This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.
+The options are:
+```javascript
+{
+	x: 'Pan, number or a string within -1 to 1, optional',
+	y: 'Tilt, number or a string within -1 to 1, optional',
+	zoom: 'Zoom, number or a string within -1 to 1, optional',
+	speed: { // If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
+		x: 'Pan speed',
+		y: 'Tilt speed',
+		zoom: 'Zoom speed'
+	}
+}
+```
 
 ### getStatus(options, callback)
 Returns an object with the current PTZ values.
+```javascript
+{
+	position: {
+		x: 'pan position'
+		, y: 'tilt position'
+		, zoom: 'zoom'
+	}
+	, moveStatus: {} // camera moving
+	, utcTime: 'current camera datetime'
+}
+```
+
+##Links
+WSDL schemes:
+- http://www.onvif.org/ver10/media/wsdl/media.wsdl```
+- http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl

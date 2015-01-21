@@ -1,8 +1,8 @@
 {
   "name": "onvif",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
-  "description": "ONVIF client",
+  "description": "Client to ONVIF NVT devices, especially cameras",
   "main": "lib/onvif.js",
   "scripts": {
     "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha",
@@ -22,7 +22,8 @@
     "onvif",
     "video",
     "PTZ",
-    "camera"
+    "camera",
+	"RTSP"
   ],
   "license": "MIT",
   "engines": {

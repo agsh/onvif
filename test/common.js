@@ -200,14 +200,14 @@
     });
     describe('absolute move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
-        return cam.ptzAbsoluteMove({
+        return cam.absoluteMove({
           positionPanTiltX: 1,
           positionPanTiltY: 1,
           zoom: 1
         }, done);
       });
       return it('should works without callback', function() {
-        return cam.ptzAbsoluteMove({
+        return cam.absoluteMove({
           positionPanTiltX: 1,
           positionPanTiltY: 1,
           zoom: 1
@@ -216,7 +216,7 @@
     });
     describe('relative move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
-        return cam.ptzAbsoluteMove({
+        return cam.relativeMove({
           speedPanTiltX: 1,
           speedPanTiltY: 1,
           translationPanTiltX: 1,
@@ -225,11 +225,13 @@
         }, done);
       });
       return it('should works without callback', function() {
-        return cam.ptzAbsoluteMove({
-          speedPanTiltX: 1,
-          speedPanTiltY: 1,
-          translationPanTiltX: 1,
-          translationPanTiltY: 1,
+        return cam.relativeMove({
+          speed: {
+            x: 1,
+            y: 1
+          },
+          x: 1,
+          y: 1,
           zoom: 1
         });
       });
