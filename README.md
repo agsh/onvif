@@ -30,23 +30,24 @@ In the library directory run `npm run-script test`
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
 container which translates video from the camera.
 ```javascript
-var http = require('http'),
-	Cam = require('onvif').Cam;
+var
+  http = require('http'),
+  Cam = require('onvif').Cam;
 
 new Cam({
-	hostname: CAMERA_HOST,
-	username: USERNAME,
-	password: PASSWORD
+  hostname: CAMERA_HOST,
+  username: USERNAME,
+  password: PASSWORD
 }, function(err) {
-	this.absoluteMove({x: 1, y: 1, zoom: 1});
-	this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
-		http.createServer(function (req, res) {
-			res.writeHead(200, {'Content-Type': 'text/html'});
-			res.end('<html><body>' +
-				'<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
-				'</body></html>');
-		}).listen(3030);
-	});
+  this.absoluteMove({x: 1, y: 1, zoom: 1});
+  this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
+    http.createServer(function (req, res) {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end('<html><body>' +
+        '<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
+        '</body></html>');
+    }).listen(3030);
+  });
 });
 ```
 
@@ -106,12 +107,12 @@ After cam initialisation we can run several ONVIF commands.
 There are several common methods that work without credentials. Here are they: `getSystemDateAndTime`.
 
 ### getSystemDateAndTime(callback)
-Returns an Date object with current camera datetime
+Returns a Date object with current camera datetime in the callback.
+Works without credentials (passed `username` and `password` arguments).
 
 ### getDeviceInformation(callback)
-Returns a device information, such as manufacturer, model and firmware version
-
-And with credentials (with passed `username` and `password` in object):
+Returns a device information, such as manufacturer, model and firmware version in the callback
+Works without credentials (passed `username` and `password` arguments).
 
 ### getServices(callback)
 Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
@@ -120,9 +121,9 @@ Returns in callback and assigns to `#services` property an array consists of obj
 Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
 The options are:
 
-* `stream` (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'
-* `protocol` (optional) - defines the network protocol for streaming. Possible values are: 'UDP', 'TCP', 'RTSP' (default), 'HTTP'
-* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+- `stream` (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'
+- `protocol` (optional) - defines the network protocol for streaming. Possible values are: 'UDP', 'TCP', 'RTSP' (default), 'HTTP'
+- `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### getPresets(options, callback)
 Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
@@ -133,8 +134,11 @@ The options are:
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### relativeMove(options, callback)
+
 This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.
+
 The options are:
+
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
 - `zoom` Zoom, number or a string within -1 to 1, optional
@@ -142,12 +146,17 @@ The options are:
   * `x` Pan speed
   * `y` Tilt speed
   * `zoom` Zoom speed
+
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+
 Callback is optional and means essentially nothing
 
 ### absoluteMove(options, callback)
+
 This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.
+
 The options are:
+
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
 - `zoom` Zoom, number or a string within -1 to 1, optional
@@ -155,7 +164,9 @@ The options are:
   * `x` Pan speed
   * `y` Tilt speed
   * `zoom` Zoom speed
+
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+
 Callback is optional and means essentially nothing
 
 ### getStatus(options, callback)
@@ -171,6 +182,13 @@ Returns an object with the current PTZ values.
 	, utcTime: 'current camera datetime'
 }
 ```
+
+### getConfigurations(callback)
+Get all the existing PTZConfigurations from the device. Configurations saved into `#configurations` property
+
+### getConfigurationOptions(configurationToken, callback)
+Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
+configuration object
 
 ##Links
 WSDL schemes:
