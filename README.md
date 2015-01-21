@@ -20,6 +20,40 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 * PTZRelativeMove
 * PTZAbsoluteMove
 
+##Installation
+`npm install onvif`
+
+##Tests
+In the library directory run
+`npm run-script test`
+
+##Quick example
+This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
+container which translates video from the camera.
+```javascript
+var http = require('http')
+	, Cam = require('./lib/onvif').Cam
+	;
+
+new Cam({hostname: CAMERA_HOSTNAME, username: USERNAME, password: PASSWORD}, function(err) {
+	this.ptzAbsoluteMove({
+		positionPanTiltX: 1
+		, positionPanTiltY: 1
+		, zoom: 1
+	});
+	this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
+		http.createServer(function (req, res) {
+			res.writeHead(200, {'Content-Type': 'text/html'});
+			res.end(
+				'<html><body>' +
+					'<embed type="application/x-vlc-plugin" name="video" id="video" autoplay="yes"' +
+						'loop="yes" height="240" width="320" target="' + stream.uri + '"></embed>' +
+				'</boby></html>');
+		}).listen(3030);
+	});
+});
+```
+
 ##API
 
 ```javascript
