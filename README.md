@@ -24,8 +24,7 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 `npm install onvif`
 
 ##Tests
-In the library directory run
-`npm run-script test`
+In the library directory run `npm run-script test`
 
 ##Quick example
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
@@ -43,10 +42,9 @@ new Cam({
 	this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
 		http.createServer(function (req, res) {
 			res.writeHead(200, {'Content-Type': 'text/html'});
-			res.end(
-				'<html><body>' +
+			res.end('<html><body>' +
 				'<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
-				'</boby></html>');
+				'</body></html>');
 		}).listen(3030);
 	});
 });
@@ -137,34 +135,28 @@ The options are:
 ### relativeMove(options, callback)
 This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.
 The options are:
-```javascript
-{
-	x: 'Pan, number or a string within -1 to 1, optional',
-	y: 'Tilt, number or a string within -1 to 1, optional',
-	zoom: 'Zoom, number or a string within -1 to 1, optional',
-	speed: { // If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
-		x: 'Pan speed',
-		y: 'Tilt speed',
-		zoom: 'Zoom speed'
-	}
-}
-```
+- `x` Pan, number or a string within -1 to 1, optional
+- `y` Tilt, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within -1 to 1, optional
+- `speed` An object with properties
+  * `x` Pan speed
+  * `y` Tilt speed
+  * `zoom` Zoom speed
+  If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+Callback is optional and means essentially nothing
 
 ### absoluteMove(options, callback)
 This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.
 The options are:
-```javascript
-{
-	x: 'Pan, number or a string within -1 to 1, optional',
-	y: 'Tilt, number or a string within -1 to 1, optional',
-	zoom: 'Zoom, number or a string within -1 to 1, optional',
-	speed: { // If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
-		x: 'Pan speed',
-		y: 'Tilt speed',
-		zoom: 'Zoom speed'
-	}
-}
-```
+- `x` Pan, number or a string within -1 to 1, optional
+- `y` Tilt, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within -1 to 1, optional
+- `speed` An object with properties
+  * `x` Pan speed
+  * `y` Tilt speed
+  * `zoom` Zoom speed
+  If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+Callback is optional and means essentially nothing
 
 ### getStatus(options, callback)
 Returns an object with the current PTZ values.
@@ -182,5 +174,5 @@ Returns an object with the current PTZ values.
 
 ##Links
 WSDL schemes:
-- http://www.onvif.org/ver10/media/wsdl/media.wsdl```
+- http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
