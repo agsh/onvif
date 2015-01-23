@@ -71,7 +71,7 @@ describe 'Simple and common get functions', () ->
         done()
 
   describe 'getCapabilities', () ->
-    it 'should return an capabilities object with correspondent properties and also set them into capability property', (done) ->
+    it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->
       cam.getCapabilities (err, data) ->
         assert.equal err, null
         assert.ok cam.profiles.every (profile) ->
@@ -82,6 +82,15 @@ describe 'Simple and common get functions', () ->
     it 'should store PTZ link in ptzUri property', (done) ->
       assert.equal cam.ptzUri.href, cam.capabilities.PTZ.XAddr
       done()
+
+  describe 'getServiceCapabilities', () ->
+    it 'should return a service capabilities object and also set them into #serviceCapabilities property', (done) ->
+      cam.getServiceCapabilities (err, data) ->
+        assert.equal err, null
+        assert.ok ['network', 'security', 'system', 'auxiliaryCommands'].every (prop) ->
+          data[prop]
+        assert.equal cam.serviceCapabilities, data
+        done()
 
   describe 'getVideoSources', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->

@@ -108,7 +108,7 @@
       });
     });
     describe('getCapabilities', function() {
-      it('should return an capabilities object with correspondent properties and also set them into capability property', function(done) {
+      it('should return a capabilities object with correspondent properties and also set them into #capability property', function(done) {
         return cam.getCapabilities(function(err, data) {
           assert.equal(err, null);
           assert.ok(cam.profiles.every(function(profile) {
@@ -123,6 +123,18 @@
       return it('should store PTZ link in ptzUri property', function(done) {
         assert.equal(cam.ptzUri.href, cam.capabilities.PTZ.XAddr);
         return done();
+      });
+    });
+    describe('getServiceCapabilities', function() {
+      return it('should return a service capabilities object and also set them into #serviceCapabilities property', function(done) {
+        return cam.getServiceCapabilities(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['network', 'security', 'system', 'auxiliaryCommands'].every(function(prop) {
+            return data[prop];
+          }));
+          assert.equal(cam.serviceCapabilities, data);
+          return done();
+        });
       });
     });
     describe('getVideoSources', function() {
