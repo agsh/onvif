@@ -85,7 +85,7 @@
       });
     });
     describe('connect', function() {
-      return it('should connect to the cam, fill startup properties', function(done) {
+      it('should connect to the cam, fill startup properties', function(done) {
         return cam.connect(function(err) {
           assert.equal(err, null);
           assert.ok(cam.capabilities);
@@ -94,6 +94,16 @@
           assert.ok(cam.profiles);
           assert.ok(cam.defaultProfile);
           assert.ok(cam.activeSource);
+          return done();
+        });
+      });
+      return it('should return an error when upstart is unfinished', function(done) {
+        cam.getCapabilities = function(cb) {
+          return cb(new Error('error'));
+        };
+        return cam.connect(function(err) {
+          assert.notEqual(err, null);
+          delete cam.getCapabilities;
           return done();
         });
       });

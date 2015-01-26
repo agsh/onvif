@@ -62,6 +62,13 @@ describe 'Simple and common get functions', () ->
         assert.ok cam.defaultProfile
         assert.ok cam.activeSource
         done()
+    it 'should return an error when upstart is unfinished', (done) ->
+      cam.getCapabilities = (cb) ->
+        cb new Error('error')
+      cam.connect (err) ->
+        assert.notEqual err, null
+        delete cam.getCapabilities
+        done()
 
   describe 'getSystemDateAndTime', () ->
     it 'should return valid date', (done) ->
