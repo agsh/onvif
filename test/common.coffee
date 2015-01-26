@@ -160,6 +160,24 @@ describe 'Simple and common get functions', () ->
         assert.deepEqual cam.nodes, data
         done()
 
+  describe 'getConfigurations', () ->
+    it 'should return object of configurations and sets them to #configurations', (done) ->
+      cam.getConfigurations (err, data) ->
+        assert.equal err, null
+        assert.ok typeof data == 'object'
+        assert.deepEqual cam.configurations, data
+        done()
+
+  describe 'getConfigurationOptions', () ->
+    it 'should return an options object for every configuation token', (done) ->
+      tokens = Object.keys cam.configurations
+      cou = tokens.length
+      tokens.forEach (token) ->
+        cam.getConfigurationOptions token, (err, data) ->
+          assert.equal err, null
+          assert.ok typeof data == 'object'
+          done() if not (--cou)
+
   describe 'absolute move', () ->
     it 'should returns empty RelativeResponseObject', (done) ->
       cam.absoluteMove {

@@ -230,6 +230,32 @@
         });
       });
     });
+    describe('getConfigurations', function() {
+      return it('should return object of configurations and sets them to #configurations', function(done) {
+        return cam.getConfigurations(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(typeof data === 'object');
+          assert.deepEqual(cam.configurations, data);
+          return done();
+        });
+      });
+    });
+    describe('getConfigurationOptions', function() {
+      return it('should return an options object for every configuation token', function(done) {
+        var cou, tokens;
+        tokens = Object.keys(cam.configurations);
+        cou = tokens.length;
+        return tokens.forEach(function(token) {
+          return cam.getConfigurationOptions(token, function(err, data) {
+            assert.equal(err, null);
+            assert.ok(typeof data === 'object');
+            if (!(--cou)) {
+              return done();
+            }
+          });
+        });
+      });
+    });
     describe('absolute move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
         return cam.absoluteMove({
