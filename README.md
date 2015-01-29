@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/agsh/onvif.png)](https://travis-ci.org/agsh/onvif)
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
+[![NPM version](https://badge.fury.io/js/onvif.png)](http://badge.fury.io/js/onvif)
 
 ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
