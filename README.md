@@ -207,7 +207,8 @@ The options are:
 - `data` - data for the auxiliary command, you can get it, for example, in the `#serviceCapabilities.auxiliaryCommands` property
 
 ## Links
-WSDL schemes:
+WSDL schemes and docs:
+- http://www.onvif.org/onvif/ver10/tc/onvif_core_ver10.pdf
 - http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
