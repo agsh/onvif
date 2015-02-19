@@ -31,6 +31,9 @@
       if (!command) {
         return res.end();
       }
+      if (!fs.existsSync(__dirname + '/serverMockup/' + command + '.xml')) {
+        command = 'Error';
+      }
       return fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res);
     });
   };

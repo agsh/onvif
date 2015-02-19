@@ -16,6 +16,7 @@ listener = (req, res) ->
     body = body[1]
     command = reCommand.exec(body)[1]
     return res.end() if !command
+    command = 'Error' if not fs.existsSync(__dirname + '/serverMockup/' + command + '.xml')
     fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
 
 module.exports = http

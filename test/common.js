@@ -75,11 +75,20 @@
           return done();
         });
       });
-      return it('should work nice with the proper request body', function(done) {
+      it('should work nice with the proper request body', function(done) {
         return cam._request({
           body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' + '</s:Body>' + '</s:Envelope>'
         }, function(err) {
           assert.equal(err, null);
+          return done();
+        });
+      });
+      return it('should handle SOAP Fault as an error (http://www.onvif.org/onvif/ver10/tc/onvif_core_ver10.pdf, pp.45-46)', function(done) {
+        return cam._request({
+          body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' + '<UnknownCommand xmlns="http://www.onvif.org/ver10/device/wsdl"/>' + '</s:Body>' + '</s:Envelope>'
+        }, function(err) {
+          assert.notEqual(err, null);
+          assert.ok(err instanceof Error);
           return done();
         });
       });
