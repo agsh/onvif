@@ -1,35 +1,35 @@
 <?xml version=”1.0” ?>
-<soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error"
+<SOAP-ENV:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error"
                   xmlns:xs="http://www.w3.org/2000/10/XMLSchema">
-    <soapenv:Body>
-        <soapenv:Fault>
-            <soapenv:Code>
-                <soapenv:Value>
+    <SOAP-ENV:Body>
+        <SOAP-ENV:Fault>
+            <SOAP-ENV:Code>
+                <SOAP-ENV:Value>
                     fault code
-                </soapenv:Value>
-                <soapenv:Subcode>
-                    <soapenv:Value>
+                </SOAP-ENV:Value>
+                <SOAP-ENV:Subcode>
+                    <SOAP-ENV:Value>
                         ter:fault subcode
-                    </soapenv:Value>
-                    <soapenv:Subcode>
-                        <soapenv:Value>
+                    </SOAP-ENV:Value>
+                    <SOAP-ENV:Subcode>
+                        <SOAP-ENV:Value>
                             ter:fault subcode
-                        </soapenv:Value>
-                    </soapenv:Subcode>
-                </soapenv:Subcode>
-            </soapenv:Code>
-            <soapenv:Reason>
-                <soapenv:Text xml:lang="en">
+                        </SOAP-ENV:Value>
+                    </SOAP-ENV:Subcode>
+                </SOAP-ENV:Subcode>
+            </SOAP-ENV:Code>
+            <SOAP-ENV:Reason>
+                <SOAP-ENV:Text xml:lang="en">
                     fault reason
-                </soapenv:Text>
-            </soapenv:Reason>
-            <soapenv:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</soapenv:Node>
-            <soapenv:Role>http://www.w3.org/2003/05/soap-envelope/role/ultimateReceiver</soapenv:Role>
-            <soapenv:Detail>
-                <soapenv:Text>
+                </SOAP-ENV:Text>
+            </SOAP-ENV:Reason>
+            <SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node>
+            <SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/role/ultimateReceiver</SOAP-ENV:Role>
+            <SOAP-ENV:Detail>
+                <SOAP-ENV:Text>
                     fault detail
-                </soapenv:Text>
-            </soapenv:Detail>
-        </soapenv:Fault>
-    </soapenv:Body>
-</soapenv:Envelope>
+                </SOAP-ENV:Text>
+            </SOAP-ENV:Detail>
+        </SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
