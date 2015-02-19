@@ -10,7 +10,7 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
-##Supported methods
+## Supported methods
 * GetSystemDateAndTime
 * GetCapabilities
 * GetVideoSources
@@ -21,13 +21,13 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 * PTZRelativeMove
 * PTZAbsoluteMove
 
-##Installation
+## Installation
 `npm install onvif`
 
-##Tests
+## Tests
 In the library directory run `npm run-script test`
 
-##Quick example
+## Quick example
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
 container which translates video from the camera.
 ```javascript
@@ -52,7 +52,7 @@ new Cam({
 });
 ```
 
-##API
+## API
 
 ```javascript
 var Cam = require('onvif').Cam;
@@ -67,7 +67,7 @@ Options are:
 
 Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
 
-####Technical description
+#### Technical description
 
 When the cam object creates it automatically sends three command to the ONVIF device:
 `getCapabilities`, `getVideoSources` and `getProfiles`. After that it fills correspondent properties of an object:
@@ -112,14 +112,18 @@ Returns a Date object with current camera datetime in the callback.
 Works without credentials (passed `username` and `password` arguments).
 
 ### getDeviceInformation(callback)
-Returns a device information, such as manufacturer, model and firmware version in the callback
+*Device.* Returns a device information, such as manufacturer, model and firmware version in the callback
 Works without credentials (passed `username` and `password` arguments).
 
 ### getServices(callback)
-Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
+*Device.* Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
+
+### getServiceCapabilities(callback)
+*Device.* Returns in callback and assigns to `#serviceCapabilities` property the capabilities of the device service (not media):
+network, security and system. If your device supports some auxiliary capabilities they will be there too.
 
 ### getStreamUri(options, callback)
-Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
+*Media.* Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
 The options are:
 
 - `stream` (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'
@@ -134,9 +138,13 @@ The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
-### relativeMove(options, callback)
+### getNodes(callback)
+*PTZ.* Returns the properties of the current PTZ node, if it exists.
+Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus.
+Sets all information into `#nodes` property.
 
-This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.
+### relativeMove(options, callback)
+*PTZ.* This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.
 
 The options are:
 
@@ -153,8 +161,7 @@ The options are:
 Callback is optional and means essentially nothing
 
 ### absoluteMove(options, callback)
-
-This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.
+*PTZ.* This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.
 
 The options are:
 
@@ -171,7 +178,7 @@ The options are:
 Callback is optional and means essentially nothing
 
 ### getStatus(options, callback)
-Returns an object with the current PTZ values.
+*PTZ.* Returns an object with the current PTZ values.
 ```javascript
 {
 	position: {
@@ -185,13 +192,22 @@ Returns an object with the current PTZ values.
 ```
 
 ### getConfigurations(callback)
-Get all the existing PTZConfigurations from the device. Configurations saved into `#configurations` property
+*PTZ.* Get all the existing PTZConfigurations from the device. Configurations saved into `#configurations` property
 
 ### getConfigurationOptions(configurationToken, callback)
-Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
+*PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
 
-##Links
+### sendAuxiliaryCommand(options, callback)
+*PTZ.* Send raw auxiliary commands to the PTZ device mapped by the PTZNode in the selected profile.
+
+The options are:
+
+- `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+- `data` - data for the auxiliary command, you can get it, for example, in the `#serviceCapabilities.auxiliaryCommands` property
+
+## Links
 WSDL schemes:
+- http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
