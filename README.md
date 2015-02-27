@@ -52,6 +52,11 @@ new Cam({
 });
 ```
 
+## Troubleshooting
+Different cameras have different ONVIF implemantation. I've tested this module only with a couple of devices. So if you've
+experience different problems with this library, please let me know via e-mail. Else please just send the model of your
+camera to me.
+
 ## API
 
 ```javascript
