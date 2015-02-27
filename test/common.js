@@ -62,19 +62,6 @@
           return done();
         });
       });
-      it('should not work with the PTZ option but without ptzUri property', function(done) {
-        var ptzUri;
-        ptzUri = cam.ptzUri;
-        delete cam.ptzUri;
-        return cam._request({
-          body: 'test',
-          ptz: true
-        }, function(err) {
-          assert.notEqual(err, null);
-          cam.ptzUri = ptzUri;
-          return done();
-        });
-      });
       it('should work nice with the proper request body', function(done) {
         return cam._request({
           body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' + '</s:Body>' + '</s:Envelope>'
@@ -98,7 +85,8 @@
         return cam.connect(function(err) {
           assert.equal(err, null);
           assert.ok(cam.capabilities);
-          assert.ok(cam.ptzUri);
+          assert.ok(cam.uri.ptz);
+          assert.ok(cam.uri.media);
           assert.ok(cam.videoSources);
           assert.ok(cam.profiles);
           assert.ok(cam.defaultProfile);
@@ -140,7 +128,7 @@
         });
       });
       return it('should store PTZ link in ptzUri property', function(done) {
-        assert.equal(cam.ptzUri.href, cam.capabilities.PTZ.XAddr);
+        assert.equal(cam.uri.ptz.href, cam.capabilities.PTZ.XAddr);
         return done();
       });
     });

@@ -34,13 +34,6 @@ describe 'Simple and common get functions', () ->
         assert.notEqual err, null
         cam.hostname = host
         done()
-    it 'should not work with the PTZ option but without ptzUri property', (done) ->
-      ptzUri = cam.ptzUri
-      delete cam.ptzUri
-      cam._request {body: 'test', ptz: true}, (err) ->
-        assert.notEqual err, null
-        cam.ptzUri = ptzUri
-        done()
     it 'should work nice with the proper request body', (done) ->
       cam._request {body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
         '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
@@ -66,7 +59,8 @@ describe 'Simple and common get functions', () ->
       cam.connect (err) ->
         assert.equal err, null
         assert.ok cam.capabilities
-        assert.ok cam.ptzUri
+        assert.ok cam.uri.ptz
+        assert.ok cam.uri.media
         assert.ok cam.videoSources
         assert.ok cam.profiles
         assert.ok cam.defaultProfile
@@ -97,7 +91,7 @@ describe 'Simple and common get functions', () ->
         assert.equal cam.capabilities, data
         done()
     it 'should store PTZ link in ptzUri property', (done) ->
-      assert.equal cam.ptzUri.href, cam.capabilities.PTZ.XAddr
+      assert.equal cam.uri.ptz.href, cam.capabilities.PTZ.XAddr
       done()
 
   describe 'getServiceCapabilities', () ->
