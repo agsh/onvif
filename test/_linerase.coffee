@@ -40,6 +40,13 @@ describe 'linerase function', () ->
 
   it 'should deals with numbers', () ->
     assert.deepEqual _linerase({a: '34.23'}), {a: 34.23}
+    assert.deepEqual _linerase({a: '34'}), {a: 34}
+    assert.deepEqual _linerase({a: '0.34'}), {a: 0.34}
+    assert.deepEqual _linerase({a: '00.34'}), {a: '00.34'}
+    assert.deepEqual _linerase({a: '-0.34'}), {a: -0.34}
+    assert.deepEqual _linerase({a: '-12'}), {a: -12}
+    assert.deepEqual _linerase({a: '000'}), {a: '000'}
+    assert.deepEqual _linerase({a: '012'}), {a: '012'}
 
   it 'should deals with datetime and not converts it to number', () ->
     assert.deepEqual _linerase({a: '2015-01-20T16:33:03Z'}), {a: '2015-01-20T16:33:03Z'}

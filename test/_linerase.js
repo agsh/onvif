@@ -51,10 +51,45 @@
       });
     });
     it('should deals with numbers', function() {
-      return assert.deepEqual(_linerase({
+      assert.deepEqual(_linerase({
         a: '34.23'
       }), {
         a: 34.23
+      });
+      assert.deepEqual(_linerase({
+        a: '34'
+      }), {
+        a: 34
+      });
+      assert.deepEqual(_linerase({
+        a: '0.34'
+      }), {
+        a: 0.34
+      });
+      assert.deepEqual(_linerase({
+        a: '00.34'
+      }), {
+        a: '00.34'
+      });
+      assert.deepEqual(_linerase({
+        a: '-0.34'
+      }), {
+        a: -0.34
+      });
+      assert.deepEqual(_linerase({
+        a: '-12'
+      }), {
+        a: -12
+      });
+      assert.deepEqual(_linerase({
+        a: '000'
+      }), {
+        a: '000'
+      });
+      return assert.deepEqual(_linerase({
+        a: '012'
+      }), {
+        a: '012'
       });
     });
     return it('should deals with datetime and not converts it to number', function() {
