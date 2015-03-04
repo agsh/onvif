@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices, especially cameras",
   "main": "lib/onvif.js",
