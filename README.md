@@ -53,7 +53,7 @@ new Cam({
 ```
 
 ## Troubleshooting
-Different cameras have different ONVIF implemantation. I've tested this module only with a couple of devices. So if you've
+Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you've
 experience different problems with this library, please let me know via e-mail. Else please just send the model of your
 camera to me.
 
@@ -84,7 +84,7 @@ When the cam object creates it automatically sends three command to the ONVIF de
   - media
   - PTZ
   - extension
-+ ptzUri (this is a link to #capabilities.PTZ.XAddr)
++ uri (this is a links to different NVT services)
 + videoSources
   - $.token
   - framerate
