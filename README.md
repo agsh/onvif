@@ -4,7 +4,8 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 [![NPM version](https://badge.fury.io/js/onvif.png)](http://badge.fury.io/js/onvif)
 
-ONVIF Node.js implementation based on this [article](http://ltoscanolm.hubpages.com/hub/onvif-programming-revealed).
+ONVIF Client protocol Node.js implementation.
+
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.
 
@@ -18,6 +19,8 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 * GetServices
 * GetDeviceInformation
 * GetStreamUri
+* GetPresets
+* GotoPreset
 * PTZRelativeMove
 * PTZAbsoluteMove
 
@@ -142,6 +145,14 @@ This method also stores the presets information in a `#presets` property of an o
 The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+
+### gotoPreset(options, callback)
+Operation to go to a saved preset position for the PTZ node in the selected profile.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `preset` - the name of preset. List of presets you can get by `#getPresets` method or in `#presets` property.
 
 ### getNodes(callback)
 *PTZ.* Returns the properties of the current PTZ node, if it exists.
