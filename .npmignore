@@ -1,0 +1,6 @@
+.gitignore
+.jscs.json
+.idea
+.travis.yml
+.coveralls.yml
+cam_tests
