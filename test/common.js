@@ -158,12 +158,20 @@
     });
     describe('getProfiles', function() {
       return it('should create an array of profile objects with correspondent properties', function(done) {
-        return cam.getVideoSources(function(err, data) {
+        return cam.getProfiles(function(err, data) {
           assert.equal(err, null);
-          assert.ok(['$', 'framerate', 'resolution'].every(function(prop) {
-            return data[prop] !== void 0;
-          }));
-          assert.equal(cam.videoSources, data);
+          assert.ok(Object.keys(cam.profiles).length > 0);
+          assert.equal(cam.profiles, data);
+          return done();
+        });
+      });
+    });
+    describe('gotoPreset', function() {
+      return it('should just run', function(done) {
+        return cam.gotoPreset({
+          preset: Object.keys(cam.profiles)[0]
+        }, function(err, data) {
+          assert.equal(err, null);
           return done();
         });
       });
@@ -193,10 +201,19 @@
       });
     });
     describe('getStreamUri', function() {
-      return it('should return a media stream uri', function(done) {
+      it('should return a media stream uri', function(done) {
         return cam.getStreamUri({
           protocol: 'HTTP'
         }, function(err, data) {
+          assert.equal(err, null);
+          assert.ok(['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every(function(prop) {
+            return data[prop] !== void 0;
+          }));
+          return done();
+        });
+      });
+      return it('should return a default media stream uri with no options passed', function(done) {
+        return cam.getStreamUri(function(err, data) {
           assert.equal(err, null);
           assert.ok(['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every(function(prop) {
             return data[prop] !== void 0;

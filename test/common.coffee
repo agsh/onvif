@@ -114,11 +114,16 @@ describe 'Simple and common get functions', () ->
 
   describe 'getProfiles', () ->
     it 'should create an array of profile objects with correspondent properties', (done) ->
-      cam.getVideoSources (err, data) ->
+      cam.getProfiles (err, data) ->
         assert.equal err, null
-        assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
-          data[prop] != undefined
-        assert.equal cam.videoSources, data
+        assert.ok Object.keys(cam.profiles).length > 0
+        assert.equal cam.profiles, data
+        done()
+
+  describe 'gotoPreset', () ->
+    it 'should just run', (done) ->
+      cam.gotoPreset {preset: Object.keys(cam.profiles)[0]}, (err, data) ->
+        assert.equal err, null
         done()
 
   describe 'getServices', () ->
@@ -142,6 +147,12 @@ describe 'Simple and common get functions', () ->
   describe 'getStreamUri', () ->
     it 'should return a media stream uri', (done) ->
       cam.getStreamUri {protocol: 'HTTP'}, (err, data) ->
+        assert.equal err, null
+        assert.ok ['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every (prop) ->
+          data[prop] != undefined
+        done()
+    it 'should return a default media stream uri with no options passed', (done) ->
+      cam.getStreamUri (err, data) ->
         assert.equal err, null
         assert.ok ['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every (prop) ->
           data[prop] != undefined
