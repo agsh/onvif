@@ -227,6 +227,16 @@ describe 'Simple and common get functions', () ->
         zoom: 1
       }
 
+  describe 'stop', () ->
+    it 'should stop all movements when options are ommited', (done) ->
+      cam.stop done
+    it 'should stop only zoom movement', (done) ->
+      cam.stop {zoom: true}, done
+    it 'should stop only pan-tilt movement', (done) ->
+      cam.stop {panTilt: true}, done
+    it 'should stop all movements', (done) ->
+      cam.stop {zoom: true, panTilt: true}, done
+
   describe 'getStatus', () ->
     it 'should returns position status', (done) ->
       cam.getStatus {}, (err, data) ->

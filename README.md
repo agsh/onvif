@@ -214,13 +214,14 @@ Callback is optional and means essentially nothing
 *PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
 
-### sendAuxiliaryCommand(options, callback)
-*PTZ.* Send raw auxiliary commands to the PTZ device mapped by the PTZNode in the selected profile.
+### stop(options, callback)
+*PTZ.* Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
 
-The options are:
+Options and callback are optional. The options properties are:
 
 - `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
-- `data` - data for the auxiliary command, you can get it, for example, in the `#serviceCapabilities.auxiliaryCommands` property
+- `panTilt` (optional) - set true when we want to stop ongoing pan and tilt movements. If `panTilt` arguments are not present, this command stops these movements.
+- `zoom` (optional) - set true when we want to stop ongoing zoom movement. If `zoom` arguments are not present, this command stops ongoing zoom movement.
 
 ## Links
 WSDL schemes and docs:

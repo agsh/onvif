@@ -308,6 +308,27 @@
         });
       });
     });
+    describe('stop', function() {
+      it('should stop all movements when options are ommited', function(done) {
+        return cam.stop(done);
+      });
+      it('should stop only zoom movement', function(done) {
+        return cam.stop({
+          zoom: true
+        }, done);
+      });
+      it('should stop only pan-tilt movement', function(done) {
+        return cam.stop({
+          panTilt: true
+        }, done);
+      });
+      return it('should stop all movements', function(done) {
+        return cam.stop({
+          zoom: true,
+          panTilt: true
+        }, done);
+      });
+    });
     return describe('getStatus', function() {
       return it('should returns position status', function(done) {
         return cam.getStatus({}, function(err, data) {
