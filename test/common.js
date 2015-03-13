@@ -14,10 +14,10 @@
     before(function(done) {
       var options;
       options = {
-        hostname: '192.168.68.111',
+        hostname: process.env.HOSTNAME || 'localhost',
         username: 'admin',
         password: '9999',
-        port: '80'
+        port: process.env.PORT ? parseInt(process.env.PORT) : 10101
       };
       return cam = new Cam(options, done);
     });
