@@ -198,36 +198,46 @@ describe 'Simple and common get functions', () ->
   describe 'absolute move', () ->
     it 'should returns empty RelativeResponseObject', (done) ->
       cam.absoluteMove {
-        positionPanTiltX: 1
-        positionPanTiltY: 1
+        x: 1
+        y: 1
         zoom: 1
       }, done
     it 'should works without callback', () ->
       cam.absoluteMove {
-        positionPanTiltX: 1
-        positionPanTiltY: 1
+        x: 0
+        y: 0
         zoom: 1
       }
 
   describe 'relative move', () ->
     it 'should returns empty RelativeResponseObject', (done) ->
       cam.relativeMove {
-        speedPanTiltX: 1
-        speedPanTiltY: 1
-        translationPanTiltX: 1
-        translationPanTiltY: 1
+        speed: {
+          x: 0.1
+          y: 0.1
+        }
+        x: 1
+        y: 1
         zoom: 1
       }, done
     it 'should works without callback', () ->
       cam.relativeMove {
         speed: {
-          x: 1
-          y: 1
+          x: 0.1
+          y: 0.1
         }
         x: 1
         y: 1
         zoom: 1
       }
+
+  describe 'continuous move', () ->
+    it 'should returns empty ContinuousResponseObject', (done) ->
+      cam.continuousMove {
+        x: 0.1
+        y: 0.1
+        zoom: 0
+      }, done
 
   describe 'stop', () ->
     it 'should stop all movements when options are ommited', (done) ->

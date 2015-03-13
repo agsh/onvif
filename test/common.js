@@ -275,15 +275,15 @@
     describe('absolute move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
         return cam.absoluteMove({
-          positionPanTiltX: 1,
-          positionPanTiltY: 1,
+          x: 1,
+          y: 1,
           zoom: 1
         }, done);
       });
       return it('should works without callback', function() {
         return cam.absoluteMove({
-          positionPanTiltX: 1,
-          positionPanTiltY: 1,
+          x: 0,
+          y: 0,
           zoom: 1
         });
       });
@@ -291,23 +291,34 @@
     describe('relative move', function() {
       it('should returns empty RelativeResponseObject', function(done) {
         return cam.relativeMove({
-          speedPanTiltX: 1,
-          speedPanTiltY: 1,
-          translationPanTiltX: 1,
-          translationPanTiltY: 1,
+          speed: {
+            x: 0.1,
+            y: 0.1
+          },
+          x: 1,
+          y: 1,
           zoom: 1
         }, done);
       });
       return it('should works without callback', function() {
         return cam.relativeMove({
           speed: {
-            x: 1,
-            y: 1
+            x: 0.1,
+            y: 0.1
           },
           x: 1,
           y: 1,
           zoom: 1
         });
+      });
+    });
+    describe('continuous move', function() {
+      return it('should returns empty ContinuousResponseObject', function(done) {
+        return cam.continuousMove({
+          x: 0.1,
+          y: 0.1,
+          zoom: 0
+        }, done);
       });
     });
     describe('stop', function() {

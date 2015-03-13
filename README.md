@@ -21,8 +21,11 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 * GetStreamUri
 * GetPresets
 * GotoPreset
-* PTZRelativeMove
-* PTZAbsoluteMove
+* RelativeMove
+* AbsoluteMove
+* ContinuousMove
+* Stop
+* GetStatus
 
 ## Installation
 `npm install onvif`
@@ -193,6 +196,25 @@ The options are:
 
 Callback is optional and means essentially nothing
 
+### continuousMove(options, callback)
+Operation for continuous Pan/Tilt and Zoom movements
+
+The options are:
+
+- `x` Pan velocity, number or a string within -1 to 1, optional
+- `y` Tilt velocity, number or a string within -1 to 1, optional
+- `zoom` Zoom velocity, number or a string within -1 to 1, optional
+- `timeout` Timeout in milliseconds, number. If timeout is omitted, movement will continue until `stop` command
+
+### stop(options, callback)
+*PTZ.* Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
+
+Options and callback are optional. The options properties are:
+
+- `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+- `panTilt` (optional) - set true when we want to stop ongoing pan and tilt movements. If `panTilt` arguments are not present, this command stops these movements.
+- `zoom` (optional) - set true when we want to stop ongoing zoom movement. If `zoom` arguments are not present, this command stops ongoing zoom movement.
+
 ### getStatus(options, callback)
 *PTZ.* Returns an object with the current PTZ values.
 ```javascript
@@ -213,15 +235,6 @@ Callback is optional and means essentially nothing
 ### getConfigurationOptions(configurationToken, callback)
 *PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
-
-### stop(options, callback)
-*PTZ.* Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
-
-Options and callback are optional. The options properties are:
-
-- `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
-- `panTilt` (optional) - set true when we want to stop ongoing pan and tilt movements. If `panTilt` arguments are not present, this command stops these movements.
-- `zoom` (optional) - set true when we want to stop ongoing zoom movement. If `zoom` arguments are not present, this command stops ongoing zoom movement.
 
 ## Links
 WSDL schemes and docs:
