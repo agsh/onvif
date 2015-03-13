@@ -12,11 +12,11 @@
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <tds:GetDeviceInformationResponse>
-            <tds:Manufacturer>360Vision</tds:Manufacturer>
-            <tds:Model>HD_PREDATOR</tds:Model>
-            <tds:FirmwareVersion>PREDATOR_HD_1_11_03</tds:FirmwareVersion>
+            <tds:Manufacturer>Mockup Manufacturer</tds:Manufacturer>
+            <tds:Model>Mockup Model</tds:Model>
+            <tds:FirmwareVersion>Mockup_15_14_13</tds:FirmwareVersion>
             <tds:SerialNumber>00000000</tds:SerialNumber>
-            <tds:HardwareId>HD_PREDATOR</tds:HardwareId>
+            <tds:HardwareId>MOCKUP</tds:HardwareId>
         </tds:GetDeviceInformationResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

@@ -14,10 +14,10 @@
     before(function(done) {
       var options;
       options = {
-        hostname: process.env.HOSTNAME || 'localhost',
+        hostname: '192.168.68.111',
         username: 'admin',
         password: '9999',
-        port: process.env.PORT ? parseInt(process.env.PORT) : 10101
+        port: '80'
       };
       return cam = new Cam(options, done);
     });
@@ -195,6 +195,8 @@
           assert.ok(['manufacturer', 'model', 'firmwareVersion', 'serialNumber', 'hardwareId'].every(function(prop) {
             return data[prop] !== void 0;
           }));
+          console.log('Device Information:');
+          console.log(data);
           assert.equal(cam.deviceInformation, data);
           return done();
         });

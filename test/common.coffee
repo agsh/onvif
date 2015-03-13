@@ -6,10 +6,10 @@ describe 'Simple and common get functions', () ->
   cam = null
   before (done) ->
     options = {
-      hostname: process.env.HOSTNAME || 'localhost'
+      hostname: '192.168.68.111' #process.env.HOSTNAME || 'localhost'
       username: 'admin'
       password: '9999'
-      port: if process.env.PORT then parseInt(process.env.PORT) else 10101
+      port: '80' #if process.env.PORT then parseInt(process.env.PORT) else 10101
     }
     cam = new Cam options, done
 
@@ -141,6 +141,8 @@ describe 'Simple and common get functions', () ->
         assert.equal err, null
         assert.ok ['manufacturer', 'model', 'firmwareVersion', 'serialNumber', 'hardwareId'].every (prop) ->
           data[prop] != undefined
+        console.log 'Device Information:'
+        console.log data
         assert.equal cam.deviceInformation, data
         done()
 
