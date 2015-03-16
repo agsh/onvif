@@ -238,6 +238,7 @@ configuration object
 
 ## Links
 WSDL schemes and docs:
+- [Operations index](http://www.onvif.org/onvif/ver20/util/operationIndex.html)
 - http://www.onvif.org/onvif/ver10/tc/onvif_core_ver10.pdf
 - http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
