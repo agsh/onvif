@@ -63,13 +63,54 @@ Different cameras have different ONVIF implementation. I've tested this module o
 experience different problems with this library, please let me know via e-mail. Else please just send the model of your
 camera to me.
 
-## API
+# API
+
+## Discovery
+Since 0.2.7 library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
+You can found devices in your subnetwork using `probe` method of the Discovery singleton.
+Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
+Here some examples:
+
+```js
+var onvif = require('onvif');
+onvif.Discovery.on('device', function(cam){
+// function would be call as soon as NVT responses
+	cam.username = USERNAME;
+	cam.password = PASSWORD;
+	cam.connect(console.log);
+})
+onvif.Discovery.probe();
+```
+
+```js
+var onvif = require('onvif');
+onvif.Discovery.probe(function(err, cams) {
+// function would be called only after timeout (5 sec by default)
+	if (err) { throw err; }
+	cams.forEach(function(cam) {
+		cam.username = USERNAME;
+		cam.password = PASSWORD;
+		cam.connect(console.log);
+	});
+});
+```
+### Discovery.probe(options, callback)
+Options
+
+- `timeout`, number. Time the probe method will wait NVT responses in ms
+- `resolve`, boolean. If this argument is false, all discovered NVTs would be presented as data object instead of Cam instance
+
+### Discovery events
+- `device` fires on device discover
+- `error` fires on udp error or on bad SOAP response from NVT
+
+## Cam class
 
 ```javascript
 var Cam = require('onvif').Cam;
 ```
 
-### new Cam(options, callback)
+## new Cam(options, callback)
 
 Options are:
 - hostname
