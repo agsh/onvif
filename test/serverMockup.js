@@ -42,7 +42,7 @@
 
   discover = dgram.createSocket('udp4');
 
-  discover.msg = fs.readFileSync(__dirname + '/serverMockup/Probe.xml').toString().replace('SERVICE_URI', 'http://localhost:' + (process.env.PORT || 10101) + '/onvif/device_service');
+  discover.msg = new Buffer(fs.readFileSync(__dirname + '/serverMockup/Probe.xml').toString().replace('SERVICE_URI', 'http://localhost:' + (process.env.PORT || 10101) + '/onvif/device_service'));
 
   discover.on('error', function(err) {
     throw err;
