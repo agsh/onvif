@@ -66,7 +66,7 @@ camera to me.
 # API
 
 ## Discovery
-Since 0.2.7 library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
+Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can found devices in your subnetwork using `probe` method of the Discovery singleton.
 Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
 Here some examples:
@@ -101,8 +101,9 @@ Options
 - `resolve`, boolean. If this argument is false, all discovered NVTs would be presented as data object instead of Cam instance
 
 ### Discovery events
-- `device` fires on device discover
-- `error` fires on udp error or on bad SOAP response from NVT
+- `device(cam, remoteInfo, responseXML)` fires on device discover. `cam` is a Cam instance, remoteInfo is an object with network information
+ and responseXML is a body of SOAP response
+- `error(error)` fires on some UDP error or on bad SOAP response from NVT
 
 ## Cam class
 
