@@ -73,8 +73,11 @@ var Cam = require('onvif').Cam;
 
 Options are:
 - hostname
-- username, password (optional, to deal with majority functions)
+- username, password (optional, to deal with majority of functions)
 - port (optional)
+
+If the username and password are present, camera tries to connect automatically. Otherwise use `connect` method.
+Without credentials you can execute only `getSystemDateAndTime` method.
 
 Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
 
