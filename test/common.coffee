@@ -1,5 +1,5 @@
 assert = require 'assert'
-Cam = require('../lib/onvif').Cam
+onvif = require('../lib/onvif')
 serverMockup = require('./serverMockup')
 
 describe 'Simple and common get functions', () ->
@@ -11,7 +11,27 @@ describe 'Simple and common get functions', () ->
       password: '9999'
       port: if process.env.PORT then parseInt(process.env.PORT) else 10101
     }
-    cam = new Cam options, done
+    cam = new onvif.Cam options, done
+
+  describe 'discover', () ->
+    it 'should discover at least one device (mockup server)', (done) ->
+      onvif.Discovery.probe {timeout: 1000}, (err, cams) ->
+        assert.equal err, null
+        assert.ok cams.length > 0
+        assert.ok cams[0] instanceof onvif.Cam
+        done()
+    it 'should work as event emitter (also test `probe` without params)', (done) ->
+      onvif.Discovery.once 'device', (cam) ->
+        assert.ok cam
+        assert.ok cam instanceof onvif.Cam
+        done()
+      onvif.Discovery.probe()
+    it 'should return info object instead of Cam object when `resolve` is false', (done) ->
+      onvif.Discovery.once 'device', (cam) ->
+        assert.ok cam
+        assert.equal cam instanceof onvif.Cam, false
+        done()
+      onvif.Discovery.probe {resolve: false}
 
   describe '_request', () ->
     it 'brokes when no arguments are passed', (done) ->

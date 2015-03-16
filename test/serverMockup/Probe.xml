@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsdd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
+    <SOAP-ENV:Header>
+        <wsa:MessageID>urn:uuid:01234567-dead-beef-baad-abcdeffedcba</wsa:MessageID>
+        <wsa:RelatesTo>urn:uuid:01234567-dead-beef-baad-abcdeffedcba</wsa:RelatesTo>
+        <wsa:ReplyTo SOAP-ENV:mustUnderstand="true">
+            <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+        </wsa:ReplyTo>
+        <wsa:To SOAP-ENV:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:To>
+        <wsa:Action SOAP-ENV:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2005/04/discovery/ProbeMatches</wsa:Action>
+        <wsdd:AppSequence MessageNumber="161" InstanceId="0"></wsdd:AppSequence>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <wsdd:ProbeMatches>
+            <wsdd:ProbeMatch>
+                <wsa:EndpointReference>
+                    <wsa:Address>uuid:c9790c3a-701b-464d-a189-0060351c8ada</wsa:Address>
+                </wsa:EndpointReference>
+                <wsdd:Types>dn:NetworkVideoTransmitter tds:Device</wsdd:Types>
+                <wsdd:Scopes>onvif://www.onvif.org/Profile/Streaming onvif://www.onvif.org/type/video_encoder onvif://www.onvif.org/type/audio_encoder onvif://www.onvif.org/type/ptz onvif://www.onvif.org/hardware/HD_PREDATOR onvif://www.onvif.org/name/PREDATOR onvif://www.onvif.org/location/</wsdd:Scopes>
+                <wsdd:XAddrs>SERVICE_URI</wsdd:XAddrs>
+                <wsdd:MetadataVersion>1</wsdd:MetadataVersion>
+            </wsdd:ProbeMatch>
+        </wsdd:ProbeMatches>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
