@@ -22,7 +22,7 @@
     "video",
     "PTZ",
     "camera",
-	"RTSP"
+    "RTSP"
   ],
   "license": "MIT",
   "engines": {
