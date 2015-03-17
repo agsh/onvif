@@ -14,8 +14,15 @@ describe 'Simple and common get functions', () ->
     cam = new onvif.Cam options, done
 
   describe 'discover', () ->
+    this.timeout 10000
     it 'should discover at least one device (mockup server)', (done) ->
       onvif.Discovery.probe {timeout: 1000}, (err, cams) ->
+        assert.equal err, null
+        assert.ok cams.length > 0
+        assert.ok cams[0] instanceof onvif.Cam
+        done()
+    it 'should discover at least one device with defaults and callback', (done) ->
+      onvif.Discovery.probe (err, cams) ->
         assert.equal err, null
         assert.ok cams.length > 0
         assert.ok cams[0] instanceof onvif.Cam

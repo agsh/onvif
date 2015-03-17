@@ -22,10 +22,19 @@
       return cam = new onvif.Cam(options, done);
     });
     describe('discover', function() {
+      this.timeout(10000);
       it('should discover at least one device (mockup server)', function(done) {
         return onvif.Discovery.probe({
           timeout: 1000
         }, function(err, cams) {
+          assert.equal(err, null);
+          assert.ok(cams.length > 0);
+          assert.ok(cams[0] instanceof onvif.Cam);
+          return done();
+        });
+      });
+      it('should discover at least one device with defaults and callback', function(done) {
+        return onvif.Discovery.probe(function(err, cams) {
           assert.equal(err, null);
           assert.ok(cams.length > 0);
           assert.ok(cams[0] instanceof onvif.Cam);
