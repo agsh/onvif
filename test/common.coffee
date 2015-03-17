@@ -258,6 +258,11 @@ describe 'Simple and common get functions', () ->
         y: 0.1
         zoom: 0
       }, done
+    it 'should set ommited pan-tilt parameters to zero', (done) ->
+      cam.continuousMove {
+        x: 0.1
+        zoom: 0
+      }, done
 
   describe 'stop', () ->
     it 'should stop all movements when options are ommited', (done) ->
@@ -268,6 +273,10 @@ describe 'Simple and common get functions', () ->
       cam.stop {panTilt: true}, done
     it 'should stop all movements', (done) ->
       cam.stop {zoom: true, panTilt: true}, done
+    it 'should work without callback', (done) ->
+      cam.stop {}
+      cam.stop()
+      done()
 
   describe 'getStatus', () ->
     it 'should returns position status', (done) ->
