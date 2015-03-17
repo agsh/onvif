@@ -343,10 +343,16 @@
       });
     });
     describe('continuous move', function() {
-      return it('should returns empty ContinuousResponseObject', function(done) {
+      it('should returns empty ContinuousResponseObject', function(done) {
         return cam.continuousMove({
           x: 0.1,
           y: 0.1,
+          zoom: 0
+        }, done);
+      });
+      return it('should set ommited pan-tilt parameters to zero', function(done) {
+        return cam.continuousMove({
+          x: 0.1,
           zoom: 0
         }, done);
       });
@@ -365,11 +371,16 @@
           panTilt: true
         }, done);
       });
-      return it('should stop all movements', function(done) {
+      it('should stop all movements', function(done) {
         return cam.stop({
           zoom: true,
           panTilt: true
         }, done);
+      });
+      return it('should work without callback', function(done) {
+        cam.stop({});
+        cam.stop();
+        return done();
       });
     });
     return describe('getStatus', function() {
