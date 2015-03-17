@@ -42,9 +42,9 @@ var
   Cam = require('onvif').Cam;
 
 new Cam({
-  hostname: CAMERA_HOST,
-  username: USERNAME,
-  password: PASSWORD
+  hostname: <CAMERA_HOST>,
+  username: <USERNAME>,
+  password: <PASSWORD>
 }, function(err) {
   this.absoluteMove({x: 1, y: 1, zoom: 1});
   this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
@@ -75,8 +75,8 @@ Here some examples:
 var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
 // function would be call as soon as NVT responses
-	cam.username = USERNAME;
-	cam.password = PASSWORD;
+	cam.username = <USERNAME>;
+	cam.password = <PASSWORD>;
 	cam.connect(console.log);
 })
 onvif.Discovery.probe();
@@ -88,12 +88,16 @@ onvif.Discovery.probe(function(err, cams) {
 // function would be called only after timeout (5 sec by default)
 	if (err) { throw err; }
 	cams.forEach(function(cam) {
-		cam.username = USERNAME;
-		cam.password = PASSWORD;
+		cam.username = <USERNAME>;
+		cam.password = <PASSWORD>;
 		cam.connect(console.log);
 	});
 });
 ```
+
+In all of that cases you've got disconnected cameras because to manage them you need tuple username:password.
+So, as shown in the examples, you can assign these properties and call `connect` method to get full functionality.
+
 ### Discovery.probe(options, callback)
 Options
 
@@ -119,7 +123,7 @@ Options are:
 - port (optional)
 
 If the username and password are present, camera tries to connect automatically. Otherwise use `connect` method.
-Without credentials you can execute only `getSystemDateAndTime` method.
+Once again, without credentials you can execute only `getSystemDateAndTime` method.
 
 Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
 
