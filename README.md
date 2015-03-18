@@ -74,7 +74,7 @@ Here some examples:
 ```js
 var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
-// function would be call as soon as NVT responses
+// function would be called as soon as NVT responses
 	cam.username = <USERNAME>;
 	cam.password = <PASSWORD>;
 	cam.connect(console.log);
@@ -95,7 +95,7 @@ onvif.Discovery.probe(function(err, cams) {
 });
 ```
 
-In all of that cases you've got disconnected cameras because to manage them you need tuple username:password.
+In all of that cases you've got disconnected cameras because to manage them you need tuple `username:password`.
 So, as shown in the examples, you can assign these properties and call `connect` method to get full functionality.
 
 ### Discovery.probe(options, callback)
