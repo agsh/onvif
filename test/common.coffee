@@ -187,6 +187,14 @@ describe 'Simple and common get functions', () ->
           data[prop] != undefined
         done()
 
+  describe 'getSnapshotUri', () ->
+    it 'should return a default media uri with no options passed', (done) ->
+      cam.getStreamUri (err, data) ->
+        assert.equal err, null
+        assert.ok ['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every (prop) ->
+          data[prop] != undefined
+        done()
+
   describe 'getPresets', () ->
     it 'should return array of preset objects and sets them to #presets', (done) ->
       cam.getPresets {}, (err, data) ->
