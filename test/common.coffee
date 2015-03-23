@@ -120,6 +120,9 @@ describe 'Simple and common get functions', () ->
     it 'should store PTZ link in ptzUri property', (done) ->
       assert.equal cam.uri.ptz.href, cam.capabilities.PTZ.XAddr
       done()
+    it 'should store uri links for extensions', (done) ->
+      assert.ok Object.keys(cam.capabilities.extension).every (ext) -> cam.uri[ext]
+      done()
 
   describe 'getServiceCapabilities', () ->
     it 'should return a service capabilities object and also set them into #serviceCapabilities property', (done) ->

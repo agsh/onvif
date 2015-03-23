@@ -166,8 +166,14 @@
           return done();
         });
       });
-      return it('should store PTZ link in ptzUri property', function(done) {
+      it('should store PTZ link in ptzUri property', function(done) {
         assert.equal(cam.uri.ptz.href, cam.capabilities.PTZ.XAddr);
+        return done();
+      });
+      return it('should store uri links for extensions', function(done) {
+        assert.ok(Object.keys(cam.capabilities.extension).every(function(ext) {
+          return cam.uri[ext];
+        }));
         return done();
       });
     });
