@@ -19,6 +19,7 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 * GetServices
 * GetDeviceInformation
 * GetStreamUri
+* GetSnapshotUri
 * GetPresets
 * GotoPreset
 * RelativeMove
@@ -189,6 +190,9 @@ The options are:
 - `stream` (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'
 - `protocol` (optional) - defines the network protocol for streaming. Possible values are: 'UDP', 'TCP', 'RTSP' (default), 'HTTP'
 - `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+
+### getSnapshotUri(options, callback)
+*Media.* Obtain a JPEG snapshot URI from the device.
 
 ### getPresets(options, callback)
 Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
