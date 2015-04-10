@@ -296,7 +296,3 @@ WSDL schemes and docs:
 - http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/agsh/onvif/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
