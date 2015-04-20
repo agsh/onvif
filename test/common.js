@@ -272,7 +272,6 @@
     describe('getSnapshotUri', function() {
       return it('should return a default media uri with no options passed', function(done) {
         return cam.getSnapshotUri(function(err, data) {
-          console.log(data);
           assert.equal(err, null);
           assert.ok(['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every(function(prop) {
             return data[prop] !== void 0;
@@ -410,10 +409,19 @@
         return done();
       });
     });
-    return describe('getStatus', function() {
+    describe('getStatus', function() {
       return it('should returns position status', function(done) {
         return cam.getStatus({}, function(err, data) {
           assert.equal(err, null);
+          return done();
+        });
+      });
+    });
+    return describe('systemReboot', function() {
+      return it('should return a server message', function(done) {
+        return cam.systemReboot(function(err, data) {
+          assert.equal(err, null);
+          assert.equal(typeof data, 'string');
           return done();
         });
       });

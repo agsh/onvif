@@ -193,7 +193,6 @@ describe 'Simple and common get functions', () ->
   describe 'getSnapshotUri', () ->
     it 'should return a default media uri with no options passed', (done) ->
       cam.getSnapshotUri (err, data) ->
-        console.log data
         assert.equal err, null
         assert.ok ['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every (prop) ->
           data[prop] != undefined
@@ -301,4 +300,11 @@ describe 'Simple and common get functions', () ->
     it 'should returns position status', (done) ->
       cam.getStatus {}, (err, data) ->
         assert.equal err, null
+        done()
+
+  describe 'systemReboot', () ->
+    it 'should return a server message', (done) ->
+      cam.systemReboot (err, data) ->
+        assert.equal err, null
+        assert.equal typeof data, 'string'
         done()
