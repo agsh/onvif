@@ -4,3 +4,5 @@
 .travis.yml
 .coveralls.yml
 cam_tests
+coverage
+node_modules
