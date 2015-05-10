@@ -28,6 +28,7 @@
   "disallowKeywordsOnNewLine": [ "else" ],
   "disallowSpaceAfterObjectKeys": true,
   "validateLineBreaks": "LF",
+  "validateIndentation": "\t",
   "disallowMixedSpacesAndTabs": true,
   "requireSpacesInConditionalExpression": {
     "afterTest": true,
