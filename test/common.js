@@ -83,8 +83,7 @@
           if (cams[data.probeMatches.probeMatch.XAddrs]) {
             return assert.fail();
           } else {
-            cams[data.probeMatches.probeMatch.XAddrs] = true;
-            return cou += 1;
+            return cams[data.probeMatches.probeMatch.XAddrs] = true;
           }
         };
         onvif.Discovery.on('device', onCam);

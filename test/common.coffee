@@ -56,7 +56,6 @@ describe 'Simple and common get functions', () ->
           assert.fail()
         else
           cams[data.probeMatches.probeMatch.XAddrs] = true
-          cou += 1
       onvif.Discovery.on 'device', onCam
       onvif.Discovery.probe {timeout: 1000, resolve: false, messageId: 'd0-61e'}, (err, cCams) ->
         assert.equal err, null
