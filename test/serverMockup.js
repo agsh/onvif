@@ -54,7 +54,7 @@
     if (msgId) {
       switch (msgId) {
         case 'e7707':
-          return discover.send('lollipop', 0, 8, rinfo.port, rinfo.address);
+          return discover.send(new Buffer('lollipop'), 0, 8, rinfo.port, rinfo.address);
         case 'd0-61e':
           discover.send(discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address);
           return discover.send(discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address);
