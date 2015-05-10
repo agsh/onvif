@@ -4,7 +4,7 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 [![NPM version](https://badge.fury.io/js/onvif.png)](http://badge.fury.io/js/onvif)
 
-ONVIF Client protocol Node.js implementation.
+ONVIF Client protocol Profile S Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.
@@ -32,7 +32,7 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 `npm install onvif`
 
 ## Tests
-In the library directory run `npm run-script test`
+In the library directory run `npm test`
 
 ## Quick example
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
