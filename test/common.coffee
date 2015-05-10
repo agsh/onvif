@@ -39,6 +39,30 @@ describe 'Simple and common get functions', () ->
         assert.equal cam instanceof onvif.Cam, false
         done()
       onvif.Discovery.probe {resolve: false}
+    it 'should emit and error and return error in callback when response is wrong', (done) ->
+      emit = false
+      onvif.Discovery.once 'error', (err, xml) ->
+        assert.equal xml, 'lollipop'
+        assert.equal (err.indexOf 'Wrong SOAP message'), 0
+        emit = true
+      onvif.Discovery.probe {timeout: 1000, messageId: 'e7707'}, (err, cams) ->
+        assert.notEqual err, null
+        assert.ok emit
+        done()
+    it 'should got single device for one probe', (done) ->
+      cams = {}
+      onCam = (data) ->
+        if cams[data.probeMatches.probeMatch.XAddrs]
+          assert.fail()
+        else
+          cams[data.probeMatches.probeMatch.XAddrs] = true
+          cou += 1
+      onvif.Discovery.on 'device', onCam
+      onvif.Discovery.probe {timeout: 1000, resolve: false, messageId: 'd0-61e'}, (err, cCams) ->
+        assert.equal err, null
+        assert.equal Object.keys(cams).length, cCams.length
+        onvif.Discovery.removeListener('device', onCam)
+        done()
 
   describe '_request', () ->
     it 'brokes when no arguments are passed', (done) ->
@@ -141,12 +165,12 @@ describe 'Simple and common get functions', () ->
     it 'should throws an error when no one profile has actual videosource token', () ->
       realProfiles = cam.profiles
       cam.profiles.forEach((profile) -> profile.videoSourceConfiguration.sourceToken = 'crap')
-      assert.throws(cam.getActiveSources)
+      assert.throws(cam.getActiveSources, Error)
       cam.profiles = realProfiles
     it 'should throws `unimplemented error` when there is more than one video source', () ->
       realSources = cam.videoSources
       cam.videoSources = []
-      assert.throws(cam.getActiveSources)
+      assert.throws(cam.getActiveSources, Error, 'Not implemented')
       cam.videoSources = realSources
 
   describe 'getVideoSources', () ->

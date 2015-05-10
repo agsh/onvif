@@ -29,7 +29,16 @@ discover.msg =
   )
 discover.on 'error', (err) -> throw err
 discover.on 'message', (msg, rinfo) ->
-  discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+  msgId = /urn:uuid:([0-9a-f\-]+)</.exec(msg.toString())[1]
+  if msgId
+    switch msgId
+      when 'e7707' then discover.send 'lollipop', 0, 8, rinfo.port, rinfo.address
+      when 'd0-61e'
+        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+      else
+        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+
 discover.bind 3702, () ->
   discover.addMembership '239.255.255.250'
 

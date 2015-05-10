@@ -49,7 +49,7 @@
         });
         return onvif.Discovery.probe();
       });
-      return it('should return info object instead of Cam object when `resolve` is false', function(done) {
+      it('should return info object instead of Cam object when `resolve` is false', function(done) {
         onvif.Discovery.once('device', function(cam) {
           assert.ok(cam);
           assert.equal(cam instanceof onvif.Cam, false);
@@ -57,6 +57,46 @@
         });
         return onvif.Discovery.probe({
           resolve: false
+        });
+      });
+      it('should emit and error and return error in callback when response is wrong', function(done) {
+        var emit;
+        emit = false;
+        onvif.Discovery.once('error', function(err, xml) {
+          assert.equal(xml, 'lollipop');
+          assert.equal(err.indexOf('Wrong SOAP message'), 0);
+          return emit = true;
+        });
+        return onvif.Discovery.probe({
+          timeout: 1000,
+          messageId: 'e7707'
+        }, function(err, cams) {
+          assert.notEqual(err, null);
+          assert.ok(emit);
+          return done();
+        });
+      });
+      return it('should got single device for one probe', function(done) {
+        var cams, onCam;
+        cams = {};
+        onCam = function(data) {
+          if (cams[data.probeMatches.probeMatch.XAddrs]) {
+            return assert.fail();
+          } else {
+            cams[data.probeMatches.probeMatch.XAddrs] = true;
+            return cou += 1;
+          }
+        };
+        onvif.Discovery.on('device', onCam);
+        return onvif.Discovery.probe({
+          timeout: 1000,
+          resolve: false,
+          messageId: 'd0-61e'
+        }, function(err, cCams) {
+          assert.equal(err, null);
+          assert.equal(Object.keys(cams).length, cCams.length);
+          onvif.Discovery.removeListener('device', onCam);
+          return done();
         });
       });
     });
@@ -201,14 +241,14 @@
         cam.profiles.forEach(function(profile) {
           return profile.videoSourceConfiguration.sourceToken = 'crap';
         });
-        assert.throws(cam.getActiveSources);
+        assert.throws(cam.getActiveSources, Error);
         return cam.profiles = realProfiles;
       });
       return it('should throws `unimplemented error` when there is more than one video source', function() {
         var realSources;
         realSources = cam.videoSources;
         cam.videoSources = [];
-        assert.throws(cam.getActiveSources);
+        assert.throws(cam.getActiveSources, Error, 'Not implemented');
         return cam.videoSources = realSources;
       });
     });
