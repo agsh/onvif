@@ -133,6 +133,22 @@ describe 'Simple and common get functions', () ->
         assert.equal cam.serviceCapabilities, data
         done()
 
+  describe 'getActiveSources', () ->
+    it 'should find at least one appropriate source', () ->
+      cam.getActiveSources()
+      assert.ok cam.defaultProfile
+      assert.ok cam.activeSource
+    it 'should throws an error when no one profile has actual videosource token', () ->
+      realProfiles = cam.profiles
+      cam.profiles.forEach((profile) -> profile.videoSourceConfiguration.sourceToken = 'crap')
+      assert.throws(cam.getActiveSources)
+      cam.profiles = realProfiles
+    it 'should throws `unimplemented error` when there is more than one video source', () ->
+      realSources = cam.videoSources
+      cam.videoSources = []
+      assert.throws(cam.getActiveSources)
+      cam.videoSources = realSources
+
   describe 'getVideoSources', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
       cam.getVideoSources (err, data) ->
