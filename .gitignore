@@ -78,4 +78,5 @@ crashlytics.properties
 crashlytics-build.properties
 
 test.js
+test/*.map
 cam_tests

@@ -6,3 +6,4 @@
 cam_tests
 coverage
 node_modules
+test/*.map
