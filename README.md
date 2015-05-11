@@ -60,15 +60,14 @@ new Cam({
 ```
 
 ## Troubleshooting
-Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you've
-experience different problems with this library, please let me know via e-mail. Else please just send the model of your
+Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
 camera to me.
 
 # API
 
 ## Discovery
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
-You can found devices in your subnetwork using `probe` method of the Discovery singleton.
+You can find devices in your subnetwork using `probe` method of the Discovery singleton.
 Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
 Here some examples:
 
