@@ -296,3 +296,4 @@ WSDL schemes and docs:
 - http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
+- http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf
