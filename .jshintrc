@@ -4,5 +4,6 @@
 	"sub": true,
 	"laxbreak": true,
 	"laxcomma": true,
+	"undef": true,
 	"-W038": true
 }
