@@ -10,7 +10,7 @@
 
   parseString = (require('xml2js')).parseString;
 
-  describe('linerase function', function() {
+  describe('Linerase function', function() {
     it('should handle tag', function(done) {
       return parseString('<a><b>text</b><c>text</c></a>', function(err, result) {
         assert.deepEqual(_linerase(result), {

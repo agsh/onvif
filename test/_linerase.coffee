@@ -3,7 +3,7 @@ _cropName = (require '../lib/soapHelpers')._cropName
 assert = require 'assert'
 parseString = (require 'xml2js').parseString
 
-describe 'linerase function', () ->
+describe 'Linerase function', () ->
   it 'should handle tag', (done) ->
     parseString '<a><b>text</b><c>text</c></a>', (err, result) ->
       assert.deepEqual _linerase(result), {
