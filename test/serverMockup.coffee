@@ -4,6 +4,7 @@ fs = require 'fs'
 Buffer = (require 'buffer').Buffer
 reBody = /<s:Body xmlns:xsi="http:\/\/www.w3.org\/2001\/XMLSchema-instance" xmlns:xsd="http:\/\/www.w3.org\/2001\/XMLSchema">(.*)<\/s:Body>/
 reCommand = /<(\S*) /
+reNS = /xmlns="http:\/\/www.onvif.org\/\S*\/(\S*)\/wsdl"/
 
 listener = (req, res) ->
   req.setEncoding('utf8')
@@ -16,8 +17,11 @@ listener = (req, res) ->
     return res.end() if !body
     body = body[1]
     command = reCommand.exec(body)[1]
+    ns = reNS.exec(body)[1]
     return res.end() if !command
-    command = 'Error' if not fs.existsSync(__dirname + '/serverMockup/' + command + '.xml')
+    switch
+      when fs.existsSync(__dirname + '/serverMockup/' + ns + '.' + command + '.xml') then command = ns + '.' + command
+      when not fs.existsSync(__dirname + '/serverMockup/' + command + '.xml') then command = 'Error'
     fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
 
 discover = dgram.createSocket('udp4')
