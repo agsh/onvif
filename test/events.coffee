@@ -14,7 +14,21 @@ describe 'Events', () ->
     cam = new onvif.Cam options, done
 
   it 'should request device events', (done) ->
-    cam.getEventProperties (err, res, xml) ->
+    cam.getEventProperties (err, res) ->
       assert.equal err, null
       assert.deepEqual this.events.properties, res
+      done()
+
+  it 'should request event service capabilities', (done) ->
+    cam.getEventServiceCapabilities (err, res) ->
+      assert.equal err, null
+      console.log res
+      assert.ok [
+        'PersistentNotificationStorage'
+        , 'MaxPullPoints'
+        , 'MaxNotificationProducers'
+        , 'WSPausableSubscriptionManagerInterfaceSupport'
+        , 'WSPullPointSupport'
+        , 'WSSubscriptionPolicySupport'
+      ].every (name) -> res[name] isnt undefined
       done()

@@ -21,10 +21,20 @@
       };
       return cam = new onvif.Cam(options, done);
     });
-    return it('should request device events', function(done) {
-      return cam.getEventProperties(function(err, res, xml) {
+    it('should request device events', function(done) {
+      return cam.getEventProperties(function(err, res) {
         assert.equal(err, null);
         assert.deepEqual(this.events.properties, res);
+        return done();
+      });
+    });
+    return it('should request event service capabilities', function(done) {
+      return cam.getEventServiceCapabilities(function(err, res) {
+        assert.equal(err, null);
+        console.log(res);
+        assert.ok(['PersistentNotificationStorage', 'MaxPullPoints', 'MaxNotificationProducers', 'WSPausableSubscriptionManagerInterfaceSupport', 'WSPullPointSupport', 'WSSubscriptionPolicySupport'].every(function(name) {
+          return res[name] !== void 0;
+        }));
         return done();
       });
     });
