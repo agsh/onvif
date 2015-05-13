@@ -31,7 +31,6 @@
     return it('should request event service capabilities', function(done) {
       return cam.getEventServiceCapabilities(function(err, res) {
         assert.equal(err, null);
-        console.log(res);
         assert.ok(['PersistentNotificationStorage', 'MaxPullPoints', 'MaxNotificationProducers', 'WSPausableSubscriptionManagerInterfaceSupport', 'WSPullPointSupport', 'WSSubscriptionPolicySupport'].every(function(name) {
           return res[name] !== void 0;
         }));

@@ -22,7 +22,6 @@ describe 'Events', () ->
   it 'should request event service capabilities', (done) ->
     cam.getEventServiceCapabilities (err, res) ->
       assert.equal err, null
-      console.log res
       assert.ok [
         'PersistentNotificationStorage'
         , 'MaxPullPoints'
