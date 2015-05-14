@@ -31,3 +31,20 @@ describe 'Events', () ->
         , 'WSSubscriptionPolicySupport'
       ].every (name) -> res[name] isnt undefined
       done()
+
+  it 'should throws an error in PullMessages method when no pull-point subscription exists', (done) ->
+    assert.throws () ->
+      cam.pullMessages {}, () -> {}
+    done()
+
+  it 'should create PullPointSubscription', (done) ->
+    cam.createPullPointSubscription (err, data) ->
+      assert.equal err, null
+      assert.deepEqual data, cam.events.subscription
+      done()
+
+  it 'should get messages with PullMessage method', (done) ->
+    cam.pullMessages {}, (err, data) ->
+      assert.equal err, null
+      assert.ok ['currentTime', 'terminationTime'].every (name) -> data[name] isnt undefined
+      done()

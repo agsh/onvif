@@ -28,11 +28,35 @@
         return done();
       });
     });
-    return it('should request event service capabilities', function(done) {
+    it('should request event service capabilities', function(done) {
       return cam.getEventServiceCapabilities(function(err, res) {
         assert.equal(err, null);
         assert.ok(['PersistentNotificationStorage', 'MaxPullPoints', 'MaxNotificationProducers', 'WSPausableSubscriptionManagerInterfaceSupport', 'WSPullPointSupport', 'WSSubscriptionPolicySupport'].every(function(name) {
           return res[name] !== void 0;
+        }));
+        return done();
+      });
+    });
+    it('should throws an error in PullMessages method when no pull-point subscription exists', function(done) {
+      assert.throws(function() {
+        return cam.pullMessages({}, function() {
+          return {};
+        });
+      });
+      return done();
+    });
+    it('should create PullPointSubscription', function(done) {
+      return cam.createPullPointSubscription(function(err, data) {
+        assert.equal(err, null);
+        assert.deepEqual(data, cam.events.subscription);
+        return done();
+      });
+    });
+    return it('should get messages with PullMessage method', function(done) {
+      return cam.pullMessages({}, function(err, data) {
+        assert.equal(err, null);
+        assert.ok(['currentTime', 'terminationTime'].every(function(name) {
+          return data[name] !== void 0;
         }));
         return done();
       });
