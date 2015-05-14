@@ -92,11 +92,11 @@
         a: '012'
       });
     });
-    return it('should deals with datetime and not converts it to number', function() {
+    return it('should deals with datetime and converts it to Date', function() {
       return assert.deepEqual(_linerase({
         a: '2015-01-20T16:33:03Z'
       }), {
-        a: '2015-01-20T16:33:03Z'
+        a: new Date('2015-01-20T16:33:03Z')
       });
     });
   });

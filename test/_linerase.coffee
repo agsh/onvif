@@ -48,5 +48,5 @@ describe 'Linerase function', () ->
     assert.deepEqual _linerase({a: '000'}), {a: '000'}
     assert.deepEqual _linerase({a: '012'}), {a: '012'}
 
-  it 'should deals with datetime and not converts it to number', () ->
-    assert.deepEqual _linerase({a: '2015-01-20T16:33:03Z'}), {a: '2015-01-20T16:33:03Z'}
+  it 'should deals with datetime and converts it to Date', () ->
+    assert.deepEqual _linerase({a: '2015-01-20T16:33:03Z'}), {a: new Date('2015-01-20T16:33:03Z')}
