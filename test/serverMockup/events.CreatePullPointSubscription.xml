@@ -14,7 +14,7 @@
     <SOAP-ENV:Body>
         <tev:CreatePullPointSubscriptionResponse>
             <tev:SubscriptionReference>
-                <wsa5:Address>http://192.168.68.111/onvif/services?SubscriptionId=0</wsa5:Address>
+                <wsa5:Address>http://localhost:10101/onvif/services</wsa5:Address>
             </tev:SubscriptionReference>
             <wsnt:CurrentTime>2000-01-02T08:13:22Z</wsnt:CurrentTime>
             <wsnt:TerminationTime>2000-01-02T08:18:22Z</wsnt:TerminationTime>
