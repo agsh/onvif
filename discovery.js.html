@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: discovery.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: discovery.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @namespace discovery
+ * @description Discovery module
+ * @author Andrew D.Laptev &lt;a.d.laptev@gmail.com>
+ * @licence MIT
+ */
+
+const
+	Cam = require('./cam').Cam
+	, events = require('events')
+	, guid = require('./utils').guid
+	, linerase = require('./utils').linerase
+	, parseSOAPString = require('./utils').parseSOAPString
+	, url = require('url')
+	;
+
+/**
+ * Discovery singleton
+ * @type {Object}
+ * @class
+ */
+var Discovery = Object.create(new events.EventEmitter());
+
+/**
+ * @callback Discovery~ProbeCallback
+ * @property {?Error} error
+ * @property {Array&lt;Cam|object>} found devices
+ */
+
+/**
+ * Discover NVT devices in the subnetwork
+ * @param {object} [options]
+ * @param {number} [options.timeout=5000] timeout in milliseconds for discovery responses
+ * @param {boolean} [options.resolve=true] set to `false` if you want omit creating of Cam objects
+ * @param {string} [options.messageId=GUID] WS-Discovery message id
+ * @param {Discovery~ProbeCallback} [callback] timeout callback
+ * @fires Discovery#device
+ * @fires Discovery#error
+ * @example
+ * var onvif = require('onvif');
+ * onvif.Discovery.on('device', function(cam){
+ *   // function would be called as soon as NVT responses
+ *   cam.username = &lt;USERNAME>;
+ *   cam.password = &lt;PASSWORD>;
+ *   cam.connect(console.log);
+ * })
+ * onvif.Discovery.probe();
+ * @example
+ * var onvif = require('onvif');
+ * onvif.Discovery.probe(function(err, cams) {
+ *   // function would be called only after timeout (5 sec by default)
+ *   if (err) { throw err; }
+ *   cams.forEach(function(cam) {
+ *       cam.username = &lt;USERNAME>;
+ *       cam.password = &lt;PASSWORD>;
+ *       cam.connect(console.log);
+ *   });
+ * });
+ */
+Discovery.probe = function(options, callback) {
+	if (callback === undefined) {
+		if (typeof options === 'function') {
+			callback = options;
+			options = {};
+		} else {
+			options = options || {};
+		}
+	}
+	callback = callback || function() {};
+
+	var cams = {}
+		, errors = []
+		, messageID = 'urn:uuid:' + (options.messageId || guid())
+		, request = new Buffer(
+			'&lt;s:Envelope ' +
+			'xmlns:s="http://www.w3.org/2003/05/soap-envelope" ' +
+			'xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">' +
+			'&lt;s:Header>' +
+			'&lt;a:Action s:mustUnderstand="1">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe&lt;/a:Action>' +
+			'&lt;a:MessageID>' + messageID + '&lt;/a:MessageID>' +
+			'&lt;a:ReplyTo>&lt;a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous&lt;/a:Address>&lt;/a:ReplyTo>' +
+			'&lt;a:To s:mustUnderstand="1">urn:docs-oasis-open-org:ws-dd:ns:discovery:2009:01&lt;/a:To>' +
+			'&lt;/s:Header>' +
+			'&lt;s:Body>' +
+			'&lt;Probe xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery">' +
+			'&lt;d:Types xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dp0="http://www.onvif.org/ver10/network/wsdl">dp0:NetworkVideoTransmitter&lt;/d:Types>' +
+			'&lt;/Probe>' +
+			'&lt;/s:Body>' +
+			'&lt;/s:Envelope>'
+		)
+		, socket = require('dgram').createSocket('udp4');
+
+	socket.on('error', function(err) {
+		Discovery.emit('error', err);
+		callback(err);
+	});
+
+	const listener = function(msg, rinfo) {
+		parseSOAPString(msg, function(err, data, xml) {
+			// TODO check for matching RelatesTo field and messageId
+			if (err || !data[0].probeMatches) {
+				errors.push(err || new Error('Wrong SOAP message from ' + rinfo.address + ':' + rinfo.port, xml));
+				/**
+				 * Indicates error response from device.
+				 * @event Discovery#error
+				 * @type {string}
+				 */
+				Discovery.emit('error', 'Wrong SOAP message from ' + rinfo.address + ':' + rinfo.port, xml);
+			} else {
+				data = linerase(data);
+
+				// Possible to get multiple matches for the same camera
+				// when your computer has more than one network adapter in the same subnet
+				var camAddr = data.probeMatches.probeMatch.endpointReference.address;
+				if (!cams[camAddr]) {
+					var cam;
+					if (options.resolve !== false) {
+						var camUri = url.parse(data.probeMatches.probeMatch.XAddrs);
+						cam = new Cam({
+							hostname: camUri.hostname
+							, port: camUri.port
+							, path: camUri.path
+						});
+					} else {
+						cam = data;
+					}
+					cams[camAddr] = cam;
+					/**
+					 * Indicates discovered device.
+					 * @event Discovery#device
+					 * @type {Cam|object}
+					 */
+					Discovery.emit('device', cam, rinfo, xml);
+				}
+			}
+		});
+	};
+
+	socket.on('message', listener);
+	socket.send(request, 0, request.length, 3702, '239.255.255.250');
+
+	setTimeout(function() {
+		socket.removeListener('message', listener);
+		socket.close();
+		callback(errors.length ? errors : null, Object.keys(cams).map(function(addr) { return cams[addr]; }));
+	}.bind(this), options.timeout || 5000);
+};
+
+module.exports = {
+	Discovery: Discovery
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Sat May 16 2015 01:46:06 GMT+0300 (MSK)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
