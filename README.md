@@ -34,6 +34,9 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ## Tests
 In the library directory run `npm test`
 
+## Documentation
+To build jsdoc for the library run `npm run jsdoc`
+
 ## Quick example
 This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
 container which translates video from the camera.
