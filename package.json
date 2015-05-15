@@ -2,7 +2,7 @@
   "name": "onvif",
   "version": "0.3.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
-  "description": "Client to ONVIF NVT devices, especially cameras",
+  "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "scripts": {
     "jsdoc": "jsdoc ./lib/*.js --destination ./docs",
