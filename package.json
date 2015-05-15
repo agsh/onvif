@@ -1,10 +1,12 @@
 {
   "name": "onvif",
-  "version": "0.2.12",
+  "version": "0.3.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices, especially cameras",
   "main": "lib/onvif.js",
   "scripts": {
+    "jsdoc": "jsdoc ./lib/*.js --destination ./docs",
+    "gh-pages": "jsdoc ./lib/*.js --destination ./",
     "jscs": "jscs lib/*.js",
     "lint": "jshint lib/*.js",
     "pretest": "npm run lint; npm run jscs",
@@ -35,6 +37,7 @@
     "coveralls": ">=2.11.2",
     "istanbul": ">=0.3.5",
     "jscs": "^1.13.1",
+    "jsdoc": "^3.3.0",
     "jshint": "^2.7.0",
     "mocha": ">=2.1.0",
     "mocha-lcov-reporter": "0.0.1"
