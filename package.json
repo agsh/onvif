@@ -5,8 +5,8 @@
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "scripts": {
-    "jsdoc": "jsdoc ./lib/*.js --destination ./docs",
-    "gh-pages": "jsdoc ./lib/*.js --destination ./",
+    "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
+    "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "jscs": "jscs lib/*.js",
     "lint": "jshint lib/*.js",
     "pretest": "npm run lint; npm run jscs",
