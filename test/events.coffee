@@ -48,3 +48,23 @@ describe 'Events', () ->
       assert.equal err, null
       assert.ok ['currentTime', 'terminationTime'].every (name) -> data[name] isnt undefined
       done()
+
+  it 'should create PullPoint subscription via `event` event and receive events from mockup server', (done) ->
+    delete cam.events.terminationTime  # remove subscribtion if any
+    gotMessage = 0
+    onEvent = (msg) ->
+      gotMessage += 1
+    cam.on 'event', onEvent
+    setTimeout () ->
+      assert.ok cam.events.terminationTime isnt undefined
+      assert.ok gotMessage > 0
+      cam.removeListener 'event', onEvent
+      done()
+    , 30
+
+  it 'should stop pulling when nobody is listen to `event` event', (done) ->
+    delete cam.events.terminationTime
+    setTimeout () ->
+      assert.ok cam.events.terminationTime is undefined
+      done()
+    , 30

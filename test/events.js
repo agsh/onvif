@@ -52,7 +52,7 @@
         return done();
       });
     });
-    return it('should get messages with PullMessage method', function(done) {
+    it('should get messages with PullMessage method', function(done) {
       return cam.pullMessages({}, function(err, data) {
         assert.equal(err, null);
         assert.ok(['currentTime', 'terminationTime'].every(function(name) {
@@ -60,6 +60,28 @@
         }));
         return done();
       });
+    });
+    it('should create PullPoint subscription via `event` event and receive events from mockup server', function(done) {
+      var gotMessage, onEvent;
+      delete cam.events.terminationTime;
+      gotMessage = 0;
+      onEvent = function(msg) {
+        return gotMessage += 1;
+      };
+      cam.on('event', onEvent);
+      return setTimeout(function() {
+        assert.ok(cam.events.terminationTime !== void 0);
+        assert.ok(gotMessage > 0);
+        cam.removeListener('event', onEvent);
+        return done();
+      }, 30);
+    });
+    return it('should stop pulling when nobody is listen to `event` event', function(done) {
+      delete cam.events.terminationTime;
+      return setTimeout(function() {
+        assert.ok(cam.events.terminationTime === void 0);
+        return done();
+      }, 30);
     });
   });
 
