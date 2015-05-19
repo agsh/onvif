@@ -47,9 +47,12 @@
  * @type object
  * @property {Cam~EventProperties} properties
  * @property {Cam~CreatePullPointSubscriptionResponse} subscription
+ * @property {Date} terminationTime Time when pull-point subscription is over
+ * @property {number} messageLimit Pull message count
  */
 
 const Cam = require('./cam').Cam
+	, cam = require('./cam')
 	, _linerase = require('./utils').linerase
 	, url = require('url')
 	;
@@ -117,17 +120,39 @@ Cam.prototype.createPullPointSubscription = function(callback) {
 			this.events.subscription = _linerase(res[0].createPullPointSubscriptionResponse[0]);
 			this.events.subscription.subscriptionReference.address =
 				url.parse(this.events.subscription.subscriptionReference.address);
+			this.events.terminationTime = _terminationTime(this.events.subscription);
 		}
 		callback.call(this, err, err ? null : this.events.subscription, xml);
 	}.bind(this));
 };
 
 /**
+ * @typedef {object} Cam~Event
+ * @property {Date} currentTime
+ * @property {Date} terminationTime
+ * @property {Cam~NotificationMessage|Array.&lt;Cam~NotificationMessage>} [notificationMessage]
+ */
+
+/**
+ * @typedef {object} Cam~NotificationMessage
+ * @property {string} subscriptionReference.address Pull-point address
+ * @property {string} topic._ Namespace of message topic
+ * @property {object} message Message object
+ */
+
+/**
+ * @callback Cam~PullMessagesResponse
+ * @property {?Error} error
+ * @property {Cam~Event} response Message
+ * @property {string} xml Raw SOAP response
+ */
+
+/**
  * Pull messages from pull-point subscription
  * @param options
  * @param {number} [options.timeout=30000]
  * @param {number} [options.messageLimit=1]
- * @param {function} callback
+ * @param {Cam~PullMessagesResponse} callback
  * @throws {Error} {@link Cam#events.subscription} must exists
  */
 Cam.prototype.pullMessages = function(options, callback) {
@@ -147,9 +172,79 @@ Cam.prototype.pullMessages = function(options, callback) {
 	}, function(err, res, xml) {
 		if (!err) {
 			var data = _linerase(res).pullMessagesResponse;
+
 		}
 		callback.call(this, err, data, xml);
 	}.bind(this));
+};
+
+/**
+ * Count time before pull-point subscription terminates
+ * @param {Cam~CreatePullPointSubscriptionResponse} response
+ * @returns {Date}
+ * @private
+ */
+const _terminationTime = function(response) {
+	return new Date(Date.now() - response.currentTime + response.terminationTime);
+};
+
+/**
+ * Bind event handling to the `event` event
+ */
+Cam.prototype.on('newListener', function(name) {
+	// if there is the first listener, start pulling
+	if (name === 'event' &amp;&amp; this.listeners(name).length === 0) {
+		this._eventRequest();
+	}
+});
+
+/**
+ * Event loop for pullMessages request
+ * @private
+ */
+Cam.prototype._eventRequest = function() {
+	this.events.timeout = this.events.timeout || 30000; // setting timeout
+	this.events.messageLimit = this.events.messageLimit || 1; // setting message limit
+	if (!this.events.terminationTime || (this.events.terminationTime &lt; Date.now() + this.events.timeout)) {
+		// if there is no pull-point subscription or it will be dead soon, create new
+		this.createPullPointSubscription(this._eventPull.bind(this));
+	} else {
+		this._eventPull();
+	}
+};
+
+/**
+ * Event loop for pullMessages request
+ * @private
+ */
+Cam.prototype._eventPull = function() {
+	if (this.listeners('event').length) { // check for event listeners, if zero, stop pulling
+		this.pullMessages({
+			timeout: this.events.timeout
+			, messageLimit: this.events.messageLimit
+		}, function(err, data) {
+			if (!err) {
+				if (data.notificationMessage) {
+					if (!Array.isArray(data.notificationMessage)) {
+						data.notificationMessage = [data.notificationMessage];
+					}
+					data.notificationMessage.forEach(function(message) {
+						// pull-point address check
+						if (message.subscriptionReference.address === this.events.subscription.subscriptionReference.address.href) {
+							/**
+							 * Indicates message from device.
+							 * @event Cam#event
+							 * @type {object}
+							 */
+							this.emit('event', message);
+						}
+					}.bind(this));
+				}
+				this.events.terminationTime = _terminationTime(data);
+			}
+			this._eventRequest();
+		}.bind(this));
+	}
 };</code></pre>
         </article>
     </section>
@@ -160,13 +255,13 @@ Cam.prototype.pullMessages = function(options, callback) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam.html#event:event">event</a></li><li><a href="Cam.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam_.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Sat May 16 2015 01:46:06 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Tue May 19 2015 22:42:11 GMT+0300 (MSK)
 </footer>
 
 <script> prettyPrint(); </script>
