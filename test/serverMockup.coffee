@@ -2,9 +2,15 @@ http = require 'http'
 dgram = require 'dgram'
 fs = require 'fs'
 Buffer = (require 'buffer').Buffer
+template = (require 'dot').template
 reBody = /<s:Body xmlns:xsi="http:\/\/www.w3.org\/2001\/XMLSchema-instance" xmlns:xsd="http:\/\/www.w3.org\/2001\/XMLSchema">(.*)<\/s:Body>/
 reCommand = /<(\S*) /
 reNS = /xmlns="http:\/\/www.onvif.org\/\S*\/(\S*)\/wsdl"/
+conf = {
+  port: process.env.PORT || 10101 # server port
+  hostname: process.env.HOSTNAME || 'localhost'
+  pullPointUrl: '/onvif/subscription?Idx=6'
+}
 
 listener = (req, res) ->
   req.setEncoding('utf8')
@@ -22,7 +28,8 @@ listener = (req, res) ->
     switch
       when fs.existsSync(__dirname + '/serverMockup/' + ns + '.' + command + '.xml') then command = ns + '.' + command
       when not fs.existsSync(__dirname + '/serverMockup/' + command + '.xml') then command = 'Error'
-    fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
+    #fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
+    res.end(template(fs.readFileSync(__dirname + '/serverMockup/' + command + '.xml'))(conf))
 
 discover = dgram.createSocket('udp4')
 discover.msg =
@@ -48,4 +55,4 @@ discover.bind 3702, () ->
 
 module.exports = http
   .createServer listener
-  .listen process.env.PORT || 10101
+  .listen conf.port
