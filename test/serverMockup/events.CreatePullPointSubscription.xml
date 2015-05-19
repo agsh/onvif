@@ -7,17 +7,17 @@
                 <wsse:Username>admin</wsse:Username>
                 <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">uhZZ9pEUN6+bX5EO5FlWleaGa/c=</wsse:Password>
                 <wsse:Nonce>MTA2Nzc5ODk2Nw==</wsse:Nonce>
-                <wsu:Created>2015-05-13T18:12:34.854Z</wsu:Created>
+                <wsu:Created>{{=new Date().toISOString()}}</wsu:Created>
             </wsse:UsernameToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <tev:CreatePullPointSubscriptionResponse>
             <tev:SubscriptionReference>
-                <wsa5:Address>http://localhost:10101/onvif/services</wsa5:Address>
+                <wsa5:Address>http://{{=it.hostname}}:{{=it.port}}{{=it.pullPointUrl}}</wsa5:Address>
             </tev:SubscriptionReference>
-            <wsnt:CurrentTime>2000-01-02T08:13:22Z</wsnt:CurrentTime>
-            <wsnt:TerminationTime>2000-01-02T08:18:22Z</wsnt:TerminationTime>
+            <wsnt:CurrentTime>{{=new Date().toISOString()}}</wsnt:CurrentTime>
+            <wsnt:TerminationTime>{{=new Date(Date.now()+5000).toISOString()}}</wsnt:TerminationTime>
         </tev:CreatePullPointSubscriptionResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

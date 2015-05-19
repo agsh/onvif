@@ -15,6 +15,28 @@
         <tev:PullMessagesResponse>
             <tev:CurrentTime>2000-01-03T03:58:33Z</tev:CurrentTime>
             <tev:TerminationTime>2000-01-03T04:04:02Z</tev:TerminationTime>
+            {{? Math.random() < 0.5 }}
+            <wsnt:NotificationMessage>
+                <wsnt:SubscriptionReference>
+                    <wsa5:Address>http://{{=it.hostname}}:{{=it.port}}{{=it.pullPointUrl}}</wsa5:Address>
+                </wsnt:SubscriptionReference>
+                <wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">
+                    tns1:RuleEngine/CellMotionDetector/Motion
+                </wsnt:Topic>
+                <wsnt:Message>
+                    <tt:Message UtcTime="{{=new Date().toISOString()}}">
+                        <tt:Source>
+                            <tt:SimpleItem Name="VideoSourceConfigurationToken" Value="000"/>
+                            <tt:SimpleItem Name="VideoAnalyticsConfigurationToken" Value="000"/>
+                            <tt:SimpleItem Name="Rule" Value="000"/>
+                        </tt:Source>
+                        <tt:Data>
+                            <tt:SimpleItem Name="IsMotion" Value="true"/>
+                        </tt:Data>
+                    </tt:Message>
+                </wsnt:Message>
+            </wsnt:NotificationMessage>
+            {{?}}
         </tev:PullMessagesResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
