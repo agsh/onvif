@@ -84,13 +84,12 @@ camera to me.
 
 This page and API class documentation you can found here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/)
 
-Short description of library possibilities is below.
+Old concise docs are below.
 
 ## Discovery
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can find devices in your subnetwork using `probe` method of the Discovery singleton.
-Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
-You must subscribe to the `error` event as a device on your network could reply with bad XML
+Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
 Here some examples:
 
 ```js
