@@ -134,6 +134,7 @@ If the username and password are present, camera tries to connect automatically.
 Once again, without credentials you can execute only `getSystemDateAndTime` method.
 
 Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
+Also you can subscribe to `connect` event which signalize the same thing.
 
 #### Technical description
 
