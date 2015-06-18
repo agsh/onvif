@@ -119,19 +119,17 @@ describe 'Common functions', () ->
       cam.profiles = realProfiles
     it 'should populate activeSources and defaultProfiles when more than one video source exists', () ->
       fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSources.single', (err) ->
-      	assert.equal err, null
-      	fs.rename './serverMockup/GetVideoSourcesEncoder.xml', './serverMockup/GetVideoSources.xml', (err) ->
-      	  assert.equal err, null
+        assert.equal err, null
+        fs.rename './serverMockup/GetVideoSourcesEncoder.xml', './serverMockup/GetVideoSources.xml', (err) ->
+          assert.equal err, null
+          cam.getActiveSources()
+          assert.isArray(cam.activeSources)
+          assert.isArray(cam.defaultProfiles)
 
-      	  cam.getActiveSources()
-
-      	  assert.isArray(cam.activeSources)
-      	  assert.isArray(cam.defaultProfiles)
-
-      	  fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSourcesEncoder.xml', (err) ->
+          fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSourcesEncoder.xml', (err) ->
       	    assert.equal err, null
       	    fs.rename './serverMockup/GetVideoSources.single', './serverMockup/GetVideoSources.xml', (err) ->
-      	      assert.equal err, null
+              assert.equal err, null
 
   describe 'getVideoSources', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
