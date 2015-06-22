@@ -17,8 +17,8 @@
       var options;
       options = {
         hostname: process.env.HOSTNAME || 'localhost',
-        username: 'admin',
-        password: '9999',
+        username: process.env.USERNAME || 'admin',
+        password: process.env.PASSWORD || '9999',
         port: process.env.PORT ? parseInt(process.env.PORT) : 10101
       };
       return cam = new onvif.Cam(options, done);
