@@ -20,3 +20,10 @@ describe 'Imaging', () ->
       ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every (prop) ->
         res[prop]
       done()
+
+  it 'should do the same without options object', (done) ->
+    cam.getImagingSettings (err, res) ->
+      assert.equal err, null
+      ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every (prop) ->
+        res[prop]
+      done()

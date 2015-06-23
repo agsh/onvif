@@ -23,8 +23,17 @@
       };
       return cam = new onvif.Cam(options, done);
     });
-    return it('should request imaging settings with options object', function(done) {
+    it('should request imaging settings with options object', function(done) {
       return cam.getImagingSettings({}, function(err, res) {
+        assert.equal(err, null);
+        ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every(function(prop) {
+          return res[prop];
+        });
+        return done();
+      });
+    });
+    return it('should do the same without options object', function(done) {
+      return cam.getImagingSettings(function(err, res) {
         assert.equal(err, null);
         ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every(function(prop) {
           return res[prop];
