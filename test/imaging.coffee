@@ -14,11 +14,14 @@ describe 'Imaging', () ->
     }
     cam = new onvif.Cam options, done
 
+  settings = null
+
   it 'should request imaging settings with options object', (done) ->
     cam.getImagingSettings {}, (err, res) ->
       assert.equal err, null
       ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every (prop) ->
         res[prop]
+      settings = res
       done()
 
   it 'should do the same without options object', (done) ->
@@ -26,4 +29,11 @@ describe 'Imaging', () ->
       assert.equal err, null
       ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every (prop) ->
         res[prop]
+      done()
+
+  it 'should set imaging configuration', (done) ->
+    if settings == null then throw 'getImagingSettings failed'
+    cam.setImagingSettings settings, (err, res) ->
+      assert.equal err, null
+      assert.equal res, ''
       done()

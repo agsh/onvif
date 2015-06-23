@@ -11,7 +11,7 @@
   util = require('util');
 
   describe('Imaging', function() {
-    var cam;
+    var cam, settings;
     cam = null;
     before(function(done) {
       var options;
@@ -23,8 +23,19 @@
       };
       return cam = new onvif.Cam(options, done);
     });
+    settings = null;
     it('should request imaging settings with options object', function(done) {
       return cam.getImagingSettings({}, function(err, res) {
+        assert.equal(err, null);
+        ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every(function(prop) {
+          return res[prop];
+        });
+        settings = res;
+        return done();
+      });
+    });
+    it('should do the same without options object', function(done) {
+      return cam.getImagingSettings(function(err, res) {
         assert.equal(err, null);
         ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every(function(prop) {
           return res[prop];
@@ -32,12 +43,13 @@
         return done();
       });
     });
-    return it('should do the same without options object', function(done) {
-      return cam.getImagingSettings(function(err, res) {
+    return it('should set imaging configuration', function(done) {
+      if (settings === null) {
+        throw 'getImagingSettings failed';
+      }
+      return cam.setImagingSettings(settings, function(err, res) {
         assert.equal(err, null);
-        ['brightness', 'colorSaturation', 'contrast', 'focus', 'sharpness'].every(function(prop) {
-          return res[prop];
-        });
+        assert.equal(res, '');
         return done();
       });
     });
