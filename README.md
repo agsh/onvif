@@ -62,7 +62,7 @@ camera to me.
 
 This page and API class documentation you can found here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/)
 
-Short description about library possibilities is below.
+Short description of library possibilities is below.
 
 ## Discovery
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
