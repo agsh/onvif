@@ -16,7 +16,7 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ### NPM
 `npm install onvif`
 
-### Clone latest version from github
+### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
 
 ### Tests
@@ -129,7 +129,7 @@ Callback (optional) executes when the cam is initialised. Single argument for th
 #### Technical description
 
 When the cam object creates it automatically sends three command to the ONVIF device:
-`getCapabilities`, `getVideoSources` and `getProfiles`. After that it fills correspondent properties of an object:
+`getCapabilities`, `getVideoSources` and `getProfiles`. It fills correspondent properties of an object:
 
 + capabilities
   - device
@@ -148,6 +148,14 @@ When the cam object creates it automatically sends three command to the ONVIF de
   - videoSourceConfiguration
   - videoEncoderConfiguration
   - PTZConfiguration
+  
+After that it runs `getActiveSources` method. It iterates over all video sources and tries to find out proper configuration
+for profile and videosource. First matching profile becomes a member of defaultProfiles array and video source configuration
+with ptz configuration becomes a member of activeSources array.
+ 
+Configuration for the first or the only one video source becomes defaultProfile and activeSource properties. All methods
+without passing options object use it. You can change it manually at any time.
+  
 + defaultProfile (link to the first profile in profiles)
 + activeSource (based on the default profile)
   - sourceToken
@@ -308,7 +316,7 @@ configuration object
 * SetImagingSettings
 
 ## Changelog
-- 0.4.0 Encoder support, Imaging service
+- 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
 - 0.3.1 EventEmitter-based events
 - 0.3.0 Refactoring, documentation, event service basics
 - 0.2.7 WS-Discovery
