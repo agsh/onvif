@@ -1,14 +1,15 @@
 assert = require 'assert'
 onvif = require('../lib/onvif')
 serverMockup = require('./serverMockup')
+fs = require('fs')
 
 describe 'Common functions', () ->
   cam = null
   before (done) ->
     options = {
       hostname: process.env.HOSTNAME || 'localhost'
-      username: 'admin'
-      password: '9999'
+      username: process.env.USERNAME || 'admin'
+      password: process.env.PASSWORD || '9999'
       port: if process.env.PORT then parseInt(process.env.PORT) else 10101
     }
     cam = new onvif.Cam options, done
@@ -116,11 +117,19 @@ describe 'Common functions', () ->
       cam.profiles.forEach((profile) -> profile.videoSourceConfiguration.sourceToken = 'crap')
       assert.throws(cam.getActiveSources, Error)
       cam.profiles = realProfiles
-    it 'should throws `unimplemented error` when there is more than one video source', () ->
-      realSources = cam.videoSources
-      cam.videoSources = []
-      assert.throws(cam.getActiveSources, Error, 'Not implemented')
-      cam.videoSources = realSources
+    it 'should populate activeSources and defaultProfiles when more than one video source exists', () ->
+      fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSources.single', (err) ->
+        assert.equal err, null
+        fs.rename './serverMockup/GetVideoSourcesEncoder.xml', './serverMockup/GetVideoSources.xml', (err) ->
+          assert.equal err, null
+          cam.getActiveSources()
+          assert.isArray(cam.activeSources)
+          assert.isArray(cam.defaultProfiles)
+
+          fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSourcesEncoder.xml', (err) ->
+      	    assert.equal err, null
+      	    fs.rename './serverMockup/GetVideoSources.single', './serverMockup/GetVideoSources.xml', (err) ->
+              assert.equal err, null
 
   describe 'getVideoSources', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
@@ -178,6 +187,7 @@ describe 'Common functions', () ->
         assert.ok ['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every (prop) ->
           data[prop] != undefined
         done()
+
 
   describe 'getSnapshotUri', () ->
     it 'should return a default media uri with no options passed', (done) ->
