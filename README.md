@@ -314,6 +314,9 @@ configuration object
 * SystemReboot
 * GetImagingSettings
 * SetImagingSettings
+* GetHostname
+* GetScopes
+* SetScopes
 
 ## Changelog
 - 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
