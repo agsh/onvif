@@ -276,18 +276,6 @@
         });
       });
     });
-    describe('getPresets', function() {
-      return it('should return array of preset objects and sets them to #presets', function(done) {
-        return cam.getPresets({}, function(err, data) {
-          assert.equal(err, null);
-          assert.ok(Object.keys(data).every(function(presetName) {
-            return typeof data[presetName] === 'string';
-          }));
-          assert.equal(cam.presets, data);
-          return done();
-        });
-      });
-    });
     describe('getNodes', function() {
       return it('should return object of nodes and sets them to #nodes', function(done) {
         return cam.getNodes(function(err, data) {

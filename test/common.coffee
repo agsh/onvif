@@ -197,15 +197,6 @@ describe 'Common functions', () ->
           data[prop] != undefined
         done()
 
-  describe 'getPresets', () ->
-    it 'should return array of preset objects and sets them to #presets', (done) ->
-      cam.getPresets {}, (err, data) ->
-        assert.equal err, null
-        assert.ok Object.keys(data).every (presetName) ->
-          typeof data[presetName] == 'string'
-        assert.equal cam.presets, data
-        done()
-
   describe 'getNodes', () ->
     it 'should return object of nodes and sets them to #nodes', (done) ->
       cam.getNodes (err, data) ->
