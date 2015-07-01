@@ -82,6 +82,13 @@ describe 'Common functions', () ->
         assert.ok (data instanceof Date)
         done()
 
+  describe 'getHostname', () ->
+    it 'should return device name', (done) ->
+      cam.getHostname (err, data) ->
+        assert.equal err, null
+        assert.ok (typeof data.fromDHCP == 'boolean')
+        done()
+
   describe 'getCapabilities', () ->
     it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->
       cam.getCapabilities (err, data) ->

@@ -116,6 +116,15 @@
         });
       });
     });
+    describe('getHostname', function() {
+      return it('should return device name', function(done) {
+        return cam.getHostname(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(typeof data.fromDHCP === 'boolean');
+          return done();
+        });
+      });
+    });
     describe('getCapabilities', function() {
       it('should return a capabilities object with correspondent properties and also set them into #capability property', function(done) {
         return cam.getCapabilities(function(err, data) {
