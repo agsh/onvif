@@ -125,6 +125,19 @@
         });
       });
     });
+    describe('getScopes', function() {
+      return it('should return device scopes as array', function(done) {
+        return cam.getScopes(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          return done();
+        });
+      });
+    });
     describe('getCapabilities', function() {
       it('should return a capabilities object with correspondent properties and also set them into #capability property', function(done) {
         return cam.getCapabilities(function(err, data) {

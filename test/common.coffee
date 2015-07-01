@@ -89,6 +89,16 @@ describe 'Common functions', () ->
         assert.ok (typeof data.fromDHCP == 'boolean')
         done()
 
+  describe 'getScopes', () ->
+    it 'should return device scopes as array', (done) ->
+      cam.getScopes (err, data) ->
+        assert.equal err, null
+        assert.ok Array.isArray data
+        data.forEach (scope) ->
+          assert.ok scope.scopeDef
+          assert.ok scope.scopeItem
+        done()
+
   describe 'getCapabilities', () ->
     it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->
       cam.getCapabilities (err, data) ->
