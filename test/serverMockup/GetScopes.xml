@@ -12,10 +12,13 @@
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <tds:GetScopesResponse>
+            {{? typeof it.count === 'undefined' || it.count > 0 }}
             <tds:Scopes>
                 <tt:ScopeDef>Fixed</tt:ScopeDef>
                 <tt:ScopeItem>onvif://www.onvif.org/Profile/Streaming</tt:ScopeItem>
             </tds:Scopes>
+            {{?}}
+            {{? typeof it.count === 'undefined' || it.count > 1 }}
             <tds:Scopes>
                 <tt:ScopeDef>Fixed</tt:ScopeDef>
                 <tt:ScopeItem>onvif://www.onvif.org/type/video_encoder</tt:ScopeItem>
@@ -40,6 +43,7 @@
                 <tt:ScopeDef>Configurable</tt:ScopeDef>
                 <tt:ScopeItem>onvif://www.onvif.org/location/</tt:ScopeItem>
             </tds:Scopes>
+            {{?}}
         </tds:GetScopesResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

@@ -126,7 +126,7 @@
       });
     });
     describe('getScopes', function() {
-      return it('should return device scopes as array', function(done) {
+      it('should return device scopes as array when different scopes', function(done) {
         return cam.getScopes(function(err, data) {
           assert.equal(err, null);
           assert.ok(Array.isArray(data));
@@ -134,6 +134,32 @@
             assert.ok(scope.scopeDef);
             return assert.ok(scope.scopeItem);
           });
+          return done();
+        });
+      });
+      it('should return device scopes as array when one scope', function(done) {
+        serverMockup.conf.count = 1;
+        return cam.getScopes(function(err, data, xml) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          delete serverMockup.conf.count;
+          return done();
+        });
+      });
+      return it('should return device scopes as array when no scopes', function(done) {
+        serverMockup.conf.count = 0;
+        return cam.getScopes(function(err, data, xml) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          delete serverMockup.conf.count;
           return done();
         });
       });

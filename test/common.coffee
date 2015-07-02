@@ -90,13 +90,33 @@ describe 'Common functions', () ->
         done()
 
   describe 'getScopes', () ->
-    it 'should return device scopes as array', (done) ->
+    it 'should return device scopes as array when different scopes', (done) ->
       cam.getScopes (err, data) ->
         assert.equal err, null
         assert.ok Array.isArray data
         data.forEach (scope) ->
           assert.ok scope.scopeDef
           assert.ok scope.scopeItem
+        done()
+    it 'should return device scopes as array when one scope', (done) ->
+      serverMockup.conf.count = 1
+      cam.getScopes (err, data, xml) ->
+        assert.equal err, null
+        assert.ok Array.isArray data
+        data.forEach (scope) ->
+          assert.ok scope.scopeDef
+          assert.ok scope.scopeItem
+        delete serverMockup.conf.count
+        done()
+    it 'should return device scopes as array when no scopes', (done) ->
+      serverMockup.conf.count = 0
+      cam.getScopes (err, data, xml) ->
+        assert.equal err, null
+        assert.ok Array.isArray data
+        data.forEach (scope) ->
+          assert.ok scope.scopeDef
+          assert.ok scope.scopeItem
+        delete serverMockup.conf.count
         done()
 
   describe 'getCapabilities', () ->
