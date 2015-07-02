@@ -12,8 +12,6 @@ conf = {
   hostname: process.env.HOSTNAME || 'localhost'
   pullPointUrl: '/onvif/subscription?Idx=6'
 }
-# commands counter to serve different xmls: <command-name>.xml, <command-name>.1.xml and so on
-commands = {}
 
 listener = (req, res) ->
   req.setEncoding('utf8')
@@ -32,14 +30,10 @@ listener = (req, res) ->
     switch
       when fs.existsSync(__xmldir + ns + '.' + command + '.xml') then command = ns + '.' + command
       when not fs.existsSync(__xmldir + command + '.xml') then command = 'Error'
-    if not commands[command] then commands[command] = 0
-    if commands[command] > 0 and fs.existsSync(__xmldir + command + '.' + commands[command] + '.xml')
-    then command = command + '.' + commands[command]
     fileName = __xmldir + command + '.xml'
     #console.log 'serving', fileName
     #fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
     res.end(template(fs.readFileSync(fileName))(conf))
-    commands[command] += 1
 
 # Discovery service
 discover = dgram.createSocket('udp4')
@@ -67,6 +61,11 @@ discover.on 'message', (msg, rinfo) ->
 discover.bind 3702, () ->
   discover.addMembership '239.255.255.250'
 
-module.exports = http
+server = http
   .createServer listener
   .listen conf.port
+
+module.exports = {
+  server: server
+  , conf: conf
+}
