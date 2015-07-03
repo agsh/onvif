@@ -119,6 +119,16 @@ describe 'Common functions', () ->
         delete serverMockup.conf.count
         done()
 
+  describe 'setScopes', () ->
+    it 'should set and return device scopes as array', (done) ->
+      cam.setScopes ['onvif://www.onvif.org/none'], (err, data) ->
+        assert.equal err, null
+        assert.ok Array.isArray data
+        data.forEach (scope) ->
+          assert.ok scope.scopeDef
+          assert.ok scope.scopeItem
+        done()
+
   describe 'getCapabilities', () ->
     it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->
       cam.getCapabilities (err, data) ->
