@@ -165,7 +165,7 @@
       });
     });
     describe('setScopes', function() {
-      return it('should set and return device scopes as array', function(done) {
+      it('should set and return device scopes as array', function(done) {
         return cam.setScopes(['onvif://www.onvif.org/none'], function(err, data) {
           assert.equal(err, null);
           assert.ok(Array.isArray(data));
@@ -173,6 +173,14 @@
             assert.ok(scope.scopeDef);
             return assert.ok(scope.scopeItem);
           });
+          return done();
+        });
+      });
+      return it('should return an error when SetScopes message returns error', function(done) {
+        serverMockup.conf.bad = true;
+        return cam.setScopes(['onvif://www.onvif.org/none'], function(err, data, xml) {
+          assert.notEqual(err, null);
+          delete serverMockup.conf.bad;
           return done();
         });
       });

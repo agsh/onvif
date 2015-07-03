@@ -128,6 +128,12 @@ describe 'Common functions', () ->
           assert.ok scope.scopeDef
           assert.ok scope.scopeItem
         done()
+    it 'should return an error when SetScopes message returns error', (done) ->
+      serverMockup.conf.bad = true
+      cam.setScopes ['onvif://www.onvif.org/none'], (err, data, xml) ->
+        assert.notEqual err, null
+        delete serverMockup.conf.bad
+        done()
 
   describe 'getCapabilities', () ->
     it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->

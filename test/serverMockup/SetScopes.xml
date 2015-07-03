@@ -11,6 +11,6 @@
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <tds:SetScopesResponse></tds:SetScopesResponse>
+        <tds:SetScopesResponse>{{? it.bad }}wrong response{{?}}</tds:SetScopesResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
