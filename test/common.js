@@ -116,6 +116,75 @@
         });
       });
     });
+    describe('getHostname', function() {
+      return it('should return device name', function(done) {
+        return cam.getHostname(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(typeof data.fromDHCP === 'boolean');
+          return done();
+        });
+      });
+    });
+    describe('getScopes', function() {
+      it('should return device scopes as array when different scopes', function(done) {
+        return cam.getScopes(function(err, data) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          return done();
+        });
+      });
+      it('should return device scopes as array when one scope', function(done) {
+        serverMockup.conf.count = 1;
+        return cam.getScopes(function(err, data, xml) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          delete serverMockup.conf.count;
+          return done();
+        });
+      });
+      return it('should return device scopes as array when no scopes', function(done) {
+        serverMockup.conf.count = 0;
+        return cam.getScopes(function(err, data, xml) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          delete serverMockup.conf.count;
+          return done();
+        });
+      });
+    });
+    describe('setScopes', function() {
+      it('should set and return device scopes as array', function(done) {
+        return cam.setScopes(['onvif://www.onvif.org/none'], function(err, data) {
+          assert.equal(err, null);
+          assert.ok(Array.isArray(data));
+          data.forEach(function(scope) {
+            assert.ok(scope.scopeDef);
+            return assert.ok(scope.scopeItem);
+          });
+          return done();
+        });
+      });
+      return it('should return an error when SetScopes message returns error', function(done) {
+        serverMockup.conf.bad = true;
+        return cam.setScopes(['onvif://www.onvif.org/none'], function(err, data, xml) {
+          assert.notEqual(err, null);
+          delete serverMockup.conf.bad;
+          return done();
+        });
+      });
+    });
     describe('getCapabilities', function() {
       it('should return a capabilities object with correspondent properties and also set them into #capability property', function(done) {
         return cam.getCapabilities(function(err, data) {
@@ -272,18 +341,6 @@
           assert.ok(['uri', 'invalidAfterConnect', 'invalidAfterReboot', 'timeout'].every(function(prop) {
             return data[prop] !== void 0;
           }));
-          return done();
-        });
-      });
-    });
-    describe('getPresets', function() {
-      return it('should return array of preset objects and sets them to #presets', function(done) {
-        return cam.getPresets({}, function(err, data) {
-          assert.equal(err, null);
-          assert.ok(Object.keys(data).every(function(presetName) {
-            return typeof data[presetName] === 'string';
-          }));
-          assert.equal(cam.presets, data);
           return done();
         });
       });
