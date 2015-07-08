@@ -14,7 +14,10 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ## Installation
 
 ### NPM
-`npm install onvif`
+
+`npm install onvif` - install latest stable version
+
+`npm install agsh/onvif` - install latest development version
 
 ### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
