@@ -1,5 +1,5 @@
 .gitignore
-.jscs.json
+.gitattributes
 .idea
 .travis.yml
 .coveralls.yml
@@ -7,3 +7,4 @@ cam_tests
 coverage
 node_modules
 test/*.map
+test/*.js

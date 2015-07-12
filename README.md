@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/agsh/onvif.png)](https://travis-ci.org/agsh/onvif)
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
-[![NPM version](https://badge.fury.io/js/onvif.png)](http://badge.fury.io/js/onvif)
+[![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 
 ONVIF Client protocol Profile S Node.js implementation.
 
@@ -14,7 +14,10 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ## Installation
 
 ### NPM
-`npm install onvif`
+
+`npm install onvif` - install latest stable version
+
+`npm install agsh/onvif` - install latest development version
 
 ### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
