@@ -82,6 +82,36 @@ describe 'Common functions', () ->
         assert.ok (data instanceof Date)
         done()
 
+  describe 'setSystemDateAndTime', () ->
+    it 'should throws an error when `dateTimeType` is wrong', (done) ->
+      cam.setSystemDateAndTime {
+        dateTimeType: 'blah'
+      }, (err) ->
+        assert.notEqual err, null
+        done()
+    it 'should set system date and time', (done) ->
+      cam.setSystemDateAndTime {
+        dateTimeType: 'Manual'
+        dateTime: new Date()
+        daylightSavings: true
+        timezone: 'MSK'
+      }, (err, data) ->
+        assert.equal err, null
+        assert.ok (data instanceof Date)
+        done()
+    it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
+      serverMockup.conf.bad = true
+      cam.setSystemDateAndTime {
+        dateTimeType: 'Manual'
+        dateTime: new Date()
+        daylightSavings: true
+        timezone: 'MSK'
+      }, (err) ->
+        assert.notEqual err, null
+        delete serverMockup.conf.bad
+        done()
+
+
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
       cam.getHostname (err, data) ->
