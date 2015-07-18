@@ -14,6 +14,13 @@ describe 'Common functions', () ->
     }
     cam = new onvif.Cam options, done
 
+  describe 'default params', () ->
+    it 'should set default port and path when no one is specified', (done) ->
+      defaultCam = new onvif.Cam {}
+      assert.equal defaultCam.port, 80
+      assert.equal defaultCam.path, '/onvif/device_service'
+      done()
+
   describe '_request', () ->
     it 'brokes when no arguments are passed', (done) ->
       assert.throws () -> cam._request()
