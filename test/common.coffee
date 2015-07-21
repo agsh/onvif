@@ -14,6 +14,13 @@ describe 'Common functions', () ->
     }
     cam = new onvif.Cam options, done
 
+  describe 'default params', () ->
+    it 'should set default port and path when no one is specified', (done) ->
+      defaultCam = new onvif.Cam {}
+      assert.equal defaultCam.port, 80
+      assert.equal defaultCam.path, '/onvif/device_service'
+      done()
+
   describe '_request', () ->
     it 'brokes when no arguments are passed', (done) ->
       assert.throws () -> cam._request()
@@ -81,6 +88,36 @@ describe 'Common functions', () ->
         assert.equal err, null
         assert.ok (data instanceof Date)
         done()
+
+  describe 'setSystemDateAndTime', () ->
+    it 'should throws an error when `dateTimeType` is wrong', (done) ->
+      cam.setSystemDateAndTime {
+        dateTimeType: 'blah'
+      }, (err) ->
+        assert.notEqual err, null
+        done()
+    it 'should set system date and time', (done) ->
+      cam.setSystemDateAndTime {
+        dateTimeType: 'Manual'
+        dateTime: new Date()
+        daylightSavings: true
+        timezone: 'MSK'
+      }, (err, data) ->
+        assert.equal err, null
+        assert.ok (data instanceof Date)
+        done()
+    it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
+      serverMockup.conf.bad = true
+      cam.setSystemDateAndTime {
+        dateTimeType: 'Manual'
+        dateTime: new Date()
+        daylightSavings: true
+        timezone: 'MSK'
+      }, (err) ->
+        assert.notEqual err, null
+        delete serverMockup.conf.bad
+        done()
+
 
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
