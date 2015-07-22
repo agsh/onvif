@@ -121,6 +121,17 @@ describe 'Common functions', () ->
           delete serverMockup.conf.bad
           done()
 
+  describe 'setNTP', () ->
+    if synthTest
+      it 'should set NTP', (done) ->
+        cam.setNTP {
+          fromDHCP: false
+          type: 'IPv4'
+          ipv4Address: 'localhost'
+        }, (err) ->
+          assert.equal err, null
+          done()
+
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
       cam.getHostname (err, data) ->
