@@ -1,6 +1,8 @@
+synthTest = not process.env.HOSTNAME
+
 assert = require 'assert'
 onvif = require('../lib/onvif')
-serverMockup = require('./serverMockup')
+serverMockup = require('./serverMockup') if synthTest
 fs = require('fs')
 
 describe 'Common functions', () ->
@@ -106,18 +108,29 @@ describe 'Common functions', () ->
         assert.equal err, null
         assert.ok (data instanceof Date)
         done()
-    it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
-      serverMockup.conf.bad = true
-      cam.setSystemDateAndTime {
-        dateTimeType: 'Manual'
-        dateTime: new Date()
-        daylightSavings: true
-        timezone: 'MSK'
-      }, (err) ->
-        assert.notEqual err, null
-        delete serverMockup.conf.bad
-        done()
+    if synthTest
+      it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
+        serverMockup.conf.bad = true
+        cam.setSystemDateAndTime {
+          dateTimeType: 'Manual'
+          dateTime: new Date()
+          daylightSavings: true
+          timezone: 'MSK'
+        }, (err) ->
+          assert.notEqual err, null
+          delete serverMockup.conf.bad
+          done()
 
+  describe 'setNTP', () ->
+    if synthTest
+      it 'should set NTP', (done) ->
+        cam.setNTP {
+          fromDHCP: false
+          type: 'IPv4'
+          ipv4Address: 'localhost'
+        }, (err) ->
+          assert.equal err, null
+          done()
 
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
@@ -135,26 +148,28 @@ describe 'Common functions', () ->
           assert.ok scope.scopeDef
           assert.ok scope.scopeItem
         done()
-    it 'should return device scopes as array when one scope', (done) ->
-      serverMockup.conf.count = 1
-      cam.getScopes (err, data, xml) ->
-        assert.equal err, null
-        assert.ok Array.isArray data
-        data.forEach (scope) ->
-          assert.ok scope.scopeDef
-          assert.ok scope.scopeItem
-        delete serverMockup.conf.count
-        done()
-    it 'should return device scopes as array when no scopes', (done) ->
-      serverMockup.conf.count = 0
-      cam.getScopes (err, data, xml) ->
-        assert.equal err, null
-        assert.ok Array.isArray data
-        data.forEach (scope) ->
-          assert.ok scope.scopeDef
-          assert.ok scope.scopeItem
-        delete serverMockup.conf.count
-        done()
+    if synthTest
+      it 'should return device scopes as array when one scope', (done) ->
+        serverMockup.conf.count = 1
+        cam.getScopes (err, data, xml) ->
+          assert.equal err, null
+          assert.ok Array.isArray data
+          data.forEach (scope) ->
+            assert.ok scope.scopeDef
+            assert.ok scope.scopeItem
+          delete serverMockup.conf.count
+          done()
+    if synthTest
+      it 'should return device scopes as array when no scopes', (done) ->
+        serverMockup.conf.count = 0
+        cam.getScopes (err, data, xml) ->
+          assert.equal err, null
+          assert.ok Array.isArray data
+          data.forEach (scope) ->
+            assert.ok scope.scopeDef
+            assert.ok scope.scopeItem
+          delete serverMockup.conf.count
+          done()
 
   describe 'setScopes', () ->
     it 'should set and return device scopes as array', (done) ->
@@ -165,12 +180,13 @@ describe 'Common functions', () ->
           assert.ok scope.scopeDef
           assert.ok scope.scopeItem
         done()
-    it 'should return an error when SetScopes message returns error', (done) ->
-      serverMockup.conf.bad = true
-      cam.setScopes ['onvif://www.onvif.org/none'], (err, data, xml) ->
-        assert.notEqual err, null
-        delete serverMockup.conf.bad
-        done()
+    if synthTest
+      it 'should return an error when SetScopes message returns error', (done) ->
+        serverMockup.conf.bad = true
+        cam.setScopes ['onvif://www.onvif.org/none'], (err, data, xml) ->
+          assert.notEqual err, null
+          delete serverMockup.conf.bad
+          done()
 
   describe 'getCapabilities', () ->
     it 'should return a capabilities object with correspondent properties and also set them into #capability property', (done) ->
