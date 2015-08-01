@@ -120,6 +120,228 @@ Cam.prototype.getVideoEncoderConfigurations = function(callback) {
 	}.bind(this));
 };
 
+/**
+ * @typedef {object} Cam~VideoEncoderConfiguration
+ * @property {string} name
+ * @property {string} usecount
+ * @property {string} token
+ * @property {string} encoding
+ * @property {int} width
+ * @property {int} height
+ * @property {float} quality
+ * @property {int} frameRaeLimit
+ * @property {int} encodingInterval
+ * @property {int} bitrateLimit
+ * @property {int} H264govLength
+ * @property {string} H264profile
+ * @property {int} MPEG4govLength
+ * @property {string} MPEG4profile
+ * @property {string} multicastAddressType
+ * @property {string} multicastAddress
+ * @property {int} multicastPort
+ * @property {int} multicastTTL
+ * @property {boolean} multicastAutoStart
+ * @property {string} sessionTimeout [duration]
+ */
+
+/**
+ * Set the device video encoder configuration
+ * @param {object} options
+ * @param {string} [options.name]
+ * @param {int} [options.useCount]
+ * @param {string} [options.token]
+ * @param {string} [options.encoding] ( JPEG | H264 | MPEG4 )
+ * @patam {int} [options.width]
+ * @patam {int} [options.height]
+ * @patam {float} [options.quality]
+ * @patam {int} [options.frameRate]
+ * @patam {int} [options.encodingInterval]
+ * @patam {int} [options.bitRate]
+ * @patam {int} [options.H264govLength]
+ * @patam {string} [options.H264profile]
+ * @patam {int} [options.MPEG4govLength]
+ * @patam {string} [options.MPEG4profile]
+ * @patam {string} [options.multicastAddressType]
+ * @patam {string} [options.multicastAddress]
+ * @patam {int} [options.multicastPort]
+ * @patam {int} [options.multicastTTL]
+ * @patam {boolean} [options.multicastAutoStart]
+ * @patam {string} [options.sessionTimeout]
+ * @param {Cam~VideoEncoderConfigurationCallback} callback
+ */
+Cam.prototype.setVideoEncoderConfiguration = function(options, callback) {
+	this._request({
+		service: 'media', 
+		body: this._envelopeHeader() +
+		'&lt;SetVideoEncoderConfiguration xmlns="http://www.onvif.org/ver10/media/wsdl">' +
+			'&lt;Configuration token = "' + (options.token || this.activeSource.sourceToken ) + '">' +
+			'&lt;Name xmlns="http://www.onvif.org/ver10/schema">' + options.name + '&lt;/Name>' +
+			'&lt;UseCount xmlns="http://www.onvif.org/ver10/schema">' + options.useCount + '&lt;/UseCount>' +
+			'&lt;Encoding xmlns="http://www.onvif.org/ver10/schema">' + options.encoding + '&lt;/Encoding>' +
+			'&lt;Resolution xmlns="http://www.onvif.org/ver10/schema">' +
+				'&lt;Width>' + options.width + '&lt;/Width>' +
+				'&lt;Height>' + options.height + '&lt;/Height>' +
+			'&lt;/Resolution>' +
+			'&lt;Quality xmlns="http://www.onvif.org/ver10/schema">' + options.quality + '&lt;/Quality>' +
+			'&lt;RateControl xmlns="http://www.onvif.org/ver10/schema">' +
+				'&lt;FrameRateLimit>' + options.frameRate + '&lt;/FrameRateLimit>' +
+				'&lt;EncodingInterval>' + options.encodingInterval + '&lt;/EncodingInterval>' +
+				'&lt;BitrateLimit>' + options.bitRate + '&lt;/BitrateLimit>' +
+			'&lt;/RateControl>' +
+			'&lt;MPEG4 xmlns="http://www.onvif.org/ver10/schema">' +
+				'&lt;GovLength>' + options.MPEG4govLength + '&lt;/GovLength>' +
+				'&lt;MPEG4Profile>' + options.MPEG4profile + '&lt;/MPEG4Profile>' +
+			'&lt;/MPEG4>' +
+			'&lt;H264 xmlns="http://www.onvif.org/ver10/schema">' +
+				'&lt;GovLength>' + options.H264govLength + '&lt;/GovLength>' +
+				'&lt;H264Profile>' + options.H264profile + '&lt;/H264Profile>' +
+			'&lt;/H264>' +
+			'&lt;Multicast xmlns="http://www.onvif.org/ver10/schema">' +
+				'&lt;Address>' + 
+					'&lt;Type>' + options.multicastAddressType + '&lt;/Type>' +
+					(options.multicastAddressType == 'IPv4' ?
+					'&lt;IPv4Address>' + options.multicastAddress + '&lt;/IPv4Address>' : '') +	
+					(options.multicastAddressType == 'IPv6' ?
+					'&lt;IPv6Address>' + options.multicastAddress + '&lt;/IPv6Address>' : '') +	
+				'&lt;/Address>' +
+				'&lt;Port>' + options.multicastPort + '&lt;/Port>' +
+				'&lt;TTL>' + options.multicastTTL + '&lt;/TTL>' +
+				'&lt;AutoStart>' + options.multicastAutoStart + '&lt;/AutoStart>' +
+			'&lt;/Multicast>' +
+			'&lt;SessionTimeout xmlns="http://www.onvif.org/ver10/schema">' +
+				options.sessionTimeout +
+			'&lt;/SessionTimeout>' +
+			'&lt;/Configuration>' +
+			'&lt;ForcePersistence> true &lt;/ForcePersistence>' +
+		'&lt;/SetVideoEncoderConfiguration>' +
+		'&lt;/s:Body>' +
+		'&lt;/s:Envelope>'
+	}, function(err, data, xml) {
+		if (err || linerase(data).setVideoEncoderConfigurationResponse !== '') {
+			return callback.call(this, linerase(data).setVideoEncoderConfigurationResponse !== ''
+				? new Error('Wrong `SetVideoEncoderConfiguration` response')
+				: err, data, xml);
+		}
+		//get new encoding settings from device
+		this.getVideoEncoderConfigurations(callback);
+	}.bind(this));
+};
+
+/**
+ * Get all available physical audio iutputs  of a device
+ * @param callback
+ */
+Cam.prototype.getAudioSources = function(callback) {
+	this._request({
+		service: 'media'
+		, body: this._envelopeHeader() +
+		'&lt;GetAudioSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		console.log(data[0].getAudioSourcesResponse);
+		if (!err) {
+			this.audioSources = data[0].getAudioSourcesResponse[0].audioSources.map(function(config) {
+				return linerase(config);
+			});
+		}
+		if (callback) {
+			callback.call(this, err, this.audioSources, xml);
+		}
+	}.bind(this));
+};
+
+/**
+ * Get all available audio encoder configurations of a device
+ * @param callback
+ */
+Cam.prototype.getAudioEncoderConfigurations = function(callback) {
+	this._request({
+		service: 'media'
+		, body: this._envelopeHeader() +
+		'&lt;GetAudioEncoderConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		console.log(data[0].getAudioEncoderConfigurationsResponse);
+		if (!err) {
+			this.audioEncoderConfigurations = data[0].getAudioEncoderConfigurationsResponse[0].configurations.map(function(config) {
+				return linerase(config);
+			});
+		}
+		if (callback) {
+			callback.call(this, err, this.audioEncoderConfigurations, xml);
+		}
+	}.bind(this));
+};
+
+/**
+ * Get all existing audio source configurations of a device
+ * @param callback
+ */
+Cam.prototype.getAudioSourceConfigurations = function(callback) {
+	this._request({
+		service: 'media'
+		, body: this._envelopeHeader() +
+		'&lt;GetAudioSourceConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		console.log(data[0].getAudioSourceConfigurationsResponse);
+		if (!err) {
+			this.audioSourceConfigurations = data[0].getAudioSourceConfigurationsResponse[0].configurations.map(function(config) {
+				return linerase(config);
+			});
+		}
+		if (callback) {
+			callback.call(this, err, this.audioSourceConfigurations, xml);
+		}
+	}.bind(this));
+};
+
+/**
+ * Get all available audio outputs  of a device
+ * @param callback
+ */
+Cam.prototype.getAudioOutputs = function(callback) {
+	this._request({
+		service: 'media'
+		, body: this._envelopeHeader() +
+		'&lt;GetAudioOutputs xmlns="http://www.onvif.org/ver10/media/wsdl"/>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		console.log(data[0].getAudioOutputsResponse);
+		if (!err) {
+			this.audioOutputs = data[0].getAudioOutputsResponse[0].audioOutputs.map(function(config) {
+				return linerase(config);
+			});
+		}
+		if (callback) {
+			callback.call(this, err, this.audioOutputs, xml);
+		}
+	}.bind(this));
+};
+
+/**
+ * Get all existing audio output configurations of a device
+ * @param callback
+ */
+Cam.prototype.getAudioOutputConfigurations = function(callback) {
+	this._request({
+		service: 'media'
+		, body: this._envelopeHeader() +
+		'&lt;GetAudioOutputConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		console.log(data[0].getAudioOutputConfigurationsResponse);
+		if (!err) {
+			this.audioOutputConfigurations = data[0].getAudioOutputConfigurationsResponse[0].configurations.map(function(config) {
+				return linerase(config);
+			});
+		}
+		if (callback) {
+			callback.call(this, err, this.audioOutputConfigurations, xml);
+		}
+	}.bind(this));
+};
+
 // TODO AddVideoEncoderConfiguration
 
 /*
@@ -274,7 +496,8 @@ Cam.prototype.getSnapshotUri = function(options, callback) {
 			callback.call(this, err, err ? null : linerase(data).getSnapshotUriResponse.mediaUri, xml);
 		}
 	}.bind(this));
-};</code></pre>
+};
+</code></pre>
         </article>
     </section>
 
@@ -284,13 +507,13 @@ Cam.prototype.getSnapshotUri = function(options, callback) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam.html#event:event">event</a></li><li><a href="Cam.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam_.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Wed May 20 2015 11:08:17 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
 </footer>
 
 <script> prettyPrint(); </script>
