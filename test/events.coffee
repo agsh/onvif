@@ -7,8 +7,8 @@ describe 'Events', () ->
   before (done) ->
     options = {
       hostname: process.env.HOSTNAME || 'localhost'
-      username: 'admin'
-      password: '9999'
+      username: process.env.USERNAME || 'admin'
+      password: process.env.PASSWORD || '9999'
       port: if process.env.PORT then parseInt(process.env.PORT) else 10101
     }
     cam = new onvif.Cam options, done

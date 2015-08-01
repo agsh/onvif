@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/agsh/onvif.png)](https://travis-ci.org/agsh/onvif)
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
-[![NPM version](https://badge.fury.io/js/onvif.png)](http://badge.fury.io/js/onvif)
+[![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 
 ONVIF Client protocol Profile S Node.js implementation.
 
@@ -14,13 +14,19 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ## Installation
 
 ### NPM
-`npm install onvif`
 
-### Clone latest version from github
+`npm install onvif` - install latest stable version
+
+`npm install agsh/onvif` - install latest development version
+
+### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
 
 ### Tests
 In the library directory run `npm test`
+
+To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run 
+tests.
 
 ### Documentation
 To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise use `jsdoc` with sources from
@@ -59,7 +65,7 @@ camera to me.
 
 This page and API class documentation you can found here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/)
 
-Short description about library possibilities is below.
+Short description of library possibilities is below.
 
 ## Discovery
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
@@ -126,7 +132,7 @@ Callback (optional) executes when the cam is initialised. Single argument for th
 #### Technical description
 
 When the cam object creates it automatically sends three command to the ONVIF device:
-`getCapabilities`, `getVideoSources` and `getProfiles`. After that it fills correspondent properties of an object:
+`getCapabilities`, `getVideoSources` and `getProfiles`. It fills correspondent properties of an object:
 
 + capabilities
   - device
@@ -145,6 +151,14 @@ When the cam object creates it automatically sends three command to the ONVIF de
   - videoSourceConfiguration
   - videoEncoderConfiguration
   - PTZConfiguration
+  
+After that it runs `getActiveSources` method. It iterates over all video sources and tries to find out proper configuration
+for profile and videosource. First matching profile becomes a member of defaultProfiles array and video source configuration
+with ptz configuration becomes a member of activeSources array.
+ 
+Configuration for the first or the only one video source becomes defaultProfile and activeSource properties. All methods
+without passing options object use it. You can change it manually at any time.
+  
 + defaultProfile (link to the first profile in profiles)
 + activeSource (based on the default profile)
   - sourceToken
@@ -300,8 +314,15 @@ configuration object
 * ContinuousMove
 * Stop
 * GetStatus
+* SystemReboot
+* GetImagingSettings
+* SetImagingSettings
+* GetHostname
+* GetScopes
+* SetScopes
 
 ## Changelog
+- 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
 - 0.3.1 EventEmitter-based events
 - 0.3.0 Refactoring, documentation, event service basics
 - 0.2.7 WS-Discovery
