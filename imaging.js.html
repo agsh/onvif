@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: imaging.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: imaging.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @namespace cam
+ * @description Media section for Cam class
+ * @author Andrew D.Laptev &lt;a.d.laptev@gmail.com>
+ * @licence MIT
+ */
+
+const Cam = require('./cam').Cam
+	, linerase = require('./utils').linerase
+	;
+
+/**
+ * @typedef {object} Cam~ImagingSettings
+ * @property {number} brightness
+ * @property {number} colorSaturation
+ * @property {object} focus
+ * @property {string} focus.autoFocusMode
+ * @property {number} sharpness
+ */
+
+/**
+ * @callback Cam~GetImagingSettingsCallback
+ * @property {?Error} error
+ * @property {Cam~ImagingSettings} status
+ */
+
+/**
+ * Get the ImagingConfiguration for the requested VideoSource (default - the activeSource)
+ * @param {object} [options]
+ * @param {string} [options.token] {@link Cam#activeSource.profileToken}
+ * @param {Cam~GetImagingSettingsCallback} callback
+ */
+Cam.prototype.getImagingSettings = function(options, callback) {
+	if (typeof callback === 'undefined') {
+		callback = options;
+		options = {};
+	}
+	this._request({
+		service: 'imaging'
+		, body: this._envelopeHeader() +
+		'&lt;GetImagingSettings xmlns="http://www.onvif.org/ver20/imaging/wsdl" >' +
+			'&lt;VideoSourceToken  xmlns="http://www.onvif.org/ver20/imaging/wsdl" >' + ( options.token || this.activeSource.sourceToken) + '&lt;/VideoSourceToken>' +
+		'&lt;/GetImagingSettings>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		if (callback) { 
+			callback.call(this, err, err ? null : linerase(data).getImagingSettingsResponse.imagingSettings, xml);
+		}
+	}.bind(this));
+};
+
+/**
+ * @typedef {object} Cam~ImagingSetting
+ * @property {string} token Video source token
+ * @property {number} brightness
+ * @property {number} colorSaturation
+ * @property {number} contrast
+ * @property {number} sharpness
+ */
+
+/**
+ * Set the ImagingConfiguration for the requested VideoSource (default - the activeSource)
+ * @param {Cam~ImagingSetting} options
+ * @param callback
+ */
+Cam.prototype.setImagingSettings = function(options, callback) {
+	this._request({
+		service: 'imaging'
+		, body: this._envelopeHeader() +
+		'&lt;SetImagingSettings xmlns="http://www.onvif.org/ver20/imaging/wsdl" >' +
+			'&lt;VideoSourceToken  xmlns="http://www.onvif.org/ver20/imaging/wsdl" >' +
+				( options.token || this.activeSource.sourceToken) +
+			'&lt;/VideoSourceToken>' +
+ 
+			'&lt;ImagingSettings xmlns="http://www.onvif.org/ver20/imaging/wsdl" >' +
+				( 
+					options.brightness ? 
+					(
+						'&lt;Brightness xmlns="http://www.onvif.org/ver10/schema">' +
+							options.brightness +
+						'&lt;/Brightness>' 
+					) : ''
+				)
+
+			+
+
+				( 
+					options.colorSaturation ? 
+					(
+						'&lt;ColorSaturation xmlns="http://www.onvif.org/ver10/schema">' +
+							options.colorSaturation +
+						'&lt;/ColorSaturation>' 
+					) : ''
+				)
+
+			+
+
+				( 
+					options.contrast ? 
+					(
+						'&lt;Contrast xmlns="http://www.onvif.org/ver10/schema">' +
+							options.contrast +
+						'&lt;/Contrast>' 
+					) : ''
+				)
+
+			+
+
+				( 
+					options.sharpness ? 
+					(
+						'&lt;Sharpness xmlns="http://www.onvif.org/ver10/schema">' +
+							options.sharpness +
+						'&lt;/Sharpness>' 
+					) : ''
+				)
+
+			+
+			'&lt;/ImagingSettings>' +
+		'&lt;/SetImagingSettings>' +
+		this._envelopeFooter()
+	}, function(err, data, xml) {
+		if (callback) { 
+			callback.call(this, err, err ? null : linerase(data).setImagingSettingsResponse, xml);
+		}
+	}.bind(this));
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
