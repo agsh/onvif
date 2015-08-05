@@ -4,17 +4,13 @@
         <wsse:Security>
             <wsse:UsernameToken>
                 <wsse:Username>admin</wsse:Username>
-                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">beJVMB1FieofdQcuOzlYMvAnajk=</wsse:Password>
-                <wsse:Nonce>MzMwMTQ4MTgzNg==</wsse:Nonce>
-                <wsu:Created>2015-03-23T16:41:08.363Z</wsu:Created>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">oUjGCqgRooHjESdtadh4ya22N6w=</wsse:Password>
+                <wsse:Nonce>NjkzMzkyMDgzMw==</wsse:Nonce>
+                <wsu:Created>2015-08-05T15:59:14.099Z</wsu:Created>
             </wsse:UsernameToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <trt:CreateProfileResponse>
-            <trt:Profile fixed="false" token="Test">
-                <tt:Name>Test</tt:Name>
-            </trt:Profile>
-        </trt:CreateProfileResponse>
+        <trt:DeleteProfileResponse></trt:DeleteProfileResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

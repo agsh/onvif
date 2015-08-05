@@ -235,14 +235,6 @@ describe 'Common functions', () ->
         assert.equal cam.videoSources, data
         done()
 
-  describe 'getProfiles', () ->
-    it 'should create an array of profile objects with correspondent properties', (done) ->
-      cam.getProfiles (err, data) ->
-        assert.equal err, null
-        assert.ok Object.keys(cam.profiles).length > 0
-        assert.equal cam.profiles, data
-        done()
-
   describe 'gotoPreset', () ->
     it 'should just run', (done) ->
       cam.gotoPreset {preset: Object.keys(cam.profiles)[0]}, (err, data) ->
