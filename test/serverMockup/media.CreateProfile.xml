@@ -11,7 +11,7 @@
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <trt:CreateProfileResponse>
-            <trt:Profile fixed="false" token="test">
+            <trt:Profile fixed="false" token="testToken">
                 <tt:Name>test</tt:Name>
             </trt:Profile>
         </trt:CreateProfileResponse>
