@@ -23,11 +23,26 @@ describe 'Device', () ->
 
   describe 'setNTP', () ->
     if synthTest
-      it 'should set NTP', (done) ->
+      it 'should set NTP with ipv4', (done) ->
         cam.setNTP {
           fromDHCP: false
           type: 'IPv4'
           ipv4Address: 'localhost'
+        }, (err) ->
+          assert.equal err, null
+          done()
+      it 'should set NTP with ipv6', (done) ->
+        cam.setNTP {
+          fromDHCP: false
+          type: 'IPv6'
+          ipv6Address: '::1/128'
+          dnsName: '8.8.8.8'
+        }, (err) ->
+          assert.equal err, null
+          done()
+      it 'should set NTP from DHCP', (done) ->
+        cam.setNTP {
+          fromDHCP: true
         }, (err) ->
           assert.equal err, null
           done()
