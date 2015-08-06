@@ -15,6 +15,7 @@
             <tptz:Preset token="P001">
                 <tt:Name>P001</tt:Name>
             </tptz:Preset>
+            {{? !it.one }}
             <tptz:Preset token="P002">
                 <tt:Name>P002</tt:Name>
             </tptz:Preset>
@@ -147,6 +148,7 @@
             <tptz:Preset token="Home">
                 <tt:Name>Home</tt:Name>
             </tptz:Preset>
+            {{?}}
         </tptz:GetPresetsResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
