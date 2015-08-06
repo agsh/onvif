@@ -38,3 +38,11 @@ describe 'Media', () ->
         assert.equal err, null
         assert.equal res, ''
         done()
+
+  describe 'getVideoSourceConfigurations', () ->
+    it 'should return videosource configurations', (done) ->
+      cam.getVideoSourceConfigurations (err, res) ->
+        assert.ok Array.isArray(res)
+        assert.ok res.every (conf) ->
+          conf.name and conf.token and conf.sourceToken and conf.bounds
+        done()
