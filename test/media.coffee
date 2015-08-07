@@ -42,7 +42,16 @@ describe 'Media', () ->
   describe 'getVideoSourceConfigurations', () ->
     it 'should return videosource configurations', (done) ->
       cam.getVideoSourceConfigurations (err, res) ->
+        assert.equal err, null
         assert.ok Array.isArray(res)
         assert.ok res.every (conf) ->
           conf.name and conf.token and conf.sourceToken and conf.bounds
+        done()
+
+  describe 'getVideoEncoderConfigurations', () ->
+    it 'should return video encoder configurations', (done) ->
+      cam.getVideoEncoderConfigurations (err, res) ->
+        assert.equal err, null
+        assert.ok ['name', '$', 'quality', 'resolution', 'multicast'].every (prop) ->
+          !!res.prop
         done()
