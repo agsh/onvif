@@ -53,5 +53,6 @@ describe 'Media', () ->
       cam.getVideoEncoderConfigurations (err, res) ->
         assert.equal err, null
         assert.ok ['name', '$', 'quality', 'resolution', 'multicast'].every (prop) ->
-          !!res.prop
+          res.every (vec) ->
+            !!vec[prop]
         done()
