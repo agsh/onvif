@@ -78,10 +78,13 @@ describe 'Media', () ->
         done()
 
   describe 'setVideoEncoderConfiguration', () ->
+    it 'should generate an error when no token in the options is present', (done) ->
+      cam.setVideoEncoderConfiguration {}, (err) ->
+        assert.notEqual err, null
+        done()
     it 'should accept setting existing configuration and return the same configuration by the getVideoEncoderConfiguration method', (done) ->
       cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res) ->
         assert.equal err, null
-        console.log(cam.videoEncoderConfigurations[0])
         assert.deepEqual cam.videoEncoderConfigurations[0], res
         done()
     it 'should accept setting some new video configuration based on the existing', (done) ->
