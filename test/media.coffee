@@ -48,6 +48,12 @@ describe 'Media', () ->
           conf.name and conf.token and conf.sourceToken and conf.bounds
         done()
 
+  describe 'getVideoEncoderConfiguration', () ->
+    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array', (done) ->
+      cam.getVideoEncoderConfiguration (err) ->
+        assert.notEqual err, null
+        done()
+
   describe 'getVideoEncoderConfigurations', () ->
     it 'should return video encoder configurations', (done) ->
       cam.getVideoEncoderConfigurations (err, res) ->
@@ -56,3 +62,35 @@ describe 'Media', () ->
           res.every (vec) ->
             !!vec[prop]
         done()
+
+  describe 'getVideoEncoderConfiguration', () ->
+    it 'should return a configuration for the first token in #videoEncoderConfigurations array', (done) ->
+      cam.getVideoEncoderConfiguration (err, res) ->
+        assert.equal err, null
+        assert.ok ['name', '$', 'quality', 'resolution', 'multicast'].every (prop) ->
+          !!res[prop]
+        done()
+    it 'should return a configuration for the named token as a first argument', (done) ->
+      cam.getVideoEncoderConfiguration cam.videoEncoderConfigurations[0].$.token, (err, res) ->
+        assert.equal err, null
+        assert.ok ['name', '$', 'quality', 'resolution', 'multicast'].every (prop) ->
+          !!res[prop]
+        done()
+
+  describe 'setVideoEncoderConfiguration', () ->
+    it 'should accept setting existing configuration and return the same configuration by the getVideoEncoderConfiguration method', (done) ->
+      cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res) ->
+        assert.equal err, null
+        console.log(cam.videoEncoderConfigurations[0])
+        assert.deepEqual cam.videoEncoderConfigurations[0], res
+        done()
+    it 'should accept setting some new video configuration based on the existing', (done) ->
+      conf = {
+        token: cam.videoEncoderConfigurations[0].$.token
+        resolution: cam.videoEncoderConfigurations[0].resolution
+      }
+      cam.setVideoEncoderConfiguration conf, (err, res) ->
+        assert.equal err, null
+        done()
+
+
