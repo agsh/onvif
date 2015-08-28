@@ -1,4 +1,5 @@
 synthTest = not process.env.HOSTNAME
+
 assert = require 'assert'
 onvif = require('../lib/onvif')
 serverMockup = require('./serverMockup') if synthTest
@@ -83,9 +84,7 @@ describe 'Media', () ->
         assert.notEqual err, null
         done()
     it 'should accept setting existing configuration and return the same configuration by the getVideoEncoderConfiguration method', (done) ->
-      console.log serverMockup.conf.bad
       cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res, xml) ->
-        console.log(xml);
         assert.equal err, null
         assert.deepEqual cam.videoEncoderConfigurations[0], res
         done()
