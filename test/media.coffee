@@ -83,7 +83,9 @@ describe 'Media', () ->
         assert.notEqual err, null
         done()
     it 'should accept setting existing configuration and return the same configuration by the getVideoEncoderConfiguration method', (done) ->
-      cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res) ->
+      console.log serverMockup.conf.bad
+      cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res, xml) ->
+        console.log(xml);
         assert.equal err, null
         assert.deepEqual cam.videoEncoderConfigurations[0], res
         done()
@@ -95,5 +97,12 @@ describe 'Media', () ->
       cam.setVideoEncoderConfiguration conf, (err, res) ->
         assert.equal err, null
         done()
+    if synthTest
+      it 'should emits error with wrong response', (done) ->
+        serverMockup.conf.bad = true
+        cam.setVideoEncoderConfiguration cam.videoEncoderConfigurations[0], (err, res) ->
+          assert.notEqual err, null
+          delete serverMockup.conf.bad
+          done()
 
 

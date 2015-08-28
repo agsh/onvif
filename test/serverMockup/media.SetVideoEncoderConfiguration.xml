@@ -11,6 +11,6 @@
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <trt:SetVideoEncoderConfigurationResponse></trt:SetVideoEncoderConfigurationResponse>
+        <trt:SetVideoEncoderConfigurationResponse>{{? it.bad }}some fault message{{?}}</trt:SetVideoEncoderConfigurationResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
