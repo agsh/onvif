@@ -11,8 +11,4 @@ after_success:
   - npm run-script upload-to-coveralls
 notifications:
   email: true
-env:
-  global:
-    - HOSTNAME=127.0.0.1
-    - PORT=10101
 sudo: false
