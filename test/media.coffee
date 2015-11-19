@@ -104,4 +104,14 @@ describe 'Media', () ->
           delete serverMockup.conf.bad
           done()
 
+  describe 'getAudioSources', () ->
+    it 'should return audio sources', (done) ->
+      cam.getAudioSources (err, res) ->
+        assert.equal err, null
+        done()
 
+  describe 'getAudioEncoderConfigurations', () ->
+    it 'should return audio encoder configurations', (done) ->
+      cam.getAudioEncoderConfigurations (err, res) ->
+        assert.equal err, null
+        done()
