@@ -11,10 +11,10 @@
     "lint": "jshint lib/*.js",
     "coffee-tests": "coffee -c test/*.coffee",
     "pretest": "npm run lint; npm run jscs; npm run coffee-tests",
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha",
-    "test-on-travis": "npm run pretest; ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly",
-    "test-coveralls": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
-    "upload-to-coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "test": "istanbul cover _mocha",
+    "test-on-travis": "npm run pretest; istanbul cover _mocha --report lcovonly",
+    "test-coveralls": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
+    "upload-to-coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
