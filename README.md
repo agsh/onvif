@@ -70,7 +70,7 @@ Short description of library possibilities is below.
 ## Discovery
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can find devices in your subnetwork using `probe` method of the Discovery singleton.
-Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
+Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
 Here some examples:
 
 ```js
