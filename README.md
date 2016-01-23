@@ -76,7 +76,7 @@ Here some examples:
 ```js
 var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
-// function would be called as soon as NVT responses
+// function will be called as soon as NVT responses
 	cam.username = <USERNAME>;
 	cam.password = <PASSWORD>;
 	cam.connect(console.log);
