@@ -19,7 +19,10 @@ listener = (req, res) ->
   req.on 'data', (chunk) ->
     buf.push chunk
   req.on 'end', () ->
-    request = Buffer.concat buf
+    if (Buffer.isBuffer(buf)) # Node.js > 0.12 fix when `data` event produces strings instead of Buffer
+      request = Buffer.concat buf
+    else
+      request = buf.join('')
     # Find body and command name
     body = reBody.exec(request)
     return res.end() if !body

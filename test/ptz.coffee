@@ -1,6 +1,8 @@
+synthTest = not process.env.HOSTNAME
+
 assert = require 'assert'
 onvif = require('../lib/onvif')
-serverMockup = require('./serverMockup')
+serverMockup = require('./serverMockup') if synthTest
 util = require('util')
 
 describe 'PTZ', () ->
@@ -21,4 +23,32 @@ describe 'PTZ', () ->
         assert.ok Object.keys(data).every (presetName) ->
           typeof data[presetName] == 'string'
         assert.equal cam.presets, data
+        done()
+    it 'should return array of preset objects and sets them to #presets without options', (done) ->
+      cam.getPresets (err, data) ->
+        assert.equal err, null
+        assert.ok Object.keys(data).every (presetName) ->
+          typeof data[presetName] == 'string'
+        assert.equal cam.presets, data
+        done()
+    if synthTest
+      it 'should work with one preset', (done) ->
+        serverMockup.conf.one = true
+        cam.getPresets (err, data) ->
+          assert.equal err, null
+          assert.ok Object.keys(data).every (presetName) ->
+            typeof data[presetName] == 'string'
+          assert.equal cam.presets, data
+          delete serverMockup.conf.one
+          done()
+
+
+  describe 'gotoPreset', () ->
+    it 'should just run', (done) ->
+      cam.gotoPreset {preset: Object.keys(cam.profiles)[0]}, (err, data) ->
+        assert.equal err, null
+        done()
+    it 'should run with speed definition', (done) ->
+      cam.gotoPreset {preset: Object.keys(cam.profiles)[0], speed: 0.1}, (err, data) ->
+        assert.equal err, null
         done()

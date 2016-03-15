@@ -121,17 +121,6 @@ describe 'Common functions', () ->
           delete serverMockup.conf.bad
           done()
 
-  describe 'setNTP', () ->
-    if synthTest
-      it 'should set NTP', (done) ->
-        cam.setNTP {
-          fromDHCP: false
-          type: 'IPv4'
-          ipv4Address: 'localhost'
-        }, (err) ->
-          assert.equal err, null
-          done()
-
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
       cam.getHostname (err, data) ->
@@ -223,7 +212,7 @@ describe 'Common functions', () ->
       cam.profiles.forEach((profile) -> profile.videoSourceConfiguration.sourceToken = 'crap')
       assert.throws(cam.getActiveSources, Error)
       cam.profiles = realProfiles
-    it 'should populate activeSources and defaultProfiles when more than one video source exists', () ->
+    ###it 'should populate activeSources and defaultProfiles when more than one video source exists', () ->
       fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSources.single', (err) ->
         assert.equal err, null
         fs.rename './serverMockup/GetVideoSourcesEncoder.xml', './serverMockup/GetVideoSources.xml', (err) ->
@@ -235,7 +224,7 @@ describe 'Common functions', () ->
           fs.rename './serverMockup/GetVideoSources.xml', './serverMockup/GetVideoSourcesEncoder.xml', (err) ->
       	    assert.equal err, null
       	    fs.rename './serverMockup/GetVideoSources.single', './serverMockup/GetVideoSources.xml', (err) ->
-              assert.equal err, null
+              assert.equal err, null###
 
   describe 'getVideoSources', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
@@ -244,20 +233,6 @@ describe 'Common functions', () ->
         assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
           data[prop] != undefined
         assert.equal cam.videoSources, data
-        done()
-
-  describe 'getProfiles', () ->
-    it 'should create an array of profile objects with correspondent properties', (done) ->
-      cam.getProfiles (err, data) ->
-        assert.equal err, null
-        assert.ok Object.keys(cam.profiles).length > 0
-        assert.equal cam.profiles, data
-        done()
-
-  describe 'gotoPreset', () ->
-    it 'should just run', (done) ->
-      cam.gotoPreset {preset: Object.keys(cam.profiles)[0]}, (err, data) ->
-        assert.equal err, null
         done()
 
   describe 'getServices', () ->

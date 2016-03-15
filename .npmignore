@@ -5,6 +5,8 @@
 .coveralls.yml
 cam_tests
 coverage
+experiments
 node_modules
+test
 test/*.map
 test/*.js

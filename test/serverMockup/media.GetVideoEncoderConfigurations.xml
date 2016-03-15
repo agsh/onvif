@@ -4,17 +4,43 @@
         <wsse:Security>
             <wsse:UsernameToken>
                 <wsse:Username>admin</wsse:Username>
-                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">beJVMB1FieofdQcuOzlYMvAnajk=</wsse:Password>
-                <wsse:Nonce>MzMwMTQ4MTgzNg==</wsse:Nonce>
-                <wsu:Created>2015-03-23T16:41:08.363Z</wsu:Created>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">xOw2NVPDVsnxRk5sz3ET1qvrlTM=</wsse:Password>
+                <wsse:Nonce>MzQzOTU0MzYwNg==</wsse:Nonce>
+                <wsu:Created>2015-08-07T12:29:20.309Z</wsu:Created>
             </wsse:UsernameToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <trt:CreateProfileResponse>
-            <trt:Profile fixed="false" token="Test">
-                <tt:Name>Test</tt:Name>
-            </trt:Profile>
-        </trt:CreateProfileResponse>
+        <trt:GetVideoEncoderConfigurationsResponse>
+            <trt:Configurations token="main">
+                <tt:Name>Main stream encoder</tt:Name>
+                <tt:UseCount>2</tt:UseCount>
+                <tt:Encoding>H264</tt:Encoding>
+                <tt:Resolution>
+                    <tt:Width>1920</tt:Width>
+                    <tt:Height>1080</tt:Height>
+                </tt:Resolution>
+                <tt:Quality>6</tt:Quality>
+                <tt:RateControl>
+                    <tt:FrameRateLimit>5</tt:FrameRateLimit>
+                    <tt:EncodingInterval>1</tt:EncodingInterval>
+                    <tt:BitrateLimit>512</tt:BitrateLimit>
+                </tt:RateControl>
+                <tt:H264>
+                    <tt:GovLength>30</tt:GovLength>
+                    <tt:H264Profile>High</tt:H264Profile>
+                </tt:H264>
+                <tt:Multicast>
+                    <tt:Address>
+                        <tt:Type>IPv4</tt:Type>
+                        <tt:IPv4Address>0.0.0.0</tt:IPv4Address>
+                    </tt:Address>
+                    <tt:Port>0</tt:Port>
+                    <tt:TTL>0</tt:TTL>
+                    <tt:AutoStart>false</tt:AutoStart>
+                </tt:Multicast>
+                <tt:SessionTimeout>PT60S</tt:SessionTimeout>
+            </trt:Configurations>
+        </trt:GetVideoEncoderConfigurationsResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
