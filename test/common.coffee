@@ -44,6 +44,16 @@ describe 'Common functions', () ->
         assert.notEqual err, null
         cam.hostname = host
         done()
+    it 'should return an error message when the server request times out', (done) ->
+      host = cam.hostname
+      oldTimeout = cam.timeout
+      cam.hostname = '10.255.255.1'
+      cam.timeout = 500
+      cam._request {body: 'test'}, (err) ->
+        assert.notEqual err, null
+        cam.timeout = oldTimeout
+        cam.hostname = host
+        done()
     it 'should work nice with the proper request body', (done) ->
       cam._request {body: '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
         '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
