@@ -7,7 +7,7 @@
 ONVIF Client protocol Profile S Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
-device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.
+device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
