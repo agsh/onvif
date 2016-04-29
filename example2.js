@@ -12,16 +12,15 @@
  */
 
 var IP_RANGE_START = '192.168.1.1',
-    IP_RANGE_SIZE = 253,
+    IP_RANGE_END = '192.168.1.254',
     PORT_LIST = [80, 8000, 8080],
     USERNAME = 'admin',
-    PASSWORD = 'password';
+    PASSWORD = 'admin';
 
 var Cam = require('./lib/onvif').Cam;
-var Range = require('ipv4-range');
 var flow = require('nimble');
 
-var ip_list = Range(IP_RANGE_START, IP_RANGE_SIZE);
+var ip_list = generate_range(IP_RANGE_START, IP_RANGE_END);
 var port_list = PORT_LIST;
 
 // hide error messages
@@ -37,7 +36,8 @@ ip_list.forEach(function(ip_entry) {
             hostname: ip_entry,
             username: USERNAME,
             password: PASSWORD,
-            port: port_entry
+            port: port_entry,
+timeout : 5000
         }, function CamFunc(err) {
             if (err) return;
 
@@ -87,3 +87,39 @@ ip_list.forEach(function(ip_entry) {
         });
     }); // foreach
 }); // foreach
+
+
+function generate_range(start_ip, end_ip) {
+  var start_long = toLong(start_ip);
+  var end_long = toLong(end_ip);
+  if (start_long > end_long) {
+    var tmp=start_long;
+    start_long=end_long
+    end_long=tmp;
+  }
+  var range_array = [];
+  var i;
+  for (i=start_long; i<=end_long;i++) {
+    range_array.push(fromLong(i));
+  }
+  return range_array;
+}
+
+//toLong taken from NPM package 'ip' 
+function toLong(ip) {
+  var ipl = 0;
+  ip.split('.').forEach(function(octet) {
+    ipl <<= 8;
+    ipl += parseInt(octet);
+  });
+  return(ipl >>> 0);
+};
+
+//fromLong taken from NPM package 'ip' 
+function fromLong(ipl) {
+  return ((ipl >>> 24) + '.' +
+      (ipl >> 16 & 255) + '.' +
+      (ipl >> 8 & 255) + '.' +
+      (ipl & 255) );
+};
+ 
