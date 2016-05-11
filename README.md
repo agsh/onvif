@@ -57,6 +57,12 @@ new Cam({
 });
 ```
 
+## Other examples
+example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and default RTSP address
+
+example3.js reads the command line cursor keys and sends PTZ commands to the camera
+
+
 ## Troubleshooting
 Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
 camera to me.
