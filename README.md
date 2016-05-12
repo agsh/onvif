@@ -58,9 +58,9 @@ new Cam({
 ```
 
 ## Other examples
-example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and default RTSP address
+* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and default RTSP address
 
-example3.js reads the command line cursor keys and sends PTZ commands to the camera
+* example3.js reads the command line cursor keys and sends PTZ commands to the camera
 
 
 ## Troubleshooting
