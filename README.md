@@ -322,6 +322,7 @@ configuration object
 * SetScopes
 
 ## Changelog
+- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman) 
 - 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
 - 0.3.1 EventEmitter-based events
 - 0.3.0 Refactoring, documentation, event service basics
