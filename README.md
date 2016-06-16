@@ -27,6 +27,8 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 ### Tests
 In the library directory run `npm test`
 
+By default the tests use a mockup server to generate ONVIF replies.
+
 To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run 
 tests.
 
