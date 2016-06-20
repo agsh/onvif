@@ -7,7 +7,7 @@
 ONVIF Client protocol Profile S Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
-device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.
+device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
@@ -17,13 +17,17 @@ device, its media sources, control PTZ (pan-tilt-zoom) movements and manage pres
 
 `npm install onvif` - install latest stable version
 
-`npm install agsh/onvif` - install latest development version
+`npm install agsh/onvif` - install latest version from GitHub
+
+`npm install agsh/onvif#dev` - install latest development version
 
 ### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
 
 ### Tests
 In the library directory run `npm test`
+
+By default the tests use a mockup server to generate ONVIF replies.
 
 To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run 
 tests.
@@ -56,6 +60,12 @@ new Cam({
   });
 });
 ```
+
+## Other examples
+* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and default RTSP address
+
+* example3.js reads the command line cursor keys and sends PTZ commands to the camera
+
 
 ## Troubleshooting
 Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
@@ -322,6 +332,8 @@ configuration object
 * SetScopes
 
 ## Changelog
+- 0.4.2 Bugfixes
+- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman) 
 - 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
 - 0.3.1 EventEmitter-based events
 - 0.3.0 Refactoring, documentation, event service basics
