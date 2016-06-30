@@ -4,6 +4,7 @@ node_js:
   - "0.10"
   - "4"
   - "5"
+  - "6"
 before_install:
   - "npm config set spin false"
 script: npm run-script test-on-travis
