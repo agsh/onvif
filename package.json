@@ -21,7 +21,9 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
-    "xml2js": "^0.4"
+    "xml2js": "^0.4",
+    "nimble": "^0.0.2",
+    "keypress": "^0.2.1"
   },
   "keywords": [
     "onvif",
