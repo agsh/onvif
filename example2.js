@@ -13,7 +13,7 @@
 
 var IP_RANGE_START = '192.168.1.1',
     IP_RANGE_END = '192.168.1.254',
-    PORT_LIST = [80, 8000, 8080],
+    PORT_LIST = [80, 8000, 8080, 7575],
     USERNAME = 'admin',
     PASSWORD = 'admin';
 
@@ -52,7 +52,6 @@ timeout : 5000
             // writing to the console
             flow.series([
                 function(callback) {
-
                     cam_obj.getSystemDateAndTime(function(err, date, xml) {
                         if (!err) got_date = date;
                         callback();
@@ -65,12 +64,14 @@ timeout : 5000
                     });
                 },
                 function(callback) {
+		try {
                     cam_obj.getStreamUri({
                         protocol: 'RTSP'
                     }, function(err, stream, xml) {
                         if (!err) got_stream = stream;
                         callback();
                     });
+                } catch(err) {callback();}
                 },
                 function(callback) {
                     console.log('------------------------------');
