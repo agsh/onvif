@@ -8,6 +8,7 @@ ONVIF Client protocol Profile S Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
+It will also allow you to get information about your NVR (network video recorder) Profile G device.
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
@@ -139,8 +140,8 @@ Callback (optional) executes when the cam is initialised. Single argument for th
 
 #### Technical description
 
-When the cam object creates it automatically sends three command to the ONVIF device:
-`getCapabilities`, `getVideoSources` and `getProfiles`. It fills correspondent properties of an object:
+When the cam object is created it automatically sends a `getCapabilities` command to the ONVIF device. If the device is a camera or encoder (NVT) it sends two commands to the ONVIF device:
+`getVideoSources` and `getProfiles`. It fills corresponding properties of an object:
 
 + capabilities
   - device
