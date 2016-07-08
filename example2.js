@@ -13,7 +13,7 @@
 
 var IP_RANGE_START = '192.168.1.1',
     IP_RANGE_END = '192.168.1.254',
-    PORT_LIST = [80, 8000, 8080, 7575],
+    PORT_LIST = [80, 7575, 8000, 8080, 8081],
     USERNAME = 'admin',
     PASSWORD = 'admin';
 
@@ -45,7 +45,9 @@ timeout : 5000
 
             var got_date;
             var got_info;
-            var got_stream;
+            var got_live_stream;
+            var got_recordings;
+            var got_replay_stream;
 
             // Use Nimble to execute each ONVIF function in turn
             // This is used so we can wait on all ONVIF replies before
@@ -64,21 +66,46 @@ timeout : 5000
                     });
                 },
                 function(callback) {
-		try {
+                try {
                     cam_obj.getStreamUri({
                         protocol: 'RTSP'
                     }, function(err, stream, xml) {
-                        if (!err) got_stream = stream;
+                        if (!err) got_live_stream = stream;
                         callback();
                     });
                 } catch(err) {callback();}
+                },
+                function(callback) {
+                    cam_obj.getRecordings(function(err, recordings, xml) {
+                        if (!err) got_recordings = recordings;
+                        callback();
+                    });
+                },
+                function(callback) {
+                    // Get Recording URI for the first recording on the NVR
+                    if (got_recordings) {
+                        cam_obj.getReplayUri({
+                            protocol: 'RTSP',
+                            recordingToken: got_recordings[0].recordingToken
+                        }, function(err, stream, xml) {
+                            if (!err) got_replay_stream = stream;
+                            callback();
+                        });
+                    } else {
+                        callback();
+                    }
                 },
                 function(callback) {
                     console.log('------------------------------');
                     console.log('Host: ' + ip_entry + ' Port: ' + port_entry);
                     console.log('Date: = ' + got_date);
                     console.log('Info: = ' + JSON.stringify(got_info));
-                    console.log('Stream: = ' + JSON.stringify(got_stream));
+                    if (got_live_stream) {
+                        console.log('First Live Stream: = ' + JSON.stringify(got_live_stream));
+                    }
+                    if (got_replay_stream) {
+                        console.log('First Replay Stream: = ' + JSON.stringify(got_replay_stream));
+                    }
                     console.log('------------------------------');
                     callback();
                 },

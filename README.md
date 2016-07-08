@@ -4,11 +4,11 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 [![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 
-ONVIF Client protocol Profile S Node.js implementation.
+ONVIF Client protocol Profile S (Live Streaming) and Profile G (Replay) Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
-It will also allow you to get information about your NVR (network video recorder) Profile G device.
+It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
@@ -61,9 +61,12 @@ new Cam({
 ```
 
 ## Other examples
-* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and default RTSP address
+* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and dsplays information about each device found including make and model.
+For Profile S Cameras and Encoders it displays the default RTSP address
+For Profile G Recorders it displays the RTSP address of the first recording  
 
-* example3.js reads the command line cursor keys and sends PTZ commands to the camera
+
+* example3.js reads the command line cursor keys and sends PTZ commands to the Camera
 
 
 ## Troubleshooting
@@ -329,6 +332,8 @@ configuration object
 * GetHostname
 * GetScopes
 * SetScopes
+* GetRecordings
+* GetReplayUri
 
 ## Changelog
 - 0.4.2 Bugfixes
@@ -345,4 +350,6 @@ WSDL schemes and docs:
 - http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl
 - http://www.onvif.org/ver10/media/wsdl/media.wsdl
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
+- http://www.onvif.org/onvif/ver10/recording.wsdl
+- http://www.onvif.org/onvif/ver10/replay.wsdl
 - http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf
