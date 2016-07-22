@@ -28,6 +28,8 @@ It will also allow you to get information about your NVR (network video recorder
 ### Tests
 In the library directory run `npm test`
 
+By default the tests use a mockup server to generate ONVIF replies.
+
 To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run 
 tests.
 
