@@ -338,6 +338,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.5 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
 - 0.4.2 Bugfixes
 - 0.4.1 Improved discovery (@sousandrei, @RogerHardiman) 
 - 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
