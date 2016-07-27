@@ -182,9 +182,9 @@ new Cam({
 
 
 	function stop() {
-		// send a stop command.
+		// send a stop command, stopping Pan/Tilt and stopping zoom
 		console.log('sending stop command');
-		cam_obj.stop(
+		cam_obj.stop({panTilt: true, zoom: true},
 			function (err,stream, xml){
 				if (err) {
 					console.log(err);
