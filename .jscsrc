@@ -30,6 +30,7 @@
   "validateLineBreaks": "LF",
   "validateIndentation": "\t",
   "disallowMixedSpacesAndTabs": true,
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
   "requireSpacesInConditionalExpression": {
     "afterTest": true,
     "beforeConsequent": true,
