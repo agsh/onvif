@@ -338,7 +338,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
-- 0.6.0 `preserveAddress` property for NAT devices
+- 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
 - 0.5.1 Critical bugfix in SOAP-auth for some cams
 - 0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
 - 0.4.2 Bugfixes
