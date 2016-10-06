@@ -48,6 +48,7 @@ discover.msg =
   )
 discover.on 'error', (err) -> throw err
 discover.on 'message', (msg, rinfo) ->
+  console.log(msg)
   msgId = /urn:uuid:([0-9a-f\-]+)</.exec(msg.toString())[1]
   if msgId
     switch msgId
