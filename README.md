@@ -338,6 +338,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.6.0 `preserveAddress` property for NAT devices
 - 0.5.1 Critical bugfix in SOAP-auth for some cams
 - 0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
 - 0.4.2 Bugfixes
@@ -356,4 +357,4 @@ WSDL schemes and docs:
 - http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
 - http://www.onvif.org/onvif/ver10/recording.wsdl
 - http://www.onvif.org/onvif/ver10/replay.wsdl
-- http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf
+- [ONVIF Application Programmer's Guide](http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf)
