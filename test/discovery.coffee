@@ -51,3 +51,17 @@ describe 'Discovery', () ->
       assert.equal Object.keys(cams).length, cCams.length
       onvif.Discovery.removeListener('device', onCam)
       done()
+
+  it 'should got single device for one probe when `lo` is specified', (done) ->
+    cams = {}
+    onCam = (data) ->
+      if cams[data.probeMatches.probeMatch.XAddrs]
+        assert.fail()
+      else
+        cams[data.probeMatches.probeMatch.XAddrs] = true
+    onvif.Discovery.on 'device', onCam
+    onvif.Discovery.probe {timeout: 1000, resolve: false, messageId: 'cl1m@x', device: 'lo'}, (err, cCams) ->
+      assert.equal err, null
+      assert.equal Object.keys(cams).length, cCams.length
+      onvif.Discovery.removeListener('device', onCam)
+      done()
