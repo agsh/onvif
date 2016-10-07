@@ -50,10 +50,16 @@ describe 'Media', () ->
         done()
 
   describe 'getVideoEncoderConfiguration', () ->
-    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array', (done) ->
+    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array and there is no `videoEncoderConfigurations` property', (done) ->
       cam.getVideoEncoderConfiguration (err) ->
         assert.notEqual err, null
         done()
+  describe 'getVideoEncoderConfigurationOptions', () ->
+    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array and there is no `videoEncoderConfigurations` property', (done) ->
+      cam.getVideoEncoderConfigurationOptions (err, res) ->
+        assert.notEqual err, null
+        done()
+
 
   describe 'getVideoEncoderConfigurations', () ->
     it 'should return video encoder configurations', (done) ->
@@ -76,6 +82,18 @@ describe 'Media', () ->
         assert.equal err, null
         assert.ok ['name', '$', 'quality', 'resolution', 'multicast'].every (prop) ->
           !!res[prop]
+        done()
+
+  describe 'getVideoEncoderConfigurationOptions', () ->
+    it 'should return a configuration options for the first token in #videoEncoderConfigurations array', (done) ->
+      cam.getVideoEncoderConfigurationOptions (err, res) ->
+        assert.equal err, null
+        assert.ok res.qualityRange
+        done()
+    it 'should return a configuration options for the named token as a first argument', (done) ->
+      cam.getVideoEncoderConfigurationOptions cam.videoEncoderConfigurations[0].$.token, (err, res) ->
+        assert.equal err, null
+        assert.ok res.qualityRange
         done()
 
   describe 'setVideoEncoderConfiguration', () ->
