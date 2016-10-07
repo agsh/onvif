@@ -37,3 +37,9 @@ describe 'Imaging', () ->
       assert.equal err, null
       assert.equal res, ''
       done()
+
+  it 'should set imaging service capabilities', (done) ->
+    cam.getImagingServiceCapabilities (err, res) ->
+      assert.equal err, null
+      assert.equal (typeof res.ImageStabilization), 'boolean'
+      done()
