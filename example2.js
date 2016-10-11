@@ -45,7 +45,9 @@ timeout : 5000
 
             var got_date;
             var got_info;
-            var got_live_stream;
+            var got_live_stream_tcp;
+            var got_live_stream_udp;
+            var got_live_stream_multicast;
             var got_recordings;
             var got_replay_stream;
 
@@ -68,9 +70,32 @@ timeout : 5000
                 function(callback) {
                 try {
                     cam_obj.getStreamUri({
-                        protocol: 'RTSP'
+                        protocol: 'RTSP',
+                        stream: 'RTP-Unicast'
                     }, function(err, stream, xml) {
-                        if (!err) got_live_stream = stream;
+                        if (!err) got_live_stream_tcp = stream;
+                        callback();
+                    });
+                } catch(err) {callback();}
+                },
+                function(callback) {
+                try {
+                    cam_obj.getStreamUri({
+                        protocol: 'UDP',
+                        stream: 'RTP-Unicast'
+                    }, function(err, stream, xml) {
+                        if (!err) got_live_stream_udp = stream;
+                        callback();
+                    });
+                } catch(err) {callback();}
+                },
+                function(callback) {
+                try {
+                    cam_obj.getStreamUri({
+                        protocol: 'UDP',
+                        stream: 'RTP-Multicast'
+                    }, function(err, stream, xml) {
+                        if (!err) got_live_stream_multicast = stream;
                         callback();
                     });
                 } catch(err) {callback();}
@@ -100,11 +125,17 @@ timeout : 5000
                     console.log('Host: ' + ip_entry + ' Port: ' + port_entry);
                     console.log('Date: = ' + got_date);
                     console.log('Info: = ' + JSON.stringify(got_info));
-                    if (got_live_stream) {
-                        console.log('First Live Stream: = ' + JSON.stringify(got_live_stream));
+                    if (got_live_stream_tcp) {
+                        console.log('First Live TCP Stream: =       ' + got_live_stream_tcp.uri);
+                    }
+                    if (got_live_stream_udp) {
+                        console.log('First Live UDP Stream: =       ' + got_live_stream_udp.uri);
+                    }
+                    if (got_live_stream_multicast) {
+                        console.log('First Live Multicast Stream: = ' + got_live_stream_multicast.uri);
                     }
                     if (got_replay_stream) {
-                        console.log('First Replay Stream: = ' + JSON.stringify(got_replay_stream));
+                        console.log('First Replay Stream: = ' + got_replay_stream.uri);
                     }
                     console.log('------------------------------');
                     callback();
