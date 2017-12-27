@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope>
+    <SOAP-ENV:Header>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <tptz:SetHomePositionResponse></tptz:SetHomePositionResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
