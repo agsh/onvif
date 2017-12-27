@@ -38,7 +38,7 @@ describe 'Discovery', () ->
       assert.notEqual err, null
       assert.ok emit
       done()
-  it 'should got single device for one probe', (done) ->
+  it 'should get single device for one probe', (done) ->
     cams = {}
     onCam = (data) ->
       if cams[data.probeMatches.probeMatch.XAddrs]
@@ -51,7 +51,7 @@ describe 'Discovery', () ->
       assert.equal Object.keys(cams).length, cCams.length
       onvif.Discovery.removeListener('device', onCam)
       done()
-  it 'should got single device for one probe when `lo` is specified', (done) ->
+  it 'should get single device for one probe when `lo` is specified', (done) ->
     cams = {}
     onCam = (data) ->
       if cams[data.probeMatches.probeMatch.XAddrs]
