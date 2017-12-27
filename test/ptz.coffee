@@ -66,7 +66,7 @@ describe 'PTZ', () ->
 
   describe 'removePreset', () ->
     it 'should just run', (done) ->
-      cam.removePreset {presetToken: 1}, (err, data) ->
+      cam.removePreset {presetToken: Object.keys(cam.profiles)[0]}, (err, data) ->
         assert.equal err, null
         done()
 
