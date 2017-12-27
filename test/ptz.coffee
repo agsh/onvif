@@ -72,7 +72,7 @@ describe 'PTZ', () ->
 
   describe 'gotoHomePosition', () ->
     it 'should just run', (done) ->
-      cam.gotoHomePosition {speed: {x = 1.0, y = 1.0, zoom = 1.0}}, (err, data) ->
+      cam.gotoHomePosition {speed: {x: 1.0, y: 1.0, zoom: 1.0}}, (err, data) ->
         assert.equal err, null
         done()
 
