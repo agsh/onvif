@@ -233,6 +233,42 @@ The options are:
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 * `preset` - the name of preset. List of presets you can get by `#getPresets` method or in `#presets` property.
 
+### setPreset(options, callback)
+Operation to set the current position as a preset for the PTZ node in the selected profile. If `presetToken` is passed as an option, then the preset for which that token is attached will be replaced. After success, you should re-fetch the presets with `#getPresets` method.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `presetName` - the name to give to the preset. (optional) is this is a preset update.
+
+### removePreset(options, callback)
+Operation to remove a preset specified by the preset token. After success, you should re-fetch the presets with `#getPresets` method.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `presetToken` - the preset token to use for preset removal (this will be the `value` of a preset object found in `#presets` after calling the `#getPresets` method.
+
+### gotoHomePosition(options, callback)
+Operation to go to the saved `home` position for the PTZ node in the selected profile. If no `home` position has been saved, the ONVIF camera will do nothing.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `speed` An object with properties
+  - `x` Pan speed
+  - `y` Tilt speed
+  - `zoom` Zoom speed
+
+  If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+
+### setHomePosition(options, callback)
+Operation to set the current position as the `home` position for the PTZ node in the selected profile.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+
 ### getNodes(callback)
 *PTZ.* Returns the properties of the current PTZ node, if it exists.
 Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus.

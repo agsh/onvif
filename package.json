@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -16,6 +16,18 @@
     "test-coveralls": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
     "upload-to-coveralls": "cat ./coverage/lcov.info | coveralls"
   },
+  "contributors": [
+    {
+      "name": "Andrew D.Laptev",
+      "email": "a.d.laptev@gmail.com",
+      "url": "https://github.com/agsh/onvif"
+    },
+    {
+      "name": "Jeff Galbraith",
+      "email": "jgalbraith@intelliviewtech.com",
+      "url": "http://intelliviewtech.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/agsh/onvif.git"
