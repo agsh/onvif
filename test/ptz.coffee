@@ -52,3 +52,32 @@ describe 'PTZ', () ->
       cam.gotoPreset {preset: Object.keys(cam.profiles)[0], speed: 0.1}, (err, data) ->
         assert.equal err, null
         done()
+
+
+  describe 'setPreset', () ->
+    it 'should run with preset name (new)', (done) ->
+      cam.setPreset {presetName: 'testPreset'}, (err, data) ->
+        assert.equal err, null
+        done()
+    it 'should run with preset token (update)', (done) ->
+      cam.setPreset {presetToken: 1}, (err, data) ->
+        assert.equal err, null
+        done()
+
+  describe 'removePreset', () ->
+    it 'should just run', (done) ->
+      cam.removePreset {presetToken: 1}, (err, data) ->
+        assert.equal err, null
+        done()
+
+  describe 'gotoHomePosition', () ->
+    it 'should just run', (done) ->
+      cam.gotoHomePosition {speed: {x = 1.0, y = 1.0, zoom = 1.0}}, (err, data) ->
+        assert.equal err, null
+        done()
+
+  describe 'setHomePosition', () ->
+    it 'should just run', (done) ->
+      cam.setHomePosition {}, (err, data) ->
+        assert.equal err, null
+        done()
