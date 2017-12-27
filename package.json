@@ -33,7 +33,7 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
-    "xml2js": "^0.4"
+    "xml2js": "^0.4.19"
   },
   "keywords": [
     "onvif",
@@ -54,9 +54,9 @@
     "jscs": "^1.13.1",
     "jsdoc": "^3.3.0",
     "jshint": "^2.7.0",
+    "keypress": "^0.2.1",
     "mocha": ">=2.1.0",
     "mocha-lcov-reporter": "0.0.1",
-    "nimble": "^0.0.2",
-    "keypress": "^0.2.1"
+    "nimble": "^0.0.2"
   }
 }
