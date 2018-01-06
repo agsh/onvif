@@ -226,7 +226,7 @@ The options are:
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### gotoPreset(options, callback)
-Operation to go to a saved preset position for the PTZ node in the selected profile.
+*PTZ.* Operation to go to a saved preset position for the PTZ node in the selected profile.
 
 The options are:
 
@@ -234,7 +234,7 @@ The options are:
 * `preset` - the name of preset. List of presets you can get by `#getPresets` method or in `#presets` property.
 
 ### setPreset(options, callback)
-Operation to set the current position as a preset for the PTZ node in the selected profile. If `presetToken` is passed as an option, then the preset for which that token is attached will be replaced. After success, you should re-fetch the presets with `#getPresets` method.
+*PTZ.* Operation to set the current position as a preset for the PTZ node in the selected profile. If `presetToken` is passed as an option, then the preset for which that token is attached will be replaced. After success, you should re-fetch the presets with `#getPresets` method.
 
 The options are:
 
@@ -242,7 +242,7 @@ The options are:
 * `presetName` - the name to give to the preset. (optional) is this is a preset update.
 
 ### removePreset(options, callback)
-Operation to remove a preset specified by the preset token. After success, you should re-fetch the presets with `#getPresets` method.
+*PTZ.* Operation to remove a preset specified by the preset token. After success, you should re-fetch the presets with `#getPresets` method.
 
 The options are:
 
@@ -250,7 +250,7 @@ The options are:
 * `presetToken` - the preset token to use for preset removal (this will be the `value` of a preset object found in `#presets` after calling the `#getPresets` method.
 
 ### gotoHomePosition(options, callback)
-Operation to go to the saved `home` position for the PTZ node in the selected profile. If no `home` position has been saved, the ONVIF camera will do nothing.
+*PTZ.* Operation to go to the saved `home` position for the PTZ node in the selected profile. If no `home` position has been saved, the ONVIF camera will do nothing.
 
 The options are:
 
@@ -263,7 +263,7 @@ The options are:
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
 ### setHomePosition(options, callback)
-Operation to set the current position as the `home` position for the PTZ node in the selected profile.
+*PTZ.* Operation to set the current position as the `home` position for the PTZ node in the selected profile.
 
 The options are:
 
@@ -309,7 +309,7 @@ The options are:
 Callback is optional and means essentially nothing
 
 ### continuousMove(options, callback)
-Operation for continuous Pan/Tilt and Zoom movements
+*PTZ.* Operation for continuous Pan/Tilt and Zoom movements
 
 The options are:
 
@@ -374,6 +374,8 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.5.5 Added #ptz.`gotoHomePosition`, #ptz.`setHomePosition`. Fixed exceptions in #ptz.`getConfigurations` and #utils.`parseSOAPString`. Added tests for #ptz.`setPreset`, #ptz.`removePreset`, #ptz.`gotoHomePosition`, and #ptz.`setHomePosition`.
+- 0.5.4 Bumped for NPM.
 - 0.5.3 Some fixes. Tests
 - 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
 - 0.5.1 Critical bugfix in SOAP-auth for some cams
