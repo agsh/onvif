@@ -33,6 +33,7 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
+    "request": "^2.83.0",
     "xml2js": "^0.4.19"
   },
   "keywords": [
