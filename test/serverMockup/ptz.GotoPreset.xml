@@ -4,13 +4,13 @@
         <wsse:Security>
             <wsse:UsernameToken>
                 <wsse:Username>admin</wsse:Username>
-                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">H2rv5RwZ1aV2yysb2y+hURWTNHc=</wsse:Password>
-                <wsse:Nonce>Mjk1NzUyMjc0Mg==</wsse:Nonce>
-                <wsu:Created>2014-12-29T17:02:56.157Z</wsu:Created>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">8ApJBB1EUR6Y0StFdI54WET3d+M=</wsse:Password>
+                <wsse:Nonce>OTI1ODE3Mjk1</wsse:Nonce>
+                <wsu:Created>2015-03-12T15:09:17.588Z</wsu:Created>
             </wsse:UsernameToken>
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <tptz:RelativeMoveResponse></tptz:RelativeMoveResponse>
+        <tptz:GotoPresetResponse></tptz:GotoPresetResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

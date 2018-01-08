@@ -215,7 +215,40 @@ The options are:
 - `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### getSnapshotUri(options, callback)
-*Media.* Obtain a JPEG snapshot URI from the device.
+*Media.* Obtain an image snapshot URI from the device.
+
+### getSnapshot()
+*Media.* Obtain an snapshot (image) from the device. The #getSnapshotUri needs to be previously called before calling this method.
+*NOTE:* To avoid overloading your bandwidth, the recommended way of calling this method is to not use it in a timer. Rather, make a call to this method and on success of the returned data, then call it again (round-robin tournament style). If you are doing this with several cameras, on success call the #getSnapshot method of the next camera. This systematically works for extremely slow bandwidth to very fast bandwidth situations. It has been tested on remote cameras using Edge celluar bandwith.
+Returns a Promise - on success contains:
+* `mimeType` - Useful if being used from a server to send to a client. Set the response type to the mimeType (res.type(returnedData.mimeType))
+* `prefix` - this is the prefix for the image. If the image is being displayed on a web page, this is needed. If the image is being written to a file, this is not needed.
+* `rawImage` - the raw image. Suitable for being saved to file. If being displayed on a web page, prepend with `prefix`.
+```javascript
+{
+	mimeType: 'image/jpg'
+	, prefix: 'data:image/jpg;base64,'
+	, rawImage: '...' // base64 encoded image
+}
+```
+
+Example (display in web page):
+var image = document.getElementById(myImgElement);
+image.src = data.prefix + data.rawImage;
+image.onload = function() {
+  // request a new image
+  onvifCamera.getSnapshot((err, data) {
+    if (!err) {
+      // and repeat
+    }
+  })
+}
+
+Example (write to file):
+const fs = require('fs')
+const outputFilename = '/tmp/testfile.jpg'
+fs.writeFileSync(outputFilename, data.rawImage, { encoding: 'binary' })
+
 
 ### getPresets(options, callback)
 Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
@@ -226,12 +259,48 @@ The options are:
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### gotoPreset(options, callback)
-Operation to go to a saved preset position for the PTZ node in the selected profile.
+*PTZ.* Operation to go to a saved preset position for the PTZ node in the selected profile.
 
 The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 * `preset` - the name of preset. List of presets you can get by `#getPresets` method or in `#presets` property.
+
+### setPreset(options, callback)
+*PTZ.* Operation to set the current position as a preset for the PTZ node in the selected profile. If `presetToken` is passed as an option, then the preset for which that token is attached will be replaced. After success, you should re-fetch the presets with `#getPresets` method.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `presetName` - the name to give to the preset. (optional) is this is a preset update.
+
+### removePreset(options, callback)
+*PTZ.* Operation to remove a preset specified by the preset token. After success, you should re-fetch the presets with `#getPresets` method.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `presetToken` - the preset token to use for preset removal (this will be the `value` of a preset object found in `#presets` after calling the `#getPresets` method.
+
+### gotoHomePosition(options, callback)
+*PTZ.* Operation to go to the saved `home` position for the PTZ node in the selected profile. If no `home` position has been saved, the ONVIF camera will do nothing.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `speed` An object with properties
+  - `x` Pan speed
+  - `y` Tilt speed
+  - `zoom` Zoom speed
+
+  If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
+
+### setHomePosition(options, callback)
+*PTZ.* Operation to set the current position as the `home` position for the PTZ node in the selected profile.
+
+The options are:
+
+* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 
 ### getNodes(callback)
 *PTZ.* Returns the properties of the current PTZ node, if it exists.
@@ -273,7 +342,7 @@ The options are:
 Callback is optional and means essentially nothing
 
 ### continuousMove(options, callback)
-Operation for continuous Pan/Tilt and Zoom movements
+*PTZ.* Operation for continuous Pan/Tilt and Zoom movements
 
 The options are:
 
@@ -312,32 +381,46 @@ Options and callback are optional. The options properties are:
 *PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
 
+### callback
+The callback function is in the form:
+```javascript
+(error, data, xml)
+```
+*xml* (the xml response) is optional.
+
 ## Supported methods
-* GetSystemDateAndTime
-* GetCapabilities
-* GetVideoSources
-* GetProfiles
-* GetServices
-* GetDeviceInformation
-* GetStreamUri
-* GetSnapshotUri
-* GetPresets
-* GotoPreset
-* RelativeMove
-* AbsoluteMove
-* ContinuousMove
-* Stop
-* GetStatus
-* SystemReboot
-* GetImagingSettings
-* SetImagingSettings
-* GetHostname
-* GetScopes
-* SetScopes
-* GetRecordings
-* GetReplayUri
+* getSystemDateAndTime
+* getCapabilities
+* getVideoSources
+* getProfiles
+* getServices
+* getDeviceInformation
+* getStreamUri
+* getSnapshotUri
+* getSnapshot
+* getPresets
+* gotoPreset
+* setPreset
+* removePreset
+* gotoHomePosition
+* setHomePosition
+* relativeMove
+* absoluteMove
+* continuousMove
+* stop
+* getStatus
+* systemReboot
+* getImagingSettings
+* setImagingSettings
+* getHostname
+* getScopes
+* setScopes
+* getRecordings
+* getReplayUri
 
 ## Changelog
+- 0.5.5 Added #ptz.`gotoHomePosition`, #ptz.`setHomePosition`. Fixed exceptions in #ptz.`getConfigurations` and #utils.`parseSOAPString`. Added tests for #ptz.`setPreset`, #ptz.`removePreset`, #ptz.`gotoHomePosition`, and #ptz.`setHomePosition`.
+- 0.5.4 Bumped for NPM.
 - 0.5.3 Some fixes. Tests
 - 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
 - 0.5.1 Critical bugfix in SOAP-auth for some cams
