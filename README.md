@@ -218,7 +218,7 @@ The options are:
 *Media.* Obtain a JPEG snapshot URI from the device.
 
 ### getPresets(options, callback)
-Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
+*PTZ.* Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
 This method also stores the presets information in a `#presets` property of an object.
 
 The options are:
@@ -348,7 +348,7 @@ Options and callback are optional. The options properties are:
 *PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
 
-## Supported methods
+## Supported ONVIF methods
 * GetSystemDateAndTime
 * GetCapabilities
 * GetVideoSources
@@ -359,6 +359,10 @@ configuration object
 * GetSnapshotUri
 * GetPresets
 * GotoPreset
+* SetPreset
+* RemovePreset
+* SetHomePosition
+* GetHomePosition
 * RelativeMove
 * AbsoluteMove
 * ContinuousMove
@@ -374,6 +378,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.5.6 Fix for TypeError: Cannot read property 'panTilt' of undefined (#91)
 - 0.5.5 Added #ptz.`gotoHomePosition`, #ptz.`setHomePosition`. Fixed exceptions in #ptz.`getConfigurations` and #utils.`parseSOAPString`. Added tests for #ptz.`setPreset`, #ptz.`removePreset`, #ptz.`gotoHomePosition`, and #ptz.`setHomePosition`.
 - 0.5.4 Bumped for NPM.
 - 0.5.3 Some fixes. Tests
