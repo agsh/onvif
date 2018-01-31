@@ -359,6 +359,10 @@ configuration object
 * GetSnapshotUri
 * GetPresets
 * GotoPreset
+* SetPreset
+* RemovePreset
+* SetHomePosition
+* GetHomePosition
 * RelativeMove
 * AbsoluteMove
 * ContinuousMove
