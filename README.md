@@ -319,7 +319,7 @@ The options are:
 - `timeout` Timeout in milliseconds, number. If timeout is omitted, movement will continue until `stop` command
 
 ### stop(options, callback)
-*PTZ.* Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
+*PTZ.* Stop ongoing pan, tilt and zoom movements of absolute, relative and continuous type
 
 Options and callback are optional. The options properties are:
 
