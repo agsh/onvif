@@ -41,7 +41,7 @@ listener = (req, res) ->
 # Discovery service
 discover = dgram.createSocket('udp4')
 discover.msg =
-  new Buffer(fs
+  Buffer.from(fs
     .readFileSync __xmldir + 'Probe.xml'
     .toString()
     .replace 'SERVICE_URI', 'http://localhost:' + (process.env.PORT || 10101) + '/onvif/device_service'
@@ -52,7 +52,7 @@ discover.on 'message', (msg, rinfo) ->
   if msgId
     switch msgId
       # Wrong message test
-      when 'e7707' then discover.send (new Buffer 'lollipop'), 0, 8, rinfo.port, rinfo.address
+      when 'e7707' then discover.send (Buffer.from 'lollipop'), 0, 8, rinfo.port, rinfo.address
       # Double sending test
       when 'd0-61e'
         discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
