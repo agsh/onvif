@@ -128,6 +128,12 @@ describe 'Media', () ->
         assert.equal err, null
         done()
 
+  describe 'getAudioEncoderConfiguration', () ->
+    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array and there is no `videoEncoderConfigurations` property', (done) ->
+      cam.getAudioEncoderConfiguration (err) ->
+        assert.notEqual err, null
+        done()         
+ 
   describe 'getAudioEncoderConfigurations', () ->
     it 'should return audio encoder configurations', (done) ->
       cam.getAudioEncoderConfigurations (err, res) ->
@@ -171,3 +177,19 @@ describe 'Media', () ->
           assert.notEqual err, null
           delete serverMockup.conf.bad
           done()
+
+
+  describe 'getAudioEncoderConfiguration', () ->
+    it 'should return a configuration for the first token in #videoEncoderConfigurations array', (done) ->
+      cam.getAudioEncoderConfiguration (err, res) ->
+        assert.equal err, null
+        assert.ok ['name', '$', 'multicast'].every (prop) ->
+          !!res[prop]
+        done()
+    it 'should return a configuration for the named token as a first argument', (done) ->
+      cam.getAudioEncoderConfiguration cam.videoEncoderConfigurations[0].$.token, (err, res) ->
+        assert.equal err, null
+        assert.ok ['name', '$', 'multicast'].every (prop) ->
+          !!res[prop]
+        done()
+              
