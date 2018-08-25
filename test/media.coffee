@@ -95,7 +95,7 @@ describe 'Media', () ->
         assert.equal err, null
         assert.ok res.qualityRange
         done()
-
+    
   describe 'setVideoEncoderConfiguration', () ->
     it 'should generate an error when no token in the options is present', (done) ->
       cam.setVideoEncoderConfiguration {}, (err) ->
@@ -133,3 +133,41 @@ describe 'Media', () ->
       cam.getAudioEncoderConfigurations (err, res) ->
         assert.equal err, null
         done()
+
+  describe 'getAudioEncoderConfigurationOptions', () ->
+    it 'should return a configuration options for the first token in #audioEncoderConfigurations array', (done) ->
+      cam.getAudioEncoderConfigurationOptions (err, res) ->
+        assert.equal err, null
+        assert.ok res.bitrateList
+        done()
+    it 'should return a configuration options for the named token as a first argument', (done) ->
+      cam.getAudioEncoderConfigurationOptions cam.audioEncoderConfigurations[0].$.token, (err, res) ->
+        assert.equal err, null
+        assert.ok res.bitrateList
+        done()
+
+  describe 'setAudioEncoderConfiguration', () ->
+    it 'should generate an error when no token in the options is present', (done) ->
+      cam.setAudioEncoderConfiguration {}, (err) ->
+        assert.notEqual err, null
+        done()
+    it 'should accept setting existing configuration and return the same configuration by the getAudioEncoderConfiguration method', (done) ->
+      cam.setAudioEncoderConfiguration cam.audioEncoderConfigurations[0], (err, res, xml) ->
+        assert.equal err, null
+        assert.deepEqual cam.audioEncoderConfigurations[0], res
+        done()
+    it 'should accept setting some new audio configuration based on the existing', (done) ->
+      conf = {
+        token: cam.audioEncoderConfigurations[0].$.token
+        bitrate: cam.audioEncoderConfigurations[0].bitrate
+      }
+      cam.setAudioEncoderConfiguration conf, (err, res) ->
+        assert.equal err, null
+        done()
+    if synthTest
+      it 'should emits error with wrong response', (done) ->
+        serverMockup.conf.bad = true
+        cam.setAudioEncoderConfiguration cam.audioEncoderConfigurations[0], (err, res) ->
+          assert.notEqual err, null
+          delete serverMockup.conf.bad
+          done()
