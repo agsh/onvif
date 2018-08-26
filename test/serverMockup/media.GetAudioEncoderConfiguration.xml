@@ -11,8 +11,8 @@
         </wsse:Security>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <trt:GetAudioEncoderConfigurationsResponse>
-            <trt:Configurations token="main">
+        <trt:GetAudioEncoderConfigurationResponse>
+            <trt:Configuration token="main">
                 <tt:Name>Main stream encoder</tt:Name>
                 <tt:UseCount>2</tt:UseCount>
                 <tt:Encoding>G711</tt:Encoding>
@@ -26,7 +26,7 @@
                     <tt:AutoStart>false</tt:AutoStart>
                 </tt:Multicast>
                 <tt:SessionTimeout>PT60S</tt:SessionTimeout>
-            </trt:Configurations>
-        </trt:GetAudioEncoderConfigurationsResponse>
+            </trt:Configuration>
+        </trt:GetAudioEncoderConfigurationResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
