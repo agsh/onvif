@@ -30,7 +30,7 @@ In the library directory run `npm test`
 
 By default the tests use a mockup server to generate ONVIF replies.
 
-To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run 
+To test with the real device, set appropriate environment variables `HOSTNAME`, `USERNAME`, `PASSWORD`, `PORT` and run
 tests.
 
 ### Documentation
@@ -65,7 +65,7 @@ new Cam({
 ## Other examples
 * example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and dsplays information about each device found including make and model.
 For Profile S Cameras and Encoders it displays the default RTSP address
-For Profile G Recorders it displays the RTSP address of the first recording  
+For Profile G Recorders it displays the RTSP address of the first recording
 
 
 * example3.js reads the command line cursor keys and sends PTZ commands to the Camera
@@ -165,14 +165,14 @@ When the cam object is created it automatically sends a `getCapabilities` comman
   - videoSourceConfiguration
   - videoEncoderConfiguration
   - PTZConfiguration
-  
+
 After that it runs `getActiveSources` method. It iterates over all video sources and tries to find out proper configuration
 for profile and videosource. First matching profile becomes a member of defaultProfiles array and video source configuration
 with ptz configuration becomes a member of activeSources array.
- 
+
 Configuration for the first or the only one video source becomes defaultProfile and activeSource properties. All methods
 without passing options object use it. You can change it manually at any time.
-  
+
 + defaultProfile (link to the first profile in profiles)
 + activeSource (based on the default profile)
   - sourceToken
@@ -374,14 +374,16 @@ configuration object
 * GetReplayUri
 
 ## Changelog
-- 0.5.5 Added #ptz.`gotoHomePosition`, #ptz.`setHomePosition`. Fixed exceptions in #ptz.`getConfigurations` and #utils.`parseSOAPString`. Added tests for #ptz.`setPreset`, #ptz.`removePreset`, #ptz.`gotoHomePosition`, and #ptz.`setHomePosition`.
+- 0.6.1 Workaround for cams that don't send date-time
+- 0.6.0 Refactor modules for proper import in electron-based environment
+- 0.5.5 Added ptz.`gotoHomePosition`, ptz.`setHomePosition`. Fixed exceptions in ptz.`getConfigurations` and utils.`parseSOAPString`. Added tests for ptz.`setPreset`, ptz.`removePreset`, ptz.`gotoHomePosition`, and ptz.`setHomePosition`.
 - 0.5.4 Bumped for NPM.
 - 0.5.3 Some fixes. Tests
 - 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
 - 0.5.1 Critical bugfix in SOAP-auth for some cams
 - 0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
 - 0.4.2 Bugfixes
-- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman) 
+- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman)
 - 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
 - 0.3.1 EventEmitter-based events
 - 0.3.0 Refactoring, documentation, event service basics
