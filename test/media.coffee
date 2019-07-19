@@ -55,9 +55,27 @@ describe 'Media', () ->
         assert.notEqual err, null
         done()
   describe 'getVideoEncoderConfigurationOptions', () ->
-    it 'should return an error when no token present as a parameter or in #videoEncoderConfigurations array and there is no `videoEncoderConfigurations` property', (done) ->
-      cam.getVideoEncoderConfigurationOptions (err, res) ->
+    configurationToken = "configurationToken"
+    profileToken = "profileToken"
+    it 'should return an error when options is given but does not have `configurationToken` or `profileToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {}, (err, res) ->
         assert.notEqual err, null
+        done()
+    it 'should not return an error when options is given as a string', (done) ->
+      cam.getVideoEncoderConfigurationOptions configurationToken, (err, res) ->
+        assert.equal err, null
+        done()
+    it 'should not return an error when options is given with `configurationToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken}, (err, res) ->
+        assert.equal err, null
+        done()
+    it 'should not return an error when options is given with `profileToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {profileToken: profileToken}, (err, res) ->
+        assert.equal err, null
+        done()
+    it 'should not return an error when options is given with both `configurationToken` and `profileToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken,profileToken: profileToken}, (err, res) ->
+        assert.equal err, null
         done()
 
 
