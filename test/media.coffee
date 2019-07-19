@@ -55,27 +55,9 @@ describe 'Media', () ->
         assert.notEqual err, null
         done()
   describe 'getVideoEncoderConfigurationOptions', () ->
-    configurationToken = "configurationToken"
-    profileToken = "profileToken"
     it 'should return an error when options is given but does not have `configurationToken` or `profileToken`', (done) ->
       cam.getVideoEncoderConfigurationOptions {}, (err, res) ->
         assert.notEqual err, null
-        done()
-    it 'should not return an error when options is given as a string', (done) ->
-      cam.getVideoEncoderConfigurationOptions configurationToken, (err, res) ->
-        assert.equal err, null
-        done()
-    it 'should not return an error when options is given with `configurationToken`', (done) ->
-      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken}, (err, res) ->
-        assert.equal err, null
-        done()
-    it 'should not return an error when options is given with `profileToken`', (done) ->
-      cam.getVideoEncoderConfigurationOptions {profileToken: profileToken}, (err, res) ->
-        assert.equal err, null
-        done()
-    it 'should not return an error when options is given with both `configurationToken` and `profileToken`', (done) ->
-      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken,profileToken: profileToken}, (err, res) ->
-        assert.equal err, null
         done()
 
 
@@ -103,13 +85,30 @@ describe 'Media', () ->
         done()
 
   describe 'getVideoEncoderConfigurationOptions', () ->
-    it 'should return a configuration options for the first token in #videoEncoderConfigurations array', (done) ->
+    configurationToken = "configurationToken"
+    profileToken = "profileToken"
+    it 'should return generic configuration options', (done) ->
       cam.getVideoEncoderConfigurationOptions (err, res) ->
         assert.equal err, null
         assert.ok res.qualityRange
         done()
-    it 'should return a configuration options for the named token as a first argument', (done) ->
-      cam.getVideoEncoderConfigurationOptions cam.videoEncoderConfigurations[0].$.token, (err, res) ->
+    it 'should return a configuration options when `options` is given as a string', (done) ->
+      cam.getVideoEncoderConfigurationOptions configurationToken, (err, res) ->
+        assert.equal err, null
+        assert.ok res.qualityRange
+        done()
+    it 'should return a configuration options when `options` is given as an object with `configurationToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken}, (err, res) ->
+        assert.equal err, null
+        assert.ok res.qualityRange
+        done()
+    it 'should return a configuration options when `options` is given as an object with `profileToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {profileToken: profileToken}, (err, res) ->
+        assert.equal err, null
+        assert.ok res.qualityRange
+        done()
+    it 'should return a configuration options when `options` is given as an object with both `configurationToken` and `profileToken`', (done) ->
+      cam.getVideoEncoderConfigurationOptions {configurationToken: configurationToken,profileToken: profileToken}, (err, res) ->
         assert.equal err, null
         assert.ok res.qualityRange
         done()
