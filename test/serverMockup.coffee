@@ -68,7 +68,12 @@ server = http
   .createServer listener
   .listen conf.port
 
+# Unref all the connections to make tests finish
+discover.unref()
+server.unref()
+
 module.exports = {
   server: server
   , conf: conf
+  , discover: discover
 }
