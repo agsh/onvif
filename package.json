@@ -11,10 +11,9 @@
     "lint": "jshint lib/*.js",
     "coffee-tests": "coffee -c test/*.coffee",
     "pretest": "npm run lint && npm run jscs && npm run coffee-tests",
-    "test": "istanbul cover _mocha",
-    "test-on-travis": "npm run pretest && istanbul cover _mocha --report lcovonly",
-    "test-coveralls": "istanbul cover _mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "upload-to-coveralls": "cat ./coverage/lcov.info | coveralls"
+    "test": "nyc mocha",
+    "test-js": "mocha 'test/**/*.test.js'",
+    "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls"
   },
   "contributors": [
     {
@@ -53,15 +52,15 @@
   },
   "devDependencies": {
     "coffeescript": "^1.9.3",
-    "coveralls": ">=2.11.2",
+    "coveralls": "^3.0.2",
     "dot": "^1.0.3",
-    "istanbul": ">=0.3.5",
     "jscs": "^1.13.1",
     "jsdoc": "^3.3.0",
     "jshint": "^2.7.0",
     "keypress": "^0.2.1",
     "mocha": ">=2.1.0",
     "mocha-lcov-reporter": "0.0.1",
-    "nimble": "^0.0.2"
+    "nimble": "^0.0.2",
+    "nyc": "^13.0.1"
   }
 }
