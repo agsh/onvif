@@ -1,15 +1,14 @@
 /**
- * NodeJS ONVIF PTZ and Presets Test
+ * Discover ONVIF devices on the network
  *
  * Created by Roger Hardiman <opensource@rjh.org.uk>
  *
- * Discover ONVIF devices on the network
  */
 
 var onvif = require('./lib/onvif');
 
 onvif.Discovery.on('device', function(cam,rinfo,xml){
-    // function will be called as soon as NVT responses
+    // function will be called as soon as NVT responds
     console.log('Reply from ' + rinfo.address);
     console.log(cam.hostname + ':' + cam.port + cam.path);
 })
