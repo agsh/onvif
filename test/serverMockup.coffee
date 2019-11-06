@@ -1,5 +1,6 @@
 http = require 'http'
 dgram = require 'dgram'
+xml2js = require 'xml2js'
 fs = require 'fs'
 Buffer = (require 'buffer').Buffer
 template = (require 'dot').template
@@ -12,6 +13,8 @@ conf = {
   hostname: process.env.HOSTNAME || 'localhost'
   pullPointUrl: '/onvif/subscription?Idx=6'
 }
+
+verbose = process.env.VERBOSE || false
 
 listener = (req, res) ->
   req.setEncoding('utf8')
@@ -28,38 +31,51 @@ listener = (req, res) ->
     return res.end() if !body
     body = body[1]
     command = reCommand.exec(body)[1]
-    ns = reNS.exec(body)[1]
     return res.end() if !command
+    # Look for ONVIF namespaces
+    onvifNamespaces = reNS.exec(body)
+    ns = ''
+    if (onvifNamespaces)
+      ns = onvifNamespaces[1]
+    if verbose
+      console.log 'received', ns, command
     switch
       when fs.existsSync(__xmldir + ns + '.' + command + '.xml') then command = ns + '.' + command
       when not fs.existsSync(__xmldir + command + '.xml') then command = 'Error'
     fileName = __xmldir + command + '.xml'
-    #console.log 'serving', fileName
+    if verbose
+      console.log 'serving', fileName
     #fs.createReadStream(__dirname + '/serverMockup/' + command + '.xml').pipe(res)
+    res.setHeader('Content-Type', 'application/soap+xml;charset=UTF-8')
     res.end(template(fs.readFileSync(fileName))(conf))
 
 # Discovery service
+discoverReply = dgram.createSocket('udp4')
 discover = dgram.createSocket('udp4')
-discover.msg =
-  Buffer.from(fs
-    .readFileSync __xmldir + 'Probe.xml'
-    .toString()
-    .replace 'SERVICE_URI', 'http://localhost:' + (process.env.PORT || 10101) + '/onvif/device_service'
-  )
 discover.on 'error', (err) -> throw err
 discover.on 'message', (msg, rinfo) ->
-  msgId = /urn:uuid:([0-9a-f\-]+)</.exec(msg.toString())[1]
-  if msgId
+  if verbose
+    console.log 'Discovery received'
+  #Extract MessageTo from the XML. xml2ns options remove the namespace tags and ensure element character content is accessed with '_'
+  xml2js.parseString msg.toString(), { explicitCharkey:true, tagNameProcessors: [xml2js.processors.stripPrefix]}, (err, result) ->
+    msgId = result.Envelope.Header[0].MessageID[0]._
+    discoverMsg = Buffer.from(fs
+       .readFileSync __xmldir + 'Probe.xml'
+       .toString()
+       .replace 'RELATES_TO', msgId
+       .replace 'SERVICE_URI', 'http://' + conf.hostname + ':' + conf.port + '/onvif/device_service'
+    )
     switch msgId
       # Wrong message test
-      when 'e7707' then discover.send (Buffer.from 'lollipop'), 0, 8, rinfo.port, rinfo.address
+      when 'urn:uuid:e7707'
+        discoverReply.send (Buffer.from 'lollipop'), 0, 8, rinfo.port, rinfo.address
       # Double sending test
-      when 'd0-61e'
-        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
-        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+      when 'urn:uuid:d0-61e'
+        discoverReply.send discoverMsg, 0, discoverMsg.length, rinfo.port, rinfo.address
+        discoverReply.send discoverMsg, 0, discoverMsg.length, rinfo.port, rinfo.address
       # Discovery test
       else
-        discover.send discover.msg, 0, discover.msg.length, rinfo.port, rinfo.address
+        discoverReply.send discoverMsg, 0, discoverMsg.length, rinfo.port, rinfo.address
 
 discover.bind 3702, () ->
   discover.addMembership '239.255.255.250'
