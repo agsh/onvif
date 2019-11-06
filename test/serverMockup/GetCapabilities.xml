@@ -51,7 +51,7 @@
                 <tt:Events>
                     <tt:XAddr>http://192.168.68.111/onvif/services</tt:XAddr>
                     <tt:WSSubscriptionPolicySupport>false</tt:WSSubscriptionPolicySupport>
-                    <tt:WSPullPointSupport>false</tt:WSPullPointSupport>
+                    <tt:WSPullPointSupport>true</tt:WSPullPointSupport>
                     <tt:WSPausableSubscriptionManagerInterfaceSupport>false</tt:WSPausableSubscriptionManagerInterfaceSupport>
                 </tt:Events>
                 <tt:Imaging>
