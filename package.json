@@ -8,7 +8,7 @@
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
-    "coffee-tests": "coffee -c test/*.coffee",
+    "coffee-tests": "coffee -c ./test",
     "pretest": "npm run lint && npm run coffee-tests",
     "test": "nyc mocha",
     "test-js": "mocha 'test/**/*.test.js'",
