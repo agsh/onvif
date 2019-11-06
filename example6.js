@@ -7,10 +7,10 @@
  * 
  */
 
-let HOSTNAME = '192.168.1.15',
-    PORT = 80,
-    USERNAME = 'onvifusername',
-    PASSWORD = 'xxxxxx';
+let HOSTNAME = '192.168.1.151',
+    PORT = 10101,
+    USERNAME = 'onvifuser',
+    PASSWORD = 'xxxx';
 
 let Cam = require('./lib/onvif').Cam;
 let flow = require('nimble');
@@ -41,9 +41,12 @@ new Cam({
                 if (err) {
                     console.log(err);
                 }
-                if (!err && data.events) {
+                if (!err && data.events && data.events.WSPullPointSupport && data.events.WSPullPointSupport == true) {
                     console.log('Camera Events service found');
                     hasEvents = true;
+                }
+                if (hasEvents == false) {
+                    console.log('This camera/NVT does not support PullPoint Events')
                 }
                 callback();
         })},
@@ -73,8 +76,25 @@ new Cam({
         function(callback) {
             if (hasEvents && hasTopics) {
                 cam_obj.on('event', camMessage => {
-                    const topic = camMessage.topic._;
-                    console.log('EVENT TRIGGERED: ' + topic);
+
+                    // Extract Event Details
+                    let eventTime = camMessage.message.message.$.UtcTime
+                    let eventTopic = camMessage.topic._;
+                    let eventProperty = camMessage.message.message.$.PropertyOperation
+                    // there can be more than one SimpleItem in the 'data' part of the XML
+                    let eventType;
+                    let eventValue;
+
+                    if (Array.isArray(camMessage.message.message.data)) {
+                        eventType = camMessage.message.message.data.simpleItem.$.Name
+                        eventValue = camMessage.message.message.data.simpleItem.$.Value
+                    } else {
+                        eventType = camMessage.message.message.data.simpleItem.$.Name
+                        eventValue = camMessage.message.message.data.simpleItem.$.Value
+                    }
+
+
+                    console.log(`EVENT TRIGGERED: ${eventTime.toJSON()} ${eventTopic} ${eventProperty} ${eventType} ${eventValue}`);
                 })
             }
             callback();
