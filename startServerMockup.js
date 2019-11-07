@@ -1,17 +1,22 @@
 // Run the Server Mockup
-// Default port is 10101
 
+let ip = require('ip');
 
-console.log('Loading Server Mockup');
+let serverHostname = ip.address();
+let serverPort = '10101';
+let allowDiscovery = 'false';
 
+process.env['HOSTNAME'] = serverHostname;
+process.env['PORT'] = serverPort;
 process.env['VERBOSE'] = 'true';
-process.env['HOSTNAME'] = '192.168.1.151';
+
+console.log('Starting Server Mockup at http://' + serverHostname + ':' + serverPort + '/onvif/device_service');
+
 let serverMockup = require('./test/serverMockup.js')
 
-console.log('Server Ready');
-
-// The server Mockup unrefs the HTTP Server and Discovery UDP Listener so NodeJS will and not wait for the http server to terminate
-// So we keep the server alive with a hack - a timer that runs every 24 hours
+// The server Mockup unrefs the HTTP Server and Discovery UDP Listener so NodeJS
+// will exit immediatly
+// We keep the server alive with an IntervalTimer that runs every 24 hours
 
 setInterval(function () {
     console.log('keepalive executed'); 
