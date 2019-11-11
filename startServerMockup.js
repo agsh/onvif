@@ -14,11 +14,7 @@ console.log('Starting Server Mockup at http://' + serverHostname + ':' + serverP
 
 let serverMockup = require('./test/serverMockup.js')
 
-// The server Mockup unrefs the HTTP Server and Discovery UDP Listener so NodeJS
-// will exit immediatly
-// We keep the server alive with an IntervalTimer that runs every 24 hours
+// ServerMockup keeps running until you call .close()
 
-setInterval(function () {
-    console.log('keepalive executed'); 
-}, 1000*60*60*24); 
+// serverMockup.close()
 

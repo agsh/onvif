@@ -87,12 +87,17 @@ server = http
   .createServer listener
   .listen conf.port
 
-# Unref all the connections to make tests finish
-discover.unref()
-server.unref()
+close = () ->
+  discover.close()
+  discoverReply.close()
+  server.close()
+  if verbose
+    console.log 'Closing ServerMockup'
+
 
 module.exports = {
   server: server
   , conf: conf
   , discover: discover
+  , close: close
 }
