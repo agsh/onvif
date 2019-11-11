@@ -60,11 +60,11 @@ describe 'Events', () ->
       assert.ok gotMessage > 0
       cam.removeListener 'event', onEvent
       done()
-    , 30
+    , 1000
 
   it 'should stop pulling when nobody is listen to `event` event', (done) ->
-    delete cam.events.terminationTime
+    # wait 1 second for any Pull requests still running when we removed the listener to complete
     setTimeout () ->
       assert.ok cam.events.terminationTime is undefined
       done()
-    , 30
+    , 1000
