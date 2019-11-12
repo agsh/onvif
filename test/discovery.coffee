@@ -4,6 +4,10 @@ serverMockup = require('./serverMockup')
 
 describe 'Discovery', () ->
   this.timeout 10000
+
+  before () ->
+    if (process.platform == 'win32')
+      this.skip 'Skipping test on Windows'
   it 'should discover at least one device (mockup server)', (done) ->
     onvif.Discovery.probe {timeout: 1000}, (err, cams) ->
       assert.equal err, null
