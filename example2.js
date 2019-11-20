@@ -12,8 +12,8 @@
  */
 
 var IP_RANGE_START = '192.168.1.1',
-    IP_RANGE_END = '192.168.1.254',
-    PORT_LIST = [80, 7575, 8000, 8080, 8081],
+    IP_RANGE_END = '192.168.1.1',
+    PORT_LIST = [80],
     USERNAME = 'admin',
     PASSWORD = 'admin';
 
@@ -39,7 +39,11 @@ ip_list.forEach(function(ip_entry) {
             port: port_entry,
 timeout : 5000
         }, function CamFunc(err) {
-            if (err) return;
+            if (err)  {
+                if (err.message) console.log(err.message);
+                else console.log(err);
+		        return;
+	        }
 
             var cam_obj = this;
 
