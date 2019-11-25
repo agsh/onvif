@@ -39,7 +39,7 @@ new Cam({
     let hasEvents = false;
     let hasTopics = false;
 
-    // Use Nimbe's flow to execute ONVIF commands in sequence
+    // Use Nimble's flow to execute ONVIF commands in sequence
     flow.series([
         function(callback) {
             cam_obj.getDeviceInformation(function(err, info, xml) {
@@ -83,14 +83,33 @@ new Cam({
                     }
                     else {
                         // Display the available Topics
-                        for (const topicName in data.topicSet) {
-                            for (const topicDetails in data.topicSet[topicName]) {
-                                if (topicDetails != '$') { // XML to JSON parser returns an object called '$'. Skip over it
-                                    console.log('Found Event: ' + topicName + ' - ' + topicDetails)
+                        let parseNode = function(node, topicPath) {
+                            // loop over all the child nodes in this node
+                            for (const child in node) {
+                                if (child == "$") continue;
+                                else if (child == "messageDescription") {
+                                    // we have found the details that go with an event
+                                    // examine the messageDescription
+                                    let IsProperty = false;
+                                    let source = '';
+                                    let data = '';
+                                    if (node[child].$ && node[child].$.IsProperty) IsProperty = node[child].$.IsProperty;
+                                    if (node[child].source) source = JSON.stringify(node[child].source)
+                                    if (node[child].data) data = JSON.stringify(node[child].data)
+                                    console.log('Found Event - ' + topicPath.toUpperCase())
+                                    //console.log('  IsProperty=' + IsProperty);
+                                    //if (source.length > 0) console.log('  Source=' + source);
+                                    //if (data.length > 0) console.log('  Data=' + data);
                                     hasTopics = true;
+                                    return;
+                                }
+                                else {
+                                    // decend into the child node, looking for the messageDescription
+                                    parseNode(node[child], topicPath + '/' + child)
                                 }
                             }
                         }
+                        parseNode(data.topicSet, '');
                     }
                     callback();
                 });
@@ -128,5 +147,7 @@ new Cam({
 
 
     // Code completes here but the applictions remains running as there is a OnEvent listener that is active
+    // To stop we must remove the event listener
+    //setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
 
 });
