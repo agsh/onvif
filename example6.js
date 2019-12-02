@@ -11,10 +11,10 @@
  *
  */
 
-let HOSTNAME = '127.0.0.1',
-    PORT = 10101,
-    USERNAME = 'user',
-    PASSWORD = 'pass';
+let HOSTNAME = '192.168.1.15',
+	PORT = 80,
+	USERNAME = 'onvifuser',
+	PASSWORD = 'PASS99pass';
 
 let Cam = require('./lib/onvif').Cam;
 let flow = require('nimble');
@@ -125,6 +125,9 @@ new Cam({
                     let eventTime = camMessage.message.message.$.UtcTime
                     let eventTopic = camMessage.topic._;
                     let eventProperty = camMessage.message.message.$.PropertyOperation
+
+                    if (!eventProperty) eventProperty = "Stateless" // Seen in Axis SsystemMessage/ActionFailed
+
                     // there can be more than one SimpleItem in the 'data' part of the XML
                     let eventType;
                     let eventValue;
@@ -138,7 +141,7 @@ new Cam({
                     }
 
 
-                    console.log(`EVENT TRIGGERED: ${eventTime.toJSON()} ${eventTopic} ${eventProperty} ${eventType} ${eventValue}`);
+                    console.log(`EVENT TRIGGERED: ${eventTime.toJSON()} ${eventTopic} PROP=${eventProperty} NAME=${eventType} VALUE=${eventValue}`);
                 })
             }
             callback();
