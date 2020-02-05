@@ -10,6 +10,8 @@ This is a wrapper to ONVIF protocol which allows you to get information about yo
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
+The library uses NodeJS.
+
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
 ## Installation
