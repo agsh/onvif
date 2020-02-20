@@ -240,8 +240,10 @@ describe 'Common functions', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
       cam.getVideoSources (err, data) ->
         assert.equal err, null
-        assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
-          data[prop] != undefined
+        assert.ok Array.isArray(data)
+        data.every (d) ->
+          assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
+            d[prop] != undefined
         assert.equal cam.videoSources, data
         done()
 
