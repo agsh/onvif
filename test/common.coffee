@@ -320,3 +320,96 @@ describe 'Common functions', () ->
         assert.equal err, null
         assert.equal typeof data, 'string'
         done()
+
+  describe 'EventEmitter', () ->
+    onEvent = null
+    eventNbr = 0
+    it 'should listen with `addListener`', (done) ->
+      cam.removeAllListeners() # Remove all listeners in case some remains
+      eventNbr = 0
+      onEvent = (msg) ->
+        eventNbr += 1
+      cam.addListener 'myEvent', onEvent
+      listeners = cam.listeners 'myEvent'
+      assert.equal listeners.length, 1
+      listenerCount = cam.listenerCount 'myEvent'
+      assert.equal listenerCount, 1
+      setTimeout () ->
+        cam.emit 'myEvent', ''
+      , 250
+      setTimeout () ->
+        assert.ok eventNbr > 0
+        done()
+      , 1000
+    it 'should stop listening with `removeListener`', (done) ->
+      eventNbr = 0
+      cam.removeListener 'myEvent', onEvent
+      listeners = cam.listeners 'myEvent'
+      assert.equal listeners.length, 0
+      listenerCount = cam.listenerCount 'myEvent'
+      assert.equal listenerCount, 0
+      setTimeout () ->
+        cam.emit 'myEvent', ''
+      , 250
+      setTimeout () ->
+        assert.ok eventNbr == 0
+        done()
+      , 500
+    it 'should listen with `on`', (done) ->
+      cam.removeAllListeners() # Remove all listeners in case some remains
+      eventNbr = 0
+      onEvent = (msg) ->
+        eventNbr += 1
+      cam.on 'myEvent', onEvent
+      listeners = cam.listeners 'myEvent'
+      assert.equal listeners.length, 1
+      listenerCount = cam.listenerCount 'myEvent'
+      assert.equal listenerCount, 1
+      setTimeout () ->
+        cam.emit 'myEvent', ''
+      , 250
+      setTimeout () ->
+        assert.ok eventNbr > 0
+        done()
+      , 500
+    it 'should stop listening with `off`', (done) ->
+      eventNbr = 0
+      cam.off 'myEvent', onEvent
+      # cam.removeListener 'myEvent', onEvent
+      listeners = cam.listeners 'myEvent'
+      assert.equal listeners.length, 0
+      listenerCount = cam.listenerCount 'myEvent'
+      assert.equal listenerCount, 0
+      setTimeout () ->
+        cam.emit 'myEvent', ''
+      , 250
+      setTimeout () ->
+        assert.ok eventNbr == 0
+        done()
+      , 500
+    it 'should listen only once with `once`', (done) ->
+      cam.removeAllListeners('myEvent') # Remove all listeners in case some remains
+      setTimeout () ->
+        eventNbr = 0
+        onEvent = (msg) ->
+          eventNbr += 1
+        cam.once 'myEvent', onEvent
+        listeners = cam.listeners 'myEvent'
+        assert.equal listeners.length, 1
+        listenerCount = cam.listenerCount 'myEvent'
+        assert.equal listenerCount, 1
+        emit = () ->
+          cam.emit('myEvent', '')
+        setTimeout () ->
+          setImmediate emit # Send twice
+          setImmediate emit
+        , 100
+        setTimeout () ->
+          assert.ok eventNbr == 1
+          listeners = cam.listeners 'myEvent'
+          assert.equal listeners.length, 0
+          listenerCount = cam.listenerCount 'myEvent'
+          assert.equal listenerCount, 0
+          done()
+        , 500
+      , 100
