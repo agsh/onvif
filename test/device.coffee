@@ -46,3 +46,20 @@ describe 'Device', () ->
         }, (err) ->
           assert.equal err, null
           done()
+      it 'should set multiple NTPs', (done) ->
+        cam.setNTP {
+          fromDHCP: false,
+          NTPManual: [
+            {
+              type: 'IPv4'
+              ipv4Address: 'localhost'
+            },
+            {
+              type: 'IPv6'
+              ipv6Address: '::1/128'
+              dnsName: '8.8.8.8'
+            },
+          ]
+        }, (err) ->
+          assert.equal err, null
+          done()
