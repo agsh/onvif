@@ -46,3 +46,13 @@ describe 'Device', () ->
         }, (err) ->
           assert.equal err, null
           done()
+
+  describe 'setSystemFactoryDefault', () ->
+    it 'should request a soft factory default', (done) ->
+      cam.setSystemFactoryDefault (err) ->
+        assert.equal err, null
+        done()
+    it 'should request a hard factory default', (done) ->
+      cam.setSystemFactoryDefault true, (err) ->
+        assert.equal err, null
+        done()
