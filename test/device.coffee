@@ -46,6 +46,7 @@ describe 'Device', () ->
         }, (err) ->
           assert.equal err, null
           done()
+
   describe 'getNetworkInterfaces', () ->
     it 'should return a NetworkInterface', (done) ->
       cam.getNetworkInterfaces (err, data) ->
@@ -166,4 +167,14 @@ describe 'Device', () ->
       }, (err, data) ->
         assert.equal err, null
         assert.ok Array.isArray(data.DNSManual) # Impossible to test the set values as the response is hard written in serverMockup/device.GetNetworkDefaultGateway.xml
+        done()
+
+  describe 'setSystemFactoryDefault', () ->
+    it 'should request a soft factory default', (done) ->
+      cam.setSystemFactoryDefault (err) ->
+        assert.equal err, null
+        done()
+    it 'should request a hard factory default', (done) ->
+      cam.setSystemFactoryDefault true, (err) ->
+        assert.equal err, null
         done()
