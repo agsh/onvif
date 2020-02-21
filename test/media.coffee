@@ -209,4 +209,18 @@ describe 'Media', () ->
         assert.ok ['name', '$', 'multicast'].every (prop) ->
           !!res[prop]
         done()
-              
+
+  describe 'getMediaServiceCapabilities', () ->
+    it 'should return a configuration for the first token in #videoEncoderConfigurations array', (done) ->
+      cam.getMediaServiceCapabilities (err, res) ->
+        assert.equal err, null
+        assert.deepEqual res, cam.mediaCapabilities
+        assert.ok ['SnapshotUri', 'Rotation', 'VideoSourceMode','OSD','TemporaryOSDText','EXICompression'].every (prop) ->
+          res.$.hasOwnProperty(prop)
+        assert.ok res.profileCapabilities
+        assert.ok ['MaximumNumberOfProfiles'].every (prop) ->
+          res.profileCapabilities.$.hasOwnProperty(prop)
+        assert.ok res.streamingCapabilities
+        assert.ok ['RTPMulticast', 'RTP_TCP', 'RTP_RTSP_TCP', 'NonAggregateControl'].every (prop) ->
+          res.streamingCapabilities.$.hasOwnProperty(prop)
+        done()
