@@ -209,4 +209,51 @@ describe 'Media', () ->
         assert.ok ['name', '$', 'multicast'].every (prop) ->
           !!res[prop]
         done()
-              
+
+  describe 'addAudioEncoderConfiguration', () ->
+    it 'should add an AudioEncoderConfiguration to a Profile', (done) ->
+      cam.addAudioEncoderConfiguration {
+        profileToken: 'profileToken',
+        configurationToken: 'configurationToken',
+      }, (err, res) ->
+        assert.equal err, null
+        done()
+
+  describe 'addAudioSourceConfiguration', () ->
+    it 'should add an AudioSourceConfiguration to a Profile', (done) ->
+      cam.addAudioSourceConfiguration {
+        profileToken: 'profileToken',
+        configurationToken: 'configurationToken',
+      }, (err, res) ->
+        assert.equal err, null
+        done()
+
+  describe 'addVideoEncoderConfiguration', () ->
+    it 'should add a VideoEncoderConfiguration to a Profile', (done) ->
+      cam.addVideoEncoderConfiguration {
+        profileToken: 'profileToken',
+        configurationToken: 'configurationToken',
+      }, (err, res) ->
+        assert.equal err, null
+        done()
+
+  describe 'addVideoSourceConfiguration', () ->
+    it 'should add a VideoSourceConfiguration to a Profile', (done) ->
+      cam.addVideoSourceConfiguration {
+        profileToken: 'profileToken',
+        configurationToken: 'configurationToken',
+      }, (err, res) ->
+        assert.equal err, null
+        done()
+
+  describe 'removeAudioEncoderConfiguration', () ->
+    it 'should remove an AudioEncoderConfiguration from a Profile', (done) ->
+      cam.removeAudioEncoderConfiguration 'profileToken', (err, res) ->
+        assert.equal err, null
+        done()
+
+  describe 'removeAudioSourceConfiguration', () ->
+    it 'should remove an AudioSourceConfiguration from a Profile', (done) ->
+      cam.removeAudioSourceConfiguration 'profileToken', (err, res) ->
+        assert.equal err, null
+        done()
