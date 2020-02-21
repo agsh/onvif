@@ -177,6 +177,7 @@ describe 'Device', () ->
     it 'should request a hard factory default', (done) ->
       cam.setSystemFactoryDefault true, (err) ->
         assert.equal err, null
+        done()
 
   describe 'getUsers', () ->
     it 'should return a list of user', (done) ->
