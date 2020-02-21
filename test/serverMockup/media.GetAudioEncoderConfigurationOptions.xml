@@ -13,19 +13,32 @@
         <SOAP-ENV:Body>
                 <trt:GetAudioEncoderConfigurationOptionsResponse>
                         <trt:Options>
-                            <tt:Encoding>
-                                G711
-                            </tt:Encoding>
-                            <tt:BitrateList>
-                                <tt:List>5</tt:List>
-                                <tt:List>10</tt:List>
-                                <tt:List>15</tt:List>
-                            </tt:BitrateList>
-                            <tt:SampleRateList>
-                                <tt:List>5</tt:List>
-                                <tt:List>10</tt:List>
-                                <tt:List>15</tt:List>
-                            </tt:SampleRateList>                                
+                                <tt:Options>
+                                        <tt:Encoding>
+                                                G711
+                                        </tt:Encoding>
+                                        <tt:BitrateList>
+                                                <tt:Items>5</tt:Items>
+                                        </tt:BitrateList>
+                                        <tt:SampleRateList>
+                                                <tt:Items>5</tt:Items>
+                                                <tt:Items>10</tt:Items>
+                                                <tt:Items>15</tt:Items>
+                                        </tt:SampleRateList>
+                                </tt:Options>
+                                <tt:Options>
+                                        <tt:Encoding>
+                                                G711
+                                        </tt:Encoding>
+                                        <tt:BitrateList>
+                                                <tt:Items>5</tt:Items>
+                                                <tt:Items>10</tt:Items>
+                                                <tt:Items>15</tt:Items>
+                                        </tt:BitrateList>
+                                        <tt:SampleRateList>
+                                                <tt:Items>5</tt:Items>
+                                        </tt:SampleRateList>
+                                </tt:Options>
                         </trt:Options>
                 </trt:GetAudioEncoderConfigurationOptionsResponse>
         </SOAP-ENV:Body>

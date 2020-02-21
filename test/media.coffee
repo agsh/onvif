@@ -161,12 +161,39 @@ describe 'Media', () ->
     it 'should return a configuration options for the first token in #audioEncoderConfigurations array', (done) ->
       cam.getAudioEncoderConfigurationOptions (err, res) ->
         assert.equal err, null
-        assert.ok res.bitrateList
+        assert.ok res.options
+        assert.ok Array.isArray(res.options)
+        assert.ok Array.isArray(res.options[0].bitrateList.items)     # Check that bitrateList.items is an Array while containing only one element
+        assert.ok res.options[0].bitrateList.items.length, 1
+        assert.ok Array.isArray(res.options[1].sampleRateList.items)  # Same for sampleRateList.items
+        assert.ok res.options[0].sampleRateList.items.length, 1
         done()
     it 'should return a configuration options for the named token as a first argument', (done) ->
       cam.getAudioEncoderConfigurationOptions cam.audioEncoderConfigurations[0].$.token, (err, res) ->
         assert.equal err, null
-        assert.ok res.bitrateList
+        assert.ok res.options
+        done()
+    it 'should return a configuration options for the ConfigurationToken token in an object as a first argument', (done) ->
+      cam.getAudioEncoderConfigurationOptions {
+        configurationToken: cam.audioEncoderConfigurations[0].$.token
+      }, (err, res) ->
+        assert.equal err, null
+        assert.ok res.options
+        done()
+    it 'should return a configuration options for the ProfileToken token in an object as a first argument', (done) ->
+      cam.getAudioEncoderConfigurationOptions {
+        profileToken: 'profileToken'
+      }, (err, res) ->
+        assert.equal err, null
+        assert.ok res.options
+        done()
+    it 'should return a configuration options for both ConfigurationToken and ProfileToken as a first argument', (done) ->
+      cam.getAudioEncoderConfigurationOptions {
+        configurationToken: cam.audioEncoderConfigurations[0].$.token,
+        profileToken: 'profileToken'
+      }, (err, res) ->
+        assert.equal err, null
+        assert.ok res.options
         done()
 
   describe 'setAudioEncoderConfiguration', () ->
