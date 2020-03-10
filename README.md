@@ -10,6 +10,8 @@ This is a wrapper to ONVIF protocol which allows you to get information about yo
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
+The library uses NodeJS.
+
 [![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
 
 ## Installation
@@ -111,8 +113,9 @@ onvif.Discovery.probe(function(err, cams) {
 });
 ```
 
-In all of that cases you've got disconnected cameras because to manage them you need tuple `username:password`.
-So, as shown in the examples, you can assign these properties and call `connect` method to get full functionality.
+In all of that cases you've got disconnected cameras. To access each camera (and issue ONVIF commands) you normally need
+the tuple `username:password`. So, as shown in the examples, you can assign these properties and call `connect` method to
+get full functionality.
 
 ### Discovery.probe(options, callback)
 Options
@@ -138,8 +141,10 @@ Options are:
 - username, password (optional, to deal with majority of functions)
 - port (optional)
 
-If the username and password are present, camera tries to connect automatically. Otherwise use `connect` method.
-Once again, without credentials you can execute only `getSystemDateAndTime` method.
+The library calls connect() automatically which executes the `getSystemDateAndTime`, `getCapabilities` and other methods.
+Note on username and password:
+- Some cameras do not require username:password credentials.
+- If a camera does require a username:password but you do not provide them, you will be limited to executing a few ONVIF methods that can operate without credentials, for example you can execute only `getSystemDateAndTime` method.
 
 Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
 
@@ -185,7 +190,7 @@ without passing options object use it. You can change it manually at any time.
   - ptz
 
 ### connect(callback)
-Connect to the camera and fill device information properties with `getCapabilities`, `getVideoSources`, `getProfiles` methods
+Connect to the camera and fill device information properties with `getSystemDateAndTime`, `getCapabilities`, `getVideoSources`, `getProfiles` methods
 
 See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
 After cam initialisation we can run several ONVIF commands.
