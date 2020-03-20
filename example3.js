@@ -23,7 +23,7 @@
  * The program gets a list of ONVIF presets. Keys 1..9 are used to send
  * Goto Preset on the first 9 preset commands.
  *
- * The GetPresets command is left as an asyncronous command
+ * The GetPresets command is left as an asynchronous command
  * and the presets list may come in some time after the StreamURI is displayed
  * 
  */
