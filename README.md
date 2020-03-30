@@ -65,7 +65,7 @@ new Cam({
 ```
 
 ## Other examples
-* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and dsplays information about each device found including make and model.
+* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model.
 For Profile S Cameras and Encoders it displays the default RTSP address
 For Profile G Recorders it displays the RTSP address of the first recording
 

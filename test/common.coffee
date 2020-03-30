@@ -305,7 +305,7 @@ describe 'Common functions', () ->
         done()
 
   describe 'getConfigurationOptions', () ->
-    it 'should return an options object for every configuation token', (done) ->
+    it 'should return an options object for every configuration token', (done) ->
       tokens = Object.keys cam.configurations
       cou = tokens.length
       tokens.forEach (token) ->

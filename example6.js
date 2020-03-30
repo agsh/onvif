@@ -1,6 +1,6 @@
 /**
  * NodeJS ONVIF Events
- * Reveive Events using a PullPoint Subscription and display the events on screen
+ * Receive Events using a PullPoint Subscription and display the events on screen
  * Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
  * and with HikVision (which uses a dynamically generated PullPoint URL)
  *
@@ -204,7 +204,7 @@ new Cam({
 }) // end newCam callback
 
 
-// Code completes here but the applictions remains running as there is a OnEvent listener that is active
+// Code completes here but the applications remains running as there is a OnEvent listener that is active
 
 // UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
 
