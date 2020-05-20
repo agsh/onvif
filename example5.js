@@ -13,7 +13,7 @@ var CAMERA_HOST = '192.168.1.164',
 
 
 var http = require('http'),
-  	Cam = require('./onvif').Cam;
+  	Cam = require('./lib/onvif').Cam;
 
 new Cam({
 	hostname: CAMERA_HOST,
