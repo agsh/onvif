@@ -23,6 +23,17 @@ describe 'Common functions', () ->
       assert.equal defaultCam.path, '/onvif/device_service'
       done()
 
+  describe 'autoconnect disabled', () ->
+    it 'should not connect automatically', (done) ->
+      options = {
+        autoconnect: false
+        timeout: 0
+      }
+      testcam = new onvif.Cam options, assert.fail
+      setTimeout () ->
+        done()
+      , 100
+
   describe '_request', () ->
     it 'brokes when no arguments are passed', (done) ->
       assert.throws () -> cam._request()
