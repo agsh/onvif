@@ -23,13 +23,19 @@ describe 'Common functions', () ->
       assert.equal defaultCam.path, '/onvif/device_service'
       done()
 
+  describe 'default autoconnect', () ->
+    it 'should connect automatically', (done) ->
+      callbackFunction = -> done()
+      testcam = new onvif.Cam {}, callbackFunction
+
   describe 'autoconnect disabled', () ->
     it 'should not connect automatically', (done) ->
       options = {
         autoconnect: false
         timeout: 0
       }
-      testcam = new onvif.Cam options, assert.fail
+      callbackFunction = -> assert.fail()
+      testcam = new onvif.Cam options, callbackFunction
       setTimeout () ->
         done()
       , 100
