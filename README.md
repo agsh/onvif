@@ -198,11 +198,10 @@ There are several common methods that work without credentials. Here are they: `
 
 ### getSystemDateAndTime(callback)
 Returns a Date object with current camera datetime in the callback.
-Works without credentials (passed `username` and `password` arguments).
+The ONVIF Standard says this would work without credentials (passed `username` and `password` arguments) so that the timeShift difference between the local clock and the NVT's onboard clock can be calculated for SOAP Authentication. However some devices claiming ONVIF support require a password and the library will re-try the connection if a username and password are available.
 
 ### getDeviceInformation(callback)
 *Device.* Returns a device information, such as manufacturer, model and firmware version in the callback
-Works without credentials (passed `username` and `password` arguments).
 
 ### getServices(callback)
 *Device.* Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
