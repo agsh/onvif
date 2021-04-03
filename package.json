@@ -63,7 +63,7 @@
     "eslint": "^5.5.0",
     "eslint-plugin-node": "^7.0.1",
     "keypress": "^0.2.1",
-    "mocha": "^2.1.0",
+    "mocha": "^6.0.0",
     "mocha-lcov-reporter": "0.0.1",
     "nimble": "^0.0.2",
     "nyc": "^14.1.1",

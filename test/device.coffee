@@ -1,4 +1,5 @@
 synthTest = not process.env.HOSTNAME
+
 assert = require 'assert'
 onvif = require('../lib/onvif')
 serverMockup = require('./serverMockup') if synthTest

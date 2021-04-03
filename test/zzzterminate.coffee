@@ -1,6 +1,9 @@
-serverMockup = require('./serverMockup')
+synthTest = not process.env.HOSTNAME
+
+serverMockup = require('./serverMockup') if synthTest
 
 describe 'Terminating', () ->
-  it 'should terminate serverMockup', (done) ->
-    serverMockup.close()
-    done()
+  if synthTest
+    it 'should terminate serverMockup', (done) ->
+      serverMockup.close()
+      done()
