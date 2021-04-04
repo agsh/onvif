@@ -65,13 +65,15 @@ new Cam({
 ```
 
 ## Other examples
-* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model.
+* example.js - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
+* example2.js - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
 For Profile S Cameras and Encoders it displays the default RTSP address
 For Profile G Recorders it displays the RTSP address of the first recording
-
-
-* example3.js reads the command line cursor keys and sends PTZ commands to the Camera
-
+* example3.js - reads the command line cursor keys and sends PTZ commands to the Camera
+* example4.js - uses Discovery to find cameras on the local network 
+* example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
+* example6.js - subscribes to ONVIF Events from a camera
+* example7.js - example using a Promise API. It uses 'promisify' to conver the ONVIF Library to return promises
 
 ## Troubleshooting
 Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
