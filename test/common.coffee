@@ -95,7 +95,7 @@ describe 'Common functions', () ->
     it 'should connect to the cam, fill startup properties', (done) ->
       cam.connect (err) ->
         assert.equal err, null
-        assert.ok cam.capabilities
+        assert.ok cam.capabilities || cam.services
         if synthTest
           assert.ok cam.uri.ptz
         assert.ok cam.uri.media
@@ -263,14 +263,16 @@ describe 'Common functions', () ->
     it 'should return a videosources object with correspondent properties and also set them into videoSources property', (done) ->
       cam.getVideoSources (err, data) ->
         assert.equal err, null
-        assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
-          data[prop] != undefined
+        assert.ok Array.isArray(data)
+        data.every (d) ->
+          assert.ok ['$', 'framerate', 'resolution'].every (prop) ->
+            d[prop] != undefined
         assert.equal cam.videoSources, data
         done()
 
   describe 'getServices', () ->
     it 'should return an array of services objects', (done) ->
-      cam.getServices (err, data) ->
+      cam.getServices true, (err, data) ->
         assert.equal err, null
         assert.ok Array.isArray data
         assert.ok data.every (service) ->
