@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.6.2",
+  "version": "0.6.4",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -8,11 +8,12 @@
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
-    "coffee-tests": "coffee -c ./test",
+    "coffee-tests": "node ./node_modules/coffeescript/bin/coffee -c ./test",
     "pretest": "npm run lint && npm run coffee-tests",
     "test": "nyc mocha",
     "test-js": "mocha 'test/**/*.test.js'",
-    "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls"
+    "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
+    "mockserver": "npm run coffee-tests && node startServerMockup.js"
   },
   "contributors": [
     {
@@ -62,7 +63,7 @@
     "eslint": "^5.5.0",
     "eslint-plugin-node": "^7.0.1",
     "keypress": "^0.2.1",
-    "mocha": "^2.1.0",
+    "mocha": "^6.0.0",
     "mocha-lcov-reporter": "0.0.1",
     "nimble": "^0.0.2",
     "nyc": "^14.1.1",

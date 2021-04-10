@@ -1,6 +1,8 @@
+synthTest = not process.env.HOSTNAME
+
 assert = require 'assert'
 onvif = require('../lib/onvif')
-serverMockup = require('./serverMockup')
+serverMockup = require('./serverMockup') if synthTest
 
 describe 'Discovery', () ->
   this.timeout 10000

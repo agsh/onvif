@@ -51,7 +51,7 @@ listener = (req, res) ->
 
 # Discovery service
 discoverReply = dgram.createSocket('udp4')
-discover = dgram.createSocket('udp4')
+discover = dgram.createSocket({ type: 'udp4', reuseAddr: true })
 discover.on 'error', (err) -> throw err
 discover.on 'message', (msg, rinfo) ->
   if verbose
@@ -77,11 +77,10 @@ discover.on 'message', (msg, rinfo) ->
       else
         discoverReply.send discoverMsg, 0, discoverMsg.length, rinfo.port, rinfo.address
 
-if process.platform != 'win32'
-  if verbose
-    console.log 'Listening for Discovery Messages on Port 3702'
-  discover.bind 3702, () ->
-    discover.addMembership '239.255.255.250'
+if verbose
+  console.log 'Listening for Discovery Messages on Port 3702'
+discover.bind 3702, () ->
+  discover.addMembership '239.255.255.250'
 
 server = http
   .createServer listener

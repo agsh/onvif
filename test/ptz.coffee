@@ -125,7 +125,7 @@ describe 'PTZ', () ->
         y: 0.1
         zoom: 0
       }, done
-    it 'should set ommited pan-tilt parameters to zero', (done) ->
+    it 'should set omitted pan-tilt parameters to zero', (done) ->
       cam.continuousMove {
         x: 0.1
         zoom: 0

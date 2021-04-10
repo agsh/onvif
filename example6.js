@@ -1,6 +1,6 @@
 /**
  * NodeJS ONVIF Events
- * Reveive Events using a PullPoint Subscription and display the events on screen
+ * Receive Events using a PullPoint Subscription and display the events on screen
  * Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
  * and with HikVision (which uses a dynamically generated PullPoint URL)
  *
@@ -136,8 +136,8 @@ new Cam({
 					//    - Message/Message/Data/SimpleItem/[index]/$/value   (array of items)
 					// OR - Message/Message/Data/SimpleItem/$/value   (single item)
 
-                    let eventTopic = camMessage.topic._
-                    eventTopic = stripNamespaces(eventTopic)
+					let eventTopic = camMessage.topic._
+					eventTopic = stripNamespaces(eventTopic)
 
 					let eventTime = camMessage.message.message.$.UtcTime;
 
@@ -155,22 +155,22 @@ new Cam({
 					if (camMessage.message.message.source && camMessage.message.message.source.simpleItem) {
 						if (Array.isArray(camMessage.message.message.source.simpleItem)) {
 							sourceName = camMessage.message.message.source.simpleItem[0].$.Name
-                            sourceValue = camMessage.message.message.source.simpleItem[0].$.Value
-                            console.log("WARNING: Only processing first Event Source item")
+							sourceValue = camMessage.message.message.source.simpleItem[0].$.Value
+							console.log("WARNING: Only processing first Event Source item")
 						} else {
 							sourceName = camMessage.message.message.source.simpleItem.$.Name
 							sourceValue = camMessage.message.message.source.simpleItem.$.Value
 						}
 					} else {
-                        sourceName = null
-                        sourceValue = null
-                        console.log("WARNING: Source does not contain a simpleItem")
-                    }
+						sourceName = null
+						sourceValue = null
+						console.log("WARNING: Source does not contain a simpleItem")
+					}
                     
-                    //KEY
-                    if (camMessage.message.message.key) {
-                        console.log('NOTE: Event has a Key')
-                    }
+					//KEY
+					if (camMessage.message.message.key) {
+						console.log('NOTE: Event has a Key')
+					}
 
 					// DATA (Name:Value)
 					if (camMessage.message.message.data && camMessage.message.message.data.simpleItem) {
@@ -204,28 +204,28 @@ new Cam({
 }) // end newCam callback
 
 
-// Code completes here but the applictions remains running as there is a OnEvent listener that is active
+// Code completes here but the applications remains running as there is a OnEvent listener that is active
 
 // UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
 
 
 
 function stripNamespaces(topic) {
-    // example input :-   tns1:MediaControl/tnsavg:ConfigurationUpdateAudioEncCfg 
-    // Split on '/'
-    // For each part, remove any namespace
-    // Recombine parts that were split with '/'
-    let output = '';
-    let parts = topic.split('/')
-    for (let index = 0; index < parts.length; index++) {
-        let stringNoNamespace = parts[index].split(':').pop() // split on :, then return the last item in the array
-        if (output.length == 0) {
-            output += stringNoNamespace
-        } else {
-            output += '/' + stringNoNamespace
-        }
-    }
-    return output
+	// example input :-   tns1:MediaControl/tnsavg:ConfigurationUpdateAudioEncCfg 
+	// Split on '/'
+	// For each part, remove any namespace
+	// Recombine parts that were split with '/'
+	let output = '';
+	let parts = topic.split('/')
+	for (let index = 0; index < parts.length; index++) {
+		let stringNoNamespace = parts[index].split(':').pop() // split on :, then return the last item in the array
+		if (output.length == 0) {
+			output += stringNoNamespace
+		} else {
+			output += '/' + stringNoNamespace
+		}
+	}
+	return output
 }
 
 function processEvent(eventTime,eventTopic,eventProperty,sourceName,sourceValue,dataName,dataValue) {
