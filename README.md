@@ -380,6 +380,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.6.5 API changed on getNetworkInterfaces. Now returns an Array even if there is just one network interface on the NVT
 - 0.6.1 Workaround for cams that don't send date-time
 - 0.6.0 Refactor modules for proper import in electron-based environment
 - 0.5.5 Added ptz.`gotoHomePosition`, ptz.`setHomePosition`. Fixed exceptions in ptz.`getConfigurations` and utils.`parseSOAPString`. Added tests for ptz.`setPreset`, ptz.`removePreset`, ptz.`gotoHomePosition`, and ptz.`setHomePosition`.
