@@ -95,7 +95,7 @@ describe 'Common functions', () ->
     it 'should connect to the cam, fill startup properties', (done) ->
       cam.connect (err) ->
         assert.equal err, null
-        assert.ok cam.capabilities
+        assert.ok cam.capabilities || cam.services
         assert.ok cam.uri.ptz
         assert.ok cam.uri.media
         assert.ok cam.videoSources
@@ -266,7 +266,7 @@ describe 'Common functions', () ->
 
   describe 'getServices', () ->
     it 'should return an array of services objects', (done) ->
-      cam.getServices (err, data) ->
+      cam.getServices true, (err, data) ->
         assert.equal err, null
         assert.ok Array.isArray data
         assert.ok data.every (service) ->
