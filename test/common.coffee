@@ -96,7 +96,8 @@ describe 'Common functions', () ->
       cam.connect (err) ->
         assert.equal err, null
         assert.ok cam.capabilities
-        assert.ok cam.uri.ptz
+        if synthTest
+          assert.ok cam.uri.ptz
         assert.ok cam.uri.media
         assert.ok cam.videoSources
         assert.ok cam.profiles
@@ -125,28 +126,29 @@ describe 'Common functions', () ->
       }, (err) ->
         assert.notEqual err, null
         done()
-    it 'should set system date and time', (done) ->
-      cam.setSystemDateAndTime {
-        dateTimeType: 'Manual'
-        dateTime: new Date()
-        daylightSavings: true
-        timezone: 'MSK'
-      }, (err, data) ->
-        assert.equal err, null
-        assert.ok (data instanceof Date)
-        done()
     if synthTest
-      it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
-        serverMockup.conf.bad = true
+      it 'should set system date and time', (done) ->
         cam.setSystemDateAndTime {
           dateTimeType: 'Manual'
           dateTime: new Date()
           daylightSavings: true
           timezone: 'MSK'
-        }, (err) ->
-          assert.notEqual err, null
-          delete serverMockup.conf.bad
+        }, (err, data) ->
+          assert.equal err, null
+          assert.ok (data instanceof Date)
           done()
+      if synthTest
+        it 'should return an error when SetSystemDateAndTime message returns error', (done) ->
+          serverMockup.conf.bad = true
+          cam.setSystemDateAndTime {
+            dateTimeType: 'Manual'
+            dateTime: new Date()
+            daylightSavings: true
+            timezone: 'MSK'
+          }, (err) ->
+            assert.notEqual err, null
+            delete serverMockup.conf.bad
+            done()
 
   describe 'getHostname', () ->
     it 'should return device name', (done) ->
@@ -224,8 +226,12 @@ describe 'Common functions', () ->
     it 'should return a service capabilities object and also set them into #serviceCapabilities property', (done) ->
       cam.getServiceCapabilities (err, data) ->
         assert.equal err, null
-        assert.ok ['network', 'security', 'system', 'auxiliaryCommands'].every (prop) ->
-          data[prop]
+        if synthTest
+          assert.ok ['network', 'security', 'system', 'auxiliaryCommands'].every (prop) ->
+            data[prop]
+        else
+          assert.ok ['network', 'security', 'system'].every (prop) ->
+            data[prop]
         assert.equal cam.serviceCapabilities, data
         done()
 
@@ -332,11 +338,12 @@ describe 'Common functions', () ->
           done() if not (--cou)
 
   describe 'systemReboot', () ->
-    it 'should return a server message', (done) ->
-      cam.systemReboot (err, data) ->
-        assert.equal err, null
-        assert.equal typeof data, 'string'
-        done()
+    if synthTest
+      it 'should return a server message', (done) ->
+        cam.systemReboot (err, data) ->
+          assert.equal err, null
+          assert.equal typeof data, 'string'
+          done()
 
   describe 'EventEmitter', () ->
     onEvent = null
