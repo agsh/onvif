@@ -68,9 +68,9 @@ describe 'Device', () ->
 
   describe 'getNetworkInterfaces', () ->
     it 'should return a NetworkInterface', (done) ->
-      cam.getNetworkInterfaces (err, data) ->
+      cam.getNetworkInterfaces (err, networkInterfaces) ->
         assert.equal err, null
-        assert.equal data.networkInterfaces.$.token, 'eth0' # Defined in serverMockup/device.GetNetworkInterfaces.xml
+        assert.equal networkInterfaces[0].$.token, 'eth0' # Defined in serverMockup/device.GetNetworkInterfaces.xml
         done()
   describe 'setNetworkInterfaces', () ->
     it 'should set manual IPv4, update the Cam object with the new IP and return RebootNeeded', (done) ->
