@@ -18,28 +18,26 @@ var IP_RANGE_START = '192.168.1.1',
 	PASSWORD = 'admin';
 
 var Cam = require('./lib/onvif').Cam;
-var flow = require('nimble');
 const { promisify } = require("util");
 
-var ip_list = generate_range(IP_RANGE_START, IP_RANGE_END);
-var port_list = PORT_LIST;
+var ipList = generateRange(IP_RANGE_START, IP_RANGE_END);
+var portList = PORT_LIST;
 
 // hide error messages
-console.error = function(err) {
-	err = err;
+console.error = function(_err) {
 };
 
 // try each IP address and each Port
-ip_list.forEach(function(ip_entry) {
-	port_list.forEach(function(port_entry) {
-		console.log(ip_entry + ' ' + port_entry);
+ipList.forEach(function(ipEntry) {
+	portList.forEach(function(portEntry) {
+		console.log(ipEntry + ' ' + portEntry);
 
 		new Cam(
 			{
-				hostname: ip_entry,
+				hostname: ipEntry,
 				username: USERNAME,
 				password: PASSWORD,
-				port: port_entry,
+				port: portEntry,
 				timeout: 5000,
 			},
 			async function CamFunc(err) {
@@ -48,111 +46,125 @@ ip_list.forEach(function(ip_entry) {
 					return;
 				}
 
-				var cam_obj = this;
+				var camObj = this;
 
 				// Use Promisify that was added to Nodev8
 
-				const promiseGetSystemDateAndTime = promisify(cam_obj.getSystemDateAndTime).bind(cam_obj);
-				const promiseGetDeviceInformation = promisify(cam_obj.getDeviceInformation).bind(cam_obj);
-				const promiseGetProfiles = promisify(cam_obj.getProfiles).bind(cam_obj);
-				const promiseGetStreamUri = promisify(cam_obj.getStreamUri).bind(cam_obj);
+				const promiseGetSystemDateAndTime = promisify(camObj.getSystemDateAndTime).bind(camObj);
+				const promiseGetDeviceInformation = promisify(camObj.getDeviceInformation).bind(camObj);
+				const promiseGetProfiles = promisify(camObj.getProfiles).bind(camObj);
+				const promiseGetSnapshotUri = promisify(camObj.getSnapshotUri).bind(camObj);
+				const promiseGetStreamUri = promisify(camObj.getStreamUri).bind(camObj);
 
 				// Use Promisify to convert ONVIF Library calls into Promises.
-				let got_date = await promiseGetSystemDateAndTime();
-				let got_info = await promiseGetDeviceInformation();
+				let gotDate = await promiseGetSystemDateAndTime();
+				let gotInfo = await promiseGetDeviceInformation();
 
-				let rtsp_results = "";
+				let videoResults = "";
 				let profiles = await promiseGetProfiles();
 				for (const profile of profiles) {
 					// wrap each URI Stream request in a Try/Catch as some requests (eg for multicast) may return an error
 					// the alternative would be a Promise.Then.Catch and wait for each Promise to complete(resolve)
-					rtsp_results += "Profile: Name=" + profile.name + " Token=" + profile.$.token + "\r\n"
+					videoResults += "Profile: Name=" + profile.name + " Token=" + profile.$.token + " VideoSource=" + profile.videoSourceConfiguration.name + "\r\n"
 
+					try {
+						videoResults += "HTTP JPEG URL  ";
+						let snapshotUri = await promiseGetSnapshotUri(
+							{
+								profileToken: profile.$.token,
+							});
+						videoResults += profile.name + " " + "JPEG" + " "
+							+ profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + snapshotUri.uri + "\r\n";
+
+					} catch (err) {
+						videoResults += profile.name + " not supported\r\n";
+					}
+	
 					let stream;
 					try {
-						rtsp_results += "RTSP TCP       ";
+						videoResults += "RTSP TCP       ";
 						stream = await promiseGetStreamUri(
 							{
 								profileToken: profile.$.token,
 								protocol: 'RTSP',
 								stream: 'RTP-Unicast',
 							});
-						rtsp_results += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
+						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
                             + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
 
 					} catch (err) {
-						rtsp_results += profile.name + " not supported\r\n";
+						videoResults += profile.name + " not supported\r\n";
 					}
 
 
 					try {
-						rtsp_results += "RTSP UDP       ";
+						videoResults += "RTSP UDP       ";
 						stream = await promiseGetStreamUri(
 							{
 								profileToken: profile.$.token,
 								protocol: 'UDP',
 								stream: 'RTP-Unicast',
 							});
-						rtsp_results += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
+						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
                             + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
 					} catch (err) {
-						rtsp_results += profile.name + " not supported\r\n";
+						videoResults += profile.name + " not supported\r\n";
 					}
 
 					try {
-						rtsp_results += "RTSP Multicast ";
+						videoResults += "RTSP Multicast ";
 						stream = await promiseGetStreamUri(
 							{
 								profileToken: profile.$.token,
 								protocol: 'UDP',
 								stream: 'RTP-Multicast',
 							});
-						rtsp_results += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
+						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
                             + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
 					} catch (err) {
-						rtsp_results += profile.name + " not supported\r\n";
+						videoResults += profile.name + " not supported\r\n";
 					}
 
 					try {
-						rtsp_results += "HTTP           ";
+						videoResults += "HTTP           ";
 						stream = await promiseGetStreamUri(
 							{
 								profileToken: profile.$.token,
 								protocol: 'HTTP',
 								stream: 'RTP-Unicast',
 							});
-						rtsp_results += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
+						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
                             + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
 					} catch (err) {
-						rtsp_results += profile.name + " not supported\r\n";
+						videoResults += profile.name + " not supported\r\n";
 					}
 
 				}
 
 				console.log('------------------------------');
-				console.log('Host: ' + ip_entry + ' Port: ' + port_entry);
-				console.log('Date: = ' + got_date);
-				console.log('Info: = ' + JSON.stringify(got_info));
-				console.log(rtsp_results);
+				console.log('Host: ' + ipEntry + ' Port: ' + portEntry);
+				console.log('Date: = ' + gotDate);
+				console.log('Info: = ' + JSON.stringify(gotInfo));
+				console.log(videoResults);
 				console.log('------------------------------');
 			});  // end CamFunc
 	}); // foreach
 }); // foreach
 
-function generate_range(start_ip, end_ip) {
-	var start_long = toLong(start_ip);
-	var end_long = toLong(end_ip);
-	if (start_long > end_long) {
-		var tmp = start_long;
-		start_long = end_long;
-		end_long = tmp;
+function generateRange(startIp, endIp) {
+	var startLong = toLong(startIp);
+	var endLong = toLong(endIp);
+	if (startLong > endLong) {
+		var tmp = startLong;
+		startLong = endLong;
+		endLong = tmp;
 	}
-	var range_array = [];
+	var rangeArray = [];
 	var i;
-	for (i = start_long; i <= end_long; i++) {
-		range_array.push(fromLong(i));
+	for (i = startLong; i <= endLong; i++) {
+		rangeArray.push(fromLong(i));
 	}
-	return range_array;
+	return rangeArray;
 }
 
 //toLong taken from NPM package 'ip'
