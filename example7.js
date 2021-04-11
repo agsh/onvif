@@ -8,7 +8,9 @@
  * This DOES NOT use ONVIF Discovery. This softweare tries each IP address in
  * turn which allows it to work on networks where ONVIF Discovery does not work
  * (eg on Layer 3 routed networks)
- *
+ * 
+ * EXAMPLE USING PROMISES by convering callbacks into Promises
+ * You can do this in NodeJS or using the Bluebird NPM
  */
 
 var IP_RANGE_START = '192.168.1.1',
@@ -68,7 +70,7 @@ ipList.forEach(function(ipEntry) {
 					videoResults += "Profile: Name=" + profile.name + " Token=" + profile.$.token + " VideoSource=" + profile.videoSourceConfiguration.name + "\r\n"
 
 					try {
-						videoResults += "HTTP JPEG URL  ";
+						videoResults += "SNAPSHOT URL   ";
 						let snapshotUri = await promiseGetSnapshotUri(
 							{
 								profileToken: profile.$.token,
@@ -126,7 +128,7 @@ ipList.forEach(function(ipEntry) {
 					}
 
 					try {
-						videoResults += "HTTP           ";
+						videoResults += "RTSP HTTP      ";
 						stream = await promiseGetStreamUri(
 							{
 								profileToken: profile.$.token,
