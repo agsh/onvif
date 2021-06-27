@@ -89,24 +89,38 @@ Short description of library possibilities is below.
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can find devices in your subnetwork using `probe` method of the Discovery singleton.
 Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
+You must subscribe to the `error` event as a device on your network could reply with bad XML
 Here some examples:
 
 ```js
 var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
-// function will be called as soon as NVT responses
+// function will be called as soon as NVT responds
 	cam.username = <USERNAME>;
 	cam.password = <PASSWORD>;
 	cam.connect(console.log);
 })
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  // function called as soon as NVT responds, but this library could not parse the response
+  console.log('Discovery error ' + err);
+});
 onvif.Discovery.probe();
 ```
 
 ```js
 var onvif = require('onvif');
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  console.log('Discovery error ' + err);
+});
 onvif.Discovery.probe(function(err, cams) {
 // function will be called only after timeout (5 sec by default)
-	if (err) { throw err; }
+	if (err) { 
+    // There is a device on the network returning bad discovery data
+    // Probe results will be incomplete
+    throw err;
+  }
 	cams.forEach(function(cam) {
 		cam.username = <USERNAME>;
 		cam.password = <PASSWORD>;
