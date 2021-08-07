@@ -12,7 +12,7 @@ It will also allow you to get information about your NVR (network video recorder
 
 The library uses NodeJS.
 
-[![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
+[![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
 ## Installation
 
