@@ -68,3 +68,10 @@ describe 'Imaging', () ->
       ['token', 'type', 'Name'].every (prop) ->
         res[prop]
       done()
+
+  it 'should get Options from the imaging API with video source tokens', (done) ->
+    cam.getVideoSourceOptions {token: cam.activeSource.sourceToken}, (err, res) ->
+      assert.equal err, null
+      assert.ok ['brightness', 'colorSaturation', 'contrast'].every (prop) ->
+        res[prop]
+      done()
