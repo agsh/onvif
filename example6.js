@@ -6,7 +6,7 @@
  *
  * Created by Roger Hardiman <opensource@rjh.org.uk>
  * 
- * (c) Roger Hardiman, RJH Technical Consultancy Ltd, November 2019
+ * (c) Roger Hardiman, RJH Technical Consultancy Ltd, November 2019, September 2021
  * Licenced under the MIT Open Source Licence
  *
  */
@@ -16,8 +16,46 @@ let HOSTNAME = '192.168.1.16',
 	USERNAME = 'user',
 	PASSWORD = 'pass';
 
+
+const EventMethodTypes = { PULL: "pull", SUBSCRIBE: "subscribe" }
+
+let EVENT_RECEIVER_IP_ADDRESS = '192.168.1.228'; // the IP Address and Port for a HTTP Server that the camera will send events to. Change this.
+let EVENT_RECEIVER_PORT = 8086;
+//let EVENT_MODE = EventMethodTypes.PULL;
+let EVENT_MODE = EventMethodTypes.SUBSCRIBE;
+
+
 let Cam = require('./lib/onvif').Cam;
 let flow = require('nimble');
+
+var http = require('http');
+var server = http.createServer(function(request, response) {
+	let body = '';
+	request.on('data', chunk => {
+		body += chunk;
+	})
+	request.on('end', () => {
+		//end of data
+		if (request.method == "POST") {
+			console.log('HTTP POST Message received to ' + request.url);
+			console.log(body);
+			console.log('');
+			response.writeHead(200, { "Content-Type": "text\plain" });
+			response.end("received POST request.");
+			return;
+		}
+		else {
+			console.log('Unexpected connect to HTTP Server to ' + request.url);
+			response.writeHead(200, { "Content-Type": "text\plain" });
+			response.end("Undefined request .");
+			return;
+		}
+	})
+
+});
+
+server.listen(EVENT_RECEIVER_PORT);
+console.log("Server running on port " + EVENT_RECEIVER_PORT);
 
 new Cam({
 	hostname: HOSTNAME,
@@ -61,18 +99,24 @@ new Cam({
 				if (err) {
 					console.log(err);
 				}
+				if (data.events) hasEvents = true;
+
+				/*
+				// Unexpected results trying to parse details of the events capabilities
+
 				if (!err && data.events && data.events.WSPullPointSupport && data.events.WSPullPointSupport == true) {
 					console.log('Camera supports WSPullPoint');
-					hasEvents = true;
+					hasPullPointEvents = true;
 				} else {
 					console.log('Camera does not show WSPullPoint support, but trying anyway');
 					// Have an Axis cameras that says False to WSPullPointSuppor but supports it anyway
-					hasEvents = true; // Hack for Axis cameras
+					hasPullPointEvents = true; // Hack for Axis cameras
 				}
 
-				if (hasEvents == false) {
+				if (hasPullPointEvents == false) {
 					console.log('This camera/NVT does not support PullPoint Events');
 				}
+				*/
 				callback();
 			})
 		},
@@ -118,7 +162,26 @@ new Cam({
 			}
 		},
 		function(callback) {
-			if (hasEvents && hasTopics) {
+			if (hasEvents && hasTopics && EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+				let uniqueID = 1001; // would increment this for every cam_obj object. It is used in the HTTP address sent to the LISTEN_PORT
+
+				let receveUrl = "http://" + EVENT_RECEIVER_IP_ADDRESS + ":" + EVENT_RECEIVER_PORT + "/events/" + uniqueID
+				cam_obj.subscribe(
+					{
+						url: receveUrl
+					},
+					(err, subscription, xml) => {
+						console.log('Subscribed to events')
+					}
+				);
+
+				// Events will now be received on the EVENT_RECEIVER HTTP Server
+			}
+
+			if (hasEvents && hasTopics && EVENT_MODE == EventMethodTypes.PULL) {
+
+				// register for 'event' events. This causes the library to ask the camera for Pull Events
+
 				cam_obj.on('event', (camMessage, xml) => {
 
 					// Extract Event Details
