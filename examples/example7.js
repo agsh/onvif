@@ -19,7 +19,7 @@ var IP_RANGE_START = '192.168.1.1',
 	USERNAME = 'admin',
 	PASSWORD = 'admin';
 
-var Cam = require('./lib/onvif').Cam;
+var Cam = require('../lib/onvif').Cam;
 const { promisify } = require("util");
 
 var ipList = generateRange(IP_RANGE_START, IP_RANGE_END);

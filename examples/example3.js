@@ -34,7 +34,7 @@ var HOSTNAME = '192.168.1.128',
 	PASSWORD = '',
 	STOP_DELAY_MS = 50;
 
-var Cam = require('./lib/onvif').Cam;
+var Cam = require('../lib/onvif').Cam;
 var keypress = require('keypress');
 
 new Cam({
