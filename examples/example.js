@@ -8,7 +8,7 @@ var CAMERA_HOST = '192.168.68.111',
 	PORT = 80;
 
 var http = require('http'),
-	Cam = require('./lib/onvif').Cam;
+	Cam = require('../lib/onvif').Cam;
 
 
 new Cam({
@@ -27,8 +27,8 @@ new Cam({
 		, y: 1
 		, zoom: 1
 	});
-	this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
-		http.createServer(function (req, res) {
+	this.getStreamUri({protocol: 'RTSP'}, function(err, stream) {
+		http.createServer(function(req, res) {
 			res.writeHead(200, {'Content-Type': 'text/html'});
 			res.end(
 				'<html><body>' +

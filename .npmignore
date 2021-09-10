@@ -7,3 +7,4 @@ experiments
 node_modules
 test/*.map
 test/*.js
+examples

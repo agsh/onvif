@@ -16,7 +16,7 @@ let HOSTNAME = '192.168.1.16',
 	USERNAME = 'user',
 	PASSWORD = 'pass';
 
-let Cam = require('./lib/onvif').Cam;
+let Cam = require('../lib/onvif').Cam;
 let flow = require('nimble');
 
 new Cam({
