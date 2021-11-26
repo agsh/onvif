@@ -11,7 +11,6 @@
     "coffee-tests": "node ./node_modules/coffeescript/bin/coffee -c ./test",
     "pretest": "npm run lint && npm run coffee-tests",
     "test": "nyc mocha",
-    "test-js": "mocha 'test/**/*.test.js'",
     "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "mockserver": "npm run coffee-tests && node startServerMockup.js"
   },
