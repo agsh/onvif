@@ -1,8 +1,12 @@
 /**
  * NodeJS ONVIF Events
- * Receive Events using a PullPoint Subscription and display the events on screen
- * Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
- * and with HikVision (which uses a dynamically generated PullPoint URL)
+ * This code can run in two ways
+ * 1) Receive Events using a PullPoint Subscription and display the events on screen
+ *    Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
+ *    and with HikVision (which uses a dynamically generated PullPoint URL)
+ *
+ * 2) Base Subscribe where we start a small HTTP Server on Port 8086, and tell the camera
+ *    to send new ONVIF Events to our mini HTTP server.
  *
  * Created by Roger Hardiman <opensource@rjh.org.uk>
  * 
@@ -11,25 +15,43 @@
  *
  */
 
-let HOSTNAME = '192.168.1.16',
+let HOSTNAME = '192.168.1.15',
 	PORT = 80,
-	USERNAME = 'user',
+	USERNAME = 'admin',
 	PASSWORD = 'pass';
 
 
 const EventMethodTypes = { PULL: "pull", SUBSCRIBE: "subscribe" }
 
-let EVENT_RECEIVER_IP_ADDRESS = '192.168.1.228'; // the IP Address and Port for a HTTP Server that the camera will send events to. Change this.
+let EVENT_RECEIVER_IP_ADDRESS = '192.168.1.70'; // the IP Address and Port for a HTTP Server that the camera will send events to. Change this.
 let EVENT_RECEIVER_PORT = 8086;
-//let EVENT_MODE = EventMethodTypes.PULL;
-let EVENT_MODE = EventMethodTypes.SUBSCRIBE;
+
+// PICK WHICH EVENT METHOD TOUSE
+// let EVENT_MODE = EventMethodTypes.PULL;     // <- PICK ONE
+let EVENT_MODE = EventMethodTypes.SUBSCRIBE;     // <- PICK ONE
 
 
-let Cam = require('./lib/onvif').Cam;
+
+console.log("*******************************************************************************");
+console.log("** This example can switch between PullPoint and Base Subscribe modes");
+if (EVENT_MODE == EventMethodTypes.PULL) {
+	console.log("** The library will poll for events using a WS-Pull Point Subscription");
+}
+if (EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+	console.log("** The camera will be told to send ONVIF Events to " + EVENT_RECEIVER_IP_ADDRESS + ":" + EVENT_RECEIVER_PORT);
+}
+console.log("*******************************************************************************");
+
+
+let Cam = require('../lib/onvif').Cam;
 let flow = require('nimble');
 
-var http = require('http');
-var server = http.createServer(function(request, response) {
+let http = require('http');
+let server = null;
+
+if (EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+	// Create a HTTP Server to receive Events
+        server = http.createServer(function(request, response) {
 	let body = '';
 	request.on('data', chunk => {
 		body += chunk;
@@ -37,7 +59,7 @@ var server = http.createServer(function(request, response) {
 	request.on('end', () => {
 		//end of data
 		if (request.method == "POST") {
-			console.log('HTTP POST Message received to ' + request.url);
+			console.log('HTTP POST Message received on ' + request.url);
 			console.log(body);
 			console.log('');
 			response.writeHead(200, { "Content-Type": "text\plain" });
@@ -52,10 +74,13 @@ var server = http.createServer(function(request, response) {
 		}
 	})
 
-});
+  });
 
-server.listen(EVENT_RECEIVER_PORT);
-console.log("Server running on port " + EVENT_RECEIVER_PORT);
+  server.listen(EVENT_RECEIVER_PORT);
+  console.log("Server running on port " + EVENT_RECEIVER_PORT);
+}
+
+
 
 new Cam({
 	hostname: HOSTNAME,
@@ -269,7 +294,7 @@ new Cam({
 
 // Code completes here but the applications remains running as there is a OnEvent listener that is active
 
-// UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
+// UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS...   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
 
 
 
