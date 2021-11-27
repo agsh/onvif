@@ -1,5 +1,4 @@
 const linerase = require('../lib/utils').linerase;
-const _cropName = require('../lib/utils')._cropName;
 const assert = require('assert');
 const parseString = require('xml2js').parseString;
 
