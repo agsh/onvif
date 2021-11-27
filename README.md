@@ -72,7 +72,8 @@ For Profile G Recorders it displays the RTSP address of the first recording
 * example3.js - reads the command line cursor keys and sends PTZ commands to the Camera
 * example4.js - uses Discovery to find cameras on the local network 
 * example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
-* example6.js - subscribes to ONVIF Events from a camera
+* example6a.js - subscribes to ONVIF Events from a camera using Pull Point Subscriptions
+* example6b.js - subscribes to ONVIF Events from a camera using Base Subscription and creating a mini HTTP Server to receive the events sent via HTTP from the camera
 * example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
 
 ## Troubleshooting
