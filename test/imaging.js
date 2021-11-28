@@ -1,6 +1,5 @@
 const assert = require('assert');
 const onvif = require('../lib/onvif');
-const util = require('util');
 
 describe('Imaging', () => {
 	let cam = null;

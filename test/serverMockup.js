@@ -102,7 +102,9 @@ const server = http.createServer(listener).listen(conf.port, (err) => {
 	if (err) {
 		throw err;
 	}
-	console.log('Listening on port', conf.port);
+	if (verbose) {
+		console.log('Listening on port', conf.port);
+	}
 });
 
 const close = () => {
