@@ -74,6 +74,7 @@ For Profile G Recorders it displays the RTSP address of the first recording
 * example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
 * example6.js - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
 * example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
+* example8.js - example setting OSD On Screen Display. (also uses Promises API)
 
 ## Troubleshooting
 Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
