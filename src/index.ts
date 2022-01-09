@@ -1,4 +1,3 @@
-export * from './onvif';
-export * from './device';
-export * from './media';
-export * from './discovery';
+import Cam from './cam';
+
+export { Cam };

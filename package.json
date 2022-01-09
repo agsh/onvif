@@ -1,15 +1,15 @@
 {
   "name": "onvif",
-  "version": "0.6.6",
+  "version": "0.6.5",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "scripts": {
     "build": "tsc --build tsconfig.json",
-    "typedoc": "typedoc src",
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
+    "pretest": "npm run lint",
     "test": "nyc mocha",
     "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "mockserver": "node startServerMockup.js"
@@ -56,8 +56,6 @@
     "node": ">=6.0"
   },
   "devDependencies": {
-    "@types/node": "^17.0.8",
-    "@types/xml2js": "^0.4.9",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "coveralls": "^3.1.1",
@@ -70,12 +68,12 @@
     "eslint-plugin-prettier": "^4.0.0",
     "ip": "^1.1.5",
     "keypress": "^0.2.1",
-    "mocha": "^10.0.0",
+    "mocha": "^9.1.3",
     "mocha-lcov-reporter": "^1.3.0",
     "nimble": "^0.0.2",
     "nyc": "^15.1.0",
     "prettier": "^2.5.1",
-    "typedoc": "^0.23.15",
-    "typescript": "^4.8.4"
+    "typedoc": "^0.22.10",
+    "typescript": "^4.5.4"
   }
 }
