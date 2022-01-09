@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2020",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "build",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "watch": true,
+    "declaration": true
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src/index.ts"
+  ]
+}
