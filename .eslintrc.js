@@ -10,7 +10,7 @@ const commonRules = {
   'no-unused-expressions'        : 0,
   'no-case-declarations'         : 0,
   'no-shadow'                    : 0,
-  'brace-style'                  : ['error', 'stroustrup'],
+  'brace-style'                  : ["error", "1tbs", { "allowSingleLine" : true }],
   'lines-between-class-members'  : 0,
   'max-len'                      : ['warn', 120],
   'no-nested-ternary'            : 0,

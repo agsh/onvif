@@ -16,16 +16,9 @@ export function linerase(xml: any): any {
     [xml] = xml;
   }
   if (typeof xml === 'object') {
-    let obj: any = {};
+    const obj: any = {};
     Object.keys(xml).forEach((key) => {
-      if (key === '$') { // for xml attributes
-        obj = {
-          ...obj,
-          ...linerase(xml.$),
-        };
-      } else {
-        obj[key] = linerase(xml[key]);
-      }
+      obj[key] = linerase(xml[key]);
     });
     return obj;
   }
@@ -57,12 +50,10 @@ export function guid() {
   return (`${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`);
 }
 
-export type CamResponse = Promise<[Record<string, any>, string]>;
-
 /**
  * Parse SOAP response
  */
-export async function parseSOAPString(rawXml: string): CamResponse {
+export async function parseSOAPString(rawXml: string) {
   /* Filter out xml name spaces */
   const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
@@ -96,7 +87,7 @@ export async function parseSOAPString(rawXml: string): CamResponse {
         reason = '';
       }
     }
-    let detail;
+    let detail = '';
     try {
       [detail] = fault.detail[0].text;
     } catch (e) {
@@ -106,5 +97,5 @@ export async function parseSOAPString(rawXml: string): CamResponse {
     // console.error('Fault:', reason, detail);
     throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
   }
-  return [result.envelope.body, xml];
+  return result.envelope.body;
 }
