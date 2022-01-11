@@ -53,7 +53,7 @@ export function guid() {
 /**
  * Parse SOAP response
  */
-export async function parseSOAPString(rawXml: string) {
+export async function parseSOAPString(rawXml: string): Promise<[Record<string, any>, string]> {
   /* Filter out xml name spaces */
   const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
@@ -87,7 +87,7 @@ export async function parseSOAPString(rawXml: string) {
         reason = '';
       }
     }
-    let detail = '';
+    let detail;
     try {
       [detail] = fault.detail[0].text;
     } catch (e) {
@@ -97,5 +97,5 @@ export async function parseSOAPString(rawXml: string) {
     // console.error('Fault:', reason, detail);
     throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
   }
-  return result.envelope.body;
+  return [result.envelope.body, xml];
 }

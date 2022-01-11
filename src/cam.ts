@@ -3,6 +3,8 @@ import { SecureContextOptions } from 'tls';
 import https, { Agent, RequestOptions } from 'https';
 import http from 'http';
 import { Buffer } from 'buffer';
+import crypto from 'crypto';
+import { linerase, parseSOAPString } from './utils';
 
 /**
  * Cam constructor options
@@ -26,7 +28,7 @@ export interface CamOptions {
   autoConnect?: boolean;
 }
 
-type CamServices = {
+export type CamServices = {
   PTZ?: URL,
   media?: URL,
   imaging?: URL,
@@ -34,7 +36,7 @@ type CamServices = {
   device?: URL,
 }
 
-interface CamRequestOptions extends RequestOptions{
+export interface CamRequestOptions extends RequestOptions{
   /** Name of service (ptz, media, etc) */
   service?: keyof CamServices;
   /** SOAP body */
@@ -43,6 +45,12 @@ interface CamRequestOptions extends RequestOptions{
   url?: string;
   /** Make request to PTZ uri or not */
   ptz?: boolean;
+}
+
+interface RequestError extends Error {
+  code: string;
+  errno: string;
+  syscall: string;
 }
 
 export class Cam extends EventEmitter {
@@ -58,6 +66,13 @@ export class Cam extends EventEmitter {
   public preserveAddress: boolean;
   private events: Record<string, unknown>;
   private uri: CamServices;
+  private timeShift: number | undefined;
+
+  /**
+   * Indicates raw xml request to device.
+   * @event rawData
+   */
+  static rawRequest: 'rawRequest' = 'rawRequest';
 
   constructor(options: CamOptions) {
     super();
@@ -89,7 +104,60 @@ export class Cam extends EventEmitter {
     }
   }
 
-  private async request(options: CamRequestOptions) {
+  /**
+   * Envelope header for all SOAP messages
+   * @param openHeader
+   * @private
+   */
+  private envelopeHeader(openHeader = false) {
+    let header = '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">'
+        + '<s:Header>';
+    // Only insert Security if there is a username and password
+    if (this.username && this.password) {
+      const req = this.passwordDigest();
+      header += '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">'
+          + '<UsernameToken>'
+          + `<Username>${this.username}</Username>`
+          + `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passdigest}</Password>`
+          + `<Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${req.nonce}</Nonce>`
+          + `<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${req.timestamp}</Created>`
+          + '</UsernameToken>'
+          + '</Security>';
+    }
+    if (!(openHeader !== undefined && openHeader)) {
+      header += '</s:Header>'
+          + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
+    }
+    return header;
+  }
+
+  /**
+   * Envelope footer for all SOAP messages
+   * @private
+   */
+  private envelopeFooter() {
+    return '</s:Body>'
+        + '</s:Envelope>';
+  }
+
+  private passwordDigest() {
+    const timestamp = (new Date((process.uptime() * 1000) + (this.timeShift || 0))).toISOString();
+    const nonce = Buffer.allocUnsafe(16);
+    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 0, 4);
+    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 4, 4);
+    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 8, 4);
+    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 12, 4);
+    const cryptoDigest = crypto.createHash('sha1');
+    cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
+    const passdigest = cryptoDigest.digest('base64');
+    return {
+      passdigest,
+      nonce : nonce.toString('base64'),
+      timestamp,
+    };
+  }
+
+  private async request(options: CamRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
       let callbackExecuted = false;
       let requestOptions = {
@@ -109,10 +177,12 @@ export class Cam extends EventEmitter {
       const request = httpLibrary.request(requestOptions, (response) => {
         const bufs: Buffer[] = [];
         let length = 0;
+
         response.on('data', (chunk) => {
           bufs.push(chunk);
           length += chunk.length;
         });
+
         response.on('end', () => {
           if (callbackExecuted) {
             return;
@@ -125,9 +195,38 @@ export class Cam extends EventEmitter {
            * @type {string}
            */
           this.emit('rawResponse', xml);
-          parseSOAPString(xml, callback);
+          resolve(parseSOAPString(xml));
         });
       });
+
+      request.setTimeout(this.timeout, () => {
+        if (callbackExecuted) {
+          return;
+        }
+        callbackExecuted = true;
+        request.destroy();
+        reject(new Error('Network timeout'));
+      });
+
+      request.on('error', (error: RequestError) => {
+        if (callbackExecuted) {
+          return;
+        }
+        callbackExecuted = true;
+        /* address, port number or IPCam error */
+        if (error.code === 'ECONNREFUSED' && error.errno === 'ECONNREFUSED' && error.syscall === 'connect') {
+          reject(error);
+          /* network error */
+        } else if (error.code === 'ECONNRESET' && error.errno === 'ECONNRESET' && error.syscall === 'read') {
+          reject(error);
+        } else {
+          reject(error);
+        }
+      });
+
+      this.emit('rawRequest', options.body);
+      request.write(options.body);
+      request.end();
     });
   }
 
@@ -135,7 +234,58 @@ export class Cam extends EventEmitter {
    * Connect to the camera and fill device information properties
    */
   async connect() {
-    // await this.getSystemDateAndTime();
+    await this.getSystemDateAndTime();
     // await this.getServices();
+  }
+
+  private setupSystemDateAndTime(data: any) {
+    const systemDateAndTime = data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0];
+    const dateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
+    let time;
+    if (dateTime === undefined) {
+      // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
+      time = new Date();
+    } else {
+      const dt = linerase(dateTime[0]);
+      time = new Date(Date.UTC(dt.date.year, dt.date.month - 1, dt.date.day, dt.time.hour, dt.time.minute, dt.time.second));
+    }
+    if (!this.timeShift) {
+      this.timeShift = time.getTime() - (process.uptime() * 1000);
+    }
+    return time;
+  }
+
+  /**
+   * Receive date and time from cam
+   */
+  async getSystemDateAndTime() {
+    // The ONVIF spec says this should work without a Password as we need to know any difference in the
+    // remote NVT's time relative to our own time clock (called the timeShift) before we can calculate the
+    // correct timestamp in nonce SOAP Authentication header.
+    // But.. Panasonic and Digital Barriers both have devices that implement ONVIF that only work with
+    // authenticated getSystemDateAndTime. So for these devices we need to do an authenticated getSystemDateAndTime.
+    // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
+    // to the correct time if the camera implements Replay Attack Protection (eg Axis)
+    const [data, xml] = await this.request({
+      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
+      body :
+          '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">'
+          + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+          + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>'
+          + '</s:Body>'
+          + '</s:Envelope>',
+    });
+    try {
+      return this.setupSystemDateAndTime(data);
+    } catch (error) {
+      if (xml && xml.toLowerCase().includes('sender not authorized')) {
+        // Try again with a Username and Password
+        const [data] = await this.request({
+          body : `${this.envelopeHeader()}<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>${this.envelopeFooter()}`,
+        });
+        return this.setupSystemDateAndTime(data);
+      }
+      throw error;
+    }
   }
 }
