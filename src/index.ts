@@ -1,3 +1,1 @@
-import Cam from './cam';
-
-export { Cam };
+export * from './cam';
