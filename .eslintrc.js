@@ -12,7 +12,8 @@ const commonRules = {
   'no-shadow'                    : 0,
   'brace-style'                  : ["error", "1tbs", { "allowSingleLine" : true }],
   'lines-between-class-members'  : 0,
-  'max-len'                      : ['warn', 120],
+  'max-len'                      : ['warn', 200],
+  'class-methods-use-this'       : 0,
   'no-nested-ternary'            : 0,
   'key-spacing'                  : ['error', {
     afterColon  : true,
@@ -50,9 +51,9 @@ module.exports = {
         ...commonRules,
 
         '@typescript-eslint/interface-name-prefix' : 0,
-
-        '@typescript-eslint/no-explicit-any' : 0, // TRY: Remove this
-        '@typescript-eslint/ban-ts-ignore'   : 0, // TRY: Remove this
+        '@typescript-eslint/no-non-null-assertion' : 0,
+        '@typescript-eslint/no-explicit-any'       : 0, // TRY: Remove this
+        '@typescript-eslint/ban-ts-ignore'         : 0, // TRY: Remove this
       },
 
       settings : {
