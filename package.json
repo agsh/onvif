@@ -6,6 +6,7 @@
   "main": "lib/onvif.js",
   "scripts": {
     "build": "tsc --build tsconfig.json",
+    "typedoc": "typedoc src",
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
@@ -56,6 +57,7 @@
     "node": ">=6.0"
   },
   "devDependencies": {
+    "@types/node": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
     "coveralls": "^3.1.1",
