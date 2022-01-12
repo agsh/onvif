@@ -4,6 +4,7 @@ import https, { Agent, RequestOptions } from 'https';
 import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
+import url from 'url';
 import { linerase, parseSOAPString } from './utils';
 
 /**
@@ -31,6 +32,7 @@ export interface CamOptions {
 export type CamServices = {
   PTZ?: URL,
   media?: URL,
+  media2?: URL,
   imaging?: URL,
   events?: URL,
   device?: URL,
@@ -53,7 +55,24 @@ interface RequestError extends Error {
   syscall: string;
 }
 
+export interface CamService {
+  /** Namespace uri */
+  namespace: string;
+  /** Uri for requests */
+  XAddr: string;
+  /** Minor version */
+  minor: number;
+  /** Major version */
+  major: number;
+}
+
 export class Cam extends EventEmitter {
+  /**
+   * Indicates raw xml request to device.
+   * @event rawData
+   */
+  static rawRequest: 'rawRequest' = 'rawRequest';
+
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -67,12 +86,8 @@ export class Cam extends EventEmitter {
   private events: Record<string, unknown>;
   private uri: CamServices;
   private timeShift: number | undefined;
-
-  /**
-   * Indicates raw xml request to device.
-   * @event rawData
-   */
-  static rawRequest: 'rawRequest' = 'rawRequest';
+  private services: CamService[] | undefined;
+  private media2Support = false;
 
   constructor(options: CamOptions) {
     super();
@@ -149,10 +164,10 @@ export class Cam extends EventEmitter {
     nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 12, 4);
     const cryptoDigest = crypto.createHash('sha1');
     cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
-    const passdigest = cryptoDigest.digest('base64');
+    const passDigest = cryptoDigest.digest('base64');
     return {
-      passdigest,
-      nonce : nonce.toString('base64'),
+      passdigest : passDigest,
+      nonce      : nonce.toString('base64'),
       timestamp,
     };
   }
@@ -168,7 +183,7 @@ export class Cam extends EventEmitter {
       };
       requestOptions.headers = {
         'Content-Type'   : 'application/soap+xml',
-        'Content-Length' : Buffer.byteLength(options.body, 'utf8'), // options.body.length chinese will be wrong here
+        'Content-Length' : Buffer.byteLength(options.body, 'utf8'),
         charset          : 'utf-8',
       };
       requestOptions.method = 'POST';
@@ -231,11 +246,29 @@ export class Cam extends EventEmitter {
   }
 
   /**
+   * Parse url with an eye on `preserveAddress` property
+   * @param address
+   * @private
+   */
+  private parseUrl(address: string) {
+    const parsedAddress = new URL(address);
+    // If host for service and default host differs, also if preserve address property set
+    // we substitute host, hostname and port from settings then rebuild the href using .format
+    if (this.preserveAddress && (this.hostname !== parsedAddress.hostname || this.port.toString() !== parsedAddress.port)) {
+      parsedAddress.hostname = this.hostname;
+      parsedAddress.host = `${this.hostname}:${this.port}`;
+      parsedAddress.port = this.port.toString();
+      parsedAddress.href = url.format(parsedAddress);
+    }
+    return parsedAddress;
+  }
+
+  /**
    * Connect to the camera and fill device information properties
    */
   async connect() {
     await this.getSystemDateAndTime();
-    // await this.getServices();
+    await this.getServices();
   }
 
   private setupSystemDateAndTime(data: any) {
@@ -287,5 +320,52 @@ export class Cam extends EventEmitter {
       }
       throw error;
     }
+  }
+
+  /**
+   * Returns information about services of the device.
+   * @param includeCapability
+   */
+  async getServices(includeCapability = true) {
+    const [data] = await this.request({
+      body : `${this.envelopeHeader()}<GetServices xmlns="http://www.onvif.org/ver10/device/wsdl">`
+          + `<IncludeCapability>${includeCapability}</IncludeCapability>`
+          + `</GetServices>${
+            this.envelopeFooter()}`,
+    });
+    this.services = linerase(data).getServicesResponse.service;
+    // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
+    // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
+    // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
+    // fill Cam#uri property
+    if (!this.uri) {
+      /**
+       * Device service URIs
+       * @name Cam#uri
+       * @property {url} [PTZ]
+       * @property {url} [media]
+       * @property {url} [media2]
+       * @property {url} [imaging]
+       * @property {url} [events]
+       * @property {url} [device]
+       */
+      this.uri = {};
+    }
+    this.services!.forEach((service) => {
+      // Look for services with namespaces and XAddr values
+      if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
+        // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
+        const parsedNamespace = url.parse(service.namespace);
+        if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.path) {
+          const namespaceSplitted = parsedNamespace.path.substring(1).split('/'); // remove leading Slash, then split
+          // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
+          if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
+            this.media2Support = true;
+            namespaceSplitted[1] = 'media2';
+          }
+          this.uri[namespaceSplitted[1] as keyof CamServices] = this.parseUrl(service.XAddr);
+        }
+      }
+    });
   }
 }

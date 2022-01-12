@@ -50,10 +50,12 @@ export function guid() {
   return (`${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`);
 }
 
+export type CamResponse = Promise<[Record<string, any>, string]>;
+
 /**
  * Parse SOAP response
  */
-export async function parseSOAPString(rawXml: string): Promise<[Record<string, any>, string]> {
+export async function parseSOAPString(rawXml: string): CamResponse {
   /* Filter out xml name spaces */
   const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
