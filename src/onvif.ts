@@ -5,13 +5,12 @@ import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
-import { Capabilities, Device, DeviceInformation } from './device';
-import { Media, Profile } from './media';
+import { Device } from './device';
 
 /**
  * Cam constructor options
  */
-export interface OnvifOptions {
+export interface CamOptions {
   /** Set true if using `https` protocol, defaults to false. */
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
@@ -22,34 +21,26 @@ export interface OnvifOptions {
   port?: number;
   path?: string;
   timeout?: number;
-  urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: Agent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
-  preserveAddress?: boolean;
+  preserveAddress: boolean;
   /** Set false if the camera should not connect automatically, defaults false. */
   autoConnect?: boolean;
 }
 
-export interface OnvifServices {
-  PTZ?: URL;
-  analyticsDevice?: URL;
-  device?: URL;
-  deviceIO?: URL;
-  display?: URL;
-  events?: URL;
-  imaging?: URL;
-  media2?: URL;
-  media?: URL;
-  receiver?: URL;
-  recording?: URL;
-  replay?: URL;
-  search?: URL;
+export type CamServices = {
+  PTZ?: URL,
+  media?: URL,
+  media2?: URL,
+  imaging?: URL,
+  events?: URL,
+  device?: URL,
 }
 
-export interface OnvifRequestOptions extends RequestOptions{
+export interface CamRequestOptions extends RequestOptions{
   /** Name of service (ptz, media, etc) */
-  service?: keyof OnvifServices;
+  service?: keyof CamServices;
   /** SOAP body */
   body: string;
   /** Defines another url to request */
@@ -64,73 +55,25 @@ interface RequestError extends Error {
   syscall: string;
 }
 
-/**
- * Information about active video source
- */
-export interface ActiveSource {
-  sourceToken: string;
-  profileToken: string;
-  videoSourceConfigurationToken: string;
-  encoding?: string;
-  width?: number;
-  height?: number;
-  fps?: number;
-  bitrate?: number;
-  ptz?: {
-    name: string;
-    token: string;
-  };
+export interface CamService {
+  /** Namespace uri */
+  namespace: string;
+  /** Uri for requests */
+  XAddr: string;
+  /** Minor version */
+  minor: number;
+  /** Major version */
+  major: number;
 }
 
 export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
-   * @event rawRequest
-   * @example
-   * ```typescript
-   * onvif.on('rawRequest', (xml) => { console.log('-> request was', xml); });
-   * ```
+   * @event rawData
    */
   static rawRequest: 'rawRequest' = 'rawRequest';
-  /**
-   * Indicates raw xml response from device.
-   * @event rawResponse
-   * @example
-   * ```typescript
-   * onvif.on('rawResponse', (xml) => { console.log('<- response was', xml); });
-   * ```
-   */
-  static rawResponse: 'rawResponse' = 'rawResponse';
-  /**
-   * Indicates any warnings
-   * @event warn
-   * @example
-   * ```typescript
-   * onvif.on('warn', console.warn);
-   * ```
-   */
-  static warn: 'warn' = 'warn';
-  /**
-   * Indicates any errors
-   * @param error Error instance from {@link Error}
-   * @event error
-   * @example
-   * ```typescript
-   * onvif.on('error', console.error);
-   * ```
-   */
-  static error: 'error' = 'error';
 
-  /**
-   * Core device namespace for device v1.0 methods
-   * @example
-   * ```typescript
-   * const date = await onvif.device.getSystemDateAndTime();
-   * console.log(date.toLocaleString());
-   * ```
-   */
-  public readonly device: Device;
-  public readonly media: Media;
+  private device: Device;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -140,19 +83,12 @@ export class Onvif extends EventEmitter {
   public path: string;
   public timeout: number;
   public agent: Agent | boolean;
-  public preserveAddress = false;
+  public preserveAddress: boolean;
   private events: Record<string, unknown>;
-  public uri: OnvifServices;
-  private timeShift?: number;
-  public capabilities: Capabilities;
-  public defaultProfiles: Profile[] = [];
-  public defaultProfile?: Profile;
-  private activeSources: ActiveSource[] = [];
-  public activeSource?: ActiveSource;
-  public readonly urn?: string;
-  public deviceInformation?: DeviceInformation;
+  public uri: CamServices;
+  private timeShift: number | undefined;
 
-  constructor(options: OnvifOptions) {
+  constructor(options: CamOptions) {
     super();
     this.useSecure = options.useSecure ?? false;
     this.secureOptions = options.secureOptions ?? {};
@@ -162,15 +98,11 @@ export class Onvif extends EventEmitter {
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
     this.timeout = options.timeout || 120000;
-    this.urn = options.urn;
-    this.agent = options.agent ?? false;
-    this.preserveAddress = options.preserveAddress ?? false;
+    this.agent = options.agent || false;
+    this.preserveAddress = options.preserveAddress || false;
     this.events = {};
     this.uri = {};
-    this.capabilities = {};
-
     this.device = new Device(this);
-    this.media = new Media(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
@@ -201,7 +133,7 @@ export class Onvif extends EventEmitter {
       header += '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">'
           + '<UsernameToken>'
           + `<Username>${this.username}</Username>`
-          + `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passDigest}</Password>`
+          + `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passdigest}</Password>`
           + `<Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${req.nonce}</Nonce>`
           + `<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${req.timestamp}</Created>`
           + '</UsernameToken>'
@@ -234,8 +166,8 @@ export class Onvif extends EventEmitter {
     cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
     const passDigest = cryptoDigest.digest('base64');
     return {
-      passDigest,
-      nonce : nonce.toString('base64'),
+      passdigest : passDigest,
+      nonce      : nonce.toString('base64'),
       timestamp,
     };
   }
@@ -257,17 +189,14 @@ export class Onvif extends EventEmitter {
     return time;
   }
 
-  private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
+  private async rawRequest(options: CamRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
-      let alreadyReturned = false;
+      let callbackExecuted = false;
       let requestOptions = {
         ...options,
         path : options.service
           ? (this.uri[options.service] ? this.uri[options.service]?.pathname : options.service)
           : this.path,
-        port    : this.port,
-        agent   : this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
-        timeout : this.timeout,
       };
       requestOptions.headers = {
         'Content-Type'   : 'application/soap+xml',
@@ -287,10 +216,10 @@ export class Onvif extends EventEmitter {
         });
 
         response.on('end', () => {
-          if (alreadyReturned) {
+          if (callbackExecuted) {
             return;
           }
-          alreadyReturned = true;
+          callbackExecuted = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
           /**
            * Indicates raw xml response from device.
@@ -303,19 +232,19 @@ export class Onvif extends EventEmitter {
       });
 
       request.setTimeout(this.timeout, () => {
-        if (alreadyReturned) {
+        if (callbackExecuted) {
           return;
         }
-        alreadyReturned = true;
+        callbackExecuted = true;
         request.destroy();
         reject(new Error('Network timeout'));
       });
 
       request.on('error', (error: RequestError) => {
-        if (alreadyReturned) {
+        if (callbackExecuted) {
           return;
         }
-        alreadyReturned = true;
+        callbackExecuted = true;
         /* address, port number or IPCam error */
         if (error.code === 'ECONNREFUSED' && error.errno === 'ECONNREFUSED' && error.syscall === 'connect') {
           reject(error);
@@ -333,7 +262,7 @@ export class Onvif extends EventEmitter {
     });
   }
 
-  public request(options: OnvifRequestOptions) {
+  public request(options: CamRequestOptions) {
     return this.rawRequest({
       ...options,
       body : `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
@@ -384,69 +313,12 @@ export class Onvif extends EventEmitter {
       if (xml && xml.toLowerCase().includes('sender not authorized')) {
         // Try again with a Username and Password
         const [data] = await this.request({
-          body : '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>}',
+          body : `${this.envelopeHeader()}<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>${this.envelopeFooter()}`,
         });
         return this.setupSystemDateAndTime(data);
       }
       throw error;
     }
-  }
-
-  /**
-   * Check and find out video configuration for device
-   * @private
-   */
-  private async getActiveSources() {
-    this.media.videoSources.forEach((videoSource, idx) => {
-      // let's choose first appropriate profile for our video source and make it default
-      const videoSrcToken = videoSource.token;
-      const appropriateProfiles = this.media.profiles.filter((profile) => (profile.videoSourceConfiguration
-        ? profile.videoSourceConfiguration.sourceToken === videoSrcToken
-        : false) && (profile.videoEncoderConfiguration !== undefined));
-      if (appropriateProfiles.length === 0) {
-        if (idx === 0) {
-          throw new Error('Unrecognized configuration');
-        } else {
-          return;
-        }
-      }
-
-      if (idx === 0) {
-        [this.defaultProfile] = appropriateProfiles;
-      }
-
-      [this.defaultProfiles[idx]] = appropriateProfiles;
-
-      this.activeSources[idx] = {
-        sourceToken                   : videoSource.token,
-        profileToken                  : this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken : this.defaultProfiles[idx].videoSourceConfiguration!.token,
-      };
-      if (this.defaultProfiles[idx].videoEncoderConfiguration) {
-        const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
-        this.activeSources[idx].encoding = configuration?.encoding;
-        this.activeSources[idx].width = configuration?.resolution.width;
-        this.activeSources[idx].height = configuration?.resolution.height;
-        this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit;
-        this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit;
-      }
-
-      if (idx === 0) {
-        this.activeSource = this.activeSources[idx];
-      }
-
-      if (this.defaultProfiles[idx].PTZConfiguration) {
-        this.activeSources[idx].ptz = {
-          name  : this.defaultProfiles[idx].PTZConfiguration!.name,
-          token : this.defaultProfiles[idx].PTZConfiguration!.token,
-        };
-        /*
-        TODO Think about it
-        if (idx === 0) {
-          this.defaultProfile.PTZConfiguration = this.activeSources[idx].PTZConfiguration;
-        } */
-      }
-    });
   }
 
   /**
@@ -459,8 +331,8 @@ export class Onvif extends EventEmitter {
     } catch (error) {
       await this.device.getCapabilities();
     }
-    await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
-    await this.getActiveSources();
+    // await Promise.all([this.getProfiles(), this.getVideoSources()]);
+    // await this.getActiveSources();
     this.emit('connect');
     return this;
   }
