@@ -1,1 +1,1 @@
-export * from './cam';
+export * from './onvif';
