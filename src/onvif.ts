@@ -4,8 +4,8 @@ import https, { Agent, RequestOptions } from 'https';
 import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import url from 'url';
 import { linerase, parseSOAPString } from './utils';
+import { Device } from './device';
 
 /**
  * Cam constructor options
@@ -25,7 +25,7 @@ export interface CamOptions {
   agent?: Agent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
   preserveAddress: boolean;
-  /** Set false if the camera should not connect automatically. */
+  /** Set false if the camera should not connect automatically, defaults false. */
   autoConnect?: boolean;
 }
 
@@ -66,13 +66,14 @@ export interface CamService {
   major: number;
 }
 
-export class Cam extends EventEmitter {
+export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
    * @event rawData
    */
   static rawRequest: 'rawRequest' = 'rawRequest';
 
+  private device: Device;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -84,10 +85,8 @@ export class Cam extends EventEmitter {
   public agent: Agent | boolean;
   public preserveAddress: boolean;
   private events: Record<string, unknown>;
-  private uri: CamServices;
+  public uri: CamServices;
   private timeShift: number | undefined;
-  private services: CamService[] | undefined;
-  private media2Support = false;
 
   constructor(options: CamOptions) {
     super();
@@ -103,6 +102,7 @@ export class Cam extends EventEmitter {
     this.preserveAddress = options.preserveAddress || false;
     this.events = {};
     this.uri = {};
+    this.device = new Device(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
@@ -112,7 +112,7 @@ export class Cam extends EventEmitter {
         });
       }
     });
-    if (options.autoConnect !== false) {
+    if (options.autoConnect) {
       setImmediate(() => {
         this.connect();
       });
@@ -172,7 +172,24 @@ export class Cam extends EventEmitter {
     };
   }
 
-  private async request(options: CamRequestOptions): Promise<[Record<string, any>, string]> {
+  private setupSystemDateAndTime(data: any) {
+    const systemDateAndTime = data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0];
+    const dateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
+    let time;
+    if (dateTime === undefined) {
+      // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
+      time = new Date();
+    } else {
+      const dt = linerase(dateTime[0]);
+      time = new Date(Date.UTC(dt.date.year, dt.date.month - 1, dt.date.day, dt.time.hour, dt.time.minute, dt.time.second));
+    }
+    if (!this.timeShift) {
+      this.timeShift = time.getTime() - (process.uptime() * 1000);
+    }
+    return time;
+  }
+
+  private async rawRequest(options: CamRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
       let callbackExecuted = false;
       let requestOptions = {
@@ -206,7 +223,7 @@ export class Cam extends EventEmitter {
           const xml = Buffer.concat(bufs, length).toString('utf8');
           /**
            * Indicates raw xml response from device.
-           * @event Cam#rawResponse
+           * @event Onvif#rawResponse
            * @type {string}
            */
           this.emit('rawResponse', xml);
@@ -245,12 +262,19 @@ export class Cam extends EventEmitter {
     });
   }
 
+  public request(options: CamRequestOptions) {
+    return this.rawRequest({
+      ...options,
+      body : `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
+    });
+  }
+
   /**
    * Parse url with an eye on `preserveAddress` property
    * @param address
    * @private
    */
-  private parseUrl(address: string) {
+  public parseUrl(address: string) {
     const parsedAddress = new URL(address);
     // If host for service and default host differs, also if preserve address property set
     // we substitute host, hostname and port from settings then rebuild the href using .format
@@ -258,40 +282,15 @@ export class Cam extends EventEmitter {
       parsedAddress.hostname = this.hostname;
       parsedAddress.host = `${this.hostname}:${this.port}`;
       parsedAddress.port = this.port.toString();
-      parsedAddress.href = url.format(parsedAddress);
+      parsedAddress.href = parsedAddress.toString();
     }
     return parsedAddress;
   }
 
   /**
-   * Connect to the camera and fill device information properties
-   */
-  async connect() {
-    await this.getSystemDateAndTime();
-    await this.getServices();
-  }
-
-  private setupSystemDateAndTime(data: any) {
-    const systemDateAndTime = data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0];
-    const dateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
-    let time;
-    if (dateTime === undefined) {
-      // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
-      time = new Date();
-    } else {
-      const dt = linerase(dateTime[0]);
-      time = new Date(Date.UTC(dt.date.year, dt.date.month - 1, dt.date.day, dt.time.hour, dt.time.minute, dt.time.second));
-    }
-    if (!this.timeShift) {
-      this.timeShift = time.getTime() - (process.uptime() * 1000);
-    }
-    return time;
-  }
-
-  /**
    * Receive date and time from cam
    */
-  async getSystemDateAndTime() {
+  async getSystemDateAndTime(): Promise<Date> {
     // The ONVIF spec says this should work without a Password as we need to know any difference in the
     // remote NVT's time relative to our own time clock (called the timeShift) before we can calculate the
     // correct timestamp in nonce SOAP Authentication header.
@@ -299,7 +298,7 @@ export class Cam extends EventEmitter {
     // authenticated getSystemDateAndTime. So for these devices we need to do an authenticated getSystemDateAndTime.
     // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
     // to the correct time if the camera implements Replay Attack Protection (eg Axis)
-    const [data, xml] = await this.request({
+    const [data, xml] = await this.rawRequest({
       // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
       body :
           '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">'
@@ -323,49 +322,18 @@ export class Cam extends EventEmitter {
   }
 
   /**
-   * Returns information about services of the device.
-   * @param includeCapability
+   * Connect to the camera and fill device information properties
    */
-  async getServices(includeCapability = true) {
-    const [data] = await this.request({
-      body : `${this.envelopeHeader()}<GetServices xmlns="http://www.onvif.org/ver10/device/wsdl">`
-          + `<IncludeCapability>${includeCapability}</IncludeCapability>`
-          + `</GetServices>${
-            this.envelopeFooter()}`,
-    });
-    this.services = linerase(data).getServicesResponse.service;
-    // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
-    // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
-    // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
-    // fill Cam#uri property
-    if (!this.uri) {
-      /**
-       * Device service URIs
-       * @name Cam#uri
-       * @property {url} [PTZ]
-       * @property {url} [media]
-       * @property {url} [media2]
-       * @property {url} [imaging]
-       * @property {url} [events]
-       * @property {url} [device]
-       */
-      this.uri = {};
+  async connect() {
+    await this.getSystemDateAndTime();
+    try {
+      await this.device.getServices();
+    } catch (error) {
+      await this.device.getCapabilities();
     }
-    this.services!.forEach((service) => {
-      // Look for services with namespaces and XAddr values
-      if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
-        // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
-        const parsedNamespace = url.parse(service.namespace);
-        if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.path) {
-          const namespaceSplitted = parsedNamespace.path.substring(1).split('/'); // remove leading Slash, then split
-          // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
-          if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
-            this.media2Support = true;
-            namespaceSplitted[1] = 'media2';
-          }
-          this.uri[namespaceSplitted[1] as keyof CamServices] = this.parseUrl(service.XAddr);
-        }
-      }
-    });
+    // await Promise.all([this.getProfiles(), this.getVideoSources()]);
+    // await this.getActiveSources();
+    this.emit('connect');
+    return this;
   }
 }
