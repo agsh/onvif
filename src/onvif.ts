@@ -10,7 +10,7 @@ import { Device } from './device';
 /**
  * Cam constructor options
  */
-export interface CamOptions {
+export interface OnvifOptions {
   /** Set true if using `https` protocol, defaults to false. */
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
@@ -29,18 +29,18 @@ export interface CamOptions {
   autoConnect?: boolean;
 }
 
-export type CamServices = {
-  PTZ?: URL,
-  media?: URL,
-  media2?: URL,
-  imaging?: URL,
-  events?: URL,
-  device?: URL,
+export interface OnvifServices {
+  PTZ?: URL;
+  media?: URL;
+  media2?: URL;
+  imaging?: URL;
+  events?: URL;
+  device?: URL;
 }
 
-export interface CamRequestOptions extends RequestOptions{
+export interface OnvifRequestOptions extends RequestOptions{
   /** Name of service (ptz, media, etc) */
-  service?: keyof CamServices;
+  service?: keyof OnvifServices;
   /** SOAP body */
   body: string;
   /** Defines another url to request */
@@ -55,17 +55,6 @@ interface RequestError extends Error {
   syscall: string;
 }
 
-export interface CamService {
-  /** Namespace uri */
-  namespace: string;
-  /** Uri for requests */
-  XAddr: string;
-  /** Minor version */
-  minor: number;
-  /** Major version */
-  major: number;
-}
-
 export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
@@ -73,7 +62,7 @@ export class Onvif extends EventEmitter {
    */
   static rawRequest: 'rawRequest' = 'rawRequest';
 
-  private device: Device;
+  public device: Device;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -85,10 +74,10 @@ export class Onvif extends EventEmitter {
   public agent: Agent | boolean;
   public preserveAddress: boolean;
   private events: Record<string, unknown>;
-  public uri: CamServices;
+  public uri: OnvifServices;
   private timeShift: number | undefined;
 
-  constructor(options: CamOptions) {
+  constructor(options: OnvifOptions) {
     super();
     this.useSecure = options.useSecure ?? false;
     this.secureOptions = options.secureOptions ?? {};
@@ -133,7 +122,7 @@ export class Onvif extends EventEmitter {
       header += '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">'
           + '<UsernameToken>'
           + `<Username>${this.username}</Username>`
-          + `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passdigest}</Password>`
+          + `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passDigest}</Password>`
           + `<Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${req.nonce}</Nonce>`
           + `<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${req.timestamp}</Created>`
           + '</UsernameToken>'
@@ -166,8 +155,8 @@ export class Onvif extends EventEmitter {
     cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
     const passDigest = cryptoDigest.digest('base64');
     return {
-      passdigest : passDigest,
-      nonce      : nonce.toString('base64'),
+      passDigest,
+      nonce : nonce.toString('base64'),
       timestamp,
     };
   }
@@ -189,7 +178,7 @@ export class Onvif extends EventEmitter {
     return time;
   }
 
-  private async rawRequest(options: CamRequestOptions): Promise<[Record<string, any>, string]> {
+  private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
       let callbackExecuted = false;
       let requestOptions = {
@@ -262,7 +251,7 @@ export class Onvif extends EventEmitter {
     });
   }
 
-  public request(options: CamRequestOptions) {
+  public request(options: OnvifRequestOptions) {
     return this.rawRequest({
       ...options,
       body : `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
@@ -313,7 +302,7 @@ export class Onvif extends EventEmitter {
       if (xml && xml.toLowerCase().includes('sender not authorized')) {
         // Try again with a Username and Password
         const [data] = await this.request({
-          body : `${this.envelopeHeader()}<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>${this.envelopeFooter()}`,
+          body : '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>}',
         });
         return this.setupSystemDateAndTime(data);
       }

@@ -1,10 +1,236 @@
 import url from 'url';
-import { CamService, CamServices, Onvif } from './onvif';
+import { Onvif, OnvifServices } from './onvif';
 import { linerase } from './utils';
 
+export interface OnvifService {
+  /** Namespace uri */
+  namespace: string;
+  /** Uri for requests */
+  XAddr: string;
+  /** Minor version */
+  minor: number;
+  /** Major version */
+  major: number;
+}
+
+/** Network capabilities */
+export interface NetworkCapabilities {
+  /** Indicates support for IP filtering */
+  IPFilter?: boolean;
+  /** Indicates support for zeroconf */
+  zeroConfiguration?: boolean;
+  /** Indicates support for IPv6 */
+  IPVersion6?: boolean;
+  /** Indicates support for dynamic DNS configuration */
+  dynDNS?: boolean;
+  extension: {
+    dot11Configuration?: boolean;
+    extension?: any;
+  }
+}
+
+/** System capabilities */
+export interface SystemCapabilities {
+  /** Indicates support for WS Discovery resolve requests */
+  discoveryBye: boolean;
+  /** Indicates support for remote discovery */
+  remoteDiscovery: boolean;
+  /** Indicates support for system backup through MTOM */
+  systemBackup: boolean;
+  /** Indicates support for retrieval of system logging through MTOM */
+  systemLogging: boolean;
+  /** Indicates support for firmware upgrade through MTOM */
+  firmwareUpgrade: boolean;
+  /** Indicates support for firmware upgrade through HTTP */
+  httpFirmwareUpgrade: boolean;
+  /** Indicates support for system backup through HTTP */
+  httpSystemBackup: boolean;
+  /** Indicates support for retrieval of system logging through HTTP */
+  httpSystemLogging: boolean;
+}
+
+export interface IOCapabilities {
+  /** Number of input connectors */
+  inputConnectors: number;
+  /** Number of relay outputs */
+  relayOutputs: number;
+  extension: {
+    auxiliary: boolean;
+    auxiliaryCommands: Record<string, unknown>;
+  }
+}
+
+/** Security capabilities */
+export interface SecurityCapabilities {
+  /** Indicates support for TLS 1.1 */
+  'TLS1.1': boolean;
+  /** Indicates support for TLS 1.2 */
+  'TLS1.2': boolean;
+  /** Indicates support for onboard key generation */
+  onboardKeyGeneration: boolean;
+  /** Indicates support for access policy configuration */
+  accessPolicyConfig: boolean;
+  /** Indicates support for WS-Security X.509 token */
+  'X.509Token': boolean;
+  /** Indicates support for WS-Security SAML token */
+  SAMLToken: boolean;
+  /** Indicates support for WS-Security Kerberos token */
+  kerberosToken: boolean;
+  /** Indicates support for WS-Security REL token */
+  RELToken: boolean;
+}
+
+/**
+ * Event capabilities
+ */
+export interface EventCapabilities {
+  /** Event service URI */
+  XAddr: string;
+  /** Indicates whether or not WS Subscription policy is supported */
+  WSSubscriptionPolicySupport: boolean;
+  /** Indicates whether or not WS Pull Point is supported */
+  WSPullPointSupport: boolean;
+  /** Indicates whether or not WS Pausable Subscription Manager Interface is supported */
+  WSPausableSubscriptionManagerInterfaceSupport: boolean;
+}
+
+export interface ImagingCapabilities {
+  /** Imaging service URI */
+  XAddr: string;
+}
+
+export interface MediaCapabilities {
+  /** Media service URI */
+  XAddr: string;
+  /** Streaming capabilities */
+  streamingCapabilities: {
+    /** Indicates whether or not RTP multicast is supported */
+    RTPMulticast: boolean;
+    /** Indicates whether or not RTP over TCP is supported */
+    RTP_TCP: boolean;
+    /** Indicates whether or not RTP/RTSP/TCP is supported */
+    RTP_RTSP_TCP: boolean;
+    /** Extensions */
+    extension: any;
+  };
+}
+
+/** PTZ capabilities */
+export interface PTZCapabilities {
+  /** PTZ service URI */
+  XAddr: string;
+}
+
+export interface DeviceIOCapabilities {
+  /** DeviceIO service URI */
+  XAddr: string;
+  videoSources: number;
+  videoOutputs: number;
+  audioSources: number;
+  audioOutputs: number;
+  relayOutputs: number;
+  extensions: {
+    telexCapabilities: any;
+    scdlCapabilities: any;
+  }
+}
+
+export interface DisplayCapabilities {
+  XAddr: string;
+  /** Indication that the SetLayout command supports only predefined layouts */
+  fixedLayout: boolean;
+}
+
+export interface RecordingCapabilities {
+  XAddr: string;
+  receiverSource: boolean;
+  mediaProfileSource: boolean;
+  dynamicRecordings: boolean;
+  dynamicTracks: boolean;
+  maxStringLength: number;
+}
+
+export interface SearchCapabilities {
+  XAddr: string;
+  metadataSearch: boolean;
+}
+
+export interface ReplayCapabilities {
+  XAddr: string;
+}
+
+export interface ReceiverCapabilities {
+  /** The address of the receiver service */
+  XAddr: string;
+  /** Indicates whether the device can receive RTP multicast streams */
+  RTP_Multicast: boolean;
+  /** Indicates whether the device can receive RTP/TCP streams */
+  RTP_TCP: boolean;
+  /** Indicates whether the device can receive RTP/RTSP/TCP streams */
+  RTP_RTSP_TCP: boolean;
+  /** The maximum number of receivers supported by the device */
+  supportedReceivers: number;
+  /** The maximum allowed length for RTSP URIs */
+  maximumRTSPURILength: number;
+}
+
+export interface AnalyticsDeviceCapabilities {
+  XAddr: string;
+  ruleSupport?: boolean;
+  extension?: any;
+}
+
+export interface CapabilitiesExtension {
+  /** DeviceIO capabilities */
+  deviceIO?: DeviceIOCapabilities;
+  display?: DisplayCapabilities;
+  recording?: RecordingCapabilities;
+  search?: SearchCapabilities;
+  replay?: ReplayCapabilities;
+  receiver?: ReceiverCapabilities;
+  analyticsDevice?: AnalyticsDeviceCapabilities;
+}
+
+/** Device capabilities */
+export interface DeviceCapabilities {
+  /** Device service URI */
+  XAddr: string;
+  network?: NetworkCapabilities;
+  system?: SystemCapabilities;
+  IO?: IOCapabilities;
+  security?: SecurityCapabilities;
+  extensions?: any;
+}
+
+/** Analytics capabilities */
+export interface AnalyticsCapabilities {
+  /** Analytics service URI */
+  XAddr: string;
+  /** Indicates whether or not rules are supported */
+  ruleSupport: boolean;
+  /** Indicates whether or not modules are supported */
+  analyticsModuleSupport: boolean;
+}
+
+/**
+ * Capability list
+ */
+export interface Capabilities {
+  analytics?: AnalyticsCapabilities;
+  device?: DeviceCapabilities;
+  events?: EventCapabilities;
+  imaging?: ImagingCapabilities;
+  media?: MediaCapabilities;
+  ptz?: PTZCapabilities;
+  extension?: CapabilitiesExtension;
+}
+
+/**
+ * Device methods
+ */
 export class Device {
   private readonly onvif: Onvif;
-  private services: CamService[] = [];
+  private services: OnvifService[] = [];
   private media2Support = false;
 
   constructor(onvif: Onvif) {
@@ -13,9 +239,8 @@ export class Device {
 
   /**
    * Returns information about services of the device.
-   * @param includeCapability
    */
-  async getServices(includeCapability = true): Promise<CamService[]> {
+  async getServices(includeCapability = true): Promise<OnvifService[]> {
     const [data] = await this.onvif.request({
       body : '<GetServices xmlns="http://www.onvif.org/ver10/device/wsdl">'
           + `<IncludeCapability>${includeCapability}</IncludeCapability>`
@@ -51,7 +276,7 @@ export class Device {
             this.media2Support = true;
             namespaceSplitted[1] = 'media2';
           }
-          this.onvif.uri[namespaceSplitted[1] as keyof CamServices] = this.onvif.parseUrl(service.XAddr);
+          this.onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = this.onvif.parseUrl(service.XAddr);
         }
       }
     });
@@ -61,116 +286,11 @@ export class Device {
   /**
    * This method has been replaced by the more generic GetServices method. For capabilities of individual services refer to the GetServiceCapabilities methods.
    */
-  // eslint-disable-next-line no-use-before-define
-  async getCapabilities(): Promise<iCapabilities> {
+  async getCapabilities(): Promise<Capabilities> {
     return {
       device : {
         XAddr : 'kjh',
       },
     };
   }
-}
-
-/** Network capabilities */
-export interface iNetwork {
-  /** Indicates support for IP filtering */
-  IPFilter: boolean;
-  /** Indicates support for zeroconf */
-  zeroConfiguration: boolean;
-  /** Indicates support for IPv6 */
-  IPVersion6: boolean;
-  /** Indicates support for dynamic DNS configuration */
-  dynDNS: boolean;
-}
-
-/** System capabilities */
-export interface iSystem {
-  /** Indicates support for WS Discovery resolve requests */
-  discoveryBye: boolean;
-  /** Indicates support for remote discovery */
-  remoteDiscovery: boolean;
-  /** Indicates support for system backup through MTOM */
-  systemBackup: boolean;
-  /** Indicates support for retrieval of system logging through MTOM */
-  systemLogging: boolean;
-  /** Indicates support for firmware upgrade through MTOM */
-  firmwareUpgrade: boolean;
-  /** Indicates support for firmware upgrade through HTTP */
-  httpFirmwareUpgrade: boolean;
-  /** Indicates support for system backup through HTTP */
-  httpSystemBackup: boolean;
-  /** Indicates support for retrieval of system logging through HTTP */
-  httpSystemLogging: boolean;
-}
-
-export interface iIO {
-  /** Number of input connectors */
-  inputConnectors: number;
-  /** Number of relay outputs */
-  relayOutputs: number;
-  extension: {
-    auxiliary: boolean;
-    auxiliaryCommands: Record<string, unknown>;
-  }
-}
-
-/** Security capabilities */
-export interface iSecurity {
-  /** Indicates support for TLS 1.1 */
-  'TLS1.1': boolean;
-  /** Indicates support for TLS 1.2 */
-}
-// * @property {object} [device.security]
-// * @property {boolean} device.security.'TLS1.1' Indicates support for TLS 1.1
-// * @property {boolean} device.security.'TLS1.2' Indicates support for TLS 1.2
-// * @property {boolean} device.security.onboardKeyGeneration Indicates support for onboard key generation
-// * @property {boolean} device.security.accessPolicyConfig Indicates support for access policy configuration
-// * @property {boolean} device.security.'X.509Token' Indicates support for WS-Security X.509 token
-// * @property {boolean} device.security.SAMLToken Indicates support for WS-Security SAML token
-// * @property {boolean} device.security.kerberosToken Indicates support for WS-Security Kerberos token
-// * @property {boolean} device.security.RELToken Indicates support for WS-Security REL token
-// * @property {object} events Event capabilities
-// * @property {string} events.XAddr Event service URI
-// * @property {boolean} events.WSSubscriptionPolicySupport Indicates whether or not WS Subscription policy is supported
-// * @property {boolean} events.WSPullPointSupport Indicates whether or not WS Pull Point is supported
-// * @property {boolean} events.WSPausableSubscriptionManagerInterfaceSupport Indicates whether or not WS Pausable Subscription Manager Interface is supported
-// * @property {object} imaging Imaging capabilities
-// * @property {string} imaging.XAddr Imaging service URI
-// * @property {object} media Media capabilities
-// * @property {string} media.XAddr Media service URI
-// * @property {object} media.streamingCapabilities Streaming capabilities
-// * @property {boolean} media.streamingCapabilities.RTPMulticast Indicates whether or not RTP multicast is supported
-// * @property {boolean} media.streamingCapabilities.RTP_TCP Indicates whether or not RTP over TCP is supported
-// * @property {boolean} media.streamingCapabilities.RTP_RTSP_TCP Indicates whether or not RTP/RTSP/TCP is supported
-// * @property {object} media.streamingCapabilities.extension
-// * @property {object} PTZ PTZ capabilities
-// * @property {string} PTZ.XAddr PTZ service URI
-// * @property {object} [extension]
-// * @property {object} extension.deviceIO DeviceIO capabilities
-// * @property {string} extension.deviceIO.XAddr DeviceIO service URI
-// * @property {number} extension.deviceIO.videoSources
-// * @property {number} extension.deviceIO.videoOutputs
-// * @property {number} extension.deviceIO.audioSources
-// * @property {number} extension.deviceIO.audioOutputs
-// * @property {number} extension.deviceIO.relayOutputs
-// * @property {object} [extension.extensions]
-// * @property {object} [extension.extensions.telexCapabilities]
-// * @property {object} [extension.extensions.scdlCapabilities]
-// */
-
-/** Device capabilities */
-export interface iDevice {
-  /** Device service URI */
-  XAddr: string;
-  network?: iNetwork;
-  system?: iSystem;
-  IO?: iIO;
-  security?: iSecurity;
-}
-
-/**
- * Capability list
- */
-export interface iCapabilities {
-  device: iDevice;
 }
