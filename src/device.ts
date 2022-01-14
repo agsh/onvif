@@ -235,6 +235,7 @@ export interface AnalyticsDeviceCapabilities {
 }
 
 export interface CapabilitiesExtension {
+  XAddr: string;
   /** DeviceIO capabilities */
   deviceIO?: DeviceIOCapabilities;
   display?: DisplayCapabilities;
@@ -342,13 +343,38 @@ export class Device {
   }
 
   /**
-   * This method has been replaced by the more generic GetServices method. For capabilities of individual services refer to the GetServiceCapabilities methods.
+   * This method has been replaced by the more generic GetServices method.
+   * For capabilities of individual services refer to the GetServiceCapabilities methods.
    */
   async getCapabilities(): Promise<Capabilities> {
-    return {
-      device : {
-        XAddr : 'kjh',
-      },
-    };
+    const [data] = await this.onvif.request({
+      body : '<GetCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl">'
+          + '<Category>All</Category>'
+          + '</GetCapabilities>',
+    });
+    this.onvif.capabilities = linerase(data[0].getCapabilitiesResponse[0].capabilities[0]);
+    ['PTZ', 'media', 'imaging', 'events', 'device'].forEach((name) => {
+      const capabilityName = name as keyof Capabilities;
+      if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
+        this.onvif.uri[name.toLowerCase() as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr);
+      }
+    });
+    // extensions, eg. deviceIO
+    if (this.onvif.capabilities.extension) {
+      Object.keys(this.onvif.capabilities.extension).forEach((ext) => {
+        const extensionName = ext as keyof CapabilitiesExtension;
+        // TODO think about complex extensions like `telexCapabilities` and `scdlCapabilities`
+        if (extensionName !== 'XAddr' && 'XAddr' in this.onvif.capabilities.extension![extensionName]!) {
+          this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr);
+        }
+      });
+      // HACK for a Profile G NVR that has 'replay' but did not have 'recording' in GetCapabilities
+      if (this.onvif.uri.replay && !this.onvif.uri.recording) {
+        const tempRecorderXaddr = this.onvif.uri.replay.href.replace('replay', 'recording');
+        this.onvif.emit('warn', `Adding ${tempRecorderXaddr} for bad Profile G device`);
+        this.onvif.uri.recording = new URL(tempRecorderXaddr);
+      }
+    }
+    return this.onvif.capabilities;
   }
 }
