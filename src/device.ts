@@ -13,6 +13,22 @@ export interface OnvifService {
   major: number;
 }
 
+export interface OnvifVersion {
+  /** Major version number */
+  major: number;
+  /**
+   * Two digit minor version number.
+   * If major version number is less than "16", X.0.1 maps to "01" and X.2.1 maps to "21" where X stands for Major version number.
+   * Otherwise, minor number is month of release, such as "06" for June
+   */
+  minor: number;
+}
+
+export interface NetworkCapabilitiesExtension {
+  dot11Configuration?: boolean;
+  extension?: any;
+}
+
 /** Network capabilities */
 export interface NetworkCapabilities {
   /** Indicates support for IP filtering */
@@ -23,14 +39,21 @@ export interface NetworkCapabilities {
   IPVersion6?: boolean;
   /** Indicates support for dynamic DNS configuration */
   dynDNS?: boolean;
-  extension: {
-    dot11Configuration?: boolean;
-    extension?: any;
-  }
+  extension: NetworkCapabilitiesExtension;
+}
+
+export interface SystemCapabilitiesExtension {
+  httpFirmwareUpgrade?: boolean;
+  httpSystemBackup?: boolean;
+  httpSystemLogging?: boolean;
+  httpSupportInformation?: boolean;
+  extension?: any;
 }
 
 /** System capabilities */
 export interface SystemCapabilities {
+  /** Indicates whether or not WS Discovery resolve requests are supported */
+  discoveryResolve: boolean;
   /** Indicates support for WS Discovery resolve requests */
   discoveryBye: boolean;
   /** Indicates support for remote discovery */
@@ -42,22 +65,41 @@ export interface SystemCapabilities {
   /** Indicates support for firmware upgrade through MTOM */
   firmwareUpgrade: boolean;
   /** Indicates support for firmware upgrade through HTTP */
-  httpFirmwareUpgrade: boolean;
+  httpFirmwareUpgrade?: boolean;
   /** Indicates support for system backup through HTTP */
-  httpSystemBackup: boolean;
+  httpSystemBackup?: boolean;
   /** Indicates support for retrieval of system logging through HTTP */
-  httpSystemLogging: boolean;
+  httpSystemLogging?: boolean;
+  /** Indicates supported ONVIF version(s) */
+  supportedVersions: OnvifVersion;
+  extensions?: SystemCapabilitiesExtension;
+}
+
+export interface IOCapabilitiesExtension {
+  auxiliary?: boolean;
+  auxiliaryCommands?: Record<string, unknown>;
+  extension?: any;
 }
 
 export interface IOCapabilities {
   /** Number of input connectors */
-  inputConnectors: number;
+  inputConnectors?: number;
   /** Number of relay outputs */
-  relayOutputs: number;
-  extension: {
-    auxiliary: boolean;
-    auxiliaryCommands: Record<string, unknown>;
-  }
+  relayOutputs?: number;
+  extension?: IOCapabilitiesExtension;
+}
+
+export interface SecurityCapabilitiesExtension2 {
+  dot1X: boolean;
+  /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry */
+  supportedEAPMethod?: number;
+  remoteUserHandling: boolean;
+}
+
+export interface SecurityCapabilitiesExtension {
+  /** Indicates support for TLS 1.0 */
+  'TLS1.0': boolean;
+  extension?: SecurityCapabilitiesExtension2;
 }
 
 /** Security capabilities */
@@ -78,6 +120,7 @@ export interface SecurityCapabilities {
   kerberosToken: boolean;
   /** Indicates support for WS-Security REL token */
   RELToken: boolean;
+  extension?: SecurityCapabilitiesExtension;
 }
 
 /**
@@ -99,20 +142,31 @@ export interface ImagingCapabilities {
   XAddr: string;
 }
 
+export interface RealTimeStreamingCapabilities {
+  /** Indicates whether or not RTP multicast is supported */
+  RTPMulticast: boolean;
+  /** Indicates whether or not RTP over TCP is supported */
+  RTP_TCP: boolean;
+  /** Indicates whether or not RTP/RTSP/TCP is supported */
+  RTP_RTSP_TCP: boolean;
+  /** Extensions */
+  extension: any;
+}
+
+export interface ProfileCapabilities {
+  maximumNumberOfProfiles: number;
+}
+
+export interface MediaCapabilitiesExtension {
+  profileCapabilities: ProfileCapabilities;
+}
+
 export interface MediaCapabilities {
   /** Media service URI */
   XAddr: string;
   /** Streaming capabilities */
-  streamingCapabilities: {
-    /** Indicates whether or not RTP multicast is supported */
-    RTPMulticast: boolean;
-    /** Indicates whether or not RTP over TCP is supported */
-    RTP_TCP: boolean;
-    /** Indicates whether or not RTP/RTSP/TCP is supported */
-    RTP_RTSP_TCP: boolean;
-    /** Extensions */
-    extension: any;
-  };
+  streamingCapabilities: RealTimeStreamingCapabilities;
+  extension?: MediaCapabilitiesExtension;
 }
 
 /** PTZ capabilities */
@@ -235,6 +289,10 @@ export class Device {
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
+  }
+
+  getSystemDateAndTime() {
+    return this.onvif.getSystemDateAndTime();
   }
 
   /**
