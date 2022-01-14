@@ -5,7 +5,7 @@ import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
-import { Device } from './device';
+import { Capabilities, Device } from './device';
 
 /**
  * Cam constructor options
@@ -36,6 +36,13 @@ export interface OnvifServices {
   imaging?: URL;
   events?: URL;
   device?: URL;
+  deviceIO?: URL;
+  search?: URL;
+  display?: URL;
+  recording?: URL;
+  replay?: URL;
+  receiver?: URL;
+  analyticsDevice?: URL;
 }
 
 export interface OnvifRequestOptions extends RequestOptions{
@@ -59,8 +66,30 @@ export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
    * @event rawData
+   * @example
+   * ```typescript
+   * onvif.on('rawData', (xml) => { console.log('request was', xml); });
+   * ```
    */
   static rawRequest: 'rawRequest' = 'rawRequest';
+  /**
+   * Indicates any warnings
+   * @event warn
+   * @example
+   * ```typescript
+   * onvif.on('warn', console.warn);
+   * ```
+   */
+  static warn: 'warn' = 'warn';
+  /**
+   * Indicates any errors
+   * @event error
+   * @example
+   * ```typescript
+   * onvif.on('error', console.error);
+   * ```
+   */
+  static error: 'error' = 'error';
 
   public device: Device;
   public useSecure: boolean;
@@ -75,7 +104,8 @@ export class Onvif extends EventEmitter {
   public preserveAddress: boolean;
   private events: Record<string, unknown>;
   public uri: OnvifServices;
-  private timeShift: number | undefined;
+  private timeShift?: number;
+  public capabilities: Capabilities;
 
   constructor(options: OnvifOptions) {
     super();
@@ -91,6 +121,7 @@ export class Onvif extends EventEmitter {
     this.preserveAddress = options.preserveAddress || false;
     this.events = {};
     this.uri = {};
+    this.capabilities = {};
     this.device = new Device(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
