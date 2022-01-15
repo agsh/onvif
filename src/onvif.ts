@@ -107,7 +107,6 @@ export class Onvif extends EventEmitter {
   public uri: OnvifServices;
   private timeShift?: number;
   public capabilities: Capabilities;
-  public profiles: Profile[];
 
   constructor(options: OnvifOptions) {
     super();
@@ -124,7 +123,6 @@ export class Onvif extends EventEmitter {
     this.events = {};
     this.uri = {};
     this.capabilities = {};
-    this.profiles = [];
     this.device = new Device(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
@@ -354,7 +352,7 @@ export class Onvif extends EventEmitter {
     } catch (error) {
       await this.device.getCapabilities();
     }
-    // await Promise.all([this.getProfiles(), this.getVideoSources()]);
+    // await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
     // await this.getActiveSources();
     this.emit('connect');
     return this;
