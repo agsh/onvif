@@ -1,6 +1,7 @@
-import { isNumber } from 'util';
 import { Onvif } from './onvif';
 import { linerase } from './utils';
+
+export type AnyURI = string;
 
 export interface IntRectangle {
   x: number;
@@ -407,6 +408,97 @@ export interface PTZConfiguration {
   extension?: PTZConfigurationExtension;
 }
 
+export interface PTZFilter {
+  /** `true` if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN) */
+  status: boolean;
+  /** `true` if the metadata stream shall contain the PTZ position */
+  position: boolean;
+}
+
+export interface EventSubscription {
+  filter?: string;
+  subscriptionPolicy?: any;
+}
+
+export interface MetadataConfiguration {
+  /** Token that uniquely references this configuration. Length up to 64 characters */
+  token: string;
+  /** User readable name. Length up to 64 characters */
+  name: string;
+  /**
+   * Number of internal references currently using this configuration.
+   * This informational parameter is read-only. Deprecated for Media2 Service.
+   */
+  useCount: number;
+  /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType */
+  compressionType: string;
+  /** Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target */
+  geoLocation: boolean;
+  /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon */
+  shapePolygon: boolean;
+  /** Optional element to configure which PTZ related data is to include in the metadata stream */
+  PTZStatus?: PTZFilter;
+  /**
+   * Optional element to configure the streaming of events.
+   * A client might be interested in receiving all, none or some of the events produced by the device:
+   * - To get all events: Include the Events element but do not include a filter
+   * - To get no events: Do not include the Events element
+   * - To get only some events: Include the Events element and include a filter in the element
+   */
+  events: EventSubscription;
+  extension?: any;
+}
+
+export interface AudioOutputConfiguration {
+  /** Token that uniquely references this configuration. Length up to 64 characters */
+  token: string;
+  /** User readable name. Length up to 64 characters */
+  name: string;
+  /**
+   * Number of internal references currently using this configuration.
+   * This informational parameter is read-only. Deprecated for Media2 Service.
+   */
+  useCount: number;
+  /** Token of the phsycial Audio output */
+  outputToken: string;
+  /**
+   * An audio channel MAY support different types of audio transmission.
+   * While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched.
+   * The optional SendPrimacy parameter inside the AudioOutputConfiguration indicates which direction is currently active.
+   * An NVC can switch between different modes by setting the AudioOutputConfiguration.
+   * The following modes for the Send-Primacy are defined:
+   * - www.onvif.org/ver20/HalfDuplex/Server The server is allowed to send audio data to the client.
+   *   The client shall not send audio data via the backchannel to the NVT in this mode.
+   * - www.onvif.org/ver20/HalfDuplex/Client The client is allowed to send audio data via the backchannel to the server.
+   *   The NVT shall not send audio data to the client in this mode.
+   * - www.onvif.org/ver20/HalfDuplex/Auto It is up to the device how to deal with sending and receiving audio data.
+   * Acoustic echo cancellation is out of ONVIF scope.
+   */
+  sendPrimacy?: AnyURI;
+  /** Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRang */
+  outputLevel: number;
+}
+
+export interface AudioDecoderConfiguration {
+  /** Token that uniquely references this configuration. Length up to 64 characters */
+  token: string;
+  /** User readable name. Length up to 64 characters */
+  name: string;
+  /**
+   * Number of internal references currently using this configuration.
+   * This informational parameter is read-only. Deprecated for Media2 Service.
+   */
+  useCount: number;
+}
+
+export interface ProfileExtension {
+  /** Optional configuration of the Audio output */
+  audioOutputConfiguration: AudioOutputConfiguration;
+  /** Optional configuration of the Audio decoder */
+  audioDecoderConfiguration: AudioDecoderConfiguration;
+  extension: any;
+}
+
 export interface Profile {
   /** Unique identifier of the profile */
   token: string;
@@ -426,191 +518,21 @@ export interface Profile {
   videoAnalyticsConfiguration?: VideoAnalyticsConfiguration;
   /** Optional configuration of the pan tilt zoom unit */
   PTZConfiguration?: PTZConfiguration;
-
-//     PTZConfiguration - optional; [PTZConfiguration]
-//     Optional configuration of the pan tilt zoom unit.
-//       token - required; [ReferenceToken]
-//     Token that uniquely references this configuration. Length up to 64 characters.
-//       Name [Name]
-//     User readable name. Length up to 64 characters.
-//       UseCount [int]
-//     Number of internal references currently using this configuration.
-//
-//       This informational parameter is read-only. Deprecated for Media2 Service.
-//       MoveRamp [int]
-//     The optional acceleration ramp used by the device when moving.
-//       PresetRamp [int]
-//     The optional acceleration ramp used by the device when recalling presets.
-//       PresetTourRamp [int]
-//     The optional acceleration ramp used by the device when executing PresetTours.
-//       NodeToken [ReferenceToken]
-//     A mandatory reference to the PTZ Node that the PTZ Configuration belongs to.
-//       DefaultAbsolutePantTiltPositionSpace - optional; [anyURI]
-//     If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default.
-//     DefaultAbsoluteZoomPositionSpace - optional; [anyURI]
-//     If the PTZ Node supports absolute zoom movements, it shall specify one Absolute Zoom Position Space as default.
-//     DefaultRelativePanTiltTranslationSpace - optional; [anyURI]
-//     If the PTZ Node supports relative Pan/Tilt movements, it shall specify one RelativePan/Tilt Translation Space as default.
-//     DefaultRelativeZoomTranslationSpace - optional; [anyURI]
-//     If the PTZ Node supports relative zoom movements, it shall specify one Relative Zoom Translation Space as default.
-//     DefaultContinuousPanTiltVelocitySpace - optional; [anyURI]
-//     If the PTZ Node supports continuous Pan/Tilt movements, it shall specify one Continuous Pan/Tilt Velocity Space as default.
-//     DefaultContinuousZoomVelocitySpace - optional; [anyURI]
-//     If the PTZ Node supports continuous zoom movements, it shall specify one Continuous Zoom Velocity Space as default.
-//     DefaultPTZSpeed - optional; [PTZSpeed]
-//     If the PTZ Node supports absolute or relative PTZ movements, it shall specify corresponding default Pan/Tilt and Zoom speeds.
-//     PanTilt - optional; [Vector2D]
-//     Pan and tilt speed. The x component corresponds to pan and the y component to tilt. If omitted in a request, the current (if any) PanTilt movement should not be affected.
-//       Zoom - optional; [Vector1D]
-//     A zoom speed. If omitted in a request, the current (if any) Zoom movement should not be affected.
-//       DefaultPTZTimeout - optional; [duration]
-//     If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops.
-//     PanTiltLimits - optional; [PanTiltLimits]
-//     The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF.
-//       Range [Space2DDescription]
-//     A range of pan tilt limits.
-//       URI [anyURI]
-//     A URI of coordinate systems.
-//       XRange [FloatRange]
-//     A range of x-axis.
-//       Min [float]
-//     Max [float]
-//     YRange [FloatRange]
-//     A range of y-axis.
-//       Min [float]
-//     Max [float]
-//     ZoomLimits - optional; [ZoomLimits]
-//     The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF.
-//       Range [Space1DDescription]
-//     A range of zoom limit
-//     URI [anyURI]
-//     A URI of coordinate systems.
-//       XRange [FloatRange]
-//     A range of x-axis.
-//       Min [float]
-//     Max [float]
-//     Extension - optional; [PTZConfigurationExtension]
-//     PTControlDirection - optional; [PTControlDirection]
-//     Optional element to configure PT Control Direction related features.
-//       EFlip - optional; [EFlip]
-//     Optional element to configure related parameters for E-Flip.
-//       Mode [EFlipMode]
-//       Parameter to enable/disable E-Flip feature.
-//     - enum { 'OFF', 'ON', 'Extended' }
-//     Reverse - optional; [Reverse]
-//     Optional element to configure related parameters for reversing of PT Control Direction.
-//       Mode [ReverseMode]
-//     Parameter to enable/disable Reverse feature.
-//     - enum { 'OFF', 'ON', 'AUTO', 'Extended' }
-//     Extension - optional; [PTControlDirectionExtension]
-//     Extension - optional; [PTZConfigurationExtension2]
-//     MetadataConfiguration - optional; [MetadataConfiguration]
-//     Optional configuration of the metadata stream.
-//       token - required; [ReferenceToken]
-//     Token that uniquely references this configuration. Length up to 64 characters.
-//       Name [Name]
-//     User readable name. Length up to 64 characters.
-//       UseCount [int]
-//     Number of internal references currently using this configuration.
-//
-//       This informational parameter is read-only. Deprecated for Media2 Service.
-//       CompressionType [string]
-//     Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType.
-//       GeoLocation [boolean]
-//     Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target.
-//       ShapePolygon [boolean]
-//     Optional parameter to configure if the generated metadata stream should contain shape information as polygon.
-//       PTZStatus - optional; [PTZFilter]
-//     optional element to configure which PTZ related data is to include in the metadata stream
-//     Status [boolean]
-//     True if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN)
-//     Position [boolean]
-//     True if the metadata stream shall contain the PTZ position
-//     Events - optional; [EventSubscription]
-//     Optional element to configure the streaming of events. A client might be interested in receiving all, none or some of the events produced by the device:
-//       To get all events: Include the Events element but do not include a filter.
-//       To get no events: Do not include the Events element.
-//       To get only some events: Include the Events element and include a filter in the element.
-//       Filter - optional; [FilterType]
-//     SubscriptionPolicy - optional;
-//     Analytics - optional; [boolean]
-//     Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.)
-//     Multicast [MulticastConfiguration]
-//     Defines the multicast settings that could be used for video streaming.
-//       Address [IPAddress]
-//     The multicast address (if this address is set to 0 no multicast streaming is enaled)
-//     Type [IPType]
-//     Indicates if the address is an IPv4 or IPv6 address.
-//     - enum { 'IPv4', 'IPv6' }
-//     IPv4Address - optional; [IPv4Address]
-//     IPv4 address.
-//       IPv6Address - optional; [IPv6Address]
-//     IPv6 address
-//     Port [int]
-//     The RTP mutlicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification.
-//     TTL [int]
-//     In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope.
-//     AutoStart [boolean]
-//     Read only property signalling that streaming is persistant. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state.
-//       SessionTimeout [duration]
-//       The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored)
-//       AnalyticsEngineConfiguration - optional; [AnalyticsEngineConfiguration]
-//       Indication which AnalyticsModules shall output metadata. Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
-//         AnalyticsModule - optional, unbounded; [Config]
-//       Name - required; [string]
-//       Name of the configuration.
-//         Type - required; [QName]
-//       The Type attribute specifies the type of rule and shall be equal to value of one of Name attributes of ConfigDescription elements returned by GetSupportedRules and GetSupportedAnalyticsModules command.
-//         Parameters [ItemList]
-//       List of configuration parameters as defined in the corresponding description.
-//         SimpleItem - optional, unbounded;
-//       Value name pair as defined by the corresponding description.
-//         Name - required; [string]
-//       Item name.
-//         Value - required; [anySimpleType]
-//       Item value. The type is defined in the corresponding description.
-//         ElementItem - optional, unbounded;
-//       Complex value structure.
-//         Name - required; [string]
-//       Item name.
-//         Extension - optional; [ItemListExtension]
-//       Extension - optional; [AnalyticsEngineConfigurationExtension]
-//       Extension - optional; [MetadataConfigurationExtension]
-//       Extension - optional; [ProfileExtension]
-//       Extensions defined in ONVIF 2.0
-//       AudioOutputConfiguration - optional; [AudioOutputConfiguration]
-//       Optional configuration of the Audio output.
-//         token - required; [ReferenceToken]
-//       Token that uniquely references this configuration. Length up to 64 characters.
-//         Name [Name]
-//       User readable name. Length up to 64 characters.
-//         UseCount [int]
-//       Number of internal references currently using this configuration.
-//
-//         This informational parameter is read-only. Deprecated for Media2 Service.
-//         OutputToken [ReferenceToken]
-//       Token of the phsycial Audio output.
-//         SendPrimacy - optional; [anyURI]
-//       An audio channel MAY support different types of audio transmission. While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched. The optional SendPrimacy parameter inside the AudioOutputConfiguration indicates which direction is currently active. An NVC can switch between different modes by setting the AudioOutputConfiguration.
-//
-//         The following modes for the Send-Primacy are defined:
-//         www.onvif.org/ver20/HalfDuplex/Server The server is allowed to send audio data to the client. The client shall not send audio data via the backchannel to the NVT in this mode.
-//         www.onvif.org/ver20/HalfDuplex/Client The client is allowed to send audio data via the backchannel to the server. The NVT shall not send audio data to the client in this mode.
-//         www.onvif.org/ver20/HalfDuplex/Auto It is up to the device how to deal with sending and receiving audio data.
-//         Acoustic echo cancellation is out of ONVIF scope.
-//         OutputLevel [int]
-//         Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange.
-//           AudioDecoderConfiguration - optional; [AudioDecoderConfiguration]
-//         Optional configuration of the Audio decoder.
-//           token - required; [ReferenceToken]
-//         Token that uniquely references this configuration. Length up to 64 characters.
-//           Name [Name]
-//         User readable name. Length up to 64 characters.
-//           UseCount [int]
-//         Number of internal references currently using this configuration.
-//
-//           This informational parameter is read-only. Deprecated for Media2 Service.
-//           Extension - optional; [ProfileExtension2]
+  /** Optional configuration of the metadata stream */
+  MetadataConfiguration?: MetadataConfiguration;
+  /** Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.) */
+  analytics?: boolean;
+  /** Defines the multicast settings that could be used for video streaming */
+  multicast: MulticastConfiguration;
+  /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
+  sessionTimeout: Duration;
+  /**
+   * Indication which AnalyticsModules shall output metadata.
+   * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration
+   */
+  analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
+  /** Extensions defined in ONVIF 2.0 */
+  extension?: ProfileExtension;
 }
 
 interface MediaProfile {
