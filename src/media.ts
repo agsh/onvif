@@ -645,8 +645,292 @@ export interface MediaProfile {
   configurations: ConfigurationSet;
 }
 
+export interface BacklightCompensation {
+  /**
+   * Backlight compensation mode (on/off).
+   * - OFF: Backlight compensation is disabled
+   * - ON: Backlight compensation is enabled
+   */
+  mode: 'ON' | 'OFF';
+  /** Optional level parameter (unit unspecified) */
+  level: number;
+}
+
+export interface Rectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface Exposure {
+  /**
+   * Exposure Mode
+   * - Auto – Enabled the exposure algorithm on the NVT
+   * - Manual – Disabled exposure algorithm on the NVT
+   */
+  mode: 'AUTO' | 'MANUAL';
+  /** The exposure priority mode (low noise/framerate) */
+  priority: 'LowNoise' | 'FrameRate';
+  /** Rectangular exposure mask */
+  window: Rectangle;
+  /** Minimum value of exposure time range allowed to be used by the algorithm */
+  minExposureTime: number;
+  /** Maximum value of exposure time range allowed to be used by the algorithm */
+  maxExposureTime: number;
+  /** Minimum value of the sensor gain range that is allowed to be used by the algorithm */
+  minGain: number;
+  /** Maximum value of the sensor gain range that is allowed to be used by the algorithm */
+  maxGain: number;
+  /** Minimum value of the iris range allowed to be used by the algorithm */
+  minIris: number;
+  /** Maximum value of the iris range allowed to be used by the algorithm */
+  maxIris: number;
+  /** The fixed exposure time used by the image sensor (μs) */
+  exposureTime: number;
+  /** The fixed gain used by the image sensor (dB) */
+  gain: number;
+  /** The fixed attenuation of input light affected by the iris (dB). 0dB maps to a fully opened iris */
+  iris: number;
+}
+
+export interface FocusConfiguration {
+  autoFocusMode: 'AUTO' | 'MANUAL';
+  defaultSpeed: number;
+  /** Parameter to set autofocus near limit (unit: meter) */
+  nearLimit: number;
+  /** Parameter to set autofocus far limit (unit: meter). If set to 0.0, infinity will be used */
+  farLimit: number;
+}
+
+export interface WideDynamicRange {
+  /** White dynamic range (on/off) */
+  mode: 'OFF' | 'ON';
+  /** Optional level parameter (unitless) */
+  level: number;
+}
+
+export interface WhiteBalance {
+  /** Auto whitebalancing mode (auto/manual) */
+  mode: 'AUTO' | 'MANUAL';
+  /** Rgain (unitless) */
+  crGain: number;
+  /** Bgain (unitless) */
+  cbGain: number;
+}
+
+export interface ImagingSettings {
+  /** Enabled/disabled BLC mode (on/off) */
+  backlightCompensation?: BacklightCompensation;
+  /** Image brightness (unit unspecified) */
+  brightness?: number;
+  /** Color saturation of the image (unit unspecified) */
+  colorSaturation?: number
+  /** Contrast of the image (unit unspecified) */
+  contrast?: number;
+  /** Exposure mode of the device */
+  exposure?: Exposure;
+  /** Focus configuration */
+  focus?: FocusConfiguration;
+  /** Infrared Cutoff Filter settings */
+  irCutFilter?: 'ON' | 'OFF' | 'AUTO';
+  /** Sharpness of the Video image */
+  sharpness?: number;
+  /** WDR settings */
+  wideDynamicRange?: WideDynamicRange;
+  /** White balance settings */
+  whiteBalance?: WhiteBalance;
+  extension?: any;
+}
+
+export interface BacklightCompensation20 {
+  /**
+   * Backlight compensation mode (on/off)
+   * - OFF: Backlight compensation is disabled
+   * - ON: Backlight compensation is enabled
+   */
+  mode: 'OFF' | 'ON';
+  /** Optional level parameter (unit unspecified) */
+  level?: number;
+}
+
+export interface Exposure20 {
+  /**
+   * Exposure Mode
+   * - Auto – Enabled the exposure algorithm on the device
+   * - Manual – Disabled exposure algorithm on the device
+   */
+  mode: 'AUTO' | 'MANUAL';
+  /** The exposure priority mode (low noise/framerate) */
+  priority?: 'LowNoise' | 'FrameRate';
+  /** Rectangular exposure mask */
+  window?: Rectangle;
+  /** Minimum value of exposure time range allowed to be used by the algorithm */
+  minExposureTime?: number;
+  /** Maximum value of exposure time range allowed to be used by the algorithm */
+  maxExposureTime?: number;
+  /** Minimum value of the sensor gain range that is allowed to be used by the algorithm */
+  minGain?: number;
+  /** Maximum value of the sensor gain range that is allowed to be used by the algorithm */
+  maxGain?: number;
+  /** Minimum value of the iris range allowed to be used by the algorithm. 0dB maps to a fully opened iris and positive values map to higher attenuation */
+  minIris?: number;
+  /** Maximum value of the iris range allowed to be used by the algorithm. 0dB maps to a fully opened iris and positive values map to higher attenuation */
+  maxIris?: number;
+  /** The fixed exposure time used by the image sensor (μs) */
+  exposureTime?: number;
+  /** The fixed gain used by the image sensor (dB) */
+  gain?: number;
+  /** The fixed attenuation of input light affected by the iris (dB). 0dB maps to a fully opened iris and positive values map to higher attenuation */
+  iris?: number;
+}
+
+export interface FocusConfiguration20 {
+  /** Zero or more modes as defined in enumeration tt:AFModes */
+  AFMode: string[];
+  /**
+   * Mode of auto focus
+   * - AUTO - The device automatically adjusts focus
+   * - MANUAL - The device does not automatically adjust focus
+   * Note: for devices supporting both manual and auto operation at the same time manual operation may be supported
+   * even if the Mode parameter is set to Auto.
+   */
+  autoFocusMode: 'AUTO' | 'MANUAL';
+  defaultSpeed?: number;
+  /** Parameter to set autofocus near limit (unit: meter) */
+  nearLimit?: number;
+  /** Parameter to set autofocus far limit (unit: meter) */
+  farLimit?: number;
+  extension?: any;
+}
+
+export interface WideDynamicRange20 {
+  /** Wide dynamic range mode (on/off) */
+  mode?: 'OFF' | 'ON';
+  /** Optional level parameter (unit unspecified) */
+  level?: number;
+}
+
+export interface WhiteBalance20 extends WhiteBalance {
+  extension: any;
+}
+
+export interface ImageStabilization {
+  /** Parameter to enable/disable Image Stabilization feature */
+  mode: 'OFF' | 'ON' | 'AUTO' | 'Extended';
+  /** Optional level parameter (unit unspecified) */
+  level?: number;
+  extension?: any;
+}
+
+export interface IrCutFilterAutoAdjustment {
+  /**
+   * Specifies which boundaries to automatically toggle Ir cut filter following parameters are applied to.
+   * Its options shall be chosen from tt:IrCutFilterAutoBoundaryType
+   */
+  boundaryType: string;
+  /**
+   * Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value
+   * from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless).
+   */
+  boundaryOffset?: number;
+  /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels */
+  responseTime?: Duration;
+  extension?: any;
+}
+
+export interface ToneCompensation {
+  /** Parameter to enable/disable or automatic ToneCompensation feature. Its options shall be chosen from tt:ToneCompensationMode Type */
+  mode: string;
+  /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0 */
+  level?: number;
+  extension?: any;
+}
+
+export interface Defogging {
+  /** Parameter to enable/disable or automatic Defogging feature. Its options shall be chosen from tt:DefoggingMode Type */
+  mode: string;
+  /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0 */
+  level?: number;
+  extension?: any;
+}
+
+export interface NoiseReduction {
+  /**
+   * Level parameter specified with unitless normalized value from 0.0 to +1.0.
+   * Level=0 means no noise reduction or minimal noise reduction
+   */
+  level: number;
+}
+
+export interface ImagingSettingsExtension203 {
+  /** Optional element to configure Image Contrast Compensation */
+  toneCompensation?: ToneCompensation;
+  /** Optional element to configure Image Defogging */
+  defogging?: Defogging;
+  /** Optional element to configure Image Noise Reduction */
+  noiseReduction?: NoiseReduction;
+  extension?: any;
+}
+
+export interface ImagingSettingsExtension202 {
+  /** An optional parameter applied to only auto mode to adjust timing of toggling Ir cut filter */
+  irCutFilterAutoAdjustment?: IrCutFilterAutoAdjustment;
+  extension?: ImagingSettingsExtension203;
+}
+
+export interface ImagingSettingsExtension20 {
+  /** Optional element to configure Image Stabilization feature */
+  imageStabilization?: ImageStabilization;
+  extension?: ImagingSettingsExtension202;
+}
+
+export interface ImagingSettings20 {
+  /** Enabled/disabled BLC mode (on/off) */
+  backlightCompensation?: BacklightCompensation20;
+  /** Image brightness (unit unspecified) */
+  brightness?: number;
+  /** Color saturation of the image (unit unspecified) */
+  colorSaturation?: number;
+  /** Contrast of the image (unit unspecified) */
+  contrast?: number;
+  /** Exposure mode of the device */
+  exposure?: Exposure20;
+  /** Focus configuration */
+  focus?: FocusConfiguration20;
+  /** Infrared Cutoff Filter settings */
+  irCutFilter?: 'ON' | 'OFF' | 'AUTO';
+  /** Sharpness of the Video image */
+  sharpness?: number;
+  /** WDR settings */
+  wideDynamicRange?: WideDynamicRange20;
+  /** White balance settings */
+  whiteBalance?: WhiteBalance20;
+  extension?: ImagingSettingsExtension20;
+}
+
+export interface VideoSourceExtension {
+  /** Optional configuration of the image sensor. To be used if imaging service 2.00 is supported */
+  imaging?: ImagingSettings20;
+  extension?: any;
+}
+
+export interface VideoSource {
+  /** Unique identifier referencing the physical entity */
+  token: ReferenceToken;
+  /** Frame rate in frames per second */
+  framerate: number;
+  /** Horizontal and vertical resolution */
+  resolution: VideoResolution;
+  /** Optional configuration of the image sensor */
+  imaging?: ImagingSettings;
+  extension?: VideoSourceExtension;
+}
+
 export class Media {
   private onvif: Onvif;
+  public profiles: Profile[] = [];
+  public videoSources: VideoSource[] = [];
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -667,7 +951,7 @@ export class Media {
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
-      this.onvif.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
+      this.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
         const tmp = linerase(profile) as MediaProfile;
         const newProfile: Profile = {
           token : tmp.token,
@@ -704,14 +988,26 @@ export class Media {
         // TODO - Add Audio
         return newProfile;
       });
-      return this.onvif.profiles;
+      return this.profiles;
     }
     // Original ONVIF Media support (used in Profile S)
     const [data] = await this.onvif.request({
       service : 'media',
       body    : '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
-    this.onvif.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
-    return this.onvif.profiles;
+    this.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
+    return this.profiles;
+  }
+
+  async getVideoSources() {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+    });
+    this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
+    // videoSources is an array of video sources, but linerase remove the array if there is only one element inside
+    // so we convert it back to an array
+    if (!Array.isArray(this.videoSources)) { this.videoSources = [this.videoSources]; }
+    return this.videoSources;
   }
 }
