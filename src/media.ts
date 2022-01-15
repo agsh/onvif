@@ -2,6 +2,8 @@ import { Onvif } from './onvif';
 import { linerase } from './utils';
 
 export type AnyURI = string;
+export type ReferenceToken = string;
+export type Name = string;
 
 export interface IntRectangle {
   x: number;
@@ -81,9 +83,9 @@ export interface VideoSourceConfigurationExtension {
 
 export interface VideoSourceConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration
    * This informational parameter is read-only. Deprecated for Media2 Service
@@ -100,9 +102,9 @@ export interface VideoSourceConfiguration {
 
 export interface AudioSourceConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration
    * This informational parameter is read-only. Deprecated for Media2 Service
@@ -186,9 +188,9 @@ export type Duration = string;
 
 export interface VideoEncoderConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -214,7 +216,7 @@ export interface VideoEncoderConfiguration {
   /** Optional element to configure Mpeg4 related parameters */
   MPEG4?: Mpeg4Configuration;
   /** Optional element to configure H.264 related parameters. */
-  H264: H264Configuration;
+  H264?: H264Configuration;
   /** Defines the multicast settings that could be used for video streaming */
   multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
@@ -223,9 +225,9 @@ export interface VideoEncoderConfiguration {
 
 export interface AudioEncoderConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -280,9 +282,9 @@ export interface RuleEngineConfiguration {
 
 export interface VideoAnalyticsConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -359,9 +361,9 @@ export interface PTZConfigurationExtension {
 
 export interface PTZConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -422,9 +424,9 @@ export interface EventSubscription {
 
 export interface MetadataConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -446,21 +448,32 @@ export interface MetadataConfiguration {
    * - To get only some events: Include the Events element and include a filter in the element
    */
   events: EventSubscription;
+  /** Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.) */
+  analytics?: boolean;
+  /** Defines the multicast settings that could be used for video streaming */
+  multicast: MulticastConfiguration;
+  /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
+  sessionTimeout: Duration;
+  /**
+   * Indication which AnalyticsModules shall output metadata.
+   * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration
+   */
+  analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
   extension?: any;
 }
 
 export interface AudioOutputConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
    */
   useCount: number;
   /** Token of the phsycial Audio output */
-  outputToken: string;
+  outputToken: ReferenceToken;
   /**
    * An audio channel MAY support different types of audio transmission.
    * While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched.
@@ -481,9 +494,9 @@ export interface AudioOutputConfiguration {
 
 export interface AudioDecoderConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: string;
+  token: ReferenceToken;
   /** User readable name. Length up to 64 characters */
-  name: string;
+  name: Name;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -496,12 +509,12 @@ export interface ProfileExtension {
   audioOutputConfiguration: AudioOutputConfiguration;
   /** Optional configuration of the Audio decoder */
   audioDecoderConfiguration: AudioDecoderConfiguration;
-  extension: any;
+  extension?: any;
 }
 
 export interface Profile {
   /** Unique identifier of the profile */
-  token: string;
+  token: ReferenceToken;
   /** A value of true signals that the profile cannot be deleted. Default is false */
   fixed: boolean;
   /** User readable name of the profile */
@@ -519,24 +532,117 @@ export interface Profile {
   /** Optional configuration of the pan tilt zoom unit */
   PTZConfiguration?: PTZConfiguration;
   /** Optional configuration of the metadata stream */
-  MetadataConfiguration?: MetadataConfiguration;
-  /** Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.) */
-  analytics?: boolean;
-  /** Defines the multicast settings that could be used for video streaming */
-  multicast: MulticastConfiguration;
-  /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout: Duration;
-  /**
-   * Indication which AnalyticsModules shall output metadata.
-   * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration
-   */
-  analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
+  metadataConfiguration?: MetadataConfiguration;
   /** Extensions defined in ONVIF 2.0 */
   extension?: ProfileExtension;
 }
 
-interface MediaProfile {
+export interface VideoRateControl2 {
+  /** Enforce constant bitrate */
+  constantBitRate: boolean;
+  /** Desired frame rate in fps. The actual rate may be lower due to e.g. performance limitations */
+  frameRateLimit: number;
+  /** the maximum output bitrate in kbps */
+  bitrateLimit: number;
+}
 
+export interface VideoEncoder2Configuration {
+  /** Token that uniquely references this configuration. Length up to 64 characters */
+  token: ReferenceToken;
+  /** User readable name. Length up to 64 characters */
+  name: Name;
+  /**
+   * Number of internal references currently using this configuration.
+   * This informational parameter is read-only. Deprecated for Media2 Service.
+   */
+  useCount?: number;
+  /**
+   * Group of Video frames length. Determines typically the interval in which the I-Frames will be coded.
+   * An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame,
+   * and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames
+   */
+  govLength: number;
+  /** The encoder profile as defined in tt:VideoEncodingProfiles */
+  profile: string;
+  /**
+   * A value of true indicates that frame rate is a fixed value rather than an upper limit,
+   * and that the video encoder shall prioritize frame rate over all other adaptable configuration values such as bitrate.
+   * Default is false.
+   */
+  guaranteedFrameRate: boolean;
+  /**
+   * Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and IANA Media Types
+   * https://www.iana.org/assignments/media-types/media-types.xhtml#video
+   */
+  encoding: string;
+  /** Configured video resolution */
+  resolution: VideoResolution;
+  /** Optional element to configure rate control related parameters. */
+  rateControl?: VideoRateControl2;
+  /** Defines the multicast settings that could be used for video streaming */
+  mutlicast?: MulticastConfiguration;
+  /**
+   * Relative value for the video quantizers and the quality of the video.
+   * A high value within supported quality range means higher quality
+   */
+  quality: number;
+}
+
+export interface AudioEncoder2Configuration {
+  /** Token that uniquely references this configuration. Length up to 64 characters */
+  token: ReferenceToken;
+  /** User readable name. Length up to 64 characters */
+  name: Name;
+  /**
+   * Number of internal references currently using this configuration.
+   * This informational parameter is read-only. Deprecated for Media2 Service.
+   */
+  useCount: number;
+  /**
+   * Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and IANA Media Types
+   * https://www.iana.org/assignments/media-types/media-types.xhtml#audio
+   */
+  encoding: string;
+  /** Optional multicast configuration of the audio stream */
+  multicast?: MulticastConfiguration;
+  /** The output bitrate in kbps */
+  bitrate: number;
+  /** The output sample rate in kHz */
+  sampleRate: number;
+}
+
+export interface ConfigurationSet {
+  /** Optional configuration of the Video input */
+  videoSource?: VideoSourceConfiguration;
+  /** Optional configuration of the Audio input */
+  audioSource?: AudioSourceConfiguration;
+  /** Optional configuration of the Video encoder */
+  videoEncoder?: VideoEncoder2Configuration;
+  /** Optional configuration of the Audio encoder */
+  audioEncoder?: AudioEncoder2Configuration;
+  /** Optional configuration of the analytics module and rule engine */
+  analytics?: VideoAnalyticsConfiguration;
+  /** Optional configuration of the pan tilt zoom unit */
+  PTZ?: PTZConfiguration;
+  /** Optional configuration of the metadata stream */
+  metadata?: MetadataConfiguration;
+  /** Optional configuration of the Audio output */
+  audioOutput?: AudioOutputConfiguration;
+  /** Optional configuration of the Audio decoder */
+  audioDecoder?: AudioDecoderConfiguration;
+  /** Optional configuration of the Receiver */
+  receiver?: any;
+}
+
+export interface MediaProfile {
+  /** Unique identifier of the profile */
+  token: ReferenceToken;
+  /** A value of true signals that the profile cannot be deleted. Default is false */
+  fixed: boolean;
+  /** User readable name of the profile */
+  name: Name;
+  /** The configurations assigned to the profile */
+  configurations: ConfigurationSet;
 }
 
 export class Media {
@@ -549,25 +655,25 @@ export class Media {
   /**
    * Receive profiles
    */
-  async getProfiles(): Promise<[Profile | MediaProfile]> {
+  async getProfiles(): Promise<(Profile | MediaProfile)[]> {
     if (this.onvif.device.media2Support) {
       // Profile T request using Media2
       // The reply is in a different format to the old API so we convert the data from the new API to the old structure
       // for backwards compatibility with existing users of this library
       const [data] = await this.onvif.request({
         service : 'media2',
-        body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl">'
-          + '<Type>All</Type>'
-          + '</GetProfiles>}',
+        body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl"><Type>All</Type></GetProfiles>',
       });
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
       this.onvif.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
-        const tmp = linerase(profile);
-        const newProfile = {};
-        newProfile.$ = tmp.$; // copy Profile Token
-        newProfile.name = tmp.name;
+        const tmp = linerase(profile) as MediaProfile;
+        const newProfile: Profile = {
+          token : tmp.token,
+          name  : tmp.name,
+          fixed : tmp.fixed || false,
+        };
         // Media2 Spec says there will be these some or all of these configuration entities
         // Video source configuration
         // Audio source configuration
@@ -580,22 +686,32 @@ export class Media {
         // Audio decoder configuration
         if (tmp.configurations.videoSource) { newProfile.videoSourceConfiguration = tmp.configurations.videoSource; }
         if (tmp.configurations.audioSource) { newProfile.audioSourceConfiguration = tmp.configurations.audioSource; }
-        if (tmp.configurations.videoEncoder) { newProfile.videoEncoderConfiguration = tmp.configurations.videoEncoder; }
-        if (tmp.configurations.audioEncoder) { newProfile.audioEncoderConfiguration = tmp.configurations.audioEncoder; }
+        if (tmp.configurations.videoEncoder) {
+          newProfile.videoEncoderConfiguration = tmp.configurations.videoEncoder as unknown as VideoEncoderConfiguration;
+        }
+        if (tmp.configurations.audioEncoder) {
+          newProfile.audioEncoderConfiguration = tmp.configurations.audioEncoder as AudioEncoderConfiguration;
+        }
         if (tmp.configurations.PTZ) { newProfile.PTZConfiguration = tmp.configurations.PTZ; }
-        if (tmp.configurations.analytics) { newProfile.analyticsConfiguration = tmp.configurations.analytics; }
+        if (tmp.configurations.analytics) { newProfile.videoAnalyticsConfiguration = tmp.configurations.analytics; }
         if (tmp.configurations.metadata) { newProfile.metadataConfiguration = tmp.configurations.metadata; }
-        if (tmp.configurations.audioOutput) { newProfile.audioOutputConfiguration = tmp.configurations.audioOutput; }
-        if (tmp.configurations.audioOutput) { newProfile.audioDecoderConfiguration = tmp.configurations.audioDecoder; }
-
+        if (tmp.configurations.audioOutput || tmp.configurations.audioDecoder) {
+          newProfile.extension = {
+            audioOutputConfiguration  : tmp.configurations.audioOutput!,
+            audioDecoderConfiguration : tmp.configurations.audioDecoder!,
+          };
+        }
         // TODO - Add Audio
         return newProfile;
       });
-      if (callback) {
-        callback.call(this, err, this.profiles, xml);
-      }
+      return this.onvif.profiles;
     }
-    this.onvif.profiles[0].videoSourceConfiguration!.extension.rotate;
-    return [{}];
+    // Original ONVIF Media support (used in Profile S)
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+    });
+    this.onvif.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
+    return this.onvif.profiles;
   }
 }
