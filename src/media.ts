@@ -1,9 +1,6 @@
+import { isNumber } from 'util';
 import { Onvif } from './onvif';
 import { linerase } from './utils';
-
-export type AnyURI = string;
-export type ReferenceToken = string;
-export type Name = string;
 
 export interface IntRectangle {
   x: number;
@@ -83,9 +80,9 @@ export interface VideoSourceConfigurationExtension {
 
 export interface VideoSourceConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration
    * This informational parameter is read-only. Deprecated for Media2 Service
@@ -102,9 +99,9 @@ export interface VideoSourceConfiguration {
 
 export interface AudioSourceConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration
    * This informational parameter is read-only. Deprecated for Media2 Service
@@ -188,9 +185,9 @@ export type Duration = string;
 
 export interface VideoEncoderConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -216,7 +213,7 @@ export interface VideoEncoderConfiguration {
   /** Optional element to configure Mpeg4 related parameters */
   MPEG4?: Mpeg4Configuration;
   /** Optional element to configure H.264 related parameters. */
-  H264?: H264Configuration;
+  H264: H264Configuration;
   /** Defines the multicast settings that could be used for video streaming */
   multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
@@ -225,9 +222,9 @@ export interface VideoEncoderConfiguration {
 
 export interface AudioEncoderConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -282,9 +279,9 @@ export interface RuleEngineConfiguration {
 
 export interface VideoAnalyticsConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -361,9 +358,9 @@ export interface PTZConfigurationExtension {
 
 export interface PTZConfiguration {
   /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
+  token: string;
   /** User readable name. Length up to 64 characters */
-  name: Name;
+  name: string;
   /**
    * Number of internal references currently using this configuration.
    * This informational parameter is read-only. Deprecated for Media2 Service.
@@ -410,111 +407,9 @@ export interface PTZConfiguration {
   extension?: PTZConfigurationExtension;
 }
 
-export interface PTZFilter {
-  /** `true` if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN) */
-  status: boolean;
-  /** `true` if the metadata stream shall contain the PTZ position */
-  position: boolean;
-}
-
-export interface EventSubscription {
-  filter?: string;
-  subscriptionPolicy?: any;
-}
-
-export interface MetadataConfiguration {
-  /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
-  /** User readable name. Length up to 64 characters */
-  name: Name;
-  /**
-   * Number of internal references currently using this configuration.
-   * This informational parameter is read-only. Deprecated for Media2 Service.
-   */
-  useCount: number;
-  /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType */
-  compressionType: string;
-  /** Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target */
-  geoLocation: boolean;
-  /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon */
-  shapePolygon: boolean;
-  /** Optional element to configure which PTZ related data is to include in the metadata stream */
-  PTZStatus?: PTZFilter;
-  /**
-   * Optional element to configure the streaming of events.
-   * A client might be interested in receiving all, none or some of the events produced by the device:
-   * - To get all events: Include the Events element but do not include a filter
-   * - To get no events: Do not include the Events element
-   * - To get only some events: Include the Events element and include a filter in the element
-   */
-  events: EventSubscription;
-  /** Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.) */
-  analytics?: boolean;
-  /** Defines the multicast settings that could be used for video streaming */
-  multicast: MulticastConfiguration;
-  /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout: Duration;
-  /**
-   * Indication which AnalyticsModules shall output metadata.
-   * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration
-   */
-  analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
-  extension?: any;
-}
-
-export interface AudioOutputConfiguration {
-  /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
-  /** User readable name. Length up to 64 characters */
-  name: Name;
-  /**
-   * Number of internal references currently using this configuration.
-   * This informational parameter is read-only. Deprecated for Media2 Service.
-   */
-  useCount: number;
-  /** Token of the phsycial Audio output */
-  outputToken: ReferenceToken;
-  /**
-   * An audio channel MAY support different types of audio transmission.
-   * While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched.
-   * The optional SendPrimacy parameter inside the AudioOutputConfiguration indicates which direction is currently active.
-   * An NVC can switch between different modes by setting the AudioOutputConfiguration.
-   * The following modes for the Send-Primacy are defined:
-   * - www.onvif.org/ver20/HalfDuplex/Server The server is allowed to send audio data to the client.
-   *   The client shall not send audio data via the backchannel to the NVT in this mode.
-   * - www.onvif.org/ver20/HalfDuplex/Client The client is allowed to send audio data via the backchannel to the server.
-   *   The NVT shall not send audio data to the client in this mode.
-   * - www.onvif.org/ver20/HalfDuplex/Auto It is up to the device how to deal with sending and receiving audio data.
-   * Acoustic echo cancellation is out of ONVIF scope.
-   */
-  sendPrimacy?: AnyURI;
-  /** Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRang */
-  outputLevel: number;
-}
-
-export interface AudioDecoderConfiguration {
-  /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
-  /** User readable name. Length up to 64 characters */
-  name: Name;
-  /**
-   * Number of internal references currently using this configuration.
-   * This informational parameter is read-only. Deprecated for Media2 Service.
-   */
-  useCount: number;
-}
-
-export interface ProfileExtension {
-  /** Optional configuration of the Audio output */
-  audioOutputConfiguration: AudioOutputConfiguration;
-  /** Optional configuration of the Audio decoder */
-  audioDecoderConfiguration: AudioDecoderConfiguration;
-  extension?: any;
-}
-
 export interface Profile {
   /** Unique identifier of the profile */
-  token: ReferenceToken;
+  token: string;
   /** A value of true signals that the profile cannot be deleted. Default is false */
   fixed: boolean;
   /** User readable name of the profile */
@@ -531,406 +426,199 @@ export interface Profile {
   videoAnalyticsConfiguration?: VideoAnalyticsConfiguration;
   /** Optional configuration of the pan tilt zoom unit */
   PTZConfiguration?: PTZConfiguration;
-  /** Optional configuration of the metadata stream */
-  metadataConfiguration?: MetadataConfiguration;
-  /** Extensions defined in ONVIF 2.0 */
-  extension?: ProfileExtension;
+
+//     PTZConfiguration - optional; [PTZConfiguration]
+//     Optional configuration of the pan tilt zoom unit.
+//       token - required; [ReferenceToken]
+//     Token that uniquely references this configuration. Length up to 64 characters.
+//       Name [Name]
+//     User readable name. Length up to 64 characters.
+//       UseCount [int]
+//     Number of internal references currently using this configuration.
+//
+//       This informational parameter is read-only. Deprecated for Media2 Service.
+//       MoveRamp [int]
+//     The optional acceleration ramp used by the device when moving.
+//       PresetRamp [int]
+//     The optional acceleration ramp used by the device when recalling presets.
+//       PresetTourRamp [int]
+//     The optional acceleration ramp used by the device when executing PresetTours.
+//       NodeToken [ReferenceToken]
+//     A mandatory reference to the PTZ Node that the PTZ Configuration belongs to.
+//       DefaultAbsolutePantTiltPositionSpace - optional; [anyURI]
+//     If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default.
+//     DefaultAbsoluteZoomPositionSpace - optional; [anyURI]
+//     If the PTZ Node supports absolute zoom movements, it shall specify one Absolute Zoom Position Space as default.
+//     DefaultRelativePanTiltTranslationSpace - optional; [anyURI]
+//     If the PTZ Node supports relative Pan/Tilt movements, it shall specify one RelativePan/Tilt Translation Space as default.
+//     DefaultRelativeZoomTranslationSpace - optional; [anyURI]
+//     If the PTZ Node supports relative zoom movements, it shall specify one Relative Zoom Translation Space as default.
+//     DefaultContinuousPanTiltVelocitySpace - optional; [anyURI]
+//     If the PTZ Node supports continuous Pan/Tilt movements, it shall specify one Continuous Pan/Tilt Velocity Space as default.
+//     DefaultContinuousZoomVelocitySpace - optional; [anyURI]
+//     If the PTZ Node supports continuous zoom movements, it shall specify one Continuous Zoom Velocity Space as default.
+//     DefaultPTZSpeed - optional; [PTZSpeed]
+//     If the PTZ Node supports absolute or relative PTZ movements, it shall specify corresponding default Pan/Tilt and Zoom speeds.
+//     PanTilt - optional; [Vector2D]
+//     Pan and tilt speed. The x component corresponds to pan and the y component to tilt. If omitted in a request, the current (if any) PanTilt movement should not be affected.
+//       Zoom - optional; [Vector1D]
+//     A zoom speed. If omitted in a request, the current (if any) Zoom movement should not be affected.
+//       DefaultPTZTimeout - optional; [duration]
+//     If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops.
+//     PanTiltLimits - optional; [PanTiltLimits]
+//     The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF.
+//       Range [Space2DDescription]
+//     A range of pan tilt limits.
+//       URI [anyURI]
+//     A URI of coordinate systems.
+//       XRange [FloatRange]
+//     A range of x-axis.
+//       Min [float]
+//     Max [float]
+//     YRange [FloatRange]
+//     A range of y-axis.
+//       Min [float]
+//     Max [float]
+//     ZoomLimits - optional; [ZoomLimits]
+//     The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF.
+//       Range [Space1DDescription]
+//     A range of zoom limit
+//     URI [anyURI]
+//     A URI of coordinate systems.
+//       XRange [FloatRange]
+//     A range of x-axis.
+//       Min [float]
+//     Max [float]
+//     Extension - optional; [PTZConfigurationExtension]
+//     PTControlDirection - optional; [PTControlDirection]
+//     Optional element to configure PT Control Direction related features.
+//       EFlip - optional; [EFlip]
+//     Optional element to configure related parameters for E-Flip.
+//       Mode [EFlipMode]
+//       Parameter to enable/disable E-Flip feature.
+//     - enum { 'OFF', 'ON', 'Extended' }
+//     Reverse - optional; [Reverse]
+//     Optional element to configure related parameters for reversing of PT Control Direction.
+//       Mode [ReverseMode]
+//     Parameter to enable/disable Reverse feature.
+//     - enum { 'OFF', 'ON', 'AUTO', 'Extended' }
+//     Extension - optional; [PTControlDirectionExtension]
+//     Extension - optional; [PTZConfigurationExtension2]
+//     MetadataConfiguration - optional; [MetadataConfiguration]
+//     Optional configuration of the metadata stream.
+//       token - required; [ReferenceToken]
+//     Token that uniquely references this configuration. Length up to 64 characters.
+//       Name [Name]
+//     User readable name. Length up to 64 characters.
+//       UseCount [int]
+//     Number of internal references currently using this configuration.
+//
+//       This informational parameter is read-only. Deprecated for Media2 Service.
+//       CompressionType [string]
+//     Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType.
+//       GeoLocation [boolean]
+//     Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target.
+//       ShapePolygon [boolean]
+//     Optional parameter to configure if the generated metadata stream should contain shape information as polygon.
+//       PTZStatus - optional; [PTZFilter]
+//     optional element to configure which PTZ related data is to include in the metadata stream
+//     Status [boolean]
+//     True if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN)
+//     Position [boolean]
+//     True if the metadata stream shall contain the PTZ position
+//     Events - optional; [EventSubscription]
+//     Optional element to configure the streaming of events. A client might be interested in receiving all, none or some of the events produced by the device:
+//       To get all events: Include the Events element but do not include a filter.
+//       To get no events: Do not include the Events element.
+//       To get only some events: Include the Events element and include a filter in the element.
+//       Filter - optional; [FilterType]
+//     SubscriptionPolicy - optional;
+//     Analytics - optional; [boolean]
+//     Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.)
+//     Multicast [MulticastConfiguration]
+//     Defines the multicast settings that could be used for video streaming.
+//       Address [IPAddress]
+//     The multicast address (if this address is set to 0 no multicast streaming is enaled)
+//     Type [IPType]
+//     Indicates if the address is an IPv4 or IPv6 address.
+//     - enum { 'IPv4', 'IPv6' }
+//     IPv4Address - optional; [IPv4Address]
+//     IPv4 address.
+//       IPv6Address - optional; [IPv6Address]
+//     IPv6 address
+//     Port [int]
+//     The RTP mutlicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification.
+//     TTL [int]
+//     In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope.
+//     AutoStart [boolean]
+//     Read only property signalling that streaming is persistant. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state.
+//       SessionTimeout [duration]
+//       The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored)
+//       AnalyticsEngineConfiguration - optional; [AnalyticsEngineConfiguration]
+//       Indication which AnalyticsModules shall output metadata. Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
+//         AnalyticsModule - optional, unbounded; [Config]
+//       Name - required; [string]
+//       Name of the configuration.
+//         Type - required; [QName]
+//       The Type attribute specifies the type of rule and shall be equal to value of one of Name attributes of ConfigDescription elements returned by GetSupportedRules and GetSupportedAnalyticsModules command.
+//         Parameters [ItemList]
+//       List of configuration parameters as defined in the corresponding description.
+//         SimpleItem - optional, unbounded;
+//       Value name pair as defined by the corresponding description.
+//         Name - required; [string]
+//       Item name.
+//         Value - required; [anySimpleType]
+//       Item value. The type is defined in the corresponding description.
+//         ElementItem - optional, unbounded;
+//       Complex value structure.
+//         Name - required; [string]
+//       Item name.
+//         Extension - optional; [ItemListExtension]
+//       Extension - optional; [AnalyticsEngineConfigurationExtension]
+//       Extension - optional; [MetadataConfigurationExtension]
+//       Extension - optional; [ProfileExtension]
+//       Extensions defined in ONVIF 2.0
+//       AudioOutputConfiguration - optional; [AudioOutputConfiguration]
+//       Optional configuration of the Audio output.
+//         token - required; [ReferenceToken]
+//       Token that uniquely references this configuration. Length up to 64 characters.
+//         Name [Name]
+//       User readable name. Length up to 64 characters.
+//         UseCount [int]
+//       Number of internal references currently using this configuration.
+//
+//         This informational parameter is read-only. Deprecated for Media2 Service.
+//         OutputToken [ReferenceToken]
+//       Token of the phsycial Audio output.
+//         SendPrimacy - optional; [anyURI]
+//       An audio channel MAY support different types of audio transmission. While for full duplex operation no special handling is required, in half duplex operation the transmission direction needs to be switched. The optional SendPrimacy parameter inside the AudioOutputConfiguration indicates which direction is currently active. An NVC can switch between different modes by setting the AudioOutputConfiguration.
+//
+//         The following modes for the Send-Primacy are defined:
+//         www.onvif.org/ver20/HalfDuplex/Server The server is allowed to send audio data to the client. The client shall not send audio data via the backchannel to the NVT in this mode.
+//         www.onvif.org/ver20/HalfDuplex/Client The client is allowed to send audio data via the backchannel to the server. The NVT shall not send audio data to the client in this mode.
+//         www.onvif.org/ver20/HalfDuplex/Auto It is up to the device how to deal with sending and receiving audio data.
+//         Acoustic echo cancellation is out of ONVIF scope.
+//         OutputLevel [int]
+//         Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange.
+//           AudioDecoderConfiguration - optional; [AudioDecoderConfiguration]
+//         Optional configuration of the Audio decoder.
+//           token - required; [ReferenceToken]
+//         Token that uniquely references this configuration. Length up to 64 characters.
+//           Name [Name]
+//         User readable name. Length up to 64 characters.
+//           UseCount [int]
+//         Number of internal references currently using this configuration.
+//
+//           This informational parameter is read-only. Deprecated for Media2 Service.
+//           Extension - optional; [ProfileExtension2]
 }
 
-export interface VideoRateControl2 {
-  /** Enforce constant bitrate */
-  constantBitRate: boolean;
-  /** Desired frame rate in fps. The actual rate may be lower due to e.g. performance limitations */
-  frameRateLimit: number;
-  /** the maximum output bitrate in kbps */
-  bitrateLimit: number;
-}
+interface MediaProfile {
 
-export interface VideoEncoder2Configuration {
-  /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
-  /** User readable name. Length up to 64 characters */
-  name: Name;
-  /**
-   * Number of internal references currently using this configuration.
-   * This informational parameter is read-only. Deprecated for Media2 Service.
-   */
-  useCount?: number;
-  /**
-   * Group of Video frames length. Determines typically the interval in which the I-Frames will be coded.
-   * An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame,
-   * and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames
-   */
-  govLength: number;
-  /** The encoder profile as defined in tt:VideoEncodingProfiles */
-  profile: string;
-  /**
-   * A value of true indicates that frame rate is a fixed value rather than an upper limit,
-   * and that the video encoder shall prioritize frame rate over all other adaptable configuration values such as bitrate.
-   * Default is false.
-   */
-  guaranteedFrameRate: boolean;
-  /**
-   * Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and IANA Media Types
-   * https://www.iana.org/assignments/media-types/media-types.xhtml#video
-   */
-  encoding: string;
-  /** Configured video resolution */
-  resolution: VideoResolution;
-  /** Optional element to configure rate control related parameters. */
-  rateControl?: VideoRateControl2;
-  /** Defines the multicast settings that could be used for video streaming */
-  mutlicast?: MulticastConfiguration;
-  /**
-   * Relative value for the video quantizers and the quality of the video.
-   * A high value within supported quality range means higher quality
-   */
-  quality: number;
-}
-
-export interface AudioEncoder2Configuration {
-  /** Token that uniquely references this configuration. Length up to 64 characters */
-  token: ReferenceToken;
-  /** User readable name. Length up to 64 characters */
-  name: Name;
-  /**
-   * Number of internal references currently using this configuration.
-   * This informational parameter is read-only. Deprecated for Media2 Service.
-   */
-  useCount: number;
-  /**
-   * Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and IANA Media Types
-   * https://www.iana.org/assignments/media-types/media-types.xhtml#audio
-   */
-  encoding: string;
-  /** Optional multicast configuration of the audio stream */
-  multicast?: MulticastConfiguration;
-  /** The output bitrate in kbps */
-  bitrate: number;
-  /** The output sample rate in kHz */
-  sampleRate: number;
-}
-
-export interface ConfigurationSet {
-  /** Optional configuration of the Video input */
-  videoSource?: VideoSourceConfiguration;
-  /** Optional configuration of the Audio input */
-  audioSource?: AudioSourceConfiguration;
-  /** Optional configuration of the Video encoder */
-  videoEncoder?: VideoEncoder2Configuration;
-  /** Optional configuration of the Audio encoder */
-  audioEncoder?: AudioEncoder2Configuration;
-  /** Optional configuration of the analytics module and rule engine */
-  analytics?: VideoAnalyticsConfiguration;
-  /** Optional configuration of the pan tilt zoom unit */
-  PTZ?: PTZConfiguration;
-  /** Optional configuration of the metadata stream */
-  metadata?: MetadataConfiguration;
-  /** Optional configuration of the Audio output */
-  audioOutput?: AudioOutputConfiguration;
-  /** Optional configuration of the Audio decoder */
-  audioDecoder?: AudioDecoderConfiguration;
-  /** Optional configuration of the Receiver */
-  receiver?: any;
-}
-
-export interface MediaProfile {
-  /** Unique identifier of the profile */
-  token: ReferenceToken;
-  /** A value of true signals that the profile cannot be deleted. Default is false */
-  fixed: boolean;
-  /** User readable name of the profile */
-  name: Name;
-  /** The configurations assigned to the profile */
-  configurations: ConfigurationSet;
-}
-
-export interface BacklightCompensation {
-  /**
-   * Backlight compensation mode (on/off).
-   * - OFF: Backlight compensation is disabled
-   * - ON: Backlight compensation is enabled
-   */
-  mode: 'ON' | 'OFF';
-  /** Optional level parameter (unit unspecified) */
-  level: number;
-}
-
-export interface Rectangle {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface Exposure {
-  /**
-   * Exposure Mode
-   * - Auto – Enabled the exposure algorithm on the NVT
-   * - Manual – Disabled exposure algorithm on the NVT
-   */
-  mode: 'AUTO' | 'MANUAL';
-  /** The exposure priority mode (low noise/framerate) */
-  priority: 'LowNoise' | 'FrameRate';
-  /** Rectangular exposure mask */
-  window: Rectangle;
-  /** Minimum value of exposure time range allowed to be used by the algorithm */
-  minExposureTime: number;
-  /** Maximum value of exposure time range allowed to be used by the algorithm */
-  maxExposureTime: number;
-  /** Minimum value of the sensor gain range that is allowed to be used by the algorithm */
-  minGain: number;
-  /** Maximum value of the sensor gain range that is allowed to be used by the algorithm */
-  maxGain: number;
-  /** Minimum value of the iris range allowed to be used by the algorithm */
-  minIris: number;
-  /** Maximum value of the iris range allowed to be used by the algorithm */
-  maxIris: number;
-  /** The fixed exposure time used by the image sensor (μs) */
-  exposureTime: number;
-  /** The fixed gain used by the image sensor (dB) */
-  gain: number;
-  /** The fixed attenuation of input light affected by the iris (dB). 0dB maps to a fully opened iris */
-  iris: number;
-}
-
-export interface FocusConfiguration {
-  autoFocusMode: 'AUTO' | 'MANUAL';
-  defaultSpeed: number;
-  /** Parameter to set autofocus near limit (unit: meter) */
-  nearLimit: number;
-  /** Parameter to set autofocus far limit (unit: meter). If set to 0.0, infinity will be used */
-  farLimit: number;
-}
-
-export interface WideDynamicRange {
-  /** White dynamic range (on/off) */
-  mode: 'OFF' | 'ON';
-  /** Optional level parameter (unitless) */
-  level: number;
-}
-
-export interface WhiteBalance {
-  /** Auto whitebalancing mode (auto/manual) */
-  mode: 'AUTO' | 'MANUAL';
-  /** Rgain (unitless) */
-  crGain: number;
-  /** Bgain (unitless) */
-  cbGain: number;
-}
-
-export interface ImagingSettings {
-  /** Enabled/disabled BLC mode (on/off) */
-  backlightCompensation?: BacklightCompensation;
-  /** Image brightness (unit unspecified) */
-  brightness?: number;
-  /** Color saturation of the image (unit unspecified) */
-  colorSaturation?: number
-  /** Contrast of the image (unit unspecified) */
-  contrast?: number;
-  /** Exposure mode of the device */
-  exposure?: Exposure;
-  /** Focus configuration */
-  focus?: FocusConfiguration;
-  /** Infrared Cutoff Filter settings */
-  irCutFilter?: 'ON' | 'OFF' | 'AUTO';
-  /** Sharpness of the Video image */
-  sharpness?: number;
-  /** WDR settings */
-  wideDynamicRange?: WideDynamicRange;
-  /** White balance settings */
-  whiteBalance?: WhiteBalance;
-  extension?: any;
-}
-
-export interface BacklightCompensation20 {
-  /**
-   * Backlight compensation mode (on/off)
-   * - OFF: Backlight compensation is disabled
-   * - ON: Backlight compensation is enabled
-   */
-  mode: 'OFF' | 'ON';
-  /** Optional level parameter (unit unspecified) */
-  level?: number;
-}
-
-export interface Exposure20 {
-  /**
-   * Exposure Mode
-   * - Auto – Enabled the exposure algorithm on the device
-   * - Manual – Disabled exposure algorithm on the device
-   */
-  mode: 'AUTO' | 'MANUAL';
-  /** The exposure priority mode (low noise/framerate) */
-  priority?: 'LowNoise' | 'FrameRate';
-  /** Rectangular exposure mask */
-  window?: Rectangle;
-  /** Minimum value of exposure time range allowed to be used by the algorithm */
-  minExposureTime?: number;
-  /** Maximum value of exposure time range allowed to be used by the algorithm */
-  maxExposureTime?: number;
-  /** Minimum value of the sensor gain range that is allowed to be used by the algorithm */
-  minGain?: number;
-  /** Maximum value of the sensor gain range that is allowed to be used by the algorithm */
-  maxGain?: number;
-  /** Minimum value of the iris range allowed to be used by the algorithm. 0dB maps to a fully opened iris and positive values map to higher attenuation */
-  minIris?: number;
-  /** Maximum value of the iris range allowed to be used by the algorithm. 0dB maps to a fully opened iris and positive values map to higher attenuation */
-  maxIris?: number;
-  /** The fixed exposure time used by the image sensor (μs) */
-  exposureTime?: number;
-  /** The fixed gain used by the image sensor (dB) */
-  gain?: number;
-  /** The fixed attenuation of input light affected by the iris (dB). 0dB maps to a fully opened iris and positive values map to higher attenuation */
-  iris?: number;
-}
-
-export interface FocusConfiguration20 {
-  /** Zero or more modes as defined in enumeration tt:AFModes */
-  AFMode: string[];
-  /**
-   * Mode of auto focus
-   * - AUTO - The device automatically adjusts focus
-   * - MANUAL - The device does not automatically adjust focus
-   * Note: for devices supporting both manual and auto operation at the same time manual operation may be supported
-   * even if the Mode parameter is set to Auto.
-   */
-  autoFocusMode: 'AUTO' | 'MANUAL';
-  defaultSpeed?: number;
-  /** Parameter to set autofocus near limit (unit: meter) */
-  nearLimit?: number;
-  /** Parameter to set autofocus far limit (unit: meter) */
-  farLimit?: number;
-  extension?: any;
-}
-
-export interface WideDynamicRange20 {
-  /** Wide dynamic range mode (on/off) */
-  mode?: 'OFF' | 'ON';
-  /** Optional level parameter (unit unspecified) */
-  level?: number;
-}
-
-export interface WhiteBalance20 extends WhiteBalance {
-  extension: any;
-}
-
-export interface ImageStabilization {
-  /** Parameter to enable/disable Image Stabilization feature */
-  mode: 'OFF' | 'ON' | 'AUTO' | 'Extended';
-  /** Optional level parameter (unit unspecified) */
-  level?: number;
-  extension?: any;
-}
-
-export interface IrCutFilterAutoAdjustment {
-  /**
-   * Specifies which boundaries to automatically toggle Ir cut filter following parameters are applied to.
-   * Its options shall be chosen from tt:IrCutFilterAutoBoundaryType
-   */
-  boundaryType: string;
-  /**
-   * Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value
-   * from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless).
-   */
-  boundaryOffset?: number;
-  /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels */
-  responseTime?: Duration;
-  extension?: any;
-}
-
-export interface ToneCompensation {
-  /** Parameter to enable/disable or automatic ToneCompensation feature. Its options shall be chosen from tt:ToneCompensationMode Type */
-  mode: string;
-  /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0 */
-  level?: number;
-  extension?: any;
-}
-
-export interface Defogging {
-  /** Parameter to enable/disable or automatic Defogging feature. Its options shall be chosen from tt:DefoggingMode Type */
-  mode: string;
-  /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0 */
-  level?: number;
-  extension?: any;
-}
-
-export interface NoiseReduction {
-  /**
-   * Level parameter specified with unitless normalized value from 0.0 to +1.0.
-   * Level=0 means no noise reduction or minimal noise reduction
-   */
-  level: number;
-}
-
-export interface ImagingSettingsExtension203 {
-  /** Optional element to configure Image Contrast Compensation */
-  toneCompensation?: ToneCompensation;
-  /** Optional element to configure Image Defogging */
-  defogging?: Defogging;
-  /** Optional element to configure Image Noise Reduction */
-  noiseReduction?: NoiseReduction;
-  extension?: any;
-}
-
-export interface ImagingSettingsExtension202 {
-  /** An optional parameter applied to only auto mode to adjust timing of toggling Ir cut filter */
-  irCutFilterAutoAdjustment?: IrCutFilterAutoAdjustment;
-  extension?: ImagingSettingsExtension203;
-}
-
-export interface ImagingSettingsExtension20 {
-  /** Optional element to configure Image Stabilization feature */
-  imageStabilization?: ImageStabilization;
-  extension?: ImagingSettingsExtension202;
-}
-
-export interface ImagingSettings20 {
-  /** Enabled/disabled BLC mode (on/off) */
-  backlightCompensation?: BacklightCompensation20;
-  /** Image brightness (unit unspecified) */
-  brightness?: number;
-  /** Color saturation of the image (unit unspecified) */
-  colorSaturation?: number;
-  /** Contrast of the image (unit unspecified) */
-  contrast?: number;
-  /** Exposure mode of the device */
-  exposure?: Exposure20;
-  /** Focus configuration */
-  focus?: FocusConfiguration20;
-  /** Infrared Cutoff Filter settings */
-  irCutFilter?: 'ON' | 'OFF' | 'AUTO';
-  /** Sharpness of the Video image */
-  sharpness?: number;
-  /** WDR settings */
-  wideDynamicRange?: WideDynamicRange20;
-  /** White balance settings */
-  whiteBalance?: WhiteBalance20;
-  extension?: ImagingSettingsExtension20;
-}
-
-export interface VideoSourceExtension {
-  /** Optional configuration of the image sensor. To be used if imaging service 2.00 is supported */
-  imaging?: ImagingSettings20;
-  extension?: any;
-}
-
-export interface VideoSource {
-  /** Unique identifier referencing the physical entity */
-  token: ReferenceToken;
-  /** Frame rate in frames per second */
-  framerate: number;
-  /** Horizontal and vertical resolution */
-  resolution: VideoResolution;
-  /** Optional configuration of the image sensor */
-  imaging?: ImagingSettings;
-  extension?: VideoSourceExtension;
 }
 
 export class Media {
   private onvif: Onvif;
-  public profiles: Profile[] = [];
-  public videoSources: VideoSource[] = [];
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -939,25 +627,25 @@ export class Media {
   /**
    * Receive profiles
    */
-  async getProfiles(): Promise<(Profile | MediaProfile)[]> {
+  async getProfiles(): Promise<[Profile | MediaProfile]> {
     if (this.onvif.device.media2Support) {
       // Profile T request using Media2
       // The reply is in a different format to the old API so we convert the data from the new API to the old structure
       // for backwards compatibility with existing users of this library
       const [data] = await this.onvif.request({
         service : 'media2',
-        body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl"><Type>All</Type></GetProfiles>',
+        body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl">'
+          + '<Type>All</Type>'
+          + '</GetProfiles>}',
       });
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
-      this.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
-        const tmp = linerase(profile) as MediaProfile;
-        const newProfile: Profile = {
-          token : tmp.token,
-          name  : tmp.name,
-          fixed : tmp.fixed || false,
-        };
+      this.onvif.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
+        const tmp = linerase(profile);
+        const newProfile = {};
+        newProfile.$ = tmp.$; // copy Profile Token
+        newProfile.name = tmp.name;
         // Media2 Spec says there will be these some or all of these configuration entities
         // Video source configuration
         // Audio source configuration
@@ -970,44 +658,22 @@ export class Media {
         // Audio decoder configuration
         if (tmp.configurations.videoSource) { newProfile.videoSourceConfiguration = tmp.configurations.videoSource; }
         if (tmp.configurations.audioSource) { newProfile.audioSourceConfiguration = tmp.configurations.audioSource; }
-        if (tmp.configurations.videoEncoder) {
-          newProfile.videoEncoderConfiguration = tmp.configurations.videoEncoder as unknown as VideoEncoderConfiguration;
-        }
-        if (tmp.configurations.audioEncoder) {
-          newProfile.audioEncoderConfiguration = tmp.configurations.audioEncoder as AudioEncoderConfiguration;
-        }
+        if (tmp.configurations.videoEncoder) { newProfile.videoEncoderConfiguration = tmp.configurations.videoEncoder; }
+        if (tmp.configurations.audioEncoder) { newProfile.audioEncoderConfiguration = tmp.configurations.audioEncoder; }
         if (tmp.configurations.PTZ) { newProfile.PTZConfiguration = tmp.configurations.PTZ; }
-        if (tmp.configurations.analytics) { newProfile.videoAnalyticsConfiguration = tmp.configurations.analytics; }
+        if (tmp.configurations.analytics) { newProfile.analyticsConfiguration = tmp.configurations.analytics; }
         if (tmp.configurations.metadata) { newProfile.metadataConfiguration = tmp.configurations.metadata; }
-        if (tmp.configurations.audioOutput || tmp.configurations.audioDecoder) {
-          newProfile.extension = {
-            audioOutputConfiguration  : tmp.configurations.audioOutput!,
-            audioDecoderConfiguration : tmp.configurations.audioDecoder!,
-          };
-        }
+        if (tmp.configurations.audioOutput) { newProfile.audioOutputConfiguration = tmp.configurations.audioOutput; }
+        if (tmp.configurations.audioOutput) { newProfile.audioDecoderConfiguration = tmp.configurations.audioDecoder; }
+
         // TODO - Add Audio
         return newProfile;
       });
-      return this.profiles;
+      if (callback) {
+        callback.call(this, err, this.profiles, xml);
+      }
     }
-    // Original ONVIF Media support (used in Profile S)
-    const [data] = await this.onvif.request({
-      service : 'media',
-      body    : '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
-    return this.profiles;
-  }
-
-  async getVideoSources() {
-    const [data] = await this.onvif.request({
-      service : 'media',
-      body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
-    // videoSources is an array of video sources, but linerase remove the array if there is only one element inside
-    // so we convert it back to an array
-    if (!Array.isArray(this.videoSources)) { this.videoSources = [this.videoSources]; }
-    return this.videoSources;
+    this.onvif.profiles[0].videoSourceConfiguration!.extension.rotate;
+    return [{}];
   }
 }
