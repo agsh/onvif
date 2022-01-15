@@ -6,6 +6,7 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Capabilities, Device } from './device';
+import { Profile } from './media';
 
 /**
  * Cam constructor options
@@ -31,18 +32,18 @@ export interface OnvifOptions {
 
 export interface OnvifServices {
   PTZ?: URL;
-  media?: URL;
-  media2?: URL;
-  imaging?: URL;
-  events?: URL;
+  analyticsDevice?: URL;
   device?: URL;
   deviceIO?: URL;
-  search?: URL;
   display?: URL;
+  events?: URL;
+  imaging?: URL;
+  media2?: URL;
+  media?: URL;
+  receiver?: URL;
   recording?: URL;
   replay?: URL;
-  receiver?: URL;
-  analyticsDevice?: URL;
+  search?: URL;
 }
 
 export interface OnvifRequestOptions extends RequestOptions{
@@ -106,6 +107,7 @@ export class Onvif extends EventEmitter {
   public uri: OnvifServices;
   private timeShift?: number;
   public capabilities: Capabilities;
+  public profiles: Profile[];
 
   constructor(options: OnvifOptions) {
     super();
@@ -122,6 +124,7 @@ export class Onvif extends EventEmitter {
     this.events = {};
     this.uri = {};
     this.capabilities = {};
+    this.profiles = [];
     this.device = new Device(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
