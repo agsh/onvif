@@ -286,7 +286,7 @@ export interface Capabilities {
 export class Device {
   private readonly onvif: Onvif;
   private services: OnvifService[] = [];
-  private media2Support = false;
+  public media2Support = false;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -310,19 +310,6 @@ export class Device {
     // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
     // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
     // fill Cam#uri property
-    if (!this.onvif.uri) {
-      /**
-       * Device service URIs
-       * @name Onvif#uri
-       * @property {url} [PTZ]
-       * @property {url} [media]
-       * @property {url} [media2]
-       * @property {url} [imaging]
-       * @property {url} [events]
-       * @property {url} [device]
-       */
-      this.onvif.uri = {};
-    }
     this.services.forEach((service) => {
       // Look for services with namespaces and XAddr values
       if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
