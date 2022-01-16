@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Capabilities, Device } from './device';
-import { Media, Profile } from './media';
+import { Media, Profile, PTZConfiguration } from './media';
 
 /**
  * Cam constructor options
@@ -61,6 +61,24 @@ interface RequestError extends Error {
   code: string;
   errno: string;
   syscall: string;
+}
+
+/**
+ * Information about active video source
+ */
+export interface ActiveSource {
+  sourceToken: string;
+  profileToken: string;
+  videoSourceConfigurationToken: string;
+  encoding?: string;
+  width?: number;
+  height?: number;
+  fps?: number;
+  bitrate?: number;
+  ptz?: {
+    name: string;
+    token: string;
+  };
 }
 
 export class Onvif extends EventEmitter {
@@ -119,7 +137,8 @@ export class Onvif extends EventEmitter {
   public capabilities: Capabilities;
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;
-  private activeSources: any;
+  private activeSources: ActiveSource[] = [];
+  public activeSource?: ActiveSource;
 
   constructor(options: OnvifOptions) {
     super();
@@ -386,32 +405,27 @@ export class Onvif extends EventEmitter {
       [this.defaultProfiles[idx]] = appropriateProfiles;
 
       this.activeSources[idx] = {
-        sourceToken                   : videoSource.$.token,
+        sourceToken                   : videoSource.token,
         profileToken                  : this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken : this.defaultProfiles[idx].videoSourceConfiguration?.token,
+        videoSourceConfigurationToken : this.defaultProfiles[idx].videoSourceConfiguration!.token,
       };
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {
         const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
         this.activeSources[idx].encoding = configuration?.encoding;
-        this.activeSources[idx].width = configuration?.resolution.width ?? '';
-        this.activeSources[idx].height = configuration?.resolution.height ?? '';
-        this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit ?? '';
-        this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit ?? '';
+        this.activeSources[idx].width = configuration?.resolution.width;
+        this.activeSources[idx].height = configuration?.resolution.height;
+        this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit;
+        this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit;
       }
 
       if (idx === 0) {
-        /**
-         * Current active video source
-         * @name Cam#activeSource
-         * @type {Cam~ActiveSource}
-         */
         this.activeSource = this.activeSources[idx];
       }
 
       if (this.defaultProfiles[idx].PTZConfiguration) {
         this.activeSources[idx].ptz = {
-          name  : this.defaultProfiles[idx].PTZConfiguration.name,
-          token : this.defaultProfiles[idx].PTZConfiguration.$.token,
+          name  : this.defaultProfiles[idx].PTZConfiguration!.name,
+          token : this.defaultProfiles[idx].PTZConfiguration!.token,
         };
         /*
         TODO Think about it
@@ -433,7 +447,7 @@ export class Onvif extends EventEmitter {
       await this.device.getCapabilities();
     }
     await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
-    // await this.getActiveSources();
+    await this.getActiveSources();
     this.emit('connect');
     return this;
   }
