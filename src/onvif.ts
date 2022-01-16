@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Capabilities, Device } from './device';
-import { Profile } from './media';
+import { Media, Profile } from './media';
 
 /**
  * Cam constructor options
@@ -25,7 +25,7 @@ export interface OnvifOptions {
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: Agent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
-  preserveAddress: boolean;
+  preserveAddress?: boolean;
   /** Set false if the camera should not connect automatically, defaults false. */
   autoConnect?: boolean;
 }
@@ -66,13 +66,22 @@ interface RequestError extends Error {
 export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
-   * @event rawData
+   * @event rawRequest
    * @example
    * ```typescript
-   * onvif.on('rawData', (xml) => { console.log('request was', xml); });
+   * onvif.on('rawRequest', (xml) => { console.log('-> request was', xml); });
    * ```
    */
   static rawRequest: 'rawRequest' = 'rawRequest';
+  /**
+   * Indicates raw xml response from device.
+   * @event rawResponse
+   * @example
+   * ```typescript
+   * onvif.on('rawResponse', (xml) => { console.log('<- response was', xml); });
+   * ```
+   */
+  static rawResponse: 'rawResponse' = 'rawResponse';
   /**
    * Indicates any warnings
    * @event warn
@@ -92,7 +101,8 @@ export class Onvif extends EventEmitter {
    */
   static error: 'error' = 'error';
 
-  public device: Device;
+  public readonly device: Device;
+  public readonly media: Media;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -102,7 +112,7 @@ export class Onvif extends EventEmitter {
   public path: string;
   public timeout: number;
   public agent: Agent | boolean;
-  public preserveAddress: boolean;
+  public preserveAddress = false;
   private events: Record<string, unknown>;
   public uri: OnvifServices;
   private timeShift?: number;
@@ -118,12 +128,14 @@ export class Onvif extends EventEmitter {
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
     this.timeout = options.timeout || 120000;
-    this.agent = options.agent || false;
-    this.preserveAddress = options.preserveAddress || false;
+    this.agent = options.agent ?? false;
+    this.preserveAddress = options.preserveAddress ?? false;
     this.events = {};
     this.uri = {};
     this.capabilities = {};
+
     this.device = new Device(this);
+    this.media = new Media(this);
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
@@ -218,6 +230,9 @@ export class Onvif extends EventEmitter {
         path : options.service
           ? (this.uri[options.service] ? this.uri[options.service]?.pathname : options.service)
           : this.path,
+        port    : this.port,
+        agent   : this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
+        timeout : this.timeout,
       };
       requestOptions.headers = {
         'Content-Type'   : 'application/soap+xml',
@@ -342,6 +357,10 @@ export class Onvif extends EventEmitter {
     }
   }
 
+  async getActiveSources() {
+
+  }
+
   /**
    * Connect to the camera and fill device information properties
    */
@@ -352,7 +371,7 @@ export class Onvif extends EventEmitter {
     } catch (error) {
       await this.device.getCapabilities();
     }
-    // await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
+    await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
     // await this.getActiveSources();
     this.emit('connect');
     return this;
