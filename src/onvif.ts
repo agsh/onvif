@@ -6,7 +6,7 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Capabilities, Device } from './device';
-import { Media, Profile, PTZConfiguration } from './media';
+import { Media, Profile } from './media';
 
 /**
  * Cam constructor options
@@ -22,6 +22,7 @@ export interface OnvifOptions {
   port?: number;
   path?: string;
   timeout?: number;
+  urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: Agent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
@@ -119,6 +120,14 @@ export class Onvif extends EventEmitter {
    */
   static error: 'error' = 'error';
 
+  /**
+   * Core device namespace for device v1.0 methods
+   * @example
+   * ```typescript
+   * const date = await onvif.device.getSystemDateAndTime();
+   * console.log(date.toLocaleString());
+   * ```
+   */
   public readonly device: Device;
   public readonly media: Media;
   public useSecure: boolean;
@@ -139,6 +148,7 @@ export class Onvif extends EventEmitter {
   public defaultProfile?: Profile;
   private activeSources: ActiveSource[] = [];
   public activeSource?: ActiveSource;
+  public readonly urn?: string;
 
   constructor(options: OnvifOptions) {
     super();
@@ -150,6 +160,7 @@ export class Onvif extends EventEmitter {
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
     this.timeout = options.timeout || 120000;
+    this.urn = options.urn;
     this.agent = options.agent ?? false;
     this.preserveAddress = options.preserveAddress ?? false;
     this.events = {};
