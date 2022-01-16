@@ -19,6 +19,7 @@
     "node_modules"
   ],
   "include": [
-    "src/index.ts"
+    "src/index.ts",
+    "src/test.ts"
   ]
 }
