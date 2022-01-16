@@ -117,6 +117,9 @@ export class Onvif extends EventEmitter {
   public uri: OnvifServices;
   private timeShift?: number;
   public capabilities: Capabilities;
+  public defaultProfiles: Profile[] = [];
+  public defaultProfile?: Profile;
+  private activeSources: any;
 
   constructor(options: OnvifOptions) {
     super();
@@ -224,7 +227,7 @@ export class Onvif extends EventEmitter {
 
   private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
-      let callbackExecuted = false;
+      let alreadyReturned = false;
       let requestOptions = {
         ...options,
         path : options.service
@@ -252,10 +255,10 @@ export class Onvif extends EventEmitter {
         });
 
         response.on('end', () => {
-          if (callbackExecuted) {
+          if (alreadyReturned) {
             return;
           }
-          callbackExecuted = true;
+          alreadyReturned = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
           /**
            * Indicates raw xml response from device.
@@ -268,19 +271,19 @@ export class Onvif extends EventEmitter {
       });
 
       request.setTimeout(this.timeout, () => {
-        if (callbackExecuted) {
+        if (alreadyReturned) {
           return;
         }
-        callbackExecuted = true;
+        alreadyReturned = true;
         request.destroy();
         reject(new Error('Network timeout'));
       });
 
       request.on('error', (error: RequestError) => {
-        if (callbackExecuted) {
+        if (alreadyReturned) {
           return;
         }
-        callbackExecuted = true;
+        alreadyReturned = true;
         /* address, port number or IPCam error */
         if (error.code === 'ECONNREFUSED' && error.errno === 'ECONNREFUSED' && error.syscall === 'connect') {
           reject(error);
@@ -357,8 +360,66 @@ export class Onvif extends EventEmitter {
     }
   }
 
-  async getActiveSources() {
+  /**
+   * Check and find out video configuration for device
+   * @private
+   */
+  private async getActiveSources() {
+    this.media.videoSources.forEach((videoSource, idx) => {
+      // let's choose first appropriate profile for our video source and make it default
+      const videoSrcToken = videoSource.token;
+      const appropriateProfiles = this.media.profiles.filter((profile) => (profile.videoSourceConfiguration
+        ? profile.videoSourceConfiguration.sourceToken === videoSrcToken
+        : false) && (profile.videoEncoderConfiguration !== undefined));
+      if (appropriateProfiles.length === 0) {
+        if (idx === 0) {
+          throw new Error('Unrecognized configuration');
+        } else {
+          return;
+        }
+      }
 
+      if (idx === 0) {
+        [this.defaultProfile] = appropriateProfiles;
+      }
+
+      [this.defaultProfiles[idx]] = appropriateProfiles;
+
+      this.activeSources[idx] = {
+        sourceToken                   : videoSource.$.token,
+        profileToken                  : this.defaultProfiles[idx].token,
+        videoSourceConfigurationToken : this.defaultProfiles[idx].videoSourceConfiguration?.token,
+      };
+      if (this.defaultProfiles[idx].videoEncoderConfiguration) {
+        const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
+        this.activeSources[idx].encoding = configuration?.encoding;
+        this.activeSources[idx].width = configuration?.resolution.width ?? '';
+        this.activeSources[idx].height = configuration?.resolution.height ?? '';
+        this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit ?? '';
+        this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit ?? '';
+      }
+
+      if (idx === 0) {
+        /**
+         * Current active video source
+         * @name Cam#activeSource
+         * @type {Cam~ActiveSource}
+         */
+        this.activeSource = this.activeSources[idx];
+      }
+
+      if (this.defaultProfiles[idx].PTZConfiguration) {
+        this.activeSources[idx].ptz = {
+          name  : this.defaultProfiles[idx].PTZConfiguration.name,
+          token : this.defaultProfiles[idx].PTZConfiguration.$.token,
+        };
+        /*
+        TODO Think about it
+        if (idx === 0) {
+          this.defaultProfile.PTZConfiguration = this.activeSources[idx].PTZConfiguration;
+        } */
+      }
+    });
   }
 
   /**
