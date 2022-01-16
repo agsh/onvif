@@ -16,9 +16,16 @@ export function linerase(xml: any): any {
     [xml] = xml;
   }
   if (typeof xml === 'object') {
-    const obj: any = {};
+    let obj: any = {};
     Object.keys(xml).forEach((key) => {
-      obj[key] = linerase(xml[key]);
+      if (key === '$') { // for xml attributes
+        obj = {
+          ...obj,
+          ...linerase(xml.$),
+        };
+      } else {
+        obj[key] = linerase(xml[key]);
+      }
     });
     return obj;
   }
