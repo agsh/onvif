@@ -10,7 +10,6 @@
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
-    "pretest": "npm run lint",
     "test": "nyc mocha",
     "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "mockserver": "node startServerMockup.js"
