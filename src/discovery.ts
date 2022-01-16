@@ -29,7 +29,7 @@ function matchXAddr(xaddrs: URL[], address: string) {
   return ipMatch[0] || xaddrs[0];
 }
 
-export class Discovery extends EventEmitter {
+class DiscoverySingleton extends EventEmitter {
   /**
    * Fires when device found
    * @event error
@@ -144,3 +144,5 @@ export class Discovery extends EventEmitter {
     });
   }
 }
+
+export const Discovery = new DiscoverySingleton();

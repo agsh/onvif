@@ -15,6 +15,7 @@ const commonRules = {
   'max-len'                      : ['warn', 200],
   'class-methods-use-this'       : 0,
   'no-nested-ternary'            : 0,
+  'no-use-before-define'         : 0,
   'key-spacing'                  : ['error', {
     afterColon  : true,
     beforeColon : true,
