@@ -1,4 +1,4 @@
-import { Onvif } from './index';
+import { Onvif, Discovery } from './index';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverMockup = require('../test/serverMockup');
@@ -16,5 +16,8 @@ const serverMockup = require('../test/serverMockup');
   await cam.connect();
   const profiles = await cam.media.getProfiles();
   console.log(profiles);
+  Discovery.on('device', console.log);
+  const cams = await Discovery.probe({ timeout : 1000 });
+  // console.log(cams);
   serverMockup.close();
 })().catch(console.error);
