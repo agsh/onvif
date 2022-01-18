@@ -364,4 +364,23 @@ export class Device {
     }
     return this.onvif.capabilities;
   }
+
+  async getDeviceInformation(): Promise<DeviceInformation> {
+    const [data] = await this.onvif.request({ body : '<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>' });
+    this.onvif.deviceInformation = linerase(data).getDeviceInformationResponse;
+    return this.onvif.deviceInformation!;
+  }
+}
+
+export interface DeviceInformation {
+  /** The manufactor of the device */
+  manufacturer: string;
+  /** The device model */
+  model: string;
+  /** The firmware version in the device */
+  firmwareVersion: string;
+  /** The serial number of the device */
+  serialNumber: string;
+  /** The hardware ID of the device */
+  hardwareId: string;
 }

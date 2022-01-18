@@ -5,7 +5,7 @@ import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
-import { Capabilities, Device } from './device';
+import { Capabilities, Device, DeviceInformation } from './device';
 import { Media, Profile } from './media';
 
 /**
@@ -150,6 +150,7 @@ export class Onvif extends EventEmitter {
   private activeSources: ActiveSource[] = [];
   public activeSource?: ActiveSource;
   public readonly urn?: string;
+  public deviceInformation?: DeviceInformation;
 
   constructor(options: OnvifOptions) {
     super();
