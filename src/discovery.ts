@@ -29,10 +29,14 @@ function matchXAddr(xaddrs: URL[], address: string) {
   return ipMatch[0] || xaddrs[0];
 }
 
-class DiscoverySingleton extends EventEmitter {
+/**
+ * Class for `Discovery` singleton
+ */
+export class DiscoverySingleton extends EventEmitter {
   /**
    * Fires when device found
-   * @event error
+   * @param onvif Onvif instance {@link Onvif} or just information object about found device
+   * @event device
    * @example
    * ```typescript
    * discovery.on('device', console.log);
@@ -41,6 +45,7 @@ class DiscoverySingleton extends EventEmitter {
   static device: 'device' = 'device';
   /**
    * Indicates any errors
+   * @param error Error instance or array of error instances from {@link Error}
    * @event error
    * @example
    * ```typescript
@@ -49,6 +54,46 @@ class DiscoverySingleton extends EventEmitter {
    */
   static error: 'error' = 'error';
 
+  private static instance?: DiscoverySingleton;
+
+  public static get getInstance(): DiscoverySingleton {
+    if (!DiscoverySingleton.instance) {
+      DiscoverySingleton.instance = new DiscoverySingleton();
+    }
+    return DiscoverySingleton.instance;
+  }
+
+  // eslint-disable-next-line no-useless-constructor
+  private constructor() {
+    super();
+  }
+
+  /**
+   * Discover NVT devices in the subnetwork
+   * @param {object} [options]
+   * @param {number} [options.timeout=5000] timeout in milliseconds for discovery responses
+   * @param {boolean} [options.resolve=true] set to `false` if you want omit creating of Cam objects
+   * @param {string} [options.messageId=GUID] WS-Discovery message id
+   * @param {string} [options.device=defaultroute] Interface to bind on for discovery ex. `eth0`
+   * @param {number} [options.listeningPort=null] client will listen to discovery data device sent
+   * @example
+   * ```typescript
+   * import { Discovery } from 'onvif';
+   * Discovery.on('device', async (cam) => {
+   *   // function would be called as soon as NVT responses
+   *   cam.username = <USERNAME>;
+   *   cam.password = <PASSWORD>;
+   *   await cam.connect();
+   * })
+   * Discovery.probe();
+   * ```
+   * @example
+   * import { Discovery } from 'onvif';
+   * (async () => {
+   *   const cams = Promise.all((await Discovery.probe()).map(camera => camera.connect());
+   *   console.log(await cams[0]?.getSystemDateAndTime());
+   * })();
+   */
   probe(options: DiscoveryOptions): Promise<(Onvif | Record<string, unknown>)[]> {
     return new Promise((resolve, reject) => {
       const cams: Map<string, Onvif | Record<string, unknown>> = new Map();
@@ -145,4 +190,25 @@ class DiscoverySingleton extends EventEmitter {
   }
 }
 
-export const Discovery = new DiscoverySingleton();
+/**
+ * Singleton for the discovery to provide `probe` method
+ * {@link Discovery.probe}
+ * @example
+ * ```typescript
+ * import { Discovery } from 'onvif';
+ * Discovery.on('device', async (cam) => {
+ *   // function would be called as soon as NVT responses
+ *   cam.username = <USERNAME>;
+ *   cam.password = <PASSWORD>;
+ *   await cam.connect();
+ * })
+ * Discovery.probe();
+ * ```
+ * @example
+ * import { Discovery } from 'onvif';
+ * (async () => {
+ *   const cams = Promise.all((await Discovery.probe()).map(camera => camera.connect());
+ *   console.log(await cams[0]?.getSystemDateAndTime());
+ * })();
+ */
+export const Discovery = DiscoverySingleton.getInstance;

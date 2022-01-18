@@ -112,6 +112,7 @@ export class Onvif extends EventEmitter {
   static warn: 'warn' = 'warn';
   /**
    * Indicates any errors
+   * @param error Error instance from {@link Error}
    * @event error
    * @example
    * ```typescript
