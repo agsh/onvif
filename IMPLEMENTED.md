@@ -1,19 +1,21 @@
 # Implemented methods and properties in typescript
 
-- [x] activeSource
-- [x] activeSources
-- [x] capabilities
-- [x] defaultProfile
-- [x] defaultProfiles
+- [ ] activeSource
+- [ ] activeSources
+- [ ] capabilities
+- [ ] defaultProfile
+- [ ] defaultProfiles
 - [ ] events
-- [x] preserveAddress
-- [x] profiles
+- [ ] preserveAddress
+- [ ] profiles
+- [ ] profiles
 - [ ] recordingItem
 - [ ] scopes
-- [x] services
-- [x] uri
-- [x] videoSources
-- [x] xaddrs
+- [ ] services
+- [ ] uri
+- [ ] uri
+- [ ] videoSources
+- [ ] xaddrs
 - [ ] absoluteMove
 - [ ] addAudioEncoderConfiguration
 - [ ] addAudioSourceConfiguration
@@ -43,7 +45,7 @@
 - [ ] getDNS
 - [ ] getEventProperties
 - [ ] getEventServiceCapabilities
-- [x] getHostname
+- [ ] getHostname
 - [ ] getImagingServiceCapabilities
 - [ ] getImagingSettings
 - [ ] getMediaServiceCapabilities

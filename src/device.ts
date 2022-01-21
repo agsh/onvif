@@ -280,6 +280,14 @@ export interface Capabilities {
   extension?: CapabilitiesExtension;
 }
 
+interface HostnameInformation {
+  /** Indicates whether the hostname is obtained from DHCP or not */
+  fromDHCP: boolean;
+  /** Indicates the hostname */
+  name?: string;
+  extension?: any;
+}
+
 /**
  * Device methods
  */
@@ -369,6 +377,13 @@ export class Device {
     const [data] = await this.onvif.request({ body : '<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>' });
     this.onvif.deviceInformation = linerase(data).getDeviceInformationResponse;
     return this.onvif.deviceInformation!;
+  }
+
+  async getHostname(): Promise<HostnameInformation> {
+    const [data] = await this.onvif.request({
+      body : '<GetHostname xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    });
+    return linerase(data).getHostnameResponse.hostnameInformation;
   }
 }
 
