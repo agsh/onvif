@@ -1,5 +1,5 @@
 const commonRules = {
-  'no-console'                   : 1,
+  'no-console'                   : 'warn',
   'import/extensions'            : 0,
   'quote-props'                  : 0,
   'import/prefer-default-export' : 0,
