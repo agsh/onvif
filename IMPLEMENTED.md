@@ -45,7 +45,7 @@
 - [ ] getDNS
 - [ ] getEventProperties
 - [ ] getEventServiceCapabilities
-- [ ] getHostname
+- [x] getHostname
 - [ ] getImagingServiceCapabilities
 - [ ] getImagingSettings
 - [ ] getMediaServiceCapabilities
