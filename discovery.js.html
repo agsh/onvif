@@ -40,6 +40,7 @@ const
 	, linerase = require('./utils').linerase
 	, parseSOAPString = require('./utils').parseSOAPString
 	, url = require('url')
+	, os = require('os')
 	;
 
 /**
@@ -61,6 +62,8 @@ var Discovery = Object.create(new events.EventEmitter());
  * @param {number} [options.timeout=5000] timeout in milliseconds for discovery responses
  * @param {boolean} [options.resolve=true] set to `false` if you want omit creating of Cam objects
  * @param {string} [options.messageId=GUID] WS-Discovery message id
+ * @param {string} [options.device=defaultroute] Interface to bind on for discovery ex. `eth0`
+ * @param {number} [options.listeningPort=null] client will listen to discovery data device sent
  * @param {Discovery~ProbeCallback} [callback] timeout callback
  * @fires Discovery#device
  * @fires Discovery#error
@@ -99,22 +102,20 @@ Discovery.probe = function(options, callback) {
 	var cams = {}
 		, errors = []
 		, messageID = 'urn:uuid:' + (options.messageId || guid())
-		, request = new Buffer(
-			'&lt;s:Envelope ' +
-			'xmlns:s="http://www.w3.org/2003/05/soap-envelope" ' +
-			'xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">' +
-			'&lt;s:Header>' +
-			'&lt;a:Action s:mustUnderstand="1">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe&lt;/a:Action>' +
-			'&lt;a:MessageID>' + messageID + '&lt;/a:MessageID>' +
-			'&lt;a:ReplyTo>&lt;a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous&lt;/a:Address>&lt;/a:ReplyTo>' +
-			'&lt;a:To s:mustUnderstand="1">urn:docs-oasis-open-org:ws-dd:ns:discovery:2009:01&lt;/a:To>' +
-			'&lt;/s:Header>' +
-			'&lt;s:Body>' +
-			'&lt;Probe xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery">' +
-			'&lt;d:Types xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dp0="http://www.onvif.org/ver10/network/wsdl">dp0:NetworkVideoTransmitter&lt;/d:Types>' +
-			'&lt;/Probe>' +
-			'&lt;/s:Body>' +
-			'&lt;/s:Envelope>'
+		, request = Buffer.from(
+			'&lt;Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:dn="http://www.onvif.org/ver10/network/wsdl">' +
+				'&lt;Header>' +
+					'&lt;wsa:MessageID xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">' + messageID + '&lt;/wsa:MessageID>' +
+					'&lt;wsa:To xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">urn:schemas-xmlsoap-org:ws:2005:04:discovery&lt;/wsa:To>' +
+					'&lt;wsa:Action xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe&lt;/wsa:Action>' +
+				'&lt;/Header>' +
+				'&lt;Body>' +
+					'&lt;Probe xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+						'&lt;Types>dn:NetworkVideoTransmitter&lt;/Types>' +
+						'&lt;Scopes />' +
+					'&lt;/Probe>' +
+				'&lt;/Body>' +
+			'&lt;/Envelope>'
 		)
 		, socket = require('dgram').createSocket('udp4');
 
@@ -124,7 +125,7 @@ Discovery.probe = function(options, callback) {
 	});
 
 	const listener = function(msg, rinfo) {
-		parseSOAPString(msg, function(err, data, xml) {
+		parseSOAPString(msg.toString(), function(err, data, xml) {
 			// TODO check for matching RelatesTo field and messageId
 			if (err || !data[0].probeMatches) {
 				errors.push(err || new Error('Wrong SOAP message from ' + rinfo.address + ':' + rinfo.port, xml));
@@ -143,12 +144,23 @@ Discovery.probe = function(options, callback) {
 				if (!cams[camAddr]) {
 					var cam;
 					if (options.resolve !== false) {
-						var camUri = url.parse(data.probeMatches.probeMatch.XAddrs);
+						// Create cam with one of the XAddrs uri
+						var camUris = data.probeMatches.probeMatch.XAddrs.split(' ').map(url.parse)
+							, camUri = matchXAddr(camUris, rinfo.address)
+						;
 						cam = new Cam({
 							hostname: camUri.hostname
 							, port: camUri.port
 							, path: camUri.path
+							, urn: camAddr
 						});
+						/**
+						 * All available XAddr fields from discovery
+						 * @name xaddrs
+						 * @memberOf Cam#
+						 * @type {Array.&lt;Url>}
+						 */
+						cam.xaddrs = camUris;
 					} else {
 						cam = data;
 					}
@@ -164,6 +176,21 @@ Discovery.probe = function(options, callback) {
 		});
 	};
 
+	// If device is specified try to bind to that interface
+	if (options.device) {
+		var interfaces = os.networkInterfaces();
+		// Try to find the interface based on the device name
+		if (options.device in interfaces) {
+			interfaces[options.device].some(function(address) {
+				// Only use IPv4 addresses
+				if (address.family === 'IPv4') {
+					socket.bind(options.listeningPort || null, address.address);
+					return true;
+				}
+			});
+		}
+	}
+
 	socket.on('message', listener);
 	socket.send(request, 0, request.length, 3702, '239.255.255.250');
 
@@ -174,9 +201,23 @@ Discovery.probe = function(options, callback) {
 	}.bind(this), options.timeout || 5000);
 };
 
+/**
+ * Try to find the most suitable record
+ * Now it is simple ip match
+ * @param {Array&lt;Url>} xaddrs
+ * @param {string} address
+ */
+function matchXAddr(xaddrs, address) {
+	var ipMatch = xaddrs.filter(function(xaddr) {
+		return xaddr.hostname === address;
+	});
+	return ipMatch[0] || xaddrs[0];
+}
+
 module.exports = {
 	Discovery: Discovery
-};</code></pre>
+};
+</code></pre>
         </article>
     </section>
 
@@ -186,13 +227,13 @@ module.exports = {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:connect">connect</a></li><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawRequest">rawRequest</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#matchXAddr">matchXAddr</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Mar 13 2022 15:47:52 GMT+0300 (Moscow Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

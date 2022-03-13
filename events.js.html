@@ -32,219 +32,387 @@
  * @author Andrew D.Laptev &lt;a.d.laptev@gmail.com>
  * @licence MIT
  */
+module.exports = function(Cam) {
 
-/**
- * @typedef {object} Cam~CreatePullPointSubscriptionResponse
- * @property {object} subscriptionReference
- * @property {string} subscriptionReference.address
- * @property {Date} currentTime
- * @property {Date} terminationTime
- */
+	/**
+	 * @typedef {object} Cam~CreatePullPointSubscriptionResponse
+	 * @property {object} subscriptionReference
+	 * @property {string|object} subscriptionReference.address
+	 * @property {Date} currentTime
+	 * @property {Date} terminationTime
+	 */
 
-/**
- * Events namespace for the device, stores all information about device events
- * @name Cam#events
- * @type object
- * @property {Cam~EventProperties} properties
- * @property {Cam~CreatePullPointSubscriptionResponse} subscription
- * @property {Date} terminationTime Time when pull-point subscription is over
- * @property {number} messageLimit Pull message count
- */
+	/**
+	 * Events namespace for the device, stores all information about device events
+	 * @name Cam#events
+	 * @type object
+	 * @property {Cam~EventProperties} properties
+	 * @property {Cam~CreatePullPointSubscriptionResponse} subscription
+	 * @property {Date} terminationTime Time when pull-point subscription is over
+	 * @property {number} messageLimit Pull message count
+	 */
 
-const Cam = require('./cam').Cam
-	, cam = require('./cam')
-	, linerase = require('./utils').linerase
-	, url = require('url')
-	;
+	const linerase = require('./utils').linerase
+		;
 
-/**
- * Event properties object
- * @typedef {object} Cam~EventProperties
- * @property {array} topicNamespaceLocation
- * @property {object} topicSet
- * @property {array} topicExpressionDialect
- */
+	/**
+	 * Event properties object
+	 * @typedef {object} Cam~EventProperties
+	 * @property {array} topicNamespaceLocation
+	 * @property {object} topicSet
+	 * @property {array} topicExpressionDialect
+	 */
 
-/**
- * @callback Cam~GetEventPropertiesCallback
- * @property {?Error} err
- * @property {Cam~EventProperties} response
- * @property {string} response xml
- */
+	/**
+	 * @callback Cam~GetEventPropertiesCallback
+	 * @property {?Error} err
+	 * @property {Cam~EventProperties} response
+	 * @property {string} response xml
+	 */
 
-/**
- * Get event properties of the device. Sets `events` property of the device
- * @param {Cam~GetEventPropertiesCallback} callback
- */
-Cam.prototype.getEventProperties = function(callback) {
-	this._request({
-		body: this._envelopeHeader() +
-		'&lt;GetEventProperties xmlns="http://www.onvif.org/ver10/events/wsdl"/>' +
-		this._envelopeFooter()
-	}, function(err, res, xml) {
-		if (!err) {
-			this.events.properties = linerase(res).getEventPropertiesResponse;
-		}
-		callback.call(this, err, err ? null : this.events.properties, xml);
-	}.bind(this));
-};
-
-/**
- * Get event service capabilities
- * @param {function} callback
- */
-Cam.prototype.getEventServiceCapabilities = function(callback) {
-	this._request({
-		body: this._envelopeHeader() +
-		'&lt;GetServiceCapabilities xmlns="http://www.onvif.org/ver10/events/wsdl"/>' +
-		this._envelopeFooter()
-	}, function(err, res, xml) {
-		if (!err) {
-			var data = linerase(res[0].getServiceCapabilitiesResponse[0].capabilities[0].$);
-		}
-		callback.call(this, err, data, xml);
-	}.bind(this));
-};
-
-/**
- * Create pull-point subscription
- * @param {function} callback
- */
-Cam.prototype.createPullPointSubscription = function(callback) {
-	this._request({
-		body: this._envelopeHeader() +
-		'&lt;CreatePullPointSubscription xmlns="http://www.onvif.org/ver10/events/wsdl"/>' +
-		this._envelopeFooter()
-	}, function(err, res, xml) {
-		if (!err) {
-			this.events.subscription = linerase(res[0].createPullPointSubscriptionResponse[0]);
-			this.events.subscription.subscriptionReference.address =
-				url.parse(this.events.subscription.subscriptionReference.address);
-			this.events.terminationTime = _terminationTime(this.events.subscription);
-		}
-		callback.call(this, err, err ? null : this.events.subscription, xml);
-	}.bind(this));
-};
-
-/**
- * @typedef {object} Cam~Event
- * @property {Date} currentTime
- * @property {Date} terminationTime
- * @property {Cam~NotificationMessage|Array.&lt;Cam~NotificationMessage>} [notificationMessage]
- */
-
-/**
- * @typedef {object} Cam~NotificationMessage
- * @property {string} subscriptionReference.address Pull-point address
- * @property {string} topic._ Namespace of message topic
- * @property {object} message Message object
- */
-
-/**
- * @callback Cam~PullMessagesResponse
- * @property {?Error} error
- * @property {Cam~Event} response Message
- * @property {string} xml Raw SOAP response
- */
-
-/**
- * Pull messages from pull-point subscription
- * @param options
- * @param {number} [options.timeout=30000]
- * @param {number} [options.messageLimit=1]
- * @param {Cam~PullMessagesResponse} callback
- * @throws {Error} {@link Cam#events.subscription} must exists
- */
-Cam.prototype.pullMessages = function(options, callback) {
-	try {
-		var urlAddress = this.events.subscription.subscriptionReference.address;
-	} catch (e) {
-		throw new Error('You should create pull-point subscription first!');
-	}
-	this._request({
-		url: urlAddress
-		, body: this._envelopeHeader() +
-		'&lt;PullMessages xmlns="http://www.onvif.org/ver10/events/wsdl">' +
-			'&lt;Timeout>PT' + ((options.timeout || 30000) / 1000) + 'S&lt;/Timeout>' +
-			'&lt;MessageLimit>' + (options.messageLimit || 1) + '&lt;/MessageLimit>' +
-		'&lt;/PullMessages>' +
-		this._envelopeFooter()
-	}, function(err, res, xml) {
-		if (!err) {
-			var data = linerase(res).pullMessagesResponse;
-		}
-		callback.call(this, err, data, xml);
-	}.bind(this));
-};
-
-/**
- * Count time before pull-point subscription terminates
- * @param {Cam~CreatePullPointSubscriptionResponse} response
- * @returns {Date}
- * @private
- */
-function _terminationTime(response) {
-	return new Date(Date.now() - response.currentTime.getTime() + response.terminationTime.getTime());
-}
-
-/**
- * Bind event handling to the `event` event
- */
-Cam.prototype.on('newListener', function(name) {
-	// if there is the first listener, start pulling
-	if (name === 'event' &amp;&amp; this.listeners(name).length === 0) {
-		this._eventRequest();
-	}
-});
-
-/**
- * Event loop for pullMessages request
- * @private
- */
-Cam.prototype._eventRequest = function() {
-	this.events.timeout = this.events.timeout || 30000; // setting timeout
-	this.events.messageLimit = this.events.messageLimit || 1; // setting message limit
-	if (!this.events.terminationTime || (this.events.terminationTime &lt; Date.now() + this.events.timeout)) {
-		// if there is no pull-point subscription or it will be dead soon, create new
-		this.createPullPointSubscription(this._eventPull.bind(this));
-	} else {
-		this._eventPull();
-	}
-};
-
-/**
- * Event loop for pullMessages request
- * @private
- */
-Cam.prototype._eventPull = function() {
-	if (this.listeners('event').length) { // check for event listeners, if zero, stop pulling
-		this.pullMessages({
-			timeout: this.events.timeout
-			, messageLimit: this.events.messageLimit
-		}, function(err, data) {
+	/**
+	 * Get event properties of the device. Sets `events` property of the device
+	 * @param {Cam~GetEventPropertiesCallback} callback
+	 */
+	Cam.prototype.getEventProperties = function(callback) {
+		this._request({
+			service: 'events'
+			, body: this._envelopeHeader() +
+			'&lt;GetEventProperties xmlns="http://www.onvif.org/ver10/events/wsdl"/>' +
+			this._envelopeFooter()
+		}, function(err, res, xml) {
 			if (!err) {
-				if (data.notificationMessage) {
-					if (!Array.isArray(data.notificationMessage)) {
-						data.notificationMessage = [data.notificationMessage];
-					}
-					data.notificationMessage.forEach(function(message) {
-						// pull-point address check
-						if (message.subscriptionReference.address === this.events.subscription.subscriptionReference.address.href) {
+				this.events.properties = linerase(res).getEventPropertiesResponse;
+			}
+			callback.call(this, err, err ? null : this.events.properties, xml);
+		}.bind(this));
+	};
+
+	/**
+	 * Get event service capabilities
+	 * @param {function} callback
+	 */
+	Cam.prototype.getEventServiceCapabilities = function(callback) {
+		this._request({
+			service: 'events'
+			, body: this._envelopeHeader() +
+			'&lt;GetServiceCapabilities xmlns="http://www.onvif.org/ver10/events/wsdl"/>' +
+			this._envelopeFooter()
+		}, function(err, res, xml) {
+			if (!err) {
+				var data = linerase(res[0].getServiceCapabilitiesResponse[0].capabilities[0].$);
+			}
+			callback.call(this, err, data, xml);
+		}.bind(this));
+	};
+
+	/**
+	 * Create Base Subscription
+	 * This allows Cameras and NVTs to send events to a URL via a POST message
+	 * TODO - Add Termination Time
+	 * @param {object} options
+	 * @param {string} options.url
+	 * @param {function} callback
+	 */
+
+	Cam.prototype.subscribe = function(options, callback) {
+		let sendXml = this._envelopeHeader(true);
+
+		// TODO Add a:Action ??
+		// TODO Add a:MessageID ??
+		sendXml += '&lt;a:ReplyTo>&lt;a:Address>' + options.url + '&lt;/a:Address>&lt;/a:ReplyTo>';
+
+		sendXml += '&lt;/s:Header>' +
+			'&lt;s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+			'&lt;Subscribe xmlns="http://docs.oasis-open.org/wsn/b-2">' +
+			'&lt;ConsumerReference>&lt;a:Address>' + options.url + '&lt;/a:Address>&lt;/ConsumerReference>' +
+			'&lt;InitialTerminationTime>PT60S&lt;/InitialTerminationTime>' +
+			'&lt;/Subscribe>' +
+			this._envelopeFooter();
+
+		this._request({
+			service: 'events',
+			body: sendXml
+		}, function(err, res, xml) {
+			if (!err) {
+				this.events.subscription = linerase(res[0].subscribeResponse[0]);
+				this.events.subscription.subscriptionReference.address =
+					this._parseUrl(this.events.subscription.subscriptionReference.address);
+				this.events.terminationTime = _terminationTime(this.events.subscription);
+			}
+			callback.call(this, err, err ? null : this.events.subscription, xml);
+		}.bind(this));
+	};
+
+
+	/**
+	 * Create pull-point subscription
+	 * @param {function} callback
+	 */
+	Cam.prototype.createPullPointSubscription = function(callback) {
+		this._request({
+			service: 'events'
+			, body: this._envelopeHeader() +
+			'&lt;CreatePullPointSubscription xmlns="http://www.onvif.org/ver10/events/wsdl">' +
+				'&lt;InitialTerminationTime>PT60S&lt;/InitialTerminationTime>' +
+			'&lt;/CreatePullPointSubscription>' +
+			this._envelopeFooter()
+		}, function(err, res, xml) {
+			if (!err) {
+				this.events.subscription = linerase(res[0].createPullPointSubscriptionResponse[0]);
+				this.events.subscription.subscriptionReference.address =
+					this._parseUrl(this.events.subscription.subscriptionReference.address);
+				this.events.terminationTime = _terminationTime(this.events.subscription);
+			}
+			callback.call(this, err, err ? null : this.events.subscription, xml);
+		}.bind(this));
+	};
+
+
+	/**
+	 * Renew pull-point subscription
+	 * @param {options} callback
+	 * @param {function} callback
+	 */
+
+	Cam.prototype.renew = function(options, callback) {
+		let urlAddress = null;
+		let subscriptionId = null;
+		try {
+			urlAddress = this.events.subscription.subscriptionReference.address;
+		} catch (e) {
+			throw new Error('You should create pull-point subscription first!');
+		}
+
+		try {
+			subscriptionId = this.events.subscription.subscriptionReference.referenceParameters.subscriptionId;
+		} catch (e) {
+			subscriptionId = null;
+		}
+
+		let sendXml = this._envelopeHeader(true);
+
+		if (!subscriptionId) {
+			sendXml += '&lt;a:To>' + urlAddress.href + '&lt;/a:To>';
+		} else {
+			// Axis Cameras use a PullPoint URL and the Subscription ID
+			sendXml += '&lt;a:To mustUnderstand="1">' + urlAddress.href + '&lt;/a:To>' +
+					'&lt;SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">' + this.events.subscription.subscriptionReference.referenceParameters.subscriptionId + '&lt;/SubscriptionId>';
+		}
+		sendXml += '&lt;/s:Header>' +
+			'&lt;s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+				'&lt;Renew xmlns="http://docs.oasis-open.org/wsn/b-2">' +
+					'&lt;TerminationTime>PT60S&lt;/TerminationTime>' +
+				'&lt;/Renew>' +
+			this._envelopeFooter();
+		this._request({
+			url: urlAddress,
+			body: sendXml
+		}, function(err, res, xml) {
+			if (!err) {
+				var data = linerase(res).renewResponse;
+			}
+			callback.call(this, err, data, xml);
+		}.bind(this));
+	};
+
+
+
+	/**
+	 * @typedef {object} Cam~Event
+	 * @property {Date} currentTime
+	 * @property {Date} terminationTime
+	 * @property {Cam~NotificationMessage|Array.&lt;Cam~NotificationMessage>} [notificationMessage]
+	 */
+
+	/**
+	 * @typedef {object} Cam~NotificationMessage
+	 * @property {string} subscriptionReference.address Pull-point address
+	 * @property {string} topic._ Namespace of message topic
+	 * @property {object} message Message object
+	 */
+
+	/**
+	 * @callback Cam~PullMessagesResponse
+	 * @property {?Error} error
+	 * @property {Cam~Event} response Message
+	 * @property {string} xml Raw SOAP response
+	 */
+
+	/**
+	 * Pull messages from pull-point subscription
+	 * @param options
+	 * @param {number} [options.messageLimit=10]
+	 * @param {Cam~PullMessagesResponse} callback
+	 * @throws {Error} {@link Cam#events.subscription} must exists
+	 */
+	Cam.prototype.pullMessages = function(options, callback) {
+		let urlAddress = null;
+		let subscriptionId = null;
+		try {
+			urlAddress = this.events.subscription.subscriptionReference.address;
+		} catch (e) {
+			throw new Error('You should create pull-point subscription first!');
+		}
+
+		try {
+			subscriptionId = this.events.subscription.subscriptionReference.referenceParameters.subscriptionId;
+		} catch (e) {
+			subscriptionId = null;
+		}
+
+		let sendXml = this._envelopeHeader(true);
+
+		if (!subscriptionId) {
+			sendXml += '&lt;a:To>' + urlAddress.href + '&lt;/a:To>';
+		} else {
+			// Axis Cameras use a PullPoint URL and the Subscription ID
+			sendXml += '&lt;a:To mustUnderstand="1">' + urlAddress.href + '&lt;/a:To>' +
+					'&lt;SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">' + subscriptionId + '&lt;/SubscriptionId>';
+		}
+		sendXml += '&lt;/s:Header>' +
+			'&lt;s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+				'&lt;PullMessages xmlns="http://www.onvif.org/ver10/events/wsdl">' +
+					'&lt;Timeout>PT5S&lt;/Timeout>' +  // pull timeout must be shorter than Socket timeout or we will get a socket error when there are no new events
+					'&lt;MessageLimit>' + (options.messageLimit || 10) + '&lt;/MessageLimit>' +
+				'&lt;/PullMessages>' +
+			this._envelopeFooter();
+		this._request({
+			url: urlAddress,
+			body: sendXml
+		}, function(err, res, xml) {
+			if (!err) {
+				var data = linerase(res).pullMessagesResponse;
+			}
+			callback.call(this, err, data, xml);
+		}.bind(this));
+	};
+
+	/**
+	 * Unsubscribe from pull-point subscription
+	 * @param {Cam~PullMessagesResponse} callback
+	 * @throws {Error} {@link Cam#events.subscription} must exists
+	 */
+	Cam.prototype.unsubscribe = function(callback) {
+		let urlAddress = null;
+		let subscriptionId = null;
+		try {
+			urlAddress = this.events.subscription.subscriptionReference.address;
+		} catch (e) {
+			throw new Error('You should create pull-point subscription first!');
+		}
+
+		try {
+			subscriptionId = this.events.subscription.subscriptionReference.referenceParameters.subscriptionId;
+		} catch (e) {
+			subscriptionId = null;
+		}
+
+		let sendXml = this._envelopeHeader(true);
+
+		if (!subscriptionId) {
+			sendXml += '&lt;a:To>' + urlAddress.href + '&lt;/a:To>';
+		} else {
+			// Axis Cameras use a PullPoint URL and the Subscription ID
+			sendXml += '&lt;a:To mustUnderstand="1">' + urlAddress.href + '&lt;/a:To>' +
+					'&lt;SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">' + subscriptionId + '&lt;/SubscriptionId>';
+		}
+		sendXml += '&lt;/s:Header>' +
+			'&lt;s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+				'&lt;Unsubscribe xmlns="http://docs.oasis-open.org/wsn/b-2"/>' +
+			this._envelopeFooter();
+		this._request({
+			url: urlAddress,
+			body: sendXml
+		}, function(err, res, xml) {
+			if (!err) {
+				this.removeAllListeners('event'); // We can subscribe again only if there is no 'event' listener
+				var data = linerase(res).unsubscribeResponse;
+			}
+			if (callback) {
+				callback.call(this, err, data, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * Count time before pull-point subscription terminates
+	 * @param {Cam~CreatePullPointSubscriptionResponse} response
+	 * @returns {Date}
+	 * @private
+	 */
+	function _terminationTime(response) {
+		return new Date(Date.now() - response.currentTime.getTime() + response.terminationTime.getTime());
+	}
+
+	/**
+	 * Event loop for pullMessages request
+	 * @private
+	 */
+	Cam.prototype._eventRequest = function() {
+		if (this.listeners('event').length) { // check for event listeners, if zero, stop pulling
+			this.events.timeout = this.events.timeout || 30000; // setting timeout
+			this.events.messageLimit = this.events.messageLimit || 10; // setting message limit
+			if (!this.events.subscription || !this.events.terminationTime || (this.events.terminationTime &lt; Date.now() + this.events.timeout)) {
+				// if there is no pull-point subscription or it will be dead soon, create new
+				this.createPullPointSubscription(this._eventPull.bind(this));
+			} else {
+				this._eventPull();
+			}
+		} else {
+			delete this.events.terminationTime;
+
+			this.unsubscribe();
+		}
+	};
+
+	/**
+	 * Event loop for pullMessages request
+	 * @private
+	 * @throws {Error} {@link Cam#events.subscription} must exists
+	 */
+	Cam.prototype._eventPull = function() {
+		if (this.listeners('event').length &amp;&amp; this.events.subscription) { // check for event listeners, if zero, or no subscription then stop pulling
+			this.pullMessages({
+				messageLimit: this.events.messageLimit
+			}, function(err, data, xml) {
+				if (!err) {
+					if (data.notificationMessage) {
+						if (!Array.isArray(data.notificationMessage)) {
+							data.notificationMessage = [data.notificationMessage];
+						}
+						data.notificationMessage.forEach(function(message) {
 							/**
 							 * Indicates message from device.
 							 * @event Cam#event
 							 * @type {Cam~NotificationMessage}
 							 */
-							this.emit('event', message);
+							this.emit('event', message, xml);
+						}.bind(this));
+					}
+					this.events.terminationTime = _terminationTime(data); // Axis does not increment the termination time. Use RENEW
+					// console.log ("PULL COMPLETE. TERMINATE AT " + data.terminationTime )
+
+					// Axis cameras require us to Rewew the Pull Point Subscription
+					this.renew({},function(err,data) {
+						if (!err) {
+							this.events.terminationTime = _terminationTime(data);
 						}
-					}.bind(this));
+					});
 				}
-				this.events.terminationTime = _terminationTime(data);
+				this._eventRequest();
+			}.bind(this));
+		} else {
+			delete this.events.terminationTime;
+
+			if (this.events.subscription) {
+				this.unsubscribe();
 			}
-			this._eventRequest();
-		}.bind(this));
-	}
-};</code></pre>
+		}
+	};
+};
+
+</code></pre>
         </article>
     </section>
 
@@ -254,13 +422,13 @@ Cam.prototype._eventPull = function() {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:connect">connect</a></li><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawRequest">rawRequest</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#matchXAddr">matchXAddr</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Mar 13 2022 15:47:52 GMT+0300 (Moscow Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

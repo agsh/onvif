@@ -43,22 +43,33 @@
 
 
     <section>
-        <article><h1>ONVIF</h1><p><a href="https://travis-ci.org/agsh/onvif"><img src="https://travis-ci.org/agsh/onvif.png" alt="Build Status"></a>
+        <article><h1>ONVIF</h1>
+<p><a href="https://travis-ci.org/agsh/onvif"><img src="https://travis-ci.org/agsh/onvif.png" alt="Build Status"></a>
 <a href="https://coveralls.io/r/agsh/onvif?branch=master"><img src="https://img.shields.io/coveralls/agsh/onvif.svg" alt="Coverage Status"></a>
 <a href="https://www.npmjs.com/package/onvif"><img src="https://img.shields.io/npm/v/onvif.svg" alt="NPM version"></a></p>
-<p>ONVIF Client protocol Profile S Node.js implementation.</p>
+<p>ONVIF Client protocol Profile S (Live Streaming) and Profile G (Replay) Node.js implementation.</p>
 <p>This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
-device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets.</p>
-<p><a href="http://onvif.org"><img src="http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg" alt="ONVIF"></a></p>
-<h2>Installation</h2><h3>NPM</h3><p><code>npm install onvif</code> - install latest stable version</p>
-<p><code>npm install agsh/onvif</code> - install latest development version</p>
-<h3>Clone the latest version from github</h3><p><code>git clone https://github.com/agsh/onvif.git</code></p>
-<h3>Tests</h3><p>In the library directory run <code>npm test</code></p>
-<p>To test with the real device, set appropriate environment variables <code>HOSTNAME</code>, <code>USERNAME</code>, <code>PASSWORD</code>, <code>PORT</code> and run 
+device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
+It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.</p>
+<p>The library uses NodeJS.</p>
+<p><a href="http://onvif.org"><img src="https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png" alt="ONVIF"></a></p>
+<h2>Installation</h2>
+<h3>NPM</h3>
+<p><code>npm install onvif</code> - install latest stable version</p>
+<p><code>npm install agsh/onvif</code> - install latest version from GitHub</p>
+<p><code>npm install agsh/onvif#dev</code> - install latest development version</p>
+<h3>Clone the latest version from github</h3>
+<p><code>git clone https://github.com/agsh/onvif.git</code></p>
+<h3>Tests</h3>
+<p>In the library directory run <code>npm test</code></p>
+<p>By default the tests use a mockup server to generate ONVIF replies.</p>
+<p>To test with the real device, set appropriate environment variables <code>HOSTNAME</code>, <code>USERNAME</code>, <code>PASSWORD</code>, <code>PORT</code> and run
 tests.</p>
-<h3>Documentation</h3><p>To build jsdoc for the library with default theme run <code>npm run jsdoc</code>. Otherwise use <code>jsdoc</code> with sources from
+<h3>Documentation</h3>
+<p>To build jsdoc for the library with default theme run <code>npm run jsdoc</code>. Otherwise use <code>jsdoc</code> with sources from
 <code>./lib/*.js</code></p>
-<h2>Quick example</h2><p>This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
+<h2>Quick example</h2>
+<p>This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
 container which translates video from the camera.</p>
 <pre class="prettyprint source lang-javascript"><code>var
   http = require('http'),
@@ -78,55 +89,103 @@ new Cam({
         '&lt;/body>&lt;/html>');
     }).listen(3030);
   });
-});</code></pre><h2>Troubleshooting</h2><p>Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
+});
+</code></pre>
+<h2>Other examples (located in the Examples Folder on the Github)</h2>
+<ul>
+<li>example.js - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)</li>
+<li>example2.js - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
+For Profile S Cameras and Encoders it displays the default RTSP address
+For Profile G Recorders it displays the RTSP address of the first recording</li>
+<li>example3.js - reads the command line cursor keys and sends PTZ commands to the Camera</li>
+<li>example4.js - uses Discovery to find cameras on the local network</li>
+<li>example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH</li>
+<li>example6.js - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server</li>
+<li>example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses</li>
+<li>example8.js - example setting OSD On Screen Display. (also uses Promises API)</li>
+</ul>
+<h2>Troubleshooting</h2>
+<p>Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
 camera to me.</p>
-<h1>API</h1><p>This page and API class documentation you can found here: <a href="http://agsh.github.io/onvif/">http://agsh.github.io/onvif/</a></p>
-<p>Short description of library possibilities is below.</p>
-<h2>Discovery</h2><p>Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only <code>Probe</code> SOAP method that just works well.
+<h1>API</h1>
+<p>This page and API class documentation you can found here: <a href="http://agsh.github.io/onvif/">http://agsh.github.io/onvif/</a></p>
+<p>Old concise docs are below.</p>
+<h2>Discovery</h2>
+<p>Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only <code>Probe</code> SOAP method that just works well.
 You can find devices in your subnetwork using <code>probe</code> method of the Discovery singleton.
 Discovery is a EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on <code>device</code> event.
 Here some examples:</p>
 <pre class="prettyprint source lang-js"><code>var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
-// function would be called as soon as NVT responses
-    cam.username = &lt;USERNAME>;
-    cam.password = &lt;PASSWORD>;
-    cam.connect(console.log);
+// function will be called as soon as NVT responds
+	cam.username = &lt;USERNAME>;
+	cam.password = &lt;PASSWORD>;
+	cam.connect(console.log);
 })
-onvif.Discovery.probe();</code></pre><pre class="prettyprint source lang-js"><code>var onvif = require('onvif');
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  // function called as soon as NVT responds, but this library could not parse the response
+  console.log('Discovery error ' + err);
+});
+onvif.Discovery.probe();
+</code></pre>
+<pre class="prettyprint source lang-js"><code>var onvif = require('onvif');
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  console.log('Discovery error ' + err);
+});
 onvif.Discovery.probe(function(err, cams) {
-// function would be called only after timeout (5 sec by default)
-    if (err) { throw err; }
-    cams.forEach(function(cam) {
-        cam.username = &lt;USERNAME>;
-        cam.password = &lt;PASSWORD>;
-        cam.connect(console.log);
-    });
-});</code></pre><p>In all of that cases you've got disconnected cameras because to manage them you need tuple <code>username:password</code>.
-So, as shown in the examples, you can assign these properties and call <code>connect</code> method to get full functionality.</p>
-<h3>Discovery.probe(options, callback)</h3><p>Options</p>
+// function will be called only after timeout (5 sec by default)
+	if (err) { 
+    // There is a device on the network returning bad discovery data
+    // Probe results will be incomplete
+    throw err;
+  }
+	cams.forEach(function(cam) {
+		cam.username = &lt;USERNAME>;
+		cam.password = &lt;PASSWORD>;
+		cam.connect(console.log);
+	});
+});
+</code></pre>
+<p>In all of that cases you've got disconnected cameras. To access each camera (and issue ONVIF commands) you normally need
+the tuple <code>username:password</code>. So, as shown in the examples, you can assign these properties and call <code>connect</code> method to
+get full functionality.</p>
+<h3>Discovery.probe(options, callback)</h3>
+<p>Options</p>
 <ul>
 <li><code>timeout</code>, number. Time the probe method will wait NVT responses in ms</li>
 <li><code>resolve</code>, boolean. If this argument is false, all discovered NVTs would be presented as data object instead of Cam instance</li>
 </ul>
-<h3>Discovery events</h3><ul>
+<h3>Discovery events</h3>
+<ul>
 <li><code>device(cam, remoteInfo, responseXML)</code> fires on device discover. <code>cam</code> is a Cam instance, remoteInfo is an object with network information
 and responseXML is a body of SOAP response</li>
 <li><code>error(error)</code> fires on some UDP error or on bad SOAP response from NVT</li>
 </ul>
-<h2>Cam class</h2><pre class="prettyprint source lang-javascript"><code>var Cam = require('onvif').Cam;</code></pre><h2>new Cam(options, callback)</h2><p>Options are:</p>
+<h2>Cam class</h2>
+<pre class="prettyprint source lang-javascript"><code>var Cam = require('onvif').Cam;
+</code></pre>
+<h2>new Cam(options, callback)</h2>
+<p>Options are:</p>
 <ul>
 <li>hostname</li>
 <li>username, password (optional, to deal with majority of functions)</li>
 <li>port (optional)</li>
 </ul>
-<p>If the username and password are present, camera tries to connect automatically. Otherwise use <code>connect</code> method.
-Once again, without credentials you can execute only <code>getSystemDateAndTime</code> method.</p>
-<p>Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.</p>
-<h4>Technical description</h4><p>When the cam object creates it automatically sends three command to the ONVIF device:
-<code>getCapabilities</code>, <code>getVideoSources</code> and <code>getProfiles</code>. It fills correspondent properties of an object:</p>
+<p>The library calls connect() automatically which executes the <code>getSystemDateAndTime</code>, <code>getCapabilities</code> and other methods.
+Note on username and password:</p>
 <ul>
-<li>capabilities<ul>
+<li>Some cameras do not require username:password credentials.</li>
+<li>If a camera does require a username:password but you do not provide them, you will be limited to executing a few ONVIF methods that can operate without credentials, for example you can execute only <code>getSystemDateAndTime</code> method.</li>
+</ul>
+<p>Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.</p>
+<h4>Technical description</h4>
+<p>When the cam object is created it automatically sends a <code>getCapabilities</code> command to the ONVIF device. If the device is a camera or encoder (NVT) it sends two commands to the ONVIF device:
+<code>getVideoSources</code> and <code>getProfiles</code>. It fills corresponding properties of an object:</p>
+<ul>
+<li>capabilities
+<ul>
 <li>device</li>
 <li>events</li>
 <li>imaging</li>
@@ -136,13 +195,15 @@ Once again, without credentials you can execute only <code>getSystemDateAndTime<
 </ul>
 </li>
 <li>uri (this is a links to different NVT services)</li>
-<li>videoSources<ul>
+<li>videoSources
+<ul>
 <li>$.token</li>
 <li>framerate</li>
 <li>resolution</li>
 </ul>
 </li>
-<li>profiles, array of profile object<ul>
+<li>profiles, array of profile object
+<ul>
 <li>name</li>
 <li>videoSourceConfiguration</li>
 <li>videoEncoderConfiguration</li>
@@ -157,7 +218,8 @@ with ptz configuration becomes a member of activeSources array.</p>
 without passing options object use it. You can change it manually at any time.</p>
 <ul>
 <li>defaultProfile (link to the first profile in profiles)</li>
-<li>activeSource (based on the default profile)<ul>
+<li>activeSource (based on the default profile)
+<ul>
 <li>sourceToken</li>
 <li>profileToken</li>
 <li>encoding</li>
@@ -169,47 +231,101 @@ without passing options object use it. You can change it manually at any time.</
 </ul>
 </li>
 </ul>
-<h3>connect(callback)</h3><p>Connect to the camera and fill device information properties with <code>getCapabilities</code>, <code>getVideoSources</code>, <code>getProfiles</code> methods</p>
+<h3>connect(callback)</h3>
+<p>Connect to the camera and fill device information properties with <code>getSystemDateAndTime</code>, <code>getCapabilities</code>, <code>getVideoSources</code>, <code>getProfiles</code> methods</p>
 <p>See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
 After cam initialisation we can run several ONVIF commands.
 There are several common methods that work without credentials. Here are they: <code>getSystemDateAndTime</code>.</p>
-<h3>getSystemDateAndTime(callback)</h3><p>Returns a Date object with current camera datetime in the callback.
-Works without credentials (passed <code>username</code> and <code>password</code> arguments).</p>
-<h3>getDeviceInformation(callback)</h3><p><em>Device.</em> Returns a device information, such as manufacturer, model and firmware version in the callback
-Works without credentials (passed <code>username</code> and <code>password</code> arguments).</p>
-<h3>getServices(callback)</h3><p><em>Device.</em> Returns in callback and assigns to <code>#services</code> property an array consists of objects with properties: <code>namespace</code>, <code>XAddr</code>, <code>version</code></p>
-<h3>getServiceCapabilities(callback)</h3><p><em>Device.</em> Returns in callback and assigns to <code>#serviceCapabilities</code> property the capabilities of the device service (not media):
+<h3>getSystemDateAndTime(callback)</h3>
+<p>Returns a Date object with current camera datetime in the callback.
+The ONVIF Standard says this would work without credentials (passed <code>username</code> and <code>password</code> arguments) so that the timeShift difference between the local clock and the NVT's onboard clock can be calculated for SOAP Authentication. However some devices claiming ONVIF support require a password and the library will re-try the connection if a username and password are available.</p>
+<h3>getDeviceInformation(callback)</h3>
+<p><em>Device.</em> Returns a device information, such as manufacturer, model and firmware version in the callback</p>
+<h3>getServices(callback)</h3>
+<p><em>Device.</em> Returns in callback and assigns to <code>#services</code> property an array consists of objects with properties: <code>namespace</code>, <code>XAddr</code>, <code>version</code></p>
+<h3>getServiceCapabilities(callback)</h3>
+<p><em>Device.</em> Returns in callback and assigns to <code>#serviceCapabilities</code> property the capabilities of the device service (not media):
 network, security and system. If your device supports some auxiliary capabilities they will be there too.</p>
-<h3>getStreamUri(options, callback)</h3><p><em>Media.</em> Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
+<h3>getStreamUri(options, callback)</h3>
+<p><em>Media.</em> Returns a URI that can be used to initiate a live media stream using RTSP as the control protocol
 The options are:</p>
 <ul>
 <li><code>stream</code> (optional) - defines if a multicast or unicast stream is requested. Possible values are: 'RTP-Unicast' (default), 'RTP-Multicast'</li>
 <li><code>protocol</code> (optional) - defines the network protocol for streaming. Possible values are: 'UDP', 'TCP', 'RTSP' (default), 'HTTP'</li>
 <li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
 </ul>
-<h3>getSnapshotUri(options, callback)</h3><p><em>Media.</em> Obtain a JPEG snapshot URI from the device.</p>
-<h3>getPresets(options, callback)</h3><p>Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
+<h3>getSnapshotUri(options, callback)</h3>
+<p><em>Media.</em> Obtain a JPEG snapshot URI from the device.</p>
+<h3>getPresets(options, callback)</h3>
+<p>Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
 This method also stores the presets information in a <code>#presets</code> property of an object.</p>
 <p>The options are:</p>
 <ul>
 <li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
 </ul>
-<h3>gotoPreset(options, callback)</h3><p>Operation to go to a saved preset position for the PTZ node in the selected profile.</p>
+<h3>gotoPreset(options, callback)</h3>
+<p><em>PTZ.</em> Operation to go to a saved preset position for the PTZ node in the selected profile.</p>
 <p>The options are:</p>
 <ul>
 <li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
 <li><code>preset</code> - the name of preset. List of presets you can get by <code>#getPresets</code> method or in <code>#presets</code> property.</li>
 </ul>
-<h3>getNodes(callback)</h3><p><em>PTZ.</em> Returns the properties of the current PTZ node, if it exists.
+<h3>setPreset(options, callback)</h3>
+<p><em>PTZ.</em> Operation to set the current position as a preset for the PTZ node in the selected profile. If <code>presetToken</code> is passed as an option, then the preset for which that token is attached will be replaced. After success, you should re-fetch the presets with <code>#getPresets</code> method.</p>
+<p>The options are:</p>
+<ul>
+<li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
+<li><code>presetName</code> - the name to give to the preset. (optional) is this is a preset update.</li>
+</ul>
+<h3>removePreset(options, callback)</h3>
+<p><em>PTZ.</em> Operation to remove a preset specified by the preset token. After success, you should re-fetch the presets with <code>#getPresets</code> method.</p>
+<p>The options are:</p>
+<ul>
+<li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
+<li><code>presetToken</code> - the preset token to use for preset removal (this will be the <code>value</code> of a preset object found in <code>#presets</code> after calling the <code>#getPresets</code> method.</li>
+</ul>
+<h3>gotoHomePosition(options, callback)</h3>
+<p><em>PTZ.</em> Operation to go to the saved <code>home</code> position for the PTZ node in the selected profile. If no <code>home</code> position has been saved, the ONVIF camera will do nothing.</p>
+<p>The options are:</p>
+<ul>
+<li>
+<p><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></p>
+</li>
+<li>
+<p><code>speed</code> An object with properties</p>
+<ul>
+<li><code>x</code> Pan speed</li>
+<li><code>y</code> Tilt speed</li>
+<li><code>zoom</code> Zoom speed</li>
+</ul>
+<p>If the speed option is omitted, the default speed set by the PTZConfiguration will be used.</p>
+</li>
+</ul>
+<h3>setHomePosition(options, callback)</h3>
+<p><em>PTZ.</em> Operation to set the current position as the <code>home</code> position for the PTZ node in the selected profile.</p>
+<p>The options are:</p>
+<ul>
+<li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
+</ul>
+<h3>getNodes(callback)</h3>
+<p><em>PTZ.</em> Returns the properties of the current PTZ node, if it exists.
 Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus.
 Sets all information into <code>#nodes</code> property.</p>
-<h3>relativeMove(options, callback)</h3><p><em>PTZ.</em> This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.</p>
+<h3>relativeMove(options, callback)</h3>
+<p><em>PTZ.</em> This is a relative pan-tilt-zoom method. Options for this method is a delta between desired and current position of the camera.</p>
 <p>The options are:</p>
 <ul>
-<li><code>x</code> Pan, number or a string within -1 to 1, optional</li>
-<li><code>y</code> Tilt, number or a string within -1 to 1, optional</li>
-<li><code>zoom</code> Zoom, number or a string within -1 to 1, optional</li>
-<li><p><code>speed</code> An object with properties</p>
+<li>
+<p><code>x</code> Pan, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>y</code> Tilt, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>zoom</code> Zoom, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>speed</code> An object with properties</p>
 <ul>
 <li><code>x</code> Pan speed</li>
 <li><code>y</code> Tilt speed</li>
@@ -219,13 +335,21 @@ Sets all information into <code>#nodes</code> property.</p>
 </li>
 </ul>
 <p>Callback is optional and means essentially nothing</p>
-<h3>absoluteMove(options, callback)</h3><p><em>PTZ.</em> This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.</p>
+<h3>absoluteMove(options, callback)</h3>
+<p><em>PTZ.</em> This is an absolute pan-tilt-zoom method. Options for this method is an absolute position of the camera.</p>
 <p>The options are:</p>
 <ul>
-<li><code>x</code> Pan, number or a string within -1 to 1, optional</li>
-<li><code>y</code> Tilt, number or a string within -1 to 1, optional</li>
-<li><code>zoom</code> Zoom, number or a string within -1 to 1, optional</li>
-<li><p><code>speed</code> An object with properties</p>
+<li>
+<p><code>x</code> Pan, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>y</code> Tilt, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>zoom</code> Zoom, number or a string within -1 to 1, optional</p>
+</li>
+<li>
+<p><code>speed</code> An object with properties</p>
 <ul>
 <li><code>x</code> Pan speed</li>
 <li><code>y</code> Tilt speed</li>
@@ -235,7 +359,8 @@ Sets all information into <code>#nodes</code> property.</p>
 </li>
 </ul>
 <p>Callback is optional and means essentially nothing</p>
-<h3>continuousMove(options, callback)</h3><p>Operation for continuous Pan/Tilt and Zoom movements</p>
+<h3>continuousMove(options, callback)</h3>
+<p><em>PTZ.</em> Operation for continuous Pan/Tilt and Zoom movements</p>
 <p>The options are:</p>
 <ul>
 <li><code>x</code> Pan velocity, number or a string within -1 to 1, optional</li>
@@ -243,26 +368,33 @@ Sets all information into <code>#nodes</code> property.</p>
 <li><code>zoom</code> Zoom velocity, number or a string within -1 to 1, optional</li>
 <li><code>timeout</code> Timeout in milliseconds, number. If timeout is omitted, movement will continue until <code>stop</code> command</li>
 </ul>
-<h3>stop(options, callback)</h3><p><em>PTZ.</em> Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type</p>
+<h3>stop(options, callback)</h3>
+<p><em>PTZ.</em> Stop ongoing pan, tilt and zoom movements of absolute, relative and continuous type</p>
 <p>Options and callback are optional. The options properties are:</p>
 <ul>
 <li><code>profileToken</code> (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is <code>#activeSource.profileToken</code></li>
 <li><code>panTilt</code> (optional) - set true when we want to stop ongoing pan and tilt movements. If <code>panTilt</code> arguments are not present, this command stops these movements.</li>
 <li><code>zoom</code> (optional) - set true when we want to stop ongoing zoom movement. If <code>zoom</code> arguments are not present, this command stops ongoing zoom movement.</li>
 </ul>
-<h3>getStatus(options, callback)</h3><p><em>PTZ.</em> Returns an object with the current PTZ values.</p>
+<h3>getStatus(options, callback)</h3>
+<p><em>PTZ.</em> Returns an object with the current PTZ values.</p>
 <pre class="prettyprint source lang-javascript"><code>{
-    position: {
-        x: 'pan position'
-        , y: 'tilt position'
-        , zoom: 'zoom'
-    }
-    , moveStatus: {} // camera moving
-    , utcTime: 'current camera datetime'
-}</code></pre><h3>getConfigurations(callback)</h3><p><em>PTZ.</em> Get all the existing PTZConfigurations from the device. Configurations saved into <code>#configurations</code> property</p>
-<h3>getConfigurationOptions(configurationToken, callback)</h3><p><em>PTZ.</em> Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
+	position: {
+		x: 'pan position'
+		, y: 'tilt position'
+		, zoom: 'zoom'
+	}
+	, moveStatus: {} // camera moving
+	, utcTime: 'current camera datetime'
+}
+</code></pre>
+<h3>getConfigurations(callback)</h3>
+<p><em>PTZ.</em> Get all the existing PTZConfigurations from the device. Configurations saved into <code>#configurations</code> property</p>
+<h3>getConfigurationOptions(configurationToken, callback)</h3>
+<p><em>PTZ.</em> Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object</p>
-<h2>Supported methods</h2><ul>
+<h2>Supported methods</h2>
+<ul>
 <li>GetSystemDateAndTime</li>
 <li>GetCapabilities</li>
 <li>GetVideoSources</li>
@@ -284,21 +416,38 @@ configuration object</p>
 <li>GetHostname</li>
 <li>GetScopes</li>
 <li>SetScopes</li>
+<li>GetRecordings</li>
+<li>GetReplayUri</li>
 </ul>
-<h2>Changelog</h2><ul>
+<h2>Changelog</h2>
+<ul>
+<li>0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)</li>
+<li>0.6.1 Workaround for cams that don't send date-time</li>
+<li>0.6.0 Refactor modules for proper import in electron-based environment</li>
+<li>0.5.5 Added ptz.<code>gotoHomePosition</code>, ptz.<code>setHomePosition</code>. Fixed exceptions in ptz.<code>getConfigurations</code> and utils.<code>parseSOAPString</code>. Added tests for ptz.<code>setPreset</code>, ptz.<code>removePreset</code>, ptz.<code>gotoHomePosition</code>, and ptz.<code>setHomePosition</code>.</li>
+<li>0.5.4 Bumped for NPM.</li>
+<li>0.5.3 Some fixes. Tests</li>
+<li>0.5.2 <code>preserveAddress</code> property for NAT devices, discovery with multiple network interfaces (@Climax777)</li>
+<li>0.5.1 Critical bugfix in SOAP-auth for some cams</li>
+<li>0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support &gt;= 0.12</li>
+<li>0.4.2 Bugfixes</li>
+<li>0.4.1 Improved discovery (@sousandrei, @RogerHardiman)</li>
 <li>0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)</li>
 <li>0.3.1 EventEmitter-based events</li>
 <li>0.3.0 Refactoring, documentation, event service basics</li>
 <li>0.2.7 WS-Discovery</li>
 </ul>
-<h2>Links</h2><p>WSDL schemes and docs:</p>
+<h2>Links</h2>
+<p>WSDL schemes and docs:</p>
 <ul>
 <li><a href="http://www.onvif.org/onvif/ver20/util/operationIndex.html">Operations index</a></li>
 <li>http://www.onvif.org/onvif/ver10/tc/onvif_core_ver10.pdf</li>
 <li>http://www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl</li>
 <li>http://www.onvif.org/ver10/media/wsdl/media.wsdl</li>
 <li>http://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl</li>
-<li>http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf</li>
+<li>http://www.onvif.org/onvif/ver10/recording.wsdl</li>
+<li>http://www.onvif.org/onvif/ver10/replay.wsdl</li>
+<li><a href="http://www.onvif.org/Portals/0/documents/WhitePapers/ONVIF_WG-APG-Application_Programmer's_Guide.pdf">ONVIF Application Programmer's Guide</a></li>
 </ul></article>
     </section>
 
@@ -310,13 +459,13 @@ configuration object</p>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:connect">connect</a></li><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawRequest">rawRequest</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#matchXAddr">matchXAddr</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Mar 13 2022 15:47:52 GMT+0300 (Moscow Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

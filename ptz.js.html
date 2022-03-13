@@ -32,416 +32,535 @@
  * @author Andrew D.Laptev &lt;a.d.laptev@gmail.com>
  * @licence MIT
  */
+module.exports = function(Cam) {
 
-const Cam = require('./cam').Cam
-	, extend = require('util')._extend
-	, linerase = require('./utils').linerase
-	, url = require('url')
-	;
+	const linerase = require('./utils').linerase;
+	const _get = require('lodash.get');
 
-/**
- * Receive cam presets
- * @param {object} [options]
- * @param {string} [options.profileToken]
- * @param [callback]
- */
-Cam.prototype.getPresets = function(options, callback) {
-	if (callback === undefined) { callback = options; options = {};	}
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) +'&lt;/ProfileToken>' +
-		'&lt;/GetPresets>' +
-		this._envelopeFooter()
-	}, function(err, data, xml) {
-		if (!err) {
-			this.presets = {};
-			var presets = linerase(data).getPresetsResponse.preset;
-			if (typeof presets !== 'undefined') {
-				if (!Array.isArray(presets)) {
-					presets = [presets];
-				}
-				presets.forEach(function(preset) {
-					this.presets[preset.name] = preset.$.token;
-				}.bind(this));
-			}
-		}
-		if (callback) {
-			callback.call(this, err, this.presets, xml);
-		}
-	}.bind(this));
-};
-
-/**
- * /PTZ/ Go to preset
- * @param {object} options
- * @param {string} [options.profileToken]
- * @param {string} options.preset PresetName from {@link Cam#presets} property
- * @param {function} callback
- */
-Cam.prototype.gotoPreset = function(options, callback) {
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
-			'&lt;PresetToken>' + options.preset + '&lt;/PresetToken>' +
-			(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
-		'&lt;/GotoPreset>' +
-		this._envelopeFooter()
-	}, callback.bind(this));
-};
-
-/**
- * @typedef {object} Cam~PTZStatus
- * @property {object} position
- * @property {number} position.x
- * @property {number} position.y
- * @property {number} position.zoom
- * @property {string} moveStatus
- * @property {?Error} error
- * @property {Date} utcTime
- */
-
-/**
- * @callback Cam~GetPTZStatusCallback
- * @property {?Error} error
- * @property {Cam~PTZStatus} status
- */
-
-/**
- * /PTZ/ Receive cam status
- * @param {Object} [options]
- * @param {string} [options.profileToken={@link Cam#activeSource.profileToken}]
- * @param {Cam~GetPTZStatusCallback} callback
- */
-Cam.prototype.getStatus = function(options, callback) {
-	if (callback === undefined) { callback = options; options = {};	}
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GetStatus xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) +'&lt;/ProfileToken>' +
-		'&lt;/GetStatus>' +
-		this._envelopeFooter()
-	}, function(err, data, xml) {
-		if (!err) {
-			var res = linerase(data).getStatusResponse.PTZStatus;
-			var status = {
-				position: {
-					x: res.position.panTilt.$.x
-					, y: res.position.panTilt.$.y
-					, zoom: res.position.zoom.$.x
-				}
-				, moveStatus: res.moveStatus
-				, error: res.error
-				, utcTime: res.utcTime
-			};
-		}
-		callback.call(this, err, err ? null : status, xml);
-	}.bind(this));
-};
-
-/**
- * /PTZ/ Returns the properties of the requested PTZ node, if it exists.
- * Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus
- * @param {Function} callback
- */
-Cam.prototype.getNodes = function(callback) {
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />' +
-		this._envelopeFooter()
-	}, function(err, data, xml) {
-		if (!err) {
-			var nodes = this.nodes = {};
-			data[0]['getNodesResponse'].forEach(function(ptzNode) {
-				nodes[ptzNode['PTZNode'][0].$.token] = linerase(ptzNode['PTZNode'][0]);
-				delete nodes[ptzNode['PTZNode'][0].$.token].$;
-			});
-		}
-		callback.call(this, err, nodes, xml);
-	}.bind(this));
-};
-
-/**
- * /PTZ/ Get an array with configuration names
- * @param {Function} callback
- */
-Cam.prototype.getConfigurations = function(callback) {
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GetConfigurations xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-		'&lt;/GetConfigurations>' +
-		this._envelopeFooter()
-	}, function(err, data, xml) {
-		if (!err) {
-			var configurations = {};
-			data[0]['getConfigurationsResponse'].forEach(function(configuration) {
-				configurations[configuration['PTZConfiguration'][0]['name']] = {
-					useCount: parseInt(configuration['PTZConfiguration'][0]['useCount'])
-					, nodeToken: configuration['PTZConfiguration'][0]['nodeToken'][0]
-					, defaultPTZSpeed: {
-						x: configuration['PTZConfiguration'][0]['defaultPTZSpeed'][0]['panTilt'][0].$.x
-						, y: configuration['PTZConfiguration'][0]['defaultPTZSpeed'][0]['panTilt'][0].$.y
-						, zoom: configuration['PTZConfiguration'][0]['defaultPTZSpeed'][0]['zoom'][0].$.x
+	/**
+	 * Receive cam presets
+	 * @param {object} [options]
+	 * @param {string} [options.profileToken]
+	 * @param [callback]
+	 */
+	Cam.prototype.getPresets = function(options, callback) {
+		if (callback === undefined) { callback = options; options = {};	}
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+			'&lt;/GetPresets>' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.presets = {};
+				var presets = linerase(data).getPresetsResponse.preset;
+				if (typeof presets !== 'undefined') {
+					if (!Array.isArray(presets)) {
+						presets = [presets];
 					}
-					, defaultPTZTimeout: configuration['PTZConfiguration'][0]['defaultPTZTimeout'][0]
+					presets.forEach(function(preset) {
+						this.presets[preset.name] = preset.$.token;
+					}.bind(this));
+				}
+			}
+			if (callback) {
+				callback.call(this, err, this.presets, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Go to preset
+	 * @param {object} options
+	 * @param {string} [options.profileToken]
+	 * @param {string} options.preset PresetName from {@link Cam#presets} property
+	 * @param {string} options.speed
+	 * @param {function} callback
+	 */
+	Cam.prototype.gotoPreset = function(options, callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				'&lt;PresetToken>' + options.preset + '&lt;/PresetToken>' +
+				(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
+			'&lt;/GotoPreset>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+	/**
+	 * /PTZ/ Set preset
+	 * @param {object} options
+	 * @param {string} [options.profileToken]
+	 * @param {string} options.presetName
+	 * @param {string} [options.presetToken]
+	 * @param {function} callback
+	 */
+	Cam.prototype.setPreset = function(options, callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+			'&lt;PresetName>' + options.presetName + '&lt;/PresetName>' +
+			(options.presetToken ? '&lt;PresetToken>' + options.presetToken + '&lt;/PresetToken>' : '') +
+			'&lt;/SetPreset>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+	/**
+	 * /PTZ/ Remove preset
+	 * @param {object} options
+	 * @param {string} [options.profileToken]
+	 * @param {string} options.presetToken
+	 * @param {function} callback
+	 */
+	Cam.prototype.removePreset = function(options,callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+			'&lt;PresetToken>' + options.presetToken + '&lt;/PresetToken>' +
+			'&lt;/RemovePreset>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Go to home position
+	 * @param {object} options
+	 * @param {string} [options.profileToken]
+	 * @param {object} [options.speed] If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
+	 * @param {number} [options.speed.x] Pan speed, float within 0 to 1
+	 * @param {number} [options.speed.y] Tilt speed, float within 0 to 1
+	 * @param {number} [options.speed.zoom] Zoom speed, float within 0 to 1
+	 * @param {function} callback
+	 */
+	Cam.prototype.gotoHomePosition = function(options, callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GotoHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
+			'&lt;/GotoHomePosition>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Set home position
+	 * @param {object} options
+	 * @param {string} [options.profileToken]
+	 * @param {function} callback
+	 */
+	Cam.prototype.setHomePosition = function(options, callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;SetHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+			'&lt;/SetHomePosition>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * @typedef {object} Cam~PTZStatus
+	 * @property {object} position
+	 * @property {number} position.x
+	 * @property {number} position.y
+	 * @property {number} position.zoom
+	 * @property {string} moveStatus
+	 * @property {?Error} error
+	 * @property {Date} utcTime
+	 */
+
+	/**
+	 * @callback Cam~GetPTZStatusCallback
+	 * @property {?Error} error
+	 * @property {Cam~PTZStatus} status
+	 */
+
+	/**
+	 * /PTZ/ Receive cam status
+	 * @param {Object} [options]
+	 * @param {string} [options.profileToken={@link Cam#activeSource.profileToken}]
+	 * @param {Cam~GetPTZStatusCallback} callback
+	 */
+	Cam.prototype.getStatus = function(options, callback) {
+		if (callback === undefined) { callback = options; options = {};	}
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GetStatus xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+			'&lt;/GetStatus>' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				// Some cameras have Pan/Tilt but no Zoom
+				var res = linerase(data).getStatusResponse.PTZStatus;
+				var status = {
+					position: {
+						x: _get(res, 'position.panTilt.$.x', 0)
+						, y: _get(res, 'position.panTilt.$.y', 0)
+						, zoom: _get(res, 'position.zoom.$.x', 0)
+					}
+					, moveStatus: res.moveStatus
+					, error: res.error
+					, utcTime: res.utcTime
 				};
-			});
-			this.configurations = configurations;
-		}
-		if (callback) {
-			callback.call(this, err, this.configurations, xml);
-		}
-	}.bind(this));
-};
+			}
+			callback.call(this, err, err ? null : status, xml);
+		}.bind(this));
+	};
 
-/**
- * /PTZ/ Get options for the PTZ configuration
- * @param {string} configurationToken
- * @param {Function} callback
- */
-Cam.prototype.getConfigurationOptions = function(configurationToken, callback) {
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;GetConfigurationOptions xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ConfigurationToken>' + configurationToken + '&lt;/ConfigurationToken>' +
-		'&lt;/GetConfigurationOptions>' +
-		this._envelopeFooter()
-	}, function(err, data, xml) {
-		var configOptions;
-		if (!err) {
-			var sp = data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['spaces'][0];
-			configOptions = {
-				ptzTimeout: {
-					min: data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['PTZTimeout'][0]['min']
-					, max: data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['PTZTimeout'][0]['max']
+	/**
+	 * /PTZ/ Returns the properties of the requested PTZ node, if it exists.
+	 * Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus
+	 * @param {Function} callback
+	 */
+	Cam.prototype.getNodes = function(callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				var nodes = this.nodes = {};
+				data[0]['getNodesResponse'].forEach(function(ptzNode) {
+					nodes[ptzNode['PTZNode'][0].$.token] = linerase(ptzNode['PTZNode'][0]);
+					delete nodes[ptzNode['PTZNode'][0].$.token].$;
+				});
+			}
+			callback.call(this, err, nodes, xml);
+		}.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Get an array with configuration names
+	 * @param {Function} callback
+	 */
+	Cam.prototype.getConfigurations = function(callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GetConfigurations xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+			'&lt;/GetConfigurations>' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				var configurations = {};
+				data[0]['getConfigurationsResponse'].forEach(function(configuration) {
+					var pTZConfiguration = configuration['PTZConfiguration'][0];
+					var name = pTZConfiguration['name'];
+					// some cameras have this as an array instead of a string
+					if (Array.isArray(name)) {
+						name = name[0];
+					}
+					configurations[name] = {};
+					configurations[name].useCount = parseInt(pTZConfiguration['useCount']);
+					if ('$' in pTZConfiguration) {
+						configurations[name].token = pTZConfiguration['$']['token'];
+					}
+					if ('nodeToken' in pTZConfiguration) {
+						configurations[name].nodeToken = pTZConfiguration['nodeToken'][0];
+					}
+					if ('defaultPTZSpeed' in pTZConfiguration) {
+						var defaultPTZSpeed = pTZConfiguration['defaultPTZSpeed'][0];
+						configurations[name].defaultPTZSpeed = {};
+						if ('panTilt' in defaultPTZSpeed) {
+							configurations[name].defaultPTZSpeed.x = defaultPTZSpeed['panTilt'][0].$.x;
+							configurations[name].defaultPTZSpeed.y = defaultPTZSpeed['panTilt'][0].$.y;
+						}
+						if ('zoom' in defaultPTZSpeed) {
+							configurations[name].defaultPTZSpeed.zoom = defaultPTZSpeed['zoom'][0].$.x;
+						}
+					}
+					if ('defaultPTZTimeout' in pTZConfiguration) {
+						configurations[name].defaultPTZTimeout = pTZConfiguration['defaultPTZTimeout'][0];
+					}
+					if ('panTiltLimits' in pTZConfiguration) {
+						configurations[name].panTiltLimits = {};
+						var panTiltLimits = pTZConfiguration['panTiltLimits'][0]['range'][0];
+						configurations[name].panTiltLimits.XRange = {};
+						configurations[name].panTiltLimits.XRange.min = panTiltLimits.XRange[0].min[0];
+						configurations[name].panTiltLimits.XRange.max = panTiltLimits.XRange[0].max[0];
+						configurations[name].panTiltLimits.YRange = {};
+						configurations[name].panTiltLimits.YRange.min = panTiltLimits.YRange[0].min[0];
+						configurations[name].panTiltLimits.YRange.max = panTiltLimits.YRange[0].max[0];
+					}
+					if ('zoomLimits' in pTZConfiguration) {
+						configurations[name].zoomLimits = {};
+						var zoomLimits = pTZConfiguration['zoomLimits'][0]['range'][0];
+						configurations[name].zoomLimits.XRange = {};
+						configurations[name].zoomLimits.XRange.min = zoomLimits.XRange[0].min[0];
+						configurations[name].zoomLimits.XRange.max = zoomLimits.XRange[0].max[0];
+					}
+				});
+				this.configurations = configurations;
+			}
+			if (callback) {
+				callback.call(this, err, this.configurations, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Get options for the PTZ configuration
+	 * @param {string} configurationToken
+	 * @param {Function} callback
+	 */
+	Cam.prototype.getConfigurationOptions = function(configurationToken, callback) {
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;GetConfigurationOptions xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ConfigurationToken>' + configurationToken + '&lt;/ConfigurationToken>' +
+			'&lt;/GetConfigurationOptions>' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			var configOptions;
+			if (!err) {
+				var sp = data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['spaces'][0];
+				configOptions = {
+					ptzTimeout: {
+						min: data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['PTZTimeout'][0]['min']
+						, max: data[0]['getConfigurationOptionsResponse'][0]['PTZConfigurationOptions'][0]['PTZTimeout'][0]['max']
+					}
+					, spaces: {
+						absolute: {
+							x: {
+								min: parseFloat(sp['absolutePanTiltPositionSpace'][0]['XRange'][0]['min'][0])
+								, max: parseFloat(sp['absolutePanTiltPositionSpace'][0]['XRange'][0]['max'][0])
+								, uri: sp['absolutePanTiltPositionSpace'][0]['URI']
+							}
+							, y: {
+								min: parseFloat(sp['absolutePanTiltPositionSpace'][0]['YRange'][0]['min'][0])
+								, max: parseFloat(sp['absolutePanTiltPositionSpace'][0]['YRange'][0]['max'][0])
+								, uri: sp['absolutePanTiltPositionSpace'][0]['URI']
+							}
+							, zoom: {
+								min: (sp.absoluteZoomPositionSpace) ? parseFloat(sp['absoluteZoomPositionSpace'][0]['XRange'][0]['min'][0]) : 0
+								, max: (sp.absoluteZoomPositionSpace) ? parseFloat(sp['absoluteZoomPositionSpace'][0]['XRange'][0]['max'][0]) : 0
+								, uri: (sp.absoluteZoomPositionSpace) ? sp['absoluteZoomPositionSpace'][0]['URI'] : ''
+							}
+						}
+						, relative: {
+							x: {
+								min: parseFloat(sp['relativePanTiltTranslationSpace'][0]['XRange'][0]['min'][0])
+								, max: parseFloat(sp['relativePanTiltTranslationSpace'][0]['XRange'][0]['max'][0])
+								, uri: sp['relativePanTiltTranslationSpace'][0]['URI']
+							}
+							, y: {
+								min: parseFloat(sp['relativePanTiltTranslationSpace'][0]['YRange'][0]['min'][0])
+								, max: parseFloat(sp['relativePanTiltTranslationSpace'][0]['YRange'][0]['max'][0])
+								, uri: sp['relativePanTiltTranslationSpace'][0]['URI']
+							}
+							, zoom: {
+								min: (sp.relativeZoomTranslationSpace) ? parseFloat(sp['relativeZoomTranslationSpace'][0]['XRange'][0]['min'][0]) : 0
+								, max: (sp.relativeZoomTranslationSpace) ? parseFloat(sp['relativeZoomTranslationSpace'][0]['XRange'][0]['max'][0]) : 0
+								, uri: (sp.relativeZoomTranslationSpace) ? sp['relativeZoomTranslationSpace'][0]['URI'] : ''
+							}
+						}
+						, continuous: {
+							x: {
+								min: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['XRange'][0]['min'][0])
+								, max: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['XRange'][0]['max'][0])
+								, uri: sp['continuousPanTiltVelocitySpace'][0]['URI']
+							}
+							, y: {
+								min: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['YRange'][0]['min'][0])
+								, max: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['YRange'][0]['max'][0])
+								, uri: sp['continuousPanTiltVelocitySpace'][0]['URI']
+							}
+							, zoom: {
+								min: (sp.continuousZoomVelocitySpace) ? parseFloat(sp['continuousZoomVelocitySpace'][0]['XRange'][0]['min'][0]) : 0
+								, max: (sp.continuousZoomVelocitySpace) ? parseFloat(sp['continuousZoomVelocitySpace'][0]['XRange'][0]['max'][0]) : 0
+								, uri: (sp.continuousZoomVelocitySpace) ? sp['continuousZoomVelocitySpace'][0]['URI'] : ''
+							}
+						}
+						, common: {
+							x: {
+								min: (sp.panTiltSpeedSpace) ? parseFloat(sp['panTiltSpeedSpace'][0]['XRange'][0]['min'][0]) : 0
+								, max: (sp.panTiltSpeedSpace) ? parseFloat(sp['panTiltSpeedSpace'][0]['XRange'][0]['max'][0]) : 0
+								, uri: (sp.panTiltSpeedSpace) ? sp['panTiltSpeedSpace'][0]['URI'] : ''
+							}
+							, zoom: {
+								min: (sp.zoomSpeedSpace) ? parseFloat(sp['zoomSpeedSpace'][0]['XRange'][0]['min'][0]) : 0
+								, max: (sp.zoomSpeedSpace) ? parseFloat(sp['zoomSpeedSpace'][0]['XRange'][0]['max'][0]) : 0
+								, uri: (sp.zoomSpeedSpace) ? sp['zoomSpeedSpace'][0]['URI'] : ''
+							}
+						}
+					}
+				};
+				if (this.configurations[configurationToken]) {
+					Object.assign(this.configurations[configurationToken], configOptions);
 				}
-				, spaces: {
-					absolute: {
-						x: {
-							min: parseFloat(sp['absolutePanTiltPositionSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['absolutePanTiltPositionSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['absolutePanTiltPositionSpace'][0]['URI']
-						}
-						, y: {
-							min: parseFloat(sp['absolutePanTiltPositionSpace'][0]['YRange'][0]['min'][0])
-							, max: parseFloat(sp['absolutePanTiltPositionSpace'][0]['YRange'][0]['max'][0])
-							, uri: sp['absolutePanTiltPositionSpace'][0]['URI']
-						}
-						, zoom: {
-							min: parseFloat(sp['absoluteZoomPositionSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['absoluteZoomPositionSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['absoluteZoomPositionSpace'][0]['URI']
-						}
-					}
-					, relative: {
-						x: {
-							min: parseFloat(sp['relativePanTiltTranslationSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['relativePanTiltTranslationSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['relativePanTiltTranslationSpace'][0]['URI']
-						}
-						, y: {
-							min: parseFloat(sp['relativePanTiltTranslationSpace'][0]['YRange'][0]['min'][0])
-							, max: parseFloat(sp['relativePanTiltTranslationSpace'][0]['YRange'][0]['max'][0])
-							, uri: sp['relativePanTiltTranslationSpace'][0]['URI']
-						}
-						, zoom: {
-							min: parseFloat(sp['relativeZoomTranslationSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['relativeZoomTranslationSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['relativeZoomTranslationSpace'][0]['URI']
-						}
-					}
-					, continuous: {
-						x: {
-							min: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['continuousPanTiltVelocitySpace'][0]['URI']
-						}
-						, y: {
-							min: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['YRange'][0]['min'][0])
-							, max: parseFloat(sp['continuousPanTiltVelocitySpace'][0]['YRange'][0]['max'][0])
-							, uri: sp['continuousPanTiltVelocitySpace'][0]['URI']
-						}
-						, zoom: {
-							min: parseFloat(sp['continuousZoomVelocitySpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['continuousZoomVelocitySpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['continuousZoomVelocitySpace'][0]['URI']
-						}
-					}
-					, common: {
-						x: {
-							min: parseFloat(sp['panTiltSpeedSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['panTiltSpeedSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['panTiltSpeedSpace'][0]['URI']
-						}
-						, zoom: {
-							min: parseFloat(sp['zoomSpeedSpace'][0]['XRange'][0]['min'][0])
-							, max: parseFloat(sp['zoomSpeedSpace'][0]['XRange'][0]['max'][0])
-							, uri: sp['zoomSpeedSpace'][0]['URI']
-						}
-					}
-				}
-			};
-			if (this.configurations[configurationToken]) {
-				extend(this.configurations[configurationToken], configOptions);
+			}
+			if (callback) {
+				callback.call(this, err, configOptions, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * /PTZ/ relative move
+	 * @param {object} options
+	 * @param {string} [options.profileToken=Cam#activeSource.profileToken]
+	 * @param {number} [options.x=0] Pan, float within -1 to 1
+	 * @param {number} [options.y=0] Tilt, float within -1 to 1
+	 * @param {number} [options.zoom=0] Zoom, float within 0 to 1
+	 * @param {object} [options.speed] If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
+	 * @param {number} [options.speed.x] Pan speed, float within 0 to 1
+	 * @param {number} [options.speed.y] Tilt speed, float within 0 to 1
+	 * @param {number} [options.speed.zoom] Zoom speed, float within 0 to 1
+	 * @param {Cam~RequestCallback} [callback]
+	 */
+	Cam.prototype.relativeMove = function(options, callback) {
+		callback = callback ? callback.bind(this) : function() {};
+		// Due to some glitches in testing cam forcibly set undefined move parameters to zero
+		options.x = options.x || 0;
+		options.y = options.y || 0;
+		options.zoom = options.zoom || 0;
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				'&lt;Translation>' +
+					this._panTiltZoomVectors(options) +
+				'&lt;/Translation>' +
+				(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
+			'&lt;/RelativeMove>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * /PTZ/ absolute move
+	 * @param {object} options
+	 * @param {string} [options.profileToken=Cam#activeSource.profileToken]
+	 * @param {number} [options.x] Pan, float within -1 to 1
+	 * @param {number} [options.y] Tilt, float within -1 to 1
+	 * @param {number} [options.zoom] Zoom, float within 0 to 1
+	 * @param {object} [options.speed] If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
+	 * @param {number} [options.speed.x] Pan speed, float within 0 to 1
+	 * @param {number} [options.speed.y] Tilt speed, float within 0 to 1
+	 * @param {number} [options.speed.zoom] Zoom speed, float within 0 to 1
+	 * @param {Cam~RequestCallback} [callback]
+	 */
+	Cam.prototype.absoluteMove = function(options, callback) {
+		callback = callback ? callback.bind(this) : function() {};
+		// Due to some glitches in testing cam forcibly set undefined move parameters to zero
+		options.x = options.x || 0;
+		options.y = options.y || 0;
+		options.zoom = options.zoom || 0;
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				'&lt;Position>' +
+					this._panTiltZoomVectors(options) +
+				'&lt;/Position>' +
+				(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
+			'&lt;/AbsoluteMove>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * /PTZ/ Operation for continuous Pan/Tilt and Zoom movements
+	 * @param options
+	 * @param {string} [options.profileToken=Cam#activeSource.profileToken]
+	 * @param {number} [options.x=0] pan velocity, float within 0 to 1
+	 * @param {number} [options.y=0] tilt velocity, float within 0 to 1
+	 * @param {number} [options.zoom=0] zoom velocity, float within 0 to 1
+	 * @param {boolean} [options.onlySendPanTilt] Only send the Pan and Tilt values in the ONVIF XML. Zoom not sent in the XML
+	 * @param {boolean} [options.onlySendZoom] Only send the Zoom values in the ONVIF XML. PanTilt not sent in the XML
+	 * Somy cameras do not accept X and Y and Zoom all at the same time
+	 * @param {number} [options.timeout=Infinity] timeout in milliseconds
+	 * @param {Cam~RequestCallback} callback
+	 */
+	Cam.prototype.continuousMove = function(options, callback) {
+		callback = callback ? callback.bind(this) : function() { };
+		// Due to some glitches in testing cam, forcibly set undefined move parameters to zero
+		options.x = options.x || 0;
+		options.y = options.y || 0;
+		options.zoom = options.zoom || 0;
+
+		// But there is one Sony camera that does not work when Pan and Tilt and Zoom all all sent at the same time. So add a workaround to only send Pan/Tilt OR only send Zoom in the ONVIF XML
+		if (options.onlySendPanTilt) {delete options.zoom;}
+		if (options.onlySendZoom) { delete options.x; delete options.y; }
+
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				'&lt;Velocity>' +
+					this._panTiltZoomVectors(options) +
+				'&lt;/Velocity>' +
+				(options.timeout ? '&lt;Timeout>PT' + (options.timeout / 1000) + 'S&lt;/Timeout>' : '') +
+			'&lt;/ContinuousMove>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
+
+	/**
+	 * Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
+	 * @param {object} [options]
+	 * @param {string} [options.profileToken]
+	 * @param {boolean|string} [options.panTilt]
+	 * @param {boolean|string} [options.zoom]
+	 * @param {Cam~RequestCallback} [callback]
+	 */
+	Cam.prototype.stop = function(options, callback) {
+		if (callback === undefined) {
+			switch (typeof options) {
+				case 'object': callback = function() {}; break;
+				case 'function': callback = options; options = {}; break;
+				default: callback = function() {}; options = {};
 			}
 		}
-		if (callback) {
-			callback.call(this, err, configOptions, xml);
-		}
-	}.bind(this));
-};
+		this._request({
+			service: 'ptz'
+			, body: this._envelopeHeader() +
+			'&lt;Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+				'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
+				(options.panTilt ? '&lt;PanTilt>' + options.panTilt + '&lt;/PanTilt>' : '') +
+				(options.zoom ? '&lt;Zoom>' + options.zoom + '&lt;/Zoom>' : '') +
+			'&lt;/Stop>' +
+			this._envelopeFooter()
+		}, callback.bind(this));
+	};
 
-/**
- * /PTZ/ relative move
- * @param {object} options
- * @param {string} [options.profileToken=Cam#activeSource.profileToken]
- * @param {number} [options.x=0] Pan, float within -1 to 1
- * @param {number} [options.y=0] Tilt, float within -1 to 1
- * @param {number} [options.zoom=0] Zoom, float within 0 to 1
- * @param {object} [options.speed] If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
- * @param {number} [options.speed.x] Pan speed, float within 0 to 1
- * @param {number} [options.speed.y] Tilt speed, float within 0 to 1
- * @param {number} [options.speed.zoom] Zoom speed, float within 0 to 1
- * @param {Cam~RequestCallback} [callback]
- */
-Cam.prototype.relativeMove = function(options, callback) {
-	callback = callback ? callback.bind(this) : function() {};
-	// Due to some glitches in testing cam forcibly set undefined move parameters to zero
-	options.x = options.x || 0;
-	options.y = options.y || 0;
-	options.zoom = options.zoom || 0;
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
-			'&lt;Translation>' +
-				this._panTiltZoomVectors(options) +
-			'&lt;/Translation>' +
-			(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
-		'&lt;/RelativeMove>' +
-		this._envelopeFooter()
-	}, callback.bind(this));
-};
-
-/**
- * /PTZ/ absolute move
- * @param {object} options
- * @param {string} [options.profileToken=Cam#activeSource.profileToken]
- * @param {number} [options.x] Pan, float within -1 to 1
- * @param {number} [options.y] Tilt, float within -1 to 1
- * @param {number} [options.zoom] Zoom, float within 0 to 1
- * @param {object} [options.speed] If the speed argument is omitted, the default speed set by the PTZConfiguration will be used.
- * @param {number} [options.speed.x] Pan speed, float within 0 to 1
- * @param {number} [options.speed.y] Tilt speed, float within 0 to 1
- * @param {number} [options.speed.zoom] Zoom speed, float within 0 to 1
- * @param {Cam~RequestCallback} [callback]
- */
-Cam.prototype.absoluteMove = function(options, callback) {
-	callback = callback ? callback.bind(this) : function() {};
-	// Due to some glitches in testing cam forcibly set undefined move parameters to zero
-	options.x = options.x || 0;
-	options.y = options.y || 0;
-	options.zoom = options.zoom || 0;
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
-			'&lt;Position>' +
-				this._panTiltZoomVectors(options) +
-			'&lt;/Position>' +
-			(options.speed ? '&lt;Speed>' + this._panTiltZoomVectors(options.speed) + '&lt;/Speed>' : '') +
-		'&lt;/AbsoluteMove>' +
-		this._envelopeFooter()
-	}, callback.bind(this));
-};
-
-/**
- * /PTZ/ Operation for continuous Pan/Tilt and Zoom movements
- * @param options
- * @param {string} [options.profileToken=Cam#activeSource.profileToken]
- * @param {number} [options.x=0] pan velocity, float within 0 to 1
- * @param {number} [options.y=0] tilt velocity, float within 0 to 1
- * @param {number} [options.zoom=0] zoom velocity, float within 0 to 1
- * @param {number} [options.timeout=Infinity] timeout in milliseconds
- * @param {Cam~RequestCallback} callback
- */
-Cam.prototype.continuousMove = function(options, callback) {
-	callback = callback ? callback.bind(this) : function() {};
-	// Due to some glitches in testing cam forcibly set undefined move parameters to zero
-	options.x = options.x || 0;
-	options.y = options.y || 0;
-	options.zoom = options.zoom || 0;
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
-			'&lt;Velocity>' +
-				this._panTiltZoomVectors(options) +
-			'&lt;/Velocity>' +
-			(options.timeout ? '&lt;Timeout>PT' + (options.timeout / 1000) + 'S&lt;/Timeout>' : '') +
-		'&lt;/ContinuousMove>' +
-		this._envelopeFooter()
-	}, callback.bind(this));
-};
-
-/**
- * Stop ongoing pan, tilt and zoom movements of absolute relative and continuous type
- * @param {object} [options]
- * @param {string} [options.profileToken]
- * @param {boolean|string} [options.panTilt]
- * @param {boolean|string} [options.zoom]
- * @param {Cam~RequestCallback} [callback]
- */
-Cam.prototype.stop = function(options, callback) {
-	if (callback === undefined) {
-		switch (typeof options) {
-			case 'object': callback = function() {}; break;
-			case 'function': callback = options; options = {}; break;
-			default: callback = function() {}; options = {};
-		}
-	}
-	this._request({
-		service: 'ptz'
-		, body: this._envelopeHeader() +
-		'&lt;Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
-			'&lt;ProfileToken>' + (options.profileToken || this.activeSource.profileToken) + '&lt;/ProfileToken>' +
-			(options.panTilt ? '&lt;PanTilt>' + options.panTilt + '&lt;/PanTilt>' : '') +
-			(options.zoom ? '&lt;Zoom>' + options.zoom + '&lt;/Zoom>' : '') +
-		'&lt;/Stop>' +
-		this._envelopeFooter()
-	}, callback.bind(this));
-};
-
-/**
- * Create ONVIF soap vector
- * @param [ptz.x]
- * @param [ptz.y]
- * @param [ptz.zoom]
- * @return {string}
- * @private
- */
-Cam.prototype._panTiltZoomVectors = function(ptz) {
-	return ptz
-		?
-	(ptz.x !== undefined &amp;&amp; ptz.y !== undefined
-		? '&lt;PanTilt x="' + ptz.x
-	+ '" y="' + ptz.y + '" xmlns="http://www.onvif.org/ver10/schema"/>'
-		: '') +
-	(ptz.zoom !== undefined
-		? '&lt;Zoom x="'
-	+ ptz.zoom + '" xmlns="http://www.onvif.org/ver10/schema"/>'
-		: '')
-		: '';
+	/**
+	 * Create ONVIF soap vector
+	 * @param [ptz.x]
+	 * @param [ptz.y]
+	 * @param [ptz.zoom]
+	 * @return {string}
+	 * @private
+	 */
+	Cam.prototype._panTiltZoomVectors = function(ptz) {
+		return ptz
+			?
+			(ptz.x !== undefined &amp;&amp; ptz.y !== undefined
+				? '&lt;PanTilt x="' + ptz.x + '" y="' + ptz.y + '" xmlns="http://www.onvif.org/ver10/schema"/>'
+				: '') +
+			(ptz.zoom !== undefined
+				? '&lt;Zoom x="' + ptz.zoom + '" xmlns="http://www.onvif.org/ver10/schema"/>'
+				: '')
+			: '';
+	};
 };
 </code></pre>
         </article>
@@ -453,13 +572,13 @@ Cam.prototype._panTiltZoomVectors = function(ptz) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery.html#event:device">device</a></li><li><a href="Discovery.html#event:error">error</a></li></ul><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery_.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:connect">connect</a></li><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawRequest">rawRequest</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#matchXAddr">matchXAddr</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a> on Sat Aug 01 2015 08:52:24 GMT+0300 (MSK)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Mar 13 2022 15:47:52 GMT+0300 (Moscow Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
