@@ -334,9 +334,9 @@ Callback is optional and means essentially nothing
 
 The options are:
 
-- `x` Pan velocity, number or a string within 0 to 1, optional
-- `y` Tilt velocity, number or a string within 0 to 1, optional
-- `zoom` Zoom velocity, number or a string within 0 to 1, optional
+- `x` Pan velocity, number or a string within -1 to 1, optional
+- `y` Tilt velocity, number or a string within -1 to 1, optional
+- `zoom` Zoom velocity, number or a string within -1 to 1, optional
 - `timeout` Timeout in milliseconds, number. If timeout is omitted, movement will continue until `stop` command
 
 ### stop(options, callback)
