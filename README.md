@@ -277,9 +277,9 @@ The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 * `speed` An object with properties
-  - `x` Pan speed
-  - `y` Tilt speed
-  - `zoom` Zoom speed
+  - `x` Pan speed, float within 0 to 1
+  - `y` Tilt speed, float within 0 to 1
+  - `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -302,11 +302,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -319,11 +319,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
