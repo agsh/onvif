@@ -1,23 +1,86 @@
 /**
  * NodeJS ONVIF Events
- * Receive Events using a PullPoint Subscription and display the events on screen
- * Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
- * and with HikVision (which uses a dynamically generated PullPoint URL)
+ * This code can run in two ways
+ * 1) Receive Events using a PullPoint Subscription and display the events on screen
+ *    Tested with Axis (which uses a fixed PullPoint URL with a SubscriberId in the XML)
+ *    and with HikVision (which uses a dynamically generated PullPoint URL)
+ *
+ * 2) Base Subscribe where we start a small HTTP Server on Port 8086, and tell the camera
+ *    to send new ONVIF Events to our mini HTTP server.
  *
  * Created by Roger Hardiman <opensource@rjh.org.uk>
  * 
- * (c) Roger Hardiman, RJH Technical Consultancy Ltd, November 2019
+ * (c) Roger Hardiman, RJH Technical Consultancy Ltd, November 2019, September 2021
  * Licenced under the MIT Open Source Licence
  *
  */
 
-let HOSTNAME = '192.168.1.16',
+let HOSTNAME = '192.168.1.15',
 	PORT = 80,
-	USERNAME = 'user',
+	USERNAME = 'admin',
 	PASSWORD = 'pass';
 
-let Cam = require('./lib/onvif').Cam;
+
+const EventMethodTypes = { PULL: "pull", SUBSCRIBE: "subscribe" }
+
+let EVENT_RECEIVER_IP_ADDRESS = '192.168.1.70'; // the IP Address and Port for a HTTP Server that the camera will send events to. Change this.
+let EVENT_RECEIVER_PORT = 8086;
+
+// PICK WHICH EVENT METHOD TOUSE
+// let EVENT_MODE = EventMethodTypes.PULL;     // <- PICK ONE
+let EVENT_MODE = EventMethodTypes.SUBSCRIBE;     // <- PICK ONE
+
+
+
+console.log("*******************************************************************************");
+console.log("** This example can switch between PullPoint and Base Subscribe modes");
+if (EVENT_MODE == EventMethodTypes.PULL) {
+	console.log("** The library will poll for events using a WS-Pull Point Subscription");
+}
+if (EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+	console.log("** The camera will be told to send ONVIF Events to " + EVENT_RECEIVER_IP_ADDRESS + ":" + EVENT_RECEIVER_PORT);
+}
+console.log("*******************************************************************************");
+
+
+let Cam = require('../lib/onvif').Cam;
 let flow = require('nimble');
+
+let http = require('http');
+let server = null;
+
+if (EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+	// Create a HTTP Server to receive Events
+        server = http.createServer(function(request, response) {
+	let body = '';
+	request.on('data', chunk => {
+		body += chunk;
+	})
+	request.on('end', () => {
+		//end of data
+		if (request.method == "POST") {
+			console.log('HTTP POST Message received on ' + request.url);
+			console.log(body);
+			console.log('');
+			response.writeHead(200, { "Content-Type": "text\plain" });
+			response.end("received POST request.");
+			return;
+		}
+		else {
+			console.log('Unexpected connect to HTTP Server to ' + request.url);
+			response.writeHead(200, { "Content-Type": "text\plain" });
+			response.end("Undefined request .");
+			return;
+		}
+	})
+
+  });
+
+  server.listen(EVENT_RECEIVER_PORT);
+  console.log("Server running on port " + EVENT_RECEIVER_PORT);
+}
+
+
 
 new Cam({
 	hostname: HOSTNAME,
@@ -61,18 +124,24 @@ new Cam({
 				if (err) {
 					console.log(err);
 				}
+				if (data.events) hasEvents = true;
+
+				/*
+				// Unexpected results trying to parse details of the events capabilities
+
 				if (!err && data.events && data.events.WSPullPointSupport && data.events.WSPullPointSupport == true) {
 					console.log('Camera supports WSPullPoint');
-					hasEvents = true;
+					hasPullPointEvents = true;
 				} else {
 					console.log('Camera does not show WSPullPoint support, but trying anyway');
 					// Have an Axis cameras that says False to WSPullPointSuppor but supports it anyway
-					hasEvents = true; // Hack for Axis cameras
+					hasPullPointEvents = true; // Hack for Axis cameras
 				}
 
-				if (hasEvents == false) {
+				if (hasPullPointEvents == false) {
 					console.log('This camera/NVT does not support PullPoint Events');
 				}
+				*/
 				callback();
 			})
 		},
@@ -118,7 +187,26 @@ new Cam({
 			}
 		},
 		function(callback) {
-			if (hasEvents && hasTopics) {
+			if (hasEvents && hasTopics && EVENT_MODE == EventMethodTypes.SUBSCRIBE) {
+				let uniqueID = 1001; // would increment this for every cam_obj object. It is used in the HTTP address sent to the LISTEN_PORT
+
+				let receveUrl = "http://" + EVENT_RECEIVER_IP_ADDRESS + ":" + EVENT_RECEIVER_PORT + "/events/" + uniqueID
+				cam_obj.subscribe(
+					{
+						url: receveUrl
+					},
+					(err, subscription, xml) => {
+						console.log('Subscribed to events')
+					}
+				);
+
+				// Events will now be received on the EVENT_RECEIVER HTTP Server
+			}
+
+			if (hasEvents && hasTopics && EVENT_MODE == EventMethodTypes.PULL) {
+
+				// register for 'event' events. This causes the library to ask the camera for Pull Events
+
 				cam_obj.on('event', (camMessage, xml) => {
 
 					// Extract Event Details
@@ -136,8 +224,8 @@ new Cam({
 					//    - Message/Message/Data/SimpleItem/[index]/$/value   (array of items)
 					// OR - Message/Message/Data/SimpleItem/$/value   (single item)
 
-                    let eventTopic = camMessage.topic._
-                    eventTopic = stripNamespaces(eventTopic)
+					let eventTopic = camMessage.topic._
+					eventTopic = stripNamespaces(eventTopic)
 
 					let eventTime = camMessage.message.message.$.UtcTime;
 
@@ -155,22 +243,22 @@ new Cam({
 					if (camMessage.message.message.source && camMessage.message.message.source.simpleItem) {
 						if (Array.isArray(camMessage.message.message.source.simpleItem)) {
 							sourceName = camMessage.message.message.source.simpleItem[0].$.Name
-                            sourceValue = camMessage.message.message.source.simpleItem[0].$.Value
-                            console.log("WARNING: Only processing first Event Source item")
+							sourceValue = camMessage.message.message.source.simpleItem[0].$.Value
+							console.log("WARNING: Only processing first Event Source item")
 						} else {
 							sourceName = camMessage.message.message.source.simpleItem.$.Name
 							sourceValue = camMessage.message.message.source.simpleItem.$.Value
 						}
 					} else {
-                        sourceName = null
-                        sourceValue = null
-                        console.log("WARNING: Source does not contain a simpleItem")
-                    }
+						sourceName = null
+						sourceValue = null
+						console.log("WARNING: Source does not contain a simpleItem")
+					}
                     
-                    //KEY
-                    if (camMessage.message.message.key) {
-                        console.log('NOTE: Event has a Key')
-                    }
+					//KEY
+					if (camMessage.message.message.key) {
+						console.log('NOTE: Event has a Key')
+					}
 
 					// DATA (Name:Value)
 					if (camMessage.message.message.data && camMessage.message.message.data.simpleItem) {
@@ -206,26 +294,26 @@ new Cam({
 
 // Code completes here but the applications remains running as there is a OnEvent listener that is active
 
-// UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
+// UNCOMMENT THIS LINE TO STOP AFTER 5 SECONDS...   setTimeout(()=>{cam_obj.removeAllListeners('event');},5000);
 
 
 
 function stripNamespaces(topic) {
-    // example input :-   tns1:MediaControl/tnsavg:ConfigurationUpdateAudioEncCfg 
-    // Split on '/'
-    // For each part, remove any namespace
-    // Recombine parts that were split with '/'
-    let output = '';
-    let parts = topic.split('/')
-    for (let index = 0; index < parts.length; index++) {
-        let stringNoNamespace = parts[index].split(':').pop() // split on :, then return the last item in the array
-        if (output.length == 0) {
-            output += stringNoNamespace
-        } else {
-            output += '/' + stringNoNamespace
-        }
-    }
-    return output
+	// example input :-   tns1:MediaControl/tnsavg:ConfigurationUpdateAudioEncCfg 
+	// Split on '/'
+	// For each part, remove any namespace
+	// Recombine parts that were split with '/'
+	let output = '';
+	let parts = topic.split('/')
+	for (let index = 0; index < parts.length; index++) {
+		let stringNoNamespace = parts[index].split(':').pop() // split on :, then return the last item in the array
+		if (output.length == 0) {
+			output += stringNoNamespace
+		} else {
+			output += '/' + stringNoNamespace
+		}
+	}
+	return output
 }
 
 function processEvent(eventTime,eventTopic,eventProperty,sourceName,sourceValue,dataName,dataValue) {

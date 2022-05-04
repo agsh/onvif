@@ -5,6 +5,7 @@
     "mocha": true
   },
   "rules": {
+    "node/no-deprecated-api": 0,
     "no-console": 0,
     "no-param-reassign": 0,
     "no-unused-vars": [
@@ -58,10 +59,6 @@
         "afterColon": true
       }
     ],
-    "linebreak-style": [
-      2,
-      "unix"
-    ],
     "indent": [
       2,
       "tab",
@@ -75,6 +72,7 @@
       {
         "properties": "never"
       }
-    ]
+    ],
+    "semi": "error"
   }
 }

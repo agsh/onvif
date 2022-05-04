@@ -12,7 +12,7 @@ It will also allow you to get information about your NVR (network video recorder
 
 The library uses NodeJS.
 
-[![ONVIF](http://www.onvif.org/Portals/_default/Skins/onvif/images/logo-new.jpg)](http://onvif.org)
+[![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
 ## Installation
 
@@ -64,14 +64,17 @@ new Cam({
 });
 ```
 
-## Other examples
-* example2.js takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model.
+## Other examples (located in the Examples Folder on the Github)
+* example.js - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
+* example2.js - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
 For Profile S Cameras and Encoders it displays the default RTSP address
 For Profile G Recorders it displays the RTSP address of the first recording
-
-
-* example3.js reads the command line cursor keys and sends PTZ commands to the Camera
-
+* example3.js - reads the command line cursor keys and sends PTZ commands to the Camera
+* example4.js - uses Discovery to find cameras on the local network 
+* example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
+* example6.js - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
+* example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
+* example8.js - example setting OSD On Screen Display. (also uses Promises API)
 
 ## Troubleshooting
 Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
@@ -87,24 +90,38 @@ Short description of library possibilities is below.
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can find devices in your subnetwork using `probe` method of the Discovery singleton.
 Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
+You must subscribe to the `error` event as a device on your network could reply with bad XML
 Here some examples:
 
 ```js
 var onvif = require('onvif');
 onvif.Discovery.on('device', function(cam){
-// function will be called as soon as NVT responses
+// function will be called as soon as NVT responds
 	cam.username = <USERNAME>;
 	cam.password = <PASSWORD>;
 	cam.connect(console.log);
 })
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  // function called as soon as NVT responds, but this library could not parse the response
+  console.log('Discovery error ' + err);
+});
 onvif.Discovery.probe();
 ```
 
 ```js
 var onvif = require('onvif');
+// Must have an error handler to catch bad replies from the network
+onvif.Discovery.on('error', function (err,xml) {
+  console.log('Discovery error ' + err);
+});
 onvif.Discovery.probe(function(err, cams) {
 // function will be called only after timeout (5 sec by default)
-	if (err) { throw err; }
+	if (err) { 
+    // There is a device on the network returning bad discovery data
+    // Probe results will be incomplete
+    throw err;
+  }
 	cams.forEach(function(cam) {
 		cam.username = <USERNAME>;
 		cam.password = <PASSWORD>;
@@ -198,11 +215,10 @@ There are several common methods that work without credentials. Here are they: `
 
 ### getSystemDateAndTime(callback)
 Returns a Date object with current camera datetime in the callback.
-Works without credentials (passed `username` and `password` arguments).
+The ONVIF Standard says this would work without credentials (passed `username` and `password` arguments) so that the timeShift difference between the local clock and the NVT's onboard clock can be calculated for SOAP Authentication. However some devices claiming ONVIF support require a password and the library will re-try the connection if a username and password are available.
 
 ### getDeviceInformation(callback)
 *Device.* Returns a device information, such as manufacturer, model and firmware version in the callback
-Works without credentials (passed `username` and `password` arguments).
 
 ### getServices(callback)
 *Device.* Returns in callback and assigns to `#services` property an array consists of objects with properties: `namespace`, `XAddr`, `version`
@@ -261,9 +277,9 @@ The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 * `speed` An object with properties
-  - `x` Pan speed
-  - `y` Tilt speed
-  - `zoom` Zoom speed
+  - `x` Pan speed, float within 0 to 1
+  - `y` Tilt speed, float within 0 to 1
+  - `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -286,11 +302,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -303,11 +319,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -379,6 +395,7 @@ configuration object
 * GetReplayUri
 
 ## Changelog
+- 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
 - 0.6.1 Workaround for cams that don't send date-time
 - 0.6.0 Refactor modules for proper import in electron-based environment
 - 0.5.5 Added ptz.`gotoHomePosition`, ptz.`setHomePosition`. Fixed exceptions in ptz.`getConfigurations` and utils.`parseSOAPString`. Added tests for ptz.`setPreset`, ptz.`removePreset`, ptz.`gotoHomePosition`, and ptz.`setHomePosition`.
