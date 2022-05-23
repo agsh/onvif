@@ -82,7 +82,7 @@ camera to me.
 
 # API
 
-This page and API class documentation you can found here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/)
+## You can find this page and full API class documentation here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/) ##
 
 Short description of library possibilities is below.
 
