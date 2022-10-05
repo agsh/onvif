@@ -261,9 +261,9 @@ export interface DeviceCapabilities {
 export interface AnalyticsCapabilities {
   /** Analytics service URI */
   XAddr: string;
-  /** Indicates whether or not rules are supported */
+  /** Indicates whether rules are supported */
   ruleSupport: boolean;
-  /** Indicates whether or not modules are supported */
+  /** Indicates whether modules are supported */
   analyticsModuleSupport: boolean;
 }
 
