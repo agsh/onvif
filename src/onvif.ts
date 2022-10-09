@@ -82,6 +82,13 @@ export interface ActiveSource {
   };
 }
 
+export interface SetSystemDateAndTimeOptions {
+  dateTime?: Date;
+  dateTimeType: 'Manual' | 'NTP';
+  daylightSavings?: boolean;
+  timezone?: string;
+}
+
 export class Onvif extends EventEmitter {
   /**
    * Indicates raw xml request to device.
@@ -181,6 +188,7 @@ export class Onvif extends EventEmitter {
       }
     });
     if (options.autoConnect) {
+      console.log('AUTOCONNN');
       setImmediate(() => {
         this.connect().catch((error) => this.emit('error', error));
       });
@@ -398,6 +406,48 @@ export class Onvif extends EventEmitter {
     }
   }
 
+  async setSystemDateAndTime(options: SetSystemDateAndTimeOptions) {
+    if (!['Manual', 'NTP'].includes(options.dateTimeType)) {
+      throw new Error('DateTimeType should be `Manual` or `NTP`');
+    }
+    const [data] = await this.request({
+      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
+      body :
+        '<SetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl">'
+        + `<DateTimeType>${
+          options.dateTimeType
+        }</DateTimeType>`
+        + `<DaylightSavings>${
+          !!options.daylightSavings
+        }</DaylightSavings>${
+          options.timezone !== undefined
+            ? '<TimeZone>'
+          + `<TZ xmlns="http://www.onvif.org/ver10/schema">${
+            options.timezone
+          }</TZ>`
+          + '</TimeZone>' : ''
+        }${options.dateTime !== undefined && options.dateTime instanceof Date
+          ? '<UTCDateTime>'
+          + '<Time xmlns="http://www.onvif.org/ver10/schema">'
+          + `<Hour>${options.dateTime.getUTCHours()}</Hour>`
+          + `<Minute>${options.dateTime.getUTCMinutes()}</Minute>`
+          + `<Second>${options.dateTime.getUTCSeconds()}</Second>`
+          + '</Time>'
+          + '<Date xmlns="http://www.onvif.org/ver10/schema">'
+          + `<Year>${options.dateTime.getUTCFullYear()}</Year>`
+          + `<Month>${options.dateTime.getUTCMonth() + 1}</Month>`
+          + `<Day>${options.dateTime.getUTCDate()}</Day>`
+          + '</Date>'
+          + '</UTCDateTime>' : ''
+        }</SetSystemDateAndTime>`,
+    });
+    if (linerase(data).setSystemDateAndTimeResponse !== '') {
+      throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
+    }
+    // get new system time from device
+    return this.getSystemDateAndTime();
+  }
+
   /**
    * Check and find out video configuration for device
    * @private
@@ -460,6 +510,7 @@ export class Onvif extends EventEmitter {
    */
   async connect() {
     await this.getSystemDateAndTime();
+    // Try to get services (new approach). If not, get capabilities
     try {
       await this.device.getServices();
     } catch (error) {
