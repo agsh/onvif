@@ -85,23 +85,16 @@ describe('Common functions', () => {
 			const oldTimeout = cam.timeout;
 			cam.hostname = '10.255.255.1';
 			cam.timeout = 500;
-			console.time('a');
 			cam._request({body : 'timeout'}, (err) => {
 				assert.notStrictEqual(err, null);
 				cam.timeout = oldTimeout;
 				cam.hostname = host;
-				console.timeEnd('a');
 				done();
 			});
 		});
 		it('should work nice with the proper request body', (done) => {
 			cam._request({
-				body : '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
-					'<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
-					'<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' +
-					'</s:Body>' +
-					'</s:Envelope>'
-			}
+				body : '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>'}
 			, (err) => {
 				assert.strictEqual(err, null);
 				done();
