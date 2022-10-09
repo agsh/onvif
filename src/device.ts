@@ -1,5 +1,5 @@
 import url from 'url';
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif, OnvifServices, SetSystemDateAndTimeOptions } from './onvif';
 import { linerase } from './utils';
 
 export interface OnvifService {
@@ -293,7 +293,7 @@ interface HostnameInformation {
  */
 export class Device {
   private readonly onvif: Onvif;
-  private services: OnvifService[] = [];
+  public services: OnvifService[] = [];
   public media2Support = false;
 
   constructor(onvif: Onvif) {
@@ -302,6 +302,10 @@ export class Device {
 
   getSystemDateAndTime() {
     return this.onvif.getSystemDateAndTime();
+  }
+
+  setSystemDateAndTime(options: SetSystemDateAndTimeOptions) {
+    return this.onvif.setSystemDateAndTime(options);
   }
 
   /**

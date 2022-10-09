@@ -3,7 +3,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Onvif, OnvifRequestOptions } from '../onvif';
+import { Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions } from '../onvif';
 
 type Callback = (error: any, result?: any) => void;
 
@@ -20,41 +20,36 @@ export class Cam extends EventEmitter {
     }
   }
 
-  get port() {
-    return this.onvif.port;
-  }
-
-  get path() {
-    return this.onvif.path;
-  }
-
-  set hostname(name: string) {
-    this.onvif.hostname = name;
-  }
-
-  set timeout(time: number) {
-    this.onvif.timeout = time;
-  }
-
-  get timeout() {
-    return this.onvif.timeout;
-  }
+  get port() { return this.onvif.port; }
+  get path() { return this.onvif.path; }
+  set hostname(name: string) { this.onvif.hostname = name; }
+  set timeout(time: number) { this.onvif.timeout = time; }
+  get timeout() { return this.onvif.timeout; }
+  get services() { return this.onvif.device.services; }
+  get capabilities() { return this.onvif.capabilities; }
+  get uri() { return this.onvif.uri; }
+  get videoSources() { return this.onvif.media.videoSources; }
+  get profiles() { return this.onvif.media.profiles; }
+  get defaultProfile() { return this.onvif.defaultProfile; }
+  get defaultProfiles() { return this.onvif.defaultProfiles; }
+  get activeSource() { return this.onvif.activeSource; }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
   }
 
   _request(options: OnvifRequestOptions, callback: Callback) {
-    console.log('what?');
     if (typeof callback !== 'function') {
       throw new Error('`callback` must be a function');
     }
-    this.onvif.request(options).then((result) => {
-      console.log(result);
-      callback(null, result);
-    }).catch((error) => {
-      console.error(error);
-      callback(error);
-    });
+    this.onvif.request(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  getSystemDateAndTime(callback: Callback) {
+    this.onvif.device.getSystemDateAndTime().then((result) => callback(null, result)).catch(callback);
+  }
+
+  setSystemDateAndTime(value: SetSystemDateAndTimeOptions, callback: Callback) {
+    this.onvif.device.setSystemDateAndTime(value).then((result) => callback(null, result)).catch(callback);
   }
 }
