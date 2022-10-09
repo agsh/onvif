@@ -182,7 +182,7 @@ export class Onvif extends EventEmitter {
     });
     if (options.autoConnect) {
       setImmediate(() => {
-        this.connect();
+        this.connect().catch((error) => this.emit('error', error));
       });
     }
   }
@@ -260,9 +260,10 @@ export class Onvif extends EventEmitter {
   private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
-      let requestOptions = {
+      const requestOptions = {
         ...options,
-        path : options.service
+        hostname : this.hostname,
+        path     : options.service
           ? (this.uri[options.service] ? this.uri[options.service]?.pathname : options.service)
           : this.path,
         port    : this.port,
@@ -276,7 +277,9 @@ export class Onvif extends EventEmitter {
       };
       requestOptions.method = 'POST';
       const httpLibrary = this.useSecure ? https : http;
-      requestOptions = this.useSecure ? { ...requestOptions, ...this.secureOptions } : requestOptions;
+      if (this.useSecure) {
+        Object.assign(requestOptions, this.secureOptions);
+      }
       const request = httpLibrary.request(requestOptions, (response) => {
         const bufs: Buffer[] = [];
         let length = 0;
@@ -334,6 +337,9 @@ export class Onvif extends EventEmitter {
   }
 
   public request(options: OnvifRequestOptions) {
+    if (!options.body) {
+      throw new Error("There is no 'body' field in request options");
+    }
     return this.rawRequest({
       ...options,
       body : `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
