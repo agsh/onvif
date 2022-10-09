@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope                             >
+        <SOAP-ENV:Header>
+                <wsse:Security>
+                        <wsse:UsernameToken>
+                                <wsse:Username>admin</wsse:Username>
+                                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">BxkG1geIeWjMviA+YKXixp8Y65E=</wsse:Password>
+                                <wsse:Nonce>oOTVCIjclqetvCsrxDzFAw==</wsse:Nonce>
+                                <wsu:Created>2001-04-13T10:18:34.295Z</wsu:Created>
+                        </wsse:UsernameToken>
+                </wsse:Security>
+        </SOAP-ENV:Header>
+        <SOAP-ENV:Body>
+                <trt:GetAudioEncoderConfigurationOptionsResponse>
+                        <trt:Options>
+                            <tt:Encoding>
+                                G711
+                            </tt:Encoding>
+                            <tt:BitrateList>
+                                <tt:List>5</tt:List>
+                                <tt:List>10</tt:List>
+                                <tt:List>15</tt:List>
+                            </tt:BitrateList>
+                            <tt:SampleRateList>
+                                <tt:List>5</tt:List>
+                                <tt:List>10</tt:List>
+                                <tt:List>15</tt:List>
+                            </tt:SampleRateList>                                
+                        </trt:Options>
+                </trt:GetAudioEncoderConfigurationOptionsResponse>
+        </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

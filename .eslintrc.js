@@ -35,8 +35,9 @@ module.exports = {
     'prettier',
   ],
   env : {
-    node : true,
-    jest : true,
+    node  : true,
+    jest  : true,
+    mocha : true,
   },
   rules : commonRules,
 
