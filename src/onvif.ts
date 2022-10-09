@@ -188,7 +188,6 @@ export class Onvif extends EventEmitter {
       }
     });
     if (options.autoConnect) {
-      console.log('AUTOCONNN');
       setImmediate(() => {
         this.connect().catch((error) => this.emit('error', error));
       });
@@ -405,7 +404,9 @@ export class Onvif extends EventEmitter {
       throw error;
     }
   }
-
+  /**
+   * Set the device system date and time
+   */
   async setSystemDateAndTime(options: SetSystemDateAndTimeOptions) {
     if (!['Manual', 'NTP'].includes(options.dateTimeType)) {
       throw new Error('DateTimeType should be `Manual` or `NTP`');

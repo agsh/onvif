@@ -33,6 +33,7 @@ export class Cam extends EventEmitter {
   get defaultProfile() { return this.onvif.defaultProfile; }
   get defaultProfiles() { return this.onvif.defaultProfiles; }
   get activeSource() { return this.onvif.activeSource; }
+  get serviceCapabilities() { return this.onvif.device.serviceCapabilities; }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
@@ -51,5 +52,25 @@ export class Cam extends EventEmitter {
 
   setSystemDateAndTime(value: SetSystemDateAndTimeOptions, callback: Callback) {
     this.onvif.device.setSystemDateAndTime(value).then((result) => callback(null, result)).catch(callback);
+  }
+
+  getHostname(callback: Callback) {
+    this.onvif.device.getHostname().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getScopes(callback: Callback) {
+    this.onvif.device.getScopes().then((result) => callback(null, result)).catch(callback);
+  }
+
+  setScopes(value: string[], callback: Callback) {
+    this.onvif.device.setScopes(value).then((result) => callback(null, result)).catch(callback);
+  }
+
+  getCapabilities(callback: Callback) {
+    this.onvif.device.getCapabilities().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getServiceCapabilities(callback: Callback) {
+    this.onvif.device.getServiceCapabilities().then((result) => callback(null, result)).catch(callback);
   }
 }

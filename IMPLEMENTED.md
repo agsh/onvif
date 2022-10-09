@@ -9,7 +9,7 @@
 - [x] preserveAddress
 - [x] profiles
 - [ ] recordingItem
-- [ ] scopes
+- [x] scopes
 - [x] services
 - [x] uri
 - [x] videoSources
@@ -59,7 +59,7 @@
 - [ ] getRecordings
 - [ ] getReplayUri
 - [ ] getScopes
-- [ ] getServiceCapabilities
+- [x] getServiceCapabilities
 - [x] getServices
 - [ ] getSnapshotUri
 - [ ] getStatus
@@ -90,8 +90,8 @@
 - [ ] setNTP
 - [ ] setOSD
 - [ ] setPreset
-- [ ] setScopes
-- [ ] setSystemDateAndTime
+- [x] setScopes
+- [x] setSystemDateAndTime
 - [ ] setSystemFactoryDefault
 - [ ] setUsers
 - [ ] setVideoEncoderConfiguration

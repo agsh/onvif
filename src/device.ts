@@ -39,6 +39,16 @@ export interface NetworkCapabilities {
   IPVersion6?: boolean;
   /** Indicates support for dynamic DNS configuration */
   dynDNS?: boolean;
+  /** Indicates support for IEEE 802.11 configuration */
+  dot11Configuration?: boolean;
+  /** Indicates the maximum number of Dot1X configurations supported by the device */
+  dot1XConfigurations?: number;
+  /** Indicates support for retrieval of hostname from DHCP */
+  hostnameFromDHCP?: boolean;
+  /** Maximum number of NTP servers supported by the devices SetNTP command */
+  NTP: number;
+  /** Indicates support for Stateful IPv6 DHCP */
+  DHCPv6: boolean;
   extension: NetworkCapabilitiesExtension;
 }
 
@@ -72,6 +82,26 @@ export interface SystemCapabilities {
   httpSystemLogging?: boolean;
   /** Indicates supported ONVIF version(s) */
   supportedVersions: OnvifVersion;
+  /** Indicates support for retrieving support information through HTTP */
+  httpSupportInformation?: boolean;
+  /** Indicates support for storage configuration interfaces */
+  storageConfiguration?: boolean;
+  /** Indicates maximum number of storage configurations supported */
+  maxStorageConfigurations?: number;
+  /** If present signals support for geo location. The value signals the supported number of entries */
+  geoLocationEntries?: number;
+  /** List of supported automatic GeoLocation adjustment supported by the device. Valid items are defined by tds:AutoGeoMode */
+  autoGeo?: string[];
+  /** Enumerates the supported StorageTypes, see tds:StorageType */
+  storageTypesSupported?: string[];
+  /** Indicates no support for network discovery */
+  discoveryNotSupported?: boolean;
+  /** Indicates no support for network configuration */
+  networkConfigNotSupported?: boolean;
+  /** Indicates no support for user configuration */
+  userConfigNotSupported?: boolean;
+  /** List of supported Addons by the device */
+  addons?: string[];
   extensions?: SystemCapabilitiesExtension;
 }
 
@@ -105,6 +135,8 @@ export interface SecurityCapabilitiesExtension {
 /** Security capabilities */
 export interface SecurityCapabilities {
   /** Indicates support for TLS 1.1 */
+  'TLS1.0'?: boolean;
+  /** Indicates support for TLS 1.1 */
   'TLS1.1': boolean;
   /** Indicates support for TLS 1.2 */
   'TLS1.2': boolean;
@@ -112,14 +144,36 @@ export interface SecurityCapabilities {
   onboardKeyGeneration: boolean;
   /** Indicates support for access policy configuration */
   accessPolicyConfig: boolean;
+  /** Indicates support for the ONVIF default access policy */
+  defaultAccessPolicy?: boolean;
+  /** Indicates support for IEEE 802.1X configuration */
+  dot1X?: boolean;
+  /** Indicates support for remote user configuration. Used when accessing another device */
+  remoteUserHandling?: boolean;
   /** Indicates support for WS-Security X.509 token */
   'X.509Token': boolean;
   /** Indicates support for WS-Security SAML token */
   SAMLToken: boolean;
   /** Indicates support for WS-Security Kerberos token */
   kerberosToken: boolean;
+  /** Indicates support for WS-Security Username token */
+  usernameToken?: boolean;
+  /** Indicates support for WS over HTTP digest authenticated communication layer */
+  httpDigest?: boolean;
   /** Indicates support for WS-Security REL token */
   RELToken: boolean;
+  /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry */
+  supportedEAPMethods?: number[];
+  /** The maximum number of users that the device supports */
+  maxUsers?: number;
+  /** Maximum number of characters supported for the username by CreateUsers */
+  maxUserNameLength?: number;
+  /** Maximum number of characters supported for the password by CreateUsers and SetUser */
+  maxPasswordLength?: number;
+  /** Indicates which security policies are supported. Options are: ModifyPassword, PasswordComplexity, AuthFailureWarnings */
+  securityPolicies?: string[];
+  /** Maximum number of passwords that the device can remember for each user */
+  maxPasswordHistory: number;
   extension?: SecurityCapabilitiesExtension;
 }
 
@@ -280,7 +334,7 @@ export interface Capabilities {
   extension?: CapabilitiesExtension;
 }
 
-interface HostnameInformation {
+export interface HostnameInformation {
   /** Indicates whether the hostname is obtained from DHCP or not */
   fromDHCP: boolean;
   /** Indicates the hostname */
@@ -288,13 +342,62 @@ interface HostnameInformation {
   extension?: any;
 }
 
+export interface DeviceInformation {
+  /** The manufactor of the device */
+  manufacturer: string;
+  /** The device model */
+  model: string;
+  /** The firmware version in the device */
+  firmwareVersion: string;
+  /** The serial number of the device */
+  serialNumber: string;
+  /** The hardware ID of the device */
+  hardwareId: string;
+}
+
+export interface Scope {
+  /** Indicates if the scope is fixed or configurable */
+  scopeDef: 'Fixed' | 'Configurable';
+  /** Scope item URI */
+  scopeItem: string;
+}
+
+export interface MiscCapabilities {
+  /** Lists of commands supported by SendAuxiliaryCommand */
+  auxiliaryCommands: string[];
+}
+
+export interface DeviceServiceCapabilities {
+  /** Network capabilities */
+  network?: NetworkCapabilities;
+  /** Security capabilities */
+  security?: SecurityCapabilities;
+  /** System capabilities */
+  system?: SystemCapabilities;
+  /** Capabilities that do not fit in any of the other categories */
+  misc?: MiscCapabilities;
+  /** The same as misc field */
+  auxiliaryCommands?: string[];
+}
+
 /**
  * Device methods
  */
 export class Device {
   private readonly onvif: Onvif;
-  public services: OnvifService[] = [];
+  #services: OnvifService[] = [];
+  get services() {
+    return this.#services;
+  }
   public media2Support = false;
+  #scopes: Scope[] = [];
+  get scopes() {
+    return this.#scopes;
+  }
+  #serviceCapabilities: DeviceServiceCapabilities = {};
+  get serviceCapabilities() {
+    return this.#serviceCapabilities;
+  }
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -317,12 +420,12 @@ export class Device {
           + `<IncludeCapability>${includeCapability}</IncludeCapability>`
           + '</GetServices>',
     });
-    this.services = linerase(data).getServicesResponse.service;
+    this.#services = linerase(data).getServicesResponse.service;
     // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
     // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
     // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
     // fill Cam#uri property
-    this.services.forEach((service) => {
+    this.#services.forEach((service) => {
       // Look for services with namespaces and XAddr values
       if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
         // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
@@ -338,7 +441,7 @@ export class Device {
         }
       }
     });
-    return this.services;
+    return this.#services;
   }
 
   /**
@@ -377,29 +480,72 @@ export class Device {
     return this.onvif.capabilities;
   }
 
+  /**
+   * Receive device information
+   */
   async getDeviceInformation(): Promise<DeviceInformation> {
     const [data] = await this.onvif.request({ body : '<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>' });
     this.onvif.deviceInformation = linerase(data).getDeviceInformationResponse;
     return this.onvif.deviceInformation!;
   }
 
+  /**
+   * Receive hostname information
+   */
   async getHostname(): Promise<HostnameInformation> {
     const [data] = await this.onvif.request({
       body : '<GetHostname xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     });
     return linerase(data).getHostnameResponse.hostnameInformation;
   }
-}
 
-export interface DeviceInformation {
-  /** The manufactor of the device */
-  manufacturer: string;
-  /** The device model */
-  model: string;
-  /** The firmware version in the device */
-  firmwareVersion: string;
-  /** The serial number of the device */
-  serialNumber: string;
-  /** The hardware ID of the device */
-  hardwareId: string;
+  /**
+   * Receive the scope parameters of a device
+   */
+  async getScopes(): Promise<Scope[]> {
+    const [data] = await this.onvif.request({
+      body : '<GetScopes xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    });
+    this.#scopes = linerase(data).getScopesResponse.scopes;
+    if (this.#scopes === undefined) {
+      this.#scopes = [];
+    } else if (!Array.isArray(this.#scopes)) {
+      this.#scopes = [this.#scopes];
+    }
+    return this.#scopes;
+  }
+
+  /**
+   * Set the scope parameters of a device
+   * @param scopes Array of scope's uris
+   */
+  async setScopes(scopes: string[]) {
+    const [data] = await this.onvif.request({
+      body : `<SetScopes xmlns="http://www.onvif.org/ver10/device/wsdl">${
+        scopes.map((uri) => `<Scopes>${uri}</Scopes>`).join('')
+      }</SetScopes>`,
+    });
+    if (linerase(data).setScopesResponse !== '') {
+      throw new Error('Wrong `SetScopes` response');
+    }
+    // get new scopes from device
+    return this.getScopes();
+  }
+
+  async getServiceCapabilities() {
+    const [data] = await this.onvif.request({
+      body : '<GetServiceCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl" />',
+    });
+    const capabilitiesResponse = linerase(data);
+    this.#serviceCapabilities = {
+      network  : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.network,
+      security : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.security,
+      system   : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.system,
+    };
+    if (capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc) {
+      this.#serviceCapabilities.misc = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc;
+      this.#serviceCapabilities.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.AuxiliaryCommands.split(' ');
+    }
+    return this.#serviceCapabilities;
+  }
 }
