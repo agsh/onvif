@@ -13,13 +13,12 @@
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "watch": true,
-    "declaration": true
+    "declaration": true,
   },
   "exclude": [
     "node_modules"
   ],
   "include": [
-    "src/index.ts",
-    "src/test.ts"
+    "src/**/*"
   ]
 }

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:chan="http://schemas.microsoft.com/ws/2005/02/duplex" xmlns:wsa5="http://www.w3.org/2005/08/addressing" xmlns:c14n="http://www.w3.org/2001/10/xml-exc-c14n#" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:wsc="http://schemas.xmlsoap.org/ws/2005/02/sc" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:xmime5="http://www.w3.org/2005/05/xmlmime" xmlns:xmime="http://tempuri.org/xmime.xsd" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsrfbf="http://docs.oasis-open.org/wsrf/bf-2" xmlns:wstop="http://docs.oasis-open.org/wsn/t-1" xmlns:wsrfr="http://docs.oasis-open.org/wsrf/r-2" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" xmlns:tev="http://www.onvif.org/ver10/events/wsdl" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:trt="http://www.onvif.org/ver10/media/wsdl" xmlns:timg="http://www.onvif.org/ver20/imaging/wsdl" xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl" xmlns:tns1="http://www.onvif.org/ver10/topics" xmlns:ter="http://www.onvif.org/ver10/error" xmlns:tnsaxis="http://www.axis.com/2009/event/topics">
+    <SOAP-ENV:Header>
+        <wsse:Security>
+            <wsse:UsernameToken>
+                <wsse:Username>admin</wsse:Username>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">o2/fd8sFdCFcqisToY0/WKiQiPM=</wsse:Password>
+                <wsse:Nonce>NTQzOTU2NDk4MA==</wsse:Nonce>
+                <wsu:Created>2014-12-25T16:38:59.919Z</wsu:Created>
+            </wsse:UsernameToken>
+        </wsse:Security>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <tptz:GetPresetsResponse>
+            <tptz:Preset token="P001">
+                <tt:Name>P001</tt:Name>
+            </tptz:Preset>
+            {{? !it.one }}
+            <tptz:Preset token="P002">
+                <tt:Name>P002</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P003">
+                <tt:Name>P003</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P004">
+                <tt:Name>P004</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P005">
+                <tt:Name>P005</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P006">
+                <tt:Name>P006</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P007">
+                <tt:Name>P007</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P008">
+                <tt:Name>P008</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P009">
+                <tt:Name>P009</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P010">
+                <tt:Name>P010</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P011">
+                <tt:Name>P011</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P012">
+                <tt:Name>P012</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P013">
+                <tt:Name>P013</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P014">
+                <tt:Name>P014</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P015">
+                <tt:Name>P015</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P016">
+                <tt:Name>P016</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P017">
+                <tt:Name>P017</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P018">
+                <tt:Name>P018</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P019">
+                <tt:Name>P019</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="P020">
+                <tt:Name>P020</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoIROn">
+                <tt:Name>DarkAutoIROn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoWhiteOn">
+                <tt:Name>DarkAutoWhiteOn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoLightsOff">
+                <tt:Name>DarkAutoLightsOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoMono">
+                <tt:Name>DarkAutoMono</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoColour">
+                <tt:Name>DarkAutoColour</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoFocusWhite">
+                <tt:Name>DarkAutoFocusWhite</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DarkAutoFocusIR">
+                <tt:Name>DarkAutoFocusIR</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DoubleWipe">
+                <tt:Name>DoubleWipe</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="PermanentIntermittentWipe">
+                <tt:Name>PermanentIntermittentWipe</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="PermanentFastWipe">
+                <tt:Name>PermanentFastWipe</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="TimedIntermittentWipe">
+                <tt:Name>TimedIntermittentWipe</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="TimedFastWipe">
+                <tt:Name>TimedFastWipe</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WipeOff">
+                <tt:Name>WipeOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DeFogOn">
+                <tt:Name>DeFogOn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="DeFogOff">
+                <tt:Name>DeFogOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WasherOn">
+                <tt:Name>WasherOn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WasherOff">
+                <tt:Name>WasherOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="ForceWhiteLightsOn">
+                <tt:Name>ForceWhiteLightsOn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="ForceWhiteLightsOff">
+                <tt:Name>ForceWhiteLightsOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WhiteLightsOn">
+                <tt:Name>WhiteLightsOn</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WhiteLightsOff">
+                <tt:Name>WhiteLightsOff</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WhiteExclusionLeft">
+                <tt:Name>WhiteExclusionLeft</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WhiteExclusionRight">
+                <tt:Name>WhiteExclusionRight</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="WasherPosition">
+                <tt:Name>WasherPosition</tt:Name>
+            </tptz:Preset>
+            <tptz:Preset token="Home">
+                <tt:Name>Home</tt:Name>
+            </tptz:Preset>
+            {{?}}
+        </tptz:GetPresetsResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

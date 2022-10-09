@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope"
+  xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" >
+  <SOAP-ENV:Header>
+    <wsa:Action>
+      http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeResponse
+    </wsa:Action>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <wsnt:UnsubscribeResponse/>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
