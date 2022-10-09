@@ -5,7 +5,8 @@
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "scripts": {
-    "build": "tsc --build tsconfig.json",
+    "build": "tsc --build",
+    "watch": "tsc --build --watch",
     "typedoc": "typedoc src",
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
