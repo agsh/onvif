@@ -7,6 +7,7 @@ const commonRules = {
   'no-restricted-syntax'         : 0,
   'max-classes-per-file'         : 0,
   'no-underscore-dangle'         : 0,
+  'no-param-reassign'            : 0,
   'no-unused-expressions'        : 0,
   'no-case-declarations'         : 0,
   'no-shadow'                    : 0,

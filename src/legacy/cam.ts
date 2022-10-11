@@ -4,6 +4,7 @@
 
 import { EventEmitter } from 'events';
 import { Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions } from '../onvif';
+import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
 
 type Callback = (error: any, result?: any) => void;
 
@@ -34,6 +35,7 @@ export class Cam extends EventEmitter {
   get defaultProfiles() { return this.onvif.defaultProfiles; }
   get activeSource() { return this.onvif.activeSource; }
   get serviceCapabilities() { return this.onvif.device.serviceCapabilities; }
+  get deviceInformation() { return this.onvif.deviceInformation; }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
@@ -72,5 +74,43 @@ export class Cam extends EventEmitter {
 
   getServiceCapabilities(callback: Callback) {
     this.onvif.device.getServiceCapabilities().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getActiveSources(callback: Callback) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.onvif.getActiveSources().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getVideoSources(callback: Callback) {
+    this.onvif.media.getVideoSources().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getServices(includeCapability: boolean, callback: Callback) {
+    this.onvif.device.getServices(includeCapability).then((result) => callback(null, result)).catch(callback);
+  }
+
+  getDeviceInformation(callback: Callback) {
+    this.onvif.device.getDeviceInformation().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getStreamUri(options: GetStreamUriOptions, callback: Callback): void
+  getStreamUri(callback: Callback): void
+  getStreamUri(options: GetStreamUriOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.media.getStreamUri(options as GetStreamUriOptions).then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.media.getStreamUri().then((result) => (options as Callback)(null, result)).catch(options as Callback);
+  }
+
+  getSnapshotUri(options: GetSnapshotUriOptions, callback: Callback): void
+  getSnapshotUri(callback: Callback): void
+  getSnapshotUri(options: GetSnapshotUriOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.media.getSnapshotUri(options as GetSnapshotUriOptions)
+        .then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.media.getSnapshotUri().then((result) => (options as Callback)(null, result))
+      .catch(options as Callback);
   }
 }

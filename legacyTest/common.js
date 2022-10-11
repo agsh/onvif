@@ -5,7 +5,7 @@ const onvif = require('../build/legacy/cam');
 
 let serverMockup;
 if (synthTest) {
-	// eslint-disable-next-line import/no-useless-path-segments
+	// eslint-disable-next-line import/no-useless-path-segments,global-require
 	serverMockup = require('../legacyTest/serverMockup');
 }
 
@@ -334,8 +334,8 @@ describe('Common functions', () => {
 			cam.getVideoSources((err, data) => {
 				assert.strictEqual(err, null);
 				assert.ok(Array.isArray(data));
-				data.every((d) => {
-					assert.ok(['$', 'framerate', 'resolution'].every((prop) => d[prop] !== undefined));
+				data.forEach((d) => {
+					assert.ok(['token', 'framerate', 'resolution'].every((prop) => d[prop] !== undefined));
 					assert.strictEqual(cam.videoSources, data);
 				});
 				done();
@@ -356,7 +356,7 @@ describe('Common functions', () => {
 
 	describe('getDeviceInformation', () => {
 		it('should return an information about device', (done) => {
-			cam.getDeviceInformation((err, data) => {
+			cam.getDeviceInformation((err, data)  => {
 				assert.strictEqual(err, null);
 				assert.ok(['manufacturer', 'model', 'firmwareVersion', 'serialNumber', 'hardwareId']
 					.every((prop) =>	data[prop] !== undefined));
