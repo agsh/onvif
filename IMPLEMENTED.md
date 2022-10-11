@@ -28,6 +28,7 @@
 - [ ] deleteOSD
 - [ ] deleteProfile
 - [ ] deleteUsers
+- [x] getActiveSources
 - [ ] getAudioEncoderConfiguration
 - [ ] getAudioEncoderConfigurationOptions
 - [ ] getAudioEncoderConfigurations
@@ -61,14 +62,15 @@
 - [ ] getScopes
 - [x] getServiceCapabilities
 - [x] getServices
-- [ ] getSnapshotUri
+- [x] getSnapshotUri
 - [ ] getStatus
-- [ ] getStreamUri
+- [x] getStreamUri
 - [x] getSystemDateAndTime
 - [ ] getUsers
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
 - [ ] getVideoEncoderConfigurations
+- [ ] getVideoOutputs
 - [ ] getVideoSourceConfigurations
 - [ ] getVideoSourceOptions
 - [ ] getVideoSources
