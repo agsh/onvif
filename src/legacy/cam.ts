@@ -36,6 +36,7 @@ export class Cam extends EventEmitter {
   get activeSource() { return this.onvif.activeSource; }
   get serviceCapabilities() { return this.onvif.device.serviceCapabilities; }
   get deviceInformation() { return this.onvif.deviceInformation; }
+  get nodes() { return this.onvif.ptz.nodes; }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
@@ -112,5 +113,9 @@ export class Cam extends EventEmitter {
     }
     this.onvif.media.getSnapshotUri().then((result) => (options as Callback)(null, result))
       .catch(options as Callback);
+  }
+
+  getNodes(callback: Callback) {
+    this.onvif.ptz.getNodes().then((result) => callback(null, result)).catch(callback);
   }
 }
