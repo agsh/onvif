@@ -292,19 +292,23 @@ export interface VideoAnalyticsConfiguration {
   ruleEngineConfiguration: RuleEngineConfiguration;
 }
 
+export interface Vector2D {
+  x: number;
+  y: number;
+}
+
+export interface Vector1D {
+  x: number;
+}
+
 export interface PTZSpeed {
   /**
    * Pan and tilt speed. The x component corresponds to pan and the y component to tilt.
    * If omitted in a request, the current (if any) PanTilt movement should not be affected
    */
-  panTilt: {
-    x: number;
-    y: number;
-  };
+  panTilt: Vector2D;
   /** A zoom speed. If omitted in a request, the current (if any) Zoom movement should not be affected */
-  zoom: {
-    x: number;
-  }
+  zoom: Vector1D;
 }
 
 export interface Range {
@@ -368,11 +372,11 @@ export interface PTZConfiguration {
    */
   useCount: number;
   /** The optional acceleration ramp used by the device when moving */
-  moveRamp: number;
+  moveRamp?: number;
   /** The optional acceleration ramp used by the device when recalling presets */
-  presetRamp: number;
+  presetRamp?: number;
   /** The optional acceleration ramp used by the device when executing PresetTours */
-  presetTourRamp: number;
+  presetTourRamp?: number;
   /** A mandatory reference to the PTZ Node that the PTZ Configuration belongs to */
   nodeToken: string;
   /** If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default */

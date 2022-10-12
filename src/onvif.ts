@@ -38,7 +38,7 @@ export interface OnvifOptions {
 }
 
 export interface OnvifServices {
-  ptz?: URL;
+  PTZ?: URL;
   analyticsDevice?: URL;
   device?: URL;
   deviceIO?: URL;
