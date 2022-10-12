@@ -7,6 +7,12 @@ import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Capabilities, Device, DeviceInformation } from './device';
 import { Media, Profile } from './media';
+import { PTZ } from './ptz';
+
+// Common types
+export type AnyURI = string;
+export type ReferenceToken = string;
+export type Name = string;
 
 /**
  * Cam constructor options
@@ -32,7 +38,7 @@ export interface OnvifOptions {
 }
 
 export interface OnvifServices {
-  PTZ?: URL;
+  ptz?: URL;
   analyticsDevice?: URL;
   device?: URL;
   deviceIO?: URL;
@@ -138,6 +144,7 @@ export class Onvif extends EventEmitter {
    */
   public readonly device: Device;
   public readonly media: Media;
+  public readonly ptz: PTZ;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public hostname: string;
@@ -178,6 +185,8 @@ export class Onvif extends EventEmitter {
 
     this.device = new Device(this);
     this.media = new Media(this);
+    this.ptz = new PTZ(this);
+
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription

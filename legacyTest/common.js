@@ -396,7 +396,7 @@ describe('Common functions', () => {
 
 	describe('getNodes', () => {
 		it('should return object of nodes and sets them to #nodes', (done) => {
-			cam.getNodes((err, data) => {
+			cam.getNodes((err, data, xml) => {
 				assert.strictEqual(err, null);
 				assert.ok(typeof data === 'object');
 				assert.deepStrictEqual(cam.nodes, data);
