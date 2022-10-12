@@ -1,9 +1,7 @@
-import { Onvif } from './onvif';
+import {
+  AnyURI, Name, Onvif, ReferenceToken,
+} from './onvif';
 import { linerase } from './utils';
-
-export type AnyURI = string;
-export type ReferenceToken = string;
-export type Name = string;
 
 export interface IntRectangle {
   x: number;
@@ -316,7 +314,7 @@ export interface Range {
 
 export interface Space2DDescription {
   /** A URI of coordinate systems */
-  URI: string;
+  URI: AnyURI;
   /** A range of x-axis */
   XRange: Range;
   /** A range of y-axis */
@@ -1044,7 +1042,7 @@ export class Media {
    * - RTP over RTSP over TCP: StreamType = "RTP_unicast", TransportProtocol = "RTSP"
    */
   async getStreamUri(options: GetStreamUriOptions = {}):
-    Promise<{uri: string, invalidAfterConnect?: boolean, invalidAfterReboot?: boolean, timeout?: Duration}> {
+    Promise<{uri: AnyURI, invalidAfterConnect?: boolean, invalidAfterReboot?: boolean, timeout?: Duration}> {
     const {
       profileToken,
       stream = 'RTP-Unicast',
@@ -1093,7 +1091,7 @@ export class Media {
    * Receive snapshot URI
    * @param profileToken
    */
-  async getSnapshotUri({ profileToken }: GetSnapshotUriOptions = {}): Promise<{uri: string}> {
+  async getSnapshotUri({ profileToken }: GetSnapshotUriOptions = {}): Promise<{uri: AnyURI}> {
     if (this.onvif.device.media2Support) {
       // Profile T request using Media2
       const [data] = await this.onvif.request({
