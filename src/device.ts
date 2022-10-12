@@ -432,10 +432,13 @@ export class Device {
         const parsedNamespace = url.parse(service.namespace);
         if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.path) {
           const namespaceSplitted = parsedNamespace.path.substring(1).split('/'); // remove leading Slash, then split
-          // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
           if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
+            // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
             this.media2Support = true;
             namespaceSplitted[1] = 'media2';
+          } else if (namespaceSplitted[1] === 'ptz') {
+            // uppercase PTZ namespace to fit names convention
+            namespaceSplitted[1] = 'PTZ';
           }
           this.onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = this.onvif.parseUrl(service.XAddr);
         }
@@ -445,7 +448,7 @@ export class Device {
   }
 
   /**
-   * This method has been replaced by the more generic GetServices method.
+   * This method has been replaced by the more generic {@link Device.getServices | GetServices} method.
    * For capabilities of individual services refer to the GetServiceCapabilities methods.
    */
   async getCapabilities(): Promise<Capabilities> {
@@ -458,7 +461,7 @@ export class Device {
     ['PTZ', 'media', 'imaging', 'events', 'device'].forEach((name) => {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
-        this.onvif.uri[name.toLowerCase() as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr);
+        this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr);
       }
     });
     // extensions, eg. deviceIO
@@ -532,6 +535,9 @@ export class Device {
     return this.getScopes();
   }
 
+  /**
+   * Returns the capabilities of the device service. The result is returned in a typed answer
+   */
   async getServiceCapabilities() {
     const [data] = await this.onvif.request({
       body : '<GetServiceCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl" />',
@@ -547,5 +553,15 @@ export class Device {
       this.#serviceCapabilities.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.AuxiliaryCommands.split(' ');
     }
     return this.#serviceCapabilities;
+  }
+
+  /**
+   * This operation reboots the device
+   */
+  async systemReboot(): Promise<string> {
+    return this.onvif.request({
+      service : 'device', // or 'deviceIO' ?
+      body    : '<SystemReboot xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    }).then(([data]) => data[0].systemRebootResponse[0].message[0]);
   }
 }

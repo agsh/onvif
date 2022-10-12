@@ -12,7 +12,6 @@ export function linerase(xml: any): any {
     if (xml.length > 1) {
       return xml.map(linerase);
     }
-    // eslint-disable-next-line no-param-reassign
     [xml] = xml;
   }
   if (typeof xml === 'object') {

@@ -37,8 +37,8 @@
 - [ ] getAudioSourceConfigurations
 - [ ] getAudioSources
 - [x] getCapabilities
-- [ ] getConfigurationOptions
-- [ ] getConfigurations
+- [x] getConfigurationOptions
+- [x] getConfigurations
 - [ ] getCurrentImagingPreset
 - [x] getDeviceInformation
 - [ ] getDNS
@@ -51,7 +51,7 @@
 - [ ] getNetworkDefaultGateway
 - [ ] getNetworkInterfaces
 - [ ] getNetworkProtocols
-- [ ] getNodes
+- [x] getNodes
 - [ ] getNTP
 - [ ] getOSDOptions
 - [ ] getOSDs
@@ -99,5 +99,5 @@
 - [ ] setVideoEncoderConfiguration
 - [ ] stop
 - [ ] subscribe
-- [ ] systemReboot
+- [x] systemReboot
 - [ ] unsubscribe

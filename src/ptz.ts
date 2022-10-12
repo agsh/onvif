@@ -1,6 +1,8 @@
 import { Onvif, ReferenceToken } from './onvif';
 import { linerase } from './utils';
-import { Space1DDescription, Space2DDescription } from './media';
+import {
+  Duration, PTZConfiguration, Space1DDescription, Space2DDescription,
+} from './media';
 
 interface PTZPresetTourSupported {
   /** Indicates number of preset tours that can be created. Required preset tour operations shall be available for this
@@ -21,7 +23,7 @@ export interface PTZNode {
   name?: string;
   /** A list of Coordinate Systems available for the PTZ Node. For each Coordinate System, the PTZ Node MUST specify
    * its allowed range */
-  ptzSpaces: PTZSpace[];
+  supportedPTZSpaces: PTZSpace[];
   /** All preset operations MUST be available for this PTZ Node if one preset is supported */
   maximumNumberOfPresets: number;
   /** A boolean operator specifying the availability of a home position. If set to true, the Home Position Operations
@@ -80,6 +82,40 @@ export interface PTZSpace {
 
 type ResponsePTZNode = PTZNode & {$?: ReferenceToken};
 
+interface DurationRange {
+  min: Duration;
+  max: Duration;
+}
+
+interface PTControlDirectionOptions {
+  /** Supported options for EFlip feature */
+  EFlip?: {
+    /** Options of EFlip mode parameter */
+    mode?: 'OFF' | 'ON' | 'Extended'
+    extension?: any;
+  };
+  /** Supported options for Reverse feature */
+  reverse?: {
+    /** Options of Reverse mode parameter */
+    mode?: 'OFF' | 'ON' | 'AUTO' | 'Extended'
+    extension?: any;
+  };
+}
+
+/** The requested PTZ configuration options */
+interface PTZConfigurationOptions {
+  /** The list of acceleration ramps supported by the device. The smallest acceleration value corresponds to the minimal
+   * index, the highest acceleration corresponds to the maximum index */
+  PTZRamps: number[];
+  /** A list of supported coordinate systems including their range limitations */
+  spaces: PTZSpace[];
+  /** A timeout Range within which Timeouts are accepted by the PTZ Node */
+  PTZTimeout: DurationRange;
+  /** Supported options for PT Direction Control */
+  PTControlDirection?: PTControlDirectionOptions
+  extension: any;
+}
+
 /**
  * PTZ methods
  */
@@ -88,6 +124,10 @@ export class PTZ {
   #nodes: Record<ReferenceToken, PTZNode> = {};
   get nodes() {
     return this.#nodes;
+  }
+  #configurations: Record<ReferenceToken, PTZConfiguration> = {};
+  get configurations() {
+    return this.#configurations;
   }
 
   constructor(onvif: Onvif) {
@@ -100,7 +140,7 @@ export class PTZ {
   */
   async getNodes() {
     const [data] = await this.onvif.request({
-      service : 'ptz',
+      service : 'PTZ',
       body    : '<GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />',
     });
     this.#nodes = {};
@@ -109,5 +149,44 @@ export class PTZ {
       this.#nodes[node.token] = node;
     });
     return this.#nodes;
+  }
+
+  /**
+   * Get an array with all the existing PTZConfigurations from the device
+   */
+  async getConfigurations() {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<GetConfigurations xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + '</GetConfigurations>',
+    });
+    this.#configurations = {};
+    if (!Array.isArray(data[0].getConfigurationsResponse[0].PTZConfiguration)) {
+      return this.#configurations;
+    }
+    data[0].getConfigurationsResponse[0].PTZConfiguration.forEach((configuration: any) => {
+      const result = linerase(configuration);
+      this.#configurations[result.token] = result;
+    });
+    return this.#configurations;
+  }
+
+  /**
+   * List supported coordinate systems including their range limitations.
+   * Therefore, the options MAY differ depending on whether the PTZ Configuration is assigned to a Profile containing
+   * a Video Source Configuration. In that case, the options may additionally contain coordinate systems referring to
+   * the image coordinate system described by the Video Source Configuration. If the PTZ Node supports continuous
+   * movements, it shall return a Timeout Range within which Timeouts are accepted by the PTZ Node
+   * @param configurationToken Token of an existing configuration that the options are intended for
+   */
+  async getConfigurationOptions({ configurationToken }: { configurationToken: ReferenceToken }):
+    Promise<PTZConfigurationOptions> {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<GetConfigurationOptions xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ConfigurationToken>${configurationToken}</ConfigurationToken>`
+        + '</GetConfigurationOptions>',
+    });
+    return linerase(data);
   }
 }

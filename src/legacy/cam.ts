@@ -3,7 +3,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions } from '../onvif';
+import {
+  Onvif, OnvifRequestOptions, ReferenceToken, SetSystemDateAndTimeOptions,
+} from '../onvif';
 import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
 
 type Callback = (error: any, result?: any) => void;
@@ -37,6 +39,7 @@ export class Cam extends EventEmitter {
   get serviceCapabilities() { return this.onvif.device.serviceCapabilities; }
   get deviceInformation() { return this.onvif.deviceInformation; }
   get nodes() { return this.onvif.ptz.nodes; }
+  get configurations() { return this.onvif.ptz.configurations; }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
@@ -74,7 +77,8 @@ export class Cam extends EventEmitter {
   }
 
   getServiceCapabilities(callback: Callback) {
-    this.onvif.device.getServiceCapabilities().then((result) => callback(null, result)).catch(callback);
+    this.onvif.device.getServiceCapabilities()
+      .then((result) => callback(null, result)).catch(callback);
   }
 
   getActiveSources(callback: Callback) {
@@ -88,20 +92,24 @@ export class Cam extends EventEmitter {
   }
 
   getServices(includeCapability: boolean, callback: Callback) {
-    this.onvif.device.getServices(includeCapability).then((result) => callback(null, result)).catch(callback);
+    this.onvif.device.getServices(includeCapability)
+      .then((result) => callback(null, result)).catch(callback);
   }
 
   getDeviceInformation(callback: Callback) {
-    this.onvif.device.getDeviceInformation().then((result) => callback(null, result)).catch(callback);
+    this.onvif.device.getDeviceInformation()
+      .then((result) => callback(null, result)).catch(callback);
   }
 
   getStreamUri(options: GetStreamUriOptions, callback: Callback): void
   getStreamUri(callback: Callback): void
   getStreamUri(options: GetStreamUriOptions | Callback, callback?: Callback) {
     if (callback) {
-      this.onvif.media.getStreamUri(options as GetStreamUriOptions).then((result) => callback(null, result)).catch(callback);
+      this.onvif.media.getStreamUri(options as GetStreamUriOptions)
+        .then((result) => callback(null, result)).catch(callback);
     }
-    this.onvif.media.getStreamUri().then((result) => (options as Callback)(null, result)).catch(options as Callback);
+    this.onvif.media.getStreamUri()
+      .then((result) => (options as Callback)(null, result)).catch(options as Callback);
   }
 
   getSnapshotUri(options: GetSnapshotUriOptions, callback: Callback): void
@@ -117,5 +125,18 @@ export class Cam extends EventEmitter {
 
   getNodes(callback: Callback) {
     this.onvif.ptz.getNodes().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getConfigurations(callback: Callback) {
+    this.onvif.ptz.getConfigurations().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getConfigurationOptions(configurationToken: ReferenceToken, callback: Callback) {
+    this.onvif.ptz.getConfigurationOptions({ configurationToken })
+      .then((result) => callback(null, result)).catch(callback);
+  }
+
+  systemReboot(callback: Callback) {
+    this.onvif.device.systemReboot().then((result) => callback(null, result)).catch(callback);
   }
 }

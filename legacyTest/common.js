@@ -120,7 +120,7 @@ describe('Common functions', () => {
 				assert.strictEqual(err, null);
 				assert.ok(cam.capabilities || cam.services);
 				if (synthTest) {
-					assert.ok(cam.uri.ptz);
+					assert.ok(cam.uri.PTZ);
 				}
 				assert.ok(cam.uri.media);
 				assert.ok(cam.videoSources);
@@ -277,7 +277,7 @@ describe('Common functions', () => {
 			});
 		});
 		it('should store PTZ link in ptzUri property', (done) => {
-			assert.strictEqual(cam.uri.ptz.href, cam.capabilities.PTZ.XAddr);
+			assert.strictEqual(cam.uri.PTZ.href, cam.capabilities.PTZ.XAddr);
 			done();
 		});
 		it('should store uri links for extensions', (done) => {
