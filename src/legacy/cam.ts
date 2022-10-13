@@ -7,6 +7,7 @@ import {
   Onvif, OnvifRequestOptions, ReferenceToken, SetSystemDateAndTimeOptions,
 } from '../onvif';
 import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
+import { GetPresetsOptions } from '../ptz';
 
 type Callback = (error: any, result?: any) => void;
 
@@ -40,6 +41,10 @@ export class Cam extends EventEmitter {
   get deviceInformation() { return this.onvif.deviceInformation; }
   get nodes() { return this.onvif.ptz.nodes; }
   get configurations() { return this.onvif.ptz.configurations; }
+  get presets() {
+    return Object.fromEntries(Object.values(this.onvif.ptz.presets)
+      .map((preset) => [preset.name, preset.token]));
+  }
 
   connect(callback: Callback) {
     this.onvif.connect().then((result) => callback(null, result)).catch(callback);
@@ -138,5 +143,24 @@ export class Cam extends EventEmitter {
 
   systemReboot(callback: Callback) {
     this.onvif.device.systemReboot().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getPresets(options: GetPresetsOptions, callback: Callback): void
+  getPresets(callback: Callback): void
+  getPresets(options: GetPresetsOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.ptz.getPresets(options as GetPresetsOptions)
+        .then((result) => callback(
+          null,
+          Object.fromEntries(Object.values(result).map((preset) => [preset.name, preset.token])),
+        ))
+        .catch(callback);
+    }
+    this.onvif.ptz.getPresets()
+      .then((result) => (options as Callback)(
+        null,
+        Object.fromEntries(Object.values(result).map((preset) => [preset.name, preset.token])),
+      ))
+      .catch(options as Callback);
   }
 }

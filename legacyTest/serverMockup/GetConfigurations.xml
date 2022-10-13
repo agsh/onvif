@@ -27,6 +27,24 @@
                 </tt:DefaultPTZSpeed>
                 <tt:DefaultPTZTimeout>PT1093754.348S</tt:DefaultPTZTimeout>
             </tptz:PTZConfiguration>
+            {{? !it.one }}
+            <tptz:PTZConfiguration token="zzz">
+                <tt:Name>zzz</tt:Name>
+                <tt:UseCount>1</tt:UseCount>
+                <tt:NodeToken>default</tt:NodeToken>
+                <tt:DefaultAbsolutePantTiltPositionSpace>http://www.onvif.org/ver10/tptz/PanTiltSpaces/PositionGenericSpace</tt:DefaultAbsolutePantTiltPositionSpace>
+                <tt:DefaultAbsoluteZoomPositionSpace>http://www.onvif.org/ver10/tptz/ZoomSpaces/PositionGenericSpace</tt:DefaultAbsoluteZoomPositionSpace>
+                <tt:DefaultRelativePanTiltTranslationSpace>http://www.onvif.org/ver10/tptz/PanTiltSpaces/TranslationGenericSpace</tt:DefaultRelativePanTiltTranslationSpace>
+                <tt:DefaultRelativeZoomTranslationSpace>http://www.onvif.org/ver10/tptz/ZoomSpaces/TranslationGenericSpace</tt:DefaultRelativeZoomTranslationSpace>
+                <tt:DefaultContinuousPanTiltVelocitySpace>http://www.onvif.org/ver10/tptz/PanTiltSpaces/VelocityGenericSpace</tt:DefaultContinuousPanTiltVelocitySpace>
+                <tt:DefaultContinuousZoomVelocitySpace>http://www.onvif.org/ver10/tptz/ZoomSpaces/VelocityGenericSpace</tt:DefaultContinuousZoomVelocitySpace>
+                <tt:DefaultPTZSpeed>
+                    <tt:PanTilt space="http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace" y="1" x="1"></tt:PanTilt>
+                    <tt:Zoom space="http://www.onvif.org/ver10/tptz/ZoomSpaces/ZoomGenericSpeedSpace" x="1"></tt:Zoom>
+                </tt:DefaultPTZSpeed>
+                <tt:DefaultPTZTimeout>PT1093754.348S</tt:DefaultPTZTimeout>
+            </tptz:PTZConfiguration>
+            {{?}}
         </tptz:GetConfigurationsResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
