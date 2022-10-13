@@ -1,7 +1,7 @@
 import { Onvif, ReferenceToken } from './onvif';
 import { linerase } from './utils';
 import {
-  Duration, PTZConfiguration, Space1DDescription, Space2DDescription,
+  Duration, PTZConfiguration, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
 } from './media';
 
 interface PTZPresetTourSupported {
@@ -82,12 +82,12 @@ export interface PTZSpace {
 
 type ResponsePTZNode = PTZNode & {$?: ReferenceToken};
 
-interface DurationRange {
+export interface DurationRange {
   min: Duration;
   max: Duration;
 }
 
-interface PTControlDirectionOptions {
+export interface PTControlDirectionOptions {
   /** Supported options for EFlip feature */
   EFlip?: {
     /** Options of EFlip mode parameter */
@@ -103,7 +103,7 @@ interface PTControlDirectionOptions {
 }
 
 /** The requested PTZ configuration options */
-interface PTZConfigurationOptions {
+export interface PTZConfigurationOptions {
   /** The list of acceleration ramps supported by the device. The smallest acceleration value corresponds to the minimal
    * index, the highest acceleration corresponds to the maximum index */
   PTZRamps: number[];
@@ -114,6 +114,26 @@ interface PTZConfigurationOptions {
   /** Supported options for PT Direction Control */
   PTControlDirection?: PTControlDirectionOptions
   extension: any;
+}
+
+export interface GetPresetsOptions {
+  profileToken?: ReferenceToken;
+}
+
+export interface PTZVector {
+  /** Pan and tilt position. The x component corresponds to pan and the y component to tilt. */
+  panTilt: Vector2D;
+  /** A zoom position. */
+  zoom: Vector1D;
+}
+
+/** A list of presets which are available for the requested MediaProfile. */
+export interface PTZPreset {
+  token: ReferenceToken;
+  /** A list of preset position name */
+  name?: string;
+  /** A list of preset position */
+  PTZPosition?: PTZVector;
 }
 
 /**
@@ -128,6 +148,10 @@ export class PTZ {
   #configurations: Record<ReferenceToken, PTZConfiguration> = {};
   get configurations() {
     return this.#configurations;
+  }
+  #presets: Record<ReferenceToken, PTZPreset> = {};
+  get presets() {
+    return this.#presets;
   }
 
   constructor(onvif: Onvif) {
@@ -188,5 +212,22 @@ export class PTZ {
         + '</GetConfigurationOptions>',
     });
     return linerase(data);
+  }
+
+  async getPresets({ profileToken }: GetPresetsOptions = {}) {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + '</GetPresets>',
+    });
+    this.#presets = {};
+    const result = linerase(data[0].getPresetsResponse[0].preset);
+    if (Array.isArray(result)) {
+      linerase(result).forEach((preset: any) => this.#presets[preset.token] = preset);
+    } else {
+      this.#presets[result.token] = result;
+    }
+    return this.#presets;
   }
 }
