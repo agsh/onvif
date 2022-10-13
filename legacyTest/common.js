@@ -1,3 +1,4 @@
+/* eslint-disable no-return-assign, no-new, no-unused-vars, global-require, import/no-useless-path-segments */
 const synthTest = !process.env.HOSTNAME;
 
 const assert = require('assert');
@@ -5,7 +6,6 @@ const onvif = require('../build/legacy/cam');
 
 let serverMockup;
 if (synthTest) {
-	// eslint-disable-next-line import/no-useless-path-segments,global-require
 	serverMockup = require('../legacyTest/serverMockup');
 }
 
@@ -410,10 +410,23 @@ describe('Common functions', () => {
 			cam.getConfigurations((err, data) => {
 				assert.strictEqual(err, null);
 				assert.ok(typeof data === 'object');
+				assert.ok(Object.keys(data).every((confName) => typeof data[confName] === 'object'));
 				assert.deepStrictEqual(cam.configurations, data);
 				done();
 			});
 		});
+		if (synthTest) {
+			it('should work with one configuration', (done) => {
+				serverMockup.conf.one = true;
+				cam.getConfigurations((err, data) => {
+					assert.strictEqual(err, null);
+					assert.ok(typeof data === 'object');
+					assert.ok(Object.keys(data).every((confName) => typeof data[confName] === 'object'));
+					delete serverMockup.conf.one;
+					done();
+				});
+			});
+		}
 	});
 
 	describe('getConfigurationOptions', () => {
@@ -424,7 +437,8 @@ describe('Common functions', () => {
 				cam.getConfigurationOptions(token, (err, data) => {
 					assert.strictEqual(err, null);
 					assert.ok(typeof data === 'object');
-					if (!--cou) {
+					cou -= 1;
+					if (!cou) {
 						done();
 					}
 				});

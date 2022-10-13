@@ -55,7 +55,7 @@
 - [ ] getNTP
 - [ ] getOSDOptions
 - [ ] getOSDs
-- [ ] getPresets
+- [x] getPresets
 - [ ] getProfiles
 - [ ] getRecordings
 - [ ] getReplayUri
