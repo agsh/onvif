@@ -75,7 +75,7 @@
 - [ ] getVideoSourceOptions
 - [ ] getVideoSources
 - [ ] gotoHomePosition
-- [ ] gotoPreset
+- [x] gotoPreset
 - [ ] pullMessages
 - [ ] relativeMove
 - [ ] removeAudioEncoderConfiguration
@@ -91,7 +91,7 @@
 - [ ] setNetworkInterfaces
 - [ ] setNTP
 - [ ] setOSD
-- [ ] setPreset
+- [x] setPreset
 - [x] setScopes
 - [x] setSystemDateAndTime
 - [ ] setSystemFactoryDefault

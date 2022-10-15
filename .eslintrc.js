@@ -26,7 +26,8 @@ const commonRules = {
       on          : 'colon',
     },
   }],
-  'import/no-cycle' : 0, // IMPORTANT
+  '@typescript-eslint/member-delimiter-style' : 1,
+  'import/no-cycle'                           : 0, // IMPORTANT
 };
 
 module.exports = {

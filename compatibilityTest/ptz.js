@@ -2,11 +2,11 @@
 const synthTest = !process.env.HOSTNAME;
 
 const assert = require('assert');
-const onvif = require('../build/legacy/cam');
+const onvif = require('../build/compatibility/cam');
 
 let serverMockup;
 if (synthTest) {
-	serverMockup = require('../legacyTest/serverMockup');
+	serverMockup = require('../compatibilityTest/serverMockup');
 }
 
 describe('PTZ', () => {
@@ -61,29 +61,31 @@ describe('PTZ', () => {
 
 	describe('gotoPreset', () => {
 		it('should just run', (done) => {
-			cam.gotoPreset({preset : Object.keys(cam.profiles)[0]}, (err) => {
-				assert.strictEqual(err, null);
-				done();
-			});
+			cam.gotoPreset({preset : Object.keys(cam.profiles)[0]}, done);
 		});
 		it('should run with speed definition', (done) => {
-			cam.gotoPreset({preset : Object.keys(cam.profiles)[0], speed : 0.1}, (err) => {
-				assert.strictEqual(err, null);
-				done();
-			});
+			cam.gotoPreset({preset : Object.keys(cam.profiles)[0], speed : {pan : 0.1}}, done);
+		});
+		it('should run with speed definition', (done) => {
+			cam.gotoPreset({preset : Object.keys(cam.profiles)[0], speed : {x : 0.1}}, done);
+		});
+		it('should run with speed definition', (done) => {
+			cam.gotoPreset({preset : Object.keys(cam.profiles)[0], speed : {panTilt : {x : 0.1}}}, done);
 		});
 	});
 
 	describe('setPreset', () => {
 		it('should run with preset name (new)', (done) => {
-			cam.setPreset({presetName : 'testPreset'}, (err) => {
+			cam.setPreset({presetName : 'testPreset'}, (err, response) => {
 				assert.strictEqual(err, null);
+				assert.ok(response.presetToken !== undefined);
 				done();
 			});
 		});
 		it('should run with preset token (update)', (done) => {
-			cam.setPreset({presetToken : 1}, (err) => {
+			cam.setPreset({presetToken : 1}, (err, response) => {
 				assert.strictEqual(err, null);
+				assert.ok(response.presetToken !== undefined);
 				done();
 			});
 		});

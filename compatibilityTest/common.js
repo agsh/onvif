@@ -6,7 +6,7 @@ const onvif = require('../build/legacy/cam');
 
 let serverMockup;
 if (synthTest) {
-	serverMockup = require('../legacyTest/serverMockup');
+	serverMockup = require('../compatibilityTest/serverMockup');
 }
 
 describe('Common functions', () => {
