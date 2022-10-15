@@ -7,7 +7,7 @@ import {
   Onvif, OnvifRequestOptions, ReferenceToken, SetSystemDateAndTimeOptions,
 } from '../onvif';
 import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
-import { GetPresetsOptions } from '../ptz';
+import { GetPresetsOptions, GotoPresetOptions, SetPresetOptions } from '../ptz';
 
 type Callback = (error: any, result?: any) => void;
 
@@ -162,5 +162,13 @@ export class Cam extends EventEmitter {
         Object.fromEntries(Object.values(result).map((preset) => [preset.name, preset.token])),
       ))
       .catch(options as Callback);
+  }
+
+  async gotoPreset(options: GotoPresetOptions, callback: Callback) {
+    this.onvif.ptz.gotoPreset(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  async setPreset(options: SetPresetOptions, callback: Callback) {
+    this.onvif.ptz.setPreset(options).then((result) => callback(null, result)).catch(callback);
   }
 }

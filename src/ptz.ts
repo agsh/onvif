@@ -34,7 +34,7 @@ export interface PTZNode {
   auxiliaryCommands?: any;
   extension?: {
     /** Detail of supported Preset Tour feature */
-    supportedPresetTour?: PTZPresetTourSupported
+    supportedPresetTour?: PTZPresetTourSupported;
     extension?: any;
   };
 }
@@ -91,13 +91,13 @@ export interface PTControlDirectionOptions {
   /** Supported options for EFlip feature */
   EFlip?: {
     /** Options of EFlip mode parameter */
-    mode?: 'OFF' | 'ON' | 'Extended'
+    mode?: 'OFF' | 'ON' | 'Extended';
     extension?: any;
   };
   /** Supported options for Reverse feature */
   reverse?: {
     /** Options of Reverse mode parameter */
-    mode?: 'OFF' | 'ON' | 'AUTO' | 'Extended'
+    mode?: 'OFF' | 'ON' | 'AUTO' | 'Extended';
     extension?: any;
   };
 }
@@ -112,19 +112,12 @@ export interface PTZConfigurationOptions {
   /** A timeout Range within which Timeouts are accepted by the PTZ Node */
   PTZTimeout: DurationRange;
   /** Supported options for PT Direction Control */
-  PTControlDirection?: PTControlDirectionOptions
+  PTControlDirection?: PTControlDirectionOptions;
   extension: any;
 }
 
 export interface GetPresetsOptions {
   profileToken?: ReferenceToken;
-}
-
-export interface PTZVector {
-  /** Pan and tilt position. The x component corresponds to pan and the y component to tilt. */
-  panTilt: Vector2D;
-  /** A zoom position. */
-  zoom: Vector1D;
 }
 
 /** A list of presets which are available for the requested MediaProfile. */
@@ -134,6 +127,50 @@ export interface PTZPreset {
   name?: string;
   /** A list of preset position */
   PTZPosition?: PTZVector;
+}
+
+export interface PTZVector {
+  panTilt?: Vector2D;
+  zoom?: Vector1D;
+}
+
+/**
+ * Simplified structure of PTZ vector to use as an input argument for position and speed in movement commands.
+ * */
+interface PTZInputVector {
+  /** Pan value */
+  pan?: number;
+  /** Synonym for pan value */
+  x?: number;
+  /** Tilt value */
+  tilt?: number;
+  /** Synonym for tilt value */
+  y?: number;
+  /** Zoom value */
+  zoom?: number;
+}
+
+export interface GotoPresetOptions {
+  /** A reference to the MediaProfile where the operation should take place. */
+  profileToken?: ReferenceToken;
+  /** A requested preset token. From {@link PTZ.presets} property */
+  presetToken: ReferenceToken;
+  /** A requested speed.The speed parameter can only be specified when Speed Spaces are available for the PTZ Node. */
+  speed?: PTZVector | PTZInputVector;
+}
+
+export interface SetPresetOptions {
+  /** A reference to the MediaProfile where the operation should take place. */
+  profileToken?: ReferenceToken;
+  /** A requested preset name. */
+  presetName: string;
+  /** A requested preset token. */
+  presetToken?: ReferenceToken;
+}
+
+export interface SetPresetResponse {
+  /** A token to the Preset which has been set. */
+  presetToken: ReferenceToken;
 }
 
 /**
@@ -224,10 +261,68 @@ export class PTZ {
     this.#presets = {};
     const result = linerase(data[0].getPresetsResponse[0].preset);
     if (Array.isArray(result)) {
+      // eslint-disable-next-line no-return-assign
       linerase(result).forEach((preset: any) => this.#presets[preset.token] = preset);
     } else {
       this.#presets[result.token] = result;
     }
     return this.#presets;
+  }
+
+  private static formatPTZSimpleVector({
+    pan, tilt, x, y, zoom,
+  }: PTZInputVector = {
+    x : 0, y : 0, zoom : 0,
+  }): PTZVector {
+    return <PTZVector>{
+      panTilt : {
+        x : pan || x,
+        y : tilt || y,
+      },
+      zoom : {
+        x : zoom,
+      },
+    };
+  }
+
+  private static PTZVectorToXML(input: PTZVector | PTZInputVector) {
+    const vector: PTZVector = ('x' in input || 'pan' in input) ? PTZ.formatPTZSimpleVector(input) : (input as PTZVector);
+    return (
+      (vector.panTilt ? `<PanTilt x="${vector.panTilt.x}" y="${vector.panTilt.y}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
+        + (vector.zoom ? `<Zoom x="${vector.zoom.x}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
+    );
+  }
+
+  async gotoPreset({ profileToken, presetToken, speed }: GotoPresetOptions): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<PresetToken>${presetToken}</PresetToken>${
+          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
+        }</GotoPreset>`,
+    });
+  }
+
+  /**
+   * The SetPreset command saves the current device position parameters so that the device can move to the saved preset
+   * position through the GotoPreset operation. In order to create a new preset, the SetPresetRequest contains no
+   * PresetToken. If creation is successful, the Response contains the PresetToken which uniquely identifies the Preset.
+   * An existing Preset can be overwritten by specifying the PresetToken of the corresponding Preset. In both cases
+   * (overwriting or creation) an optional PresetName can be specified. The operation fails if the PTZ device is moving
+   * during the SetPreset operation. The device MAY internally save additional states such as imaging properties in the
+   * PTZ Preset which then should be recalled in the GotoPreset operation.
+   * @param options
+   */
+  async setPreset({ profileToken, presetName, presetToken }: SetPresetOptions): Promise<SetPresetResponse> {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<PresetName>${presetName}</PresetName>${
+          presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
+        }</SetPreset>`,
+    });
+    return linerase(data[0].setPresetResponse);
   }
 }
