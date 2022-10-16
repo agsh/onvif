@@ -190,7 +190,13 @@ describe('PTZ', () => {
 
 	describe('getStatus', () => {
 		it('should returns position status', (done) => {
-			cam.getStatus({}, (err) => {
+			cam.getStatus({}, (err, data) => {
+				assert.strictEqual(err, null);
+				done();
+			});
+		});
+		it('should returns position status without arguments', (done) => {
+			cam.getStatus((err, data) => {
 				assert.strictEqual(err, null);
 				done();
 			});

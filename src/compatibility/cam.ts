@@ -7,7 +7,14 @@ import {
   Onvif, OnvifRequestOptions, ReferenceToken, SetSystemDateAndTimeOptions,
 } from '../onvif';
 import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
-import { GetPresetsOptions, GotoPresetOptions, SetPresetOptions } from '../ptz';
+import {
+  GetPresetsOptions, GetStatusOptions,
+  GotoHomePositionOptions,
+  GotoPresetOptions,
+  RemovePresetOptions,
+  SetHomePositionOptions,
+  SetPresetOptions,
+} from '../ptz';
 
 type Callback = (error: any, result?: any) => void;
 
@@ -170,5 +177,26 @@ export class Cam extends EventEmitter {
 
   async setPreset(options: SetPresetOptions, callback: Callback) {
     this.onvif.ptz.setPreset(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  async removePreset(options: RemovePresetOptions, callback: Callback) {
+    this.onvif.ptz.removePreset(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  async gotoHomePosition(options: GotoHomePositionOptions, callback: Callback) {
+    this.onvif.ptz.gotoHomePosition(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  async setHomePosition(options: SetHomePositionOptions, callback: Callback) {
+    this.onvif.ptz.setHomePosition(options).then((result) => callback(null, result)).catch(callback);
+  }
+
+  getStatus(options: GetStatusOptions, callback: Callback): void
+  getStatus(callback: Callback): void
+  getStatus(options: GetStatusOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.ptz.getStatus(options as GetStatusOptions).then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.ptz.getStatus().then((result) => (options as Callback)(null, result)).catch(options as Callback);
   }
 }
