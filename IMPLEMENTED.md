@@ -63,7 +63,7 @@
 - [x] getServiceCapabilities
 - [x] getServices
 - [x] getSnapshotUri
-- [ ] getStatus
+- [x] getStatus
 - [x] getStreamUri
 - [x] getSystemDateAndTime
 - [ ] getUsers
@@ -74,18 +74,18 @@
 - [ ] getVideoSourceConfigurations
 - [ ] getVideoSourceOptions
 - [ ] getVideoSources
-- [ ] gotoHomePosition
+- [x] gotoHomePosition
 - [x] gotoPreset
 - [ ] pullMessages
 - [ ] relativeMove
 - [ ] removeAudioEncoderConfiguration
 - [ ] removeAudioSourceConfiguration
-- [ ] removePreset
+- [x] removePreset
 - [ ] renew
 - [ ] setAudioEncoderConfiguration
 - [ ] setCurrentImagingPreset
 - [ ] setDNS
-- [ ] setHomePosition
+- [x] setHomePosition
 - [ ] setImagingSettings
 - [ ] setNetworkDefaultGateway
 - [ ] setNetworkInterfaces
