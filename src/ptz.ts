@@ -1,7 +1,7 @@
 import { Onvif, ReferenceToken } from './onvif';
 import { linerase } from './utils';
 import {
-  Duration, PTZConfiguration, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
+  Duration, PTZConfiguration, PTZSpeed, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
 } from './media';
 
 export interface PTZPresetTourSupported {
@@ -211,6 +211,15 @@ export interface PTZStatus {
   error?: string;
   /** Specifies the UTC time when this status was generated. */
   utcTime?: Date;
+}
+
+export interface MoveOptions {
+  /** A reference to the MediaProfile. */
+  profileToken?: ReferenceToken;
+  /** A Position vector specifying the absolute target position. */
+  position: PTZVector;
+  /** An optional Speed. */
+  speed?: PTZSpeed;
 }
 
 /**
@@ -434,5 +443,28 @@ export class PTZ {
         + '</GetStatus>',
     });
     return linerase(data).getStatusResponse.PTZStatus;
+  }
+
+  /**
+   * Operation to move pan,tilt or zoom to a absolute destination.
+   *
+   * The speed argument is optional. If an x/y speed value is given it is up to the device to either use the x value as
+   * absolute resoluting speed vector or to map x and y to the component speed. If the speed argument is omitted, the
+   * default speed set by the PTZConfiguration will be used.
+   * @param options
+   */
+  async absoluteMove({
+    profileToken = this.onvif.activeSource?.profileToken,
+    position,
+    speed,
+  }: MoveOptions): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<Position>${PTZ.PTZVectorToXML(position)}</Position>${
+          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
+        }</AbsoluteMove>`,
+    });
   }
 }
