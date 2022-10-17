@@ -126,6 +126,18 @@ describe('PTZ', () => {
 				zoom : 1,
 			}, done);
 		});
+		it('should works with speed parameter', (done) => {
+			cam.absoluteMove({
+				x     : 1.1,
+				y     : 1.1,
+				zoom  : 1.1,
+				speed : {
+					x    : 2,
+					y    : 2,
+					zoom : 2
+				}
+			}, done);
+		});
 		it('should works without callback', () => {
 			cam.absoluteMove({
 				x    : 0,

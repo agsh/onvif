@@ -10,13 +10,14 @@ import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
 import {
   GetPresetsOptions, GetStatusOptions,
   GotoHomePositionOptions,
-  GotoPresetOptions,
+  GotoPresetOptions, MoveOptions,
   RemovePresetOptions,
   SetHomePositionOptions,
   SetPresetOptions,
 } from '../ptz';
 
 type Callback = (error: any, result?: any) => void;
+type CompatibilityMoveOptions = MoveOptions & { x?: number; y?: number; zoom?: number };
 
 export class Cam extends EventEmitter {
   private onvif: Onvif;
@@ -171,23 +172,23 @@ export class Cam extends EventEmitter {
       .catch(options as Callback);
   }
 
-  async gotoPreset(options: GotoPresetOptions, callback: Callback) {
+  gotoPreset(options: GotoPresetOptions, callback: Callback) {
     this.onvif.ptz.gotoPreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  async setPreset(options: SetPresetOptions, callback: Callback) {
+  setPreset(options: SetPresetOptions, callback: Callback) {
     this.onvif.ptz.setPreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  async removePreset(options: RemovePresetOptions, callback: Callback) {
+  removePreset(options: RemovePresetOptions, callback: Callback) {
     this.onvif.ptz.removePreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  async gotoHomePosition(options: GotoHomePositionOptions, callback: Callback) {
+  gotoHomePosition(options: GotoHomePositionOptions, callback: Callback) {
     this.onvif.ptz.gotoHomePosition(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  async setHomePosition(options: SetHomePositionOptions, callback: Callback) {
+  setHomePosition(options: SetHomePositionOptions, callback: Callback) {
     this.onvif.ptz.setHomePosition(options).then((result) => callback(null, result)).catch(callback);
   }
 
@@ -198,5 +199,23 @@ export class Cam extends EventEmitter {
       this.onvif.ptz.getStatus(options as GetStatusOptions).then((result) => callback(null, result)).catch(callback);
     }
     this.onvif.ptz.getStatus().then((result) => (options as Callback)(null, result)).catch(options as Callback);
+  }
+
+  absoluteMove(compatibilityOptions: CompatibilityMoveOptions, callback?: Callback): void {
+    const options: MoveOptions = {
+      ...compatibilityOptions,
+      position : {
+        panTilt : {
+          x : compatibilityOptions.x!,
+          y : compatibilityOptions.y!,
+        },
+        zoom : { x : compatibilityOptions.zoom! },
+      },
+    };
+    if (callback) {
+      this.onvif.ptz.absoluteMove(options).then((result) => callback(null, result)).catch(callback);
+    } else {
+      this.onvif.ptz.absoluteMove(options).catch((err) => this.emit('error', err));
+    }
   }
 }
