@@ -10,14 +10,22 @@ import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
 import {
   GetPresetsOptions, GetStatusOptions,
   GotoHomePositionOptions,
-  GotoPresetOptions, MoveOptions,
+  GotoPresetOptions, AbsoluteMoveOptions,
   RemovePresetOptions,
   SetHomePositionOptions,
-  SetPresetOptions,
+  SetPresetOptions, RelativeMoveOptions, ContinuousMoveOptions,
 } from '../ptz';
 
-type Callback = (error: any, result?: any) => void;
-type CompatibilityMoveOptions = MoveOptions & { x?: number; y?: number; zoom?: number };
+export type Callback = (error: any, result?: any) => void;
+export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
+export type CompatibilityRelativeMoveOptions = RelativeMoveOptions & { x?: number; y?: number; zoom?: number };
+interface CompatibilityContinuousMoveOptions extends ContinuousMoveOptions {
+  x?: number;
+  y?: number;
+  zoom?: number;
+  onlySendPanTilt?: boolean;
+  onlySendZoom?: boolean;
+}
 
 export class Cam extends EventEmitter {
   private onvif: Onvif;
@@ -201,8 +209,8 @@ export class Cam extends EventEmitter {
     this.onvif.ptz.getStatus().then((result) => (options as Callback)(null, result)).catch(options as Callback);
   }
 
-  absoluteMove(compatibilityOptions: CompatibilityMoveOptions, callback?: Callback): void {
-    const options: MoveOptions = {
+  absoluteMove(compatibilityOptions: CompatibilityAbsoluteMoveOptions, callback?: Callback): void {
+    const options: AbsoluteMoveOptions = {
       ...compatibilityOptions,
       position : {
         panTilt : {
@@ -216,6 +224,46 @@ export class Cam extends EventEmitter {
       this.onvif.ptz.absoluteMove(options).then((result) => callback(null, result)).catch(callback);
     } else {
       this.onvif.ptz.absoluteMove(options).catch((err) => this.emit('error', err));
+    }
+  }
+
+  relativeMove(compatibilityOptions: CompatibilityRelativeMoveOptions, callback?: Callback): void {
+    const options: RelativeMoveOptions = {
+      ...compatibilityOptions,
+      translation : {
+        panTilt : {
+          x : compatibilityOptions.x!,
+          y : compatibilityOptions.y!,
+        },
+        zoom : { x : compatibilityOptions.zoom! },
+      },
+    };
+    if (callback) {
+      this.onvif.ptz.relativeMove(options).then((result) => callback(null, result)).catch(callback);
+    } else {
+      this.onvif.ptz.relativeMove(options).catch((err) => this.emit('error', err));
+    }
+  }
+
+  continuousMove(compatibilityOptions: CompatibilityContinuousMoveOptions, callback?: Callback): void {
+    const options: ContinuousMoveOptions = {
+      ...compatibilityOptions,
+      velocity : {
+        ...(compatibilityOptions.x && compatibilityOptions.y && !compatibilityOptions.onlySendZoom && {
+          panTilt : {
+            x : compatibilityOptions.x,
+            y : compatibilityOptions.y,
+          },
+        }),
+        ...(compatibilityOptions.zoom && !compatibilityOptions.onlySendPanTilt && {
+          zoom : { x : compatibilityOptions.zoom },
+        }),
+      },
+    };
+    if (callback) {
+      this.onvif.ptz.continuousMove(options).then((result) => callback(null, result)).catch(callback);
+    } else {
+      this.onvif.ptz.continuousMove(options).catch((err) => this.emit('error', err));
     }
   }
 }
