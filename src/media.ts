@@ -250,7 +250,7 @@ export interface ItemList {
     name: string;
     /** Item value. The type is defined in the corresponding description */
     value: any;
-  }
+  };
   /** Complex value structure */
   elementItem?: any;
   extension: any;
@@ -306,9 +306,9 @@ export interface PTZSpeed {
    * Pan and tilt speed. The x component corresponds to pan and the y component to tilt.
    * If omitted in a request, the current (if any) PanTilt movement should not be affected
    */
-  panTilt: Vector2D;
+  panTilt?: Vector2D;
   /** A zoom speed. If omitted in a request, the current (if any) Zoom movement should not be affected */
-  zoom: Vector1D;
+  zoom?: Vector1D;
 }
 
 export interface Range {
@@ -386,7 +386,7 @@ export interface PTZConfiguration {
   /** If the PTZ Node supports relative Pan/Tilt movements, it shall specify one RelativePan/Tilt Translation Space as default */
   defaultRelativePanTiltTranslationSpace?: string;
   /** If the PTZ Node supports relative zoom movements, it shall specify one Relative Zoom Translation Space as default */
-  defaultRelativeZoomTranslationSpace?: string
+  defaultRelativeZoomTranslationSpace?: string;
   /** If the PTZ Node supports continuous Pan/Tilt movements, it shall specify one Continuous Pan/Tilt Velocity Space as default */
   defaultContinuousPanTiltVelocitySpace?: string;
   /** If the PTZ Node supports continuous zoom movements, it shall specify one Continuous Zoom Velocity Space as default */
@@ -727,7 +727,7 @@ export interface ImagingSettings {
   /** Image brightness (unit unspecified) */
   brightness?: number;
   /** Color saturation of the image (unit unspecified) */
-  colorSaturation?: number
+  colorSaturation?: number;
   /** Contrast of the image (unit unspecified) */
   contrast?: number;
   /** Exposure mode of the device */
@@ -1046,7 +1046,7 @@ export class Media {
    * - RTP over RTSP over TCP: StreamType = "RTP_unicast", TransportProtocol = "RTSP"
    */
   async getStreamUri(options: GetStreamUriOptions = {}):
-    Promise<{uri: AnyURI, invalidAfterConnect?: boolean, invalidAfterReboot?: boolean, timeout?: Duration}> {
+    Promise<{uri: AnyURI; invalidAfterConnect?: boolean; invalidAfterReboot?: boolean; timeout?: Duration}> {
     const {
       profileToken,
       stream = 'RTP-Unicast',

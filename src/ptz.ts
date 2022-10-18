@@ -1,7 +1,8 @@
+import { type } from 'os';
 import { Onvif, ReferenceToken } from './onvif';
 import { linerase } from './utils';
 import {
-  Duration, PTZConfiguration, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
+  Duration, PTZConfiguration, PTZSpeed, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
 } from './media';
 
 export interface PTZPresetTourSupported {
@@ -211,6 +212,44 @@ export interface PTZStatus {
   error?: string;
   /** Specifies the UTC time when this status was generated. */
   utcTime?: Date;
+}
+
+export interface AbsoluteMoveOptions {
+  /** A reference to the MediaProfile. */
+  profileToken?: ReferenceToken;
+  /** A Position vector specifying the absolute target position. */
+  position: PTZVector;
+  /** An optional Speed. */
+  speed?: PTZSpeed;
+}
+
+export interface RelativeMoveOptions {
+  /** A reference to the MediaProfile. */
+  profileToken?: ReferenceToken;
+  /** A positional Translation relative to the current position */
+  translation: PTZVector;
+  /** An optional Speed. */
+  speed?: PTZSpeed;
+}
+
+export interface ContinuousMoveOptions {
+  /** A reference to the MediaProfile. */
+  profileToken?: ReferenceToken;
+  /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
+  velocity: PTZSpeed;
+  /** An optional Timeout parameter. Milliseconds or duration string. */
+  timeout?: Duration | number;
+}
+
+export interface StopOptions {
+  /** A reference to the MediaProfile that indicate what should be stopped. */
+  profileToken?: ReferenceToken;
+  /** Set true when we want to stop ongoing pan and tilt movements.If PanTilt arguments are not present, this command
+   * stops these movements. */
+  panTilt?: boolean;
+  /** Set true when we want to stop ongoing zoom movement.If Zoom arguments are not present, this command stops ongoing
+   * zoom movement. */
+  zoom?: boolean;
 }
 
 /**
@@ -434,5 +473,92 @@ export class PTZ {
         + '</GetStatus>',
     });
     return linerase(data).getStatusResponse.PTZStatus;
+  }
+
+  /**
+   * Operation to move pan,tilt or zoom to a absolute destination.
+   *
+   * The speed argument is optional. If an x/y speed value is given it is up to the device to either use the x value as
+   * absolute resoluting speed vector or to map x and y to the component speed. If the speed argument is omitted, the
+   * default speed set by the PTZConfiguration will be used.
+   * @param options
+   */
+  async absoluteMove({
+    profileToken = this.onvif.activeSource?.profileToken,
+    position,
+    speed,
+  }: AbsoluteMoveOptions): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<Position>${PTZ.PTZVectorToXML(position)}</Position>${
+          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
+        }</AbsoluteMove>`,
+    });
+  }
+
+  /**
+   * Operation for Relative Pan/Tilt and Zoom Move. The operation is supported if the PTZNode supports at least one
+   * relative Pan/Tilt or Zoom space.
+   *
+   * The speed argument is optional. If an x/y speed value is given it is up to the device to either use the x value as
+   * absolute resoluting speed vector or to map x and y to the component speed. If the speed argument is omitted,
+   * the default speed set by the PTZConfiguration will be used.
+   * @param options
+   */
+  async relativeMove({
+    profileToken = this.onvif.activeSource?.profileToken,
+    translation,
+    speed,
+  }: RelativeMoveOptions): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<Translation>${
+          PTZ.PTZVectorToXML(translation)
+        }</Translation>${
+          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
+        }</RelativeMove>`,
+    });
+  }
+
+  /**
+   * Operation for continuous Pan/Tilt and Zoom movements. The operation is supported if the PTZNode supports at least
+   * one continuous Pan/Tilt or Zoom space. If the space argument is omitted, the default space set by the
+   * PTZConfiguration will be used.
+   * @param options
+   */
+  async continuousMove({
+    profileToken = this.onvif.activeSource?.profileToken,
+    velocity,
+    timeout,
+  }: ContinuousMoveOptions): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<Velocity>${PTZ.PTZVectorToXML(velocity)}</Velocity>${
+          timeout ? `<Timeout>${typeof timeout === 'number' ? `PT${timeout / 1000}S` : timeout}</Timeout>` : ''
+        }</ContinuousMove>`,
+    });
+  }
+
+  /**
+   * Operation to stop ongoing pan, tilt and zoom movements of absolute relative and continuous type. If no stop
+   * argument for pan, tilt or zoom is set, the device will stop all ongoing pan, tilt and zoom movements.
+   * @param options
+   */
+  async stop(options?: StopOptions) {
+    const profileToken = options?.profileToken || this.onvif?.activeSource?.profileToken;
+    const panTilt = options?.panTilt ?? true;
+    const zoom = options?.zoom ?? true;
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken><PanTilt>${panTilt}</PanTilt><Zoom>${zoom}</Zoom>`
+        + '</Stop>',
+    });
   }
 }
