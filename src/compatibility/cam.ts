@@ -266,4 +266,16 @@ export class Cam extends EventEmitter {
       this.onvif.ptz.continuousMove(options).catch((err) => this.emit('error', err));
     }
   }
+
+  stop(): void
+  stop(options: GetStatusOptions, callback: Callback): void
+  stop(callback: Callback): void
+  stop(options?: GetStatusOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.ptz.stop(options as GetStatusOptions).then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.ptz.stop().then((result) => {
+      if (typeof options === 'function') { (options as Callback)(null, result); }
+    }).catch(options ? options as Callback : (error) => this.emit('error', error));
+  }
 }

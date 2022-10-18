@@ -237,8 +237,19 @@ export interface ContinuousMoveOptions {
   profileToken?: ReferenceToken;
   /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
   velocity: PTZSpeed;
-  /** An optional Timeout parameter. Milliseconds or duration string */
+  /** An optional Timeout parameter. Milliseconds or duration string. */
   timeout?: Duration | number;
+}
+
+export interface StopOptions {
+  /** A reference to the MediaProfile that indicate what should be stopped. */
+  profileToken?: ReferenceToken;
+  /** Set true when we want to stop ongoing pan and tilt movements.If PanTilt arguments are not present, this command
+   * stops these movements. */
+  panTilt?: boolean;
+  /** Set true when we want to stop ongoing zoom movement.If Zoom arguments are not present, this command stops ongoing
+   * zoom movement. */
+  zoom?: boolean;
 }
 
 /**
@@ -531,6 +542,23 @@ export class PTZ {
         + `<Velocity>${PTZ.PTZVectorToXML(velocity)}</Velocity>${
           timeout ? `<Timeout>${typeof timeout === 'number' ? `PT${timeout / 1000}S` : timeout}</Timeout>` : ''
         }</ContinuousMove>`,
+    });
+  }
+
+  /**
+   * Operation to stop ongoing pan, tilt and zoom movements of absolute relative and continuous type. If no stop
+   * argument for pan, tilt or zoom is set, the device will stop all ongoing pan, tilt and zoom movements.
+   * @param options
+   */
+  async stop(options?: StopOptions) {
+    const profileToken = options?.profileToken || this.onvif?.activeSource?.profileToken;
+    const panTilt = options?.panTilt ?? true;
+    const zoom = options?.zoom ?? true;
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken><PanTilt>${panTilt}</PanTilt><Zoom>${zoom}</Zoom>`
+        + '</Stop>',
     });
   }
 }
