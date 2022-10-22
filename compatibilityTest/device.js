@@ -97,7 +97,7 @@ describe('Device', () => {
 		it('should return a NetworkInterface', (done) => {
 			cam.getNetworkInterfaces((err, networkInterfaces) => {
 				assert.strictEqual(err, null);
-				assert.strictEqual(networkInterfaces[0].$.token, 'eth0'); // Defined in serverMockup/device.GetNetworkInterfaces.xml)
+				assert.strictEqual(networkInterfaces[0].token, 'eth0'); // Defined in serverMockup/device.GetNetworkInterfaces.xml)
 				done();
 			});
 		});
