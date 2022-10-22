@@ -286,4 +286,8 @@ export class Cam extends EventEmitter {
   getDNS(callback: Callback) {
     this.onvif.device.getDNS().then((result) => callback(null, result)).catch(callback);
   }
+
+  getNetworkInterfaces(callback: Callback) {
+    this.onvif.device.getNetworkInterfaces().then((result) => callback(null, result)).catch(callback);
+  }
 }

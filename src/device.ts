@@ -1,6 +1,6 @@
 import url from 'url';
 import {
-  Onvif, OnvifServices, SetSystemDateAndTimeOptions,
+  Onvif, OnvifServices, ReferenceToken, SetSystemDateAndTimeOptions,
 } from './onvif';
 import { linerase } from './utils';
 
@@ -429,6 +429,139 @@ export interface DNSInformation {
   extension?: any;
 }
 
+export interface NetworkInterfaceInfo {
+  /* Network interface name, for example eth0. */
+  name?: string;
+  /* Network interface MAC address. */
+  hwAddress: string;
+  /* Maximum transmission unit. */
+  MTU?: number;
+}
+
+export interface NetworkInterfaceConnectionSetting {
+  /* Auto negotiation on/off. */
+  autoNegotiation: boolean;
+  /* Speed. */
+  speed: number;
+  /* Duplex type, Half or Full. */
+  duplex: 'Full' | 'Half';
+}
+
+export interface NetworkInterfaceLink {
+  /* Configured link settings. */
+  adminSettings: NetworkInterfaceConnectionSetting;
+  /* Current active link settings. */
+  operSettings: NetworkInterfaceConnectionSetting;
+  /* Integer indicating interface type, for example: 6 is ethernet. */
+  interfaceType: number;
+}
+
+export interface PrefixedIPv4Address {
+  /* IPv4 address */
+  address: IPv4Address;
+  // Prefix/submask length
+  prefixLength: number;
+}
+
+export interface IPv4Configuration {
+  /* List of manually added IPv4 addresses. */
+  manual?: PrefixedIPv4Address[];
+  /* Link local address. */
+  linkLocal?: PrefixedIPv4Address;
+  /* IPv4 address configured by using DHCP. */
+  fromDHCP?: PrefixedIPv4Address;
+  /* Indicates whether or not DHCP is used. */
+  DHCP: boolean;
+}
+
+export interface IPv4NetworkInterface {
+  /* Indicates whether or not IPv4 is enabled. */
+  enabled: boolean;
+  /* IPv4 configuration. */
+  config?: IPv4Configuration;
+}
+
+export interface PrefixedIPv6Address {
+  /* IPv6 address */
+  address: IPv6Address;
+  /* Prefix/submask length */
+  prefixLength: number;
+}
+
+export interface IPv6Configuration {
+  /* Indicates whether router advertisment is used. */
+  acceptRouterAdvert?: boolean;
+  /* DHCP configuration. */
+  DHCP: 'Auto' | 'Stateful' | 'Stateless' | 'Off';
+  /* List of manually entered IPv6 addresses. */
+  manual?: PrefixedIPv6Address[];
+  /* List of link local IPv6 addresses. */
+  linkLocal?: PrefixedIPv6Address[];
+  /* List of IPv6 addresses configured by using DHCP. */
+  fromDHCP?: PrefixedIPv6Address[];
+  /* List of IPv6 addresses configured by using router advertisment. */
+  fromRA?: PrefixedIPv6Address[];
+  extension?: any;
+}
+
+export interface IPv6NetworkInterface {
+  /* Indicates whether or not IPv6 is enabled. */
+  enabled: boolean;
+  /* IPv4 configuration. */
+  config: IPv6Configuration;
+}
+
+export interface Dot11PSKSet {
+  /* According to IEEE802.11-2007 H.4.1 the RSNA PSK consists of 256 bits, or 64 octets when represented in hex
+  Either Key or Passphrase shall be given, if both are supplied Key shall be used by the device and Passphrase ignored. */
+  key?: number;
+  /* According to IEEE802.11-2007 H.4.1 a pass-phrase is a sequence of between 8 and 63 ASCII-encoded characters and
+  each character in the pass-phrase must have an encoding in the range of 32 to 126 (decimal),inclusive.
+  If only Passpharse is supplied the Key shall be derived using the algorithm described in IEEE802.11-2007 section H.4 */
+  passphrase?: string;
+  extension?: any;
+}
+
+export interface Dot11SecurityConfiguration {
+  mode: 'None' | 'WEP' | 'PSK' | 'Dot1X' | 'Extended';
+  algorithm?: 'CCMP' | 'TKIP' | 'Any' | 'Extended';
+  PSK?: Dot11PSKSet;
+  dot1X?: ReferenceToken;
+  extension?: any;
+}
+
+export interface Dot11Configuration {
+  SSID: number;
+  mode: 'Ad-hoc' | 'Infrastructure' | 'Extended';
+  alias: string;
+  priority: number;
+  security: Dot11SecurityConfiguration;
+}
+
+export interface NetworkInterfaceExtension {
+  interfaceType: number;
+  /* Extension point prepared for future 802.3 configuration. */
+  dot3?: any;
+  dot11?: Dot11Configuration;
+  extension?: any;
+}
+
+export interface NetworkInterface {
+  /* Unique identifier referencing the physical entity. */
+  token: ReferenceToken;
+  /* Indicates whether or not an interface is enabled. */
+  enabled: boolean;
+  /* Network interface information */
+  info?: NetworkInterfaceInfo;
+  /* Link configuration. */
+  link?: NetworkInterfaceLink;
+  // IPv4 network interface configuration.
+  IPv4?: IPv4NetworkInterface;
+  // IPv6 network interface configuration.
+  IPv6?: IPv6NetworkInterface;
+  extension?: NetworkInterfaceExtension;
+}
+
 /**
  * Device methods
  */
@@ -440,21 +573,15 @@ export class Device {
   }
   public media2Support = false;
   #scopes: Scope[] = [];
-  get scopes() {
-    return this.#scopes;
-  }
+  get scopes() { return this.#scopes; }
   #serviceCapabilities: DeviceServiceCapabilities = {};
-  get serviceCapabilities() {
-    return this.#serviceCapabilities;
-  }
+  get serviceCapabilities() { return this.#serviceCapabilities; }
   #NTP?: NTPInformation;
-  get NTP() {
-    return this.#NTP;
-  }
+  get NTP() { return this.#NTP; }
   #DNS?: DNSInformation;
-  get DNS() {
-    return this.#NTP;
-  }
+  get DNS() { return this.#NTP; }
+  #networkInterfaces?: NetworkInterface[];
+  get newtworkInterfaces() { return this.#networkInterfaces; }
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -650,5 +777,25 @@ export class Device {
     if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
     if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
     return this.#DNS!;
+  }
+
+  /**
+   * This operation gets the network interface configuration from a device. The device shall support return of network
+   * interface configuration settings as defined by the NetworkInterface type through the GetNetworkInterfaces command.
+   */
+  async getNetworkInterfaces(): Promise<NetworkInterface[]> {
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body    : '<GetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    });
+    const networkInterfaces = linerase(data[0].getNetworkInterfacesResponse[0].networkInterfaces);
+    // networkInterfaces is an array of network interfaces, but linerase remove the array if there is only one element inside
+    // so we convert it back to an array
+    if (!Array.isArray(networkInterfaces)) {
+      this.#networkInterfaces = [networkInterfaces];
+    } else {
+      this.#networkInterfaces = networkInterfaces;
+    }
+    return this.#networkInterfaces;
   }
 }
