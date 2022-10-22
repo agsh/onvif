@@ -278,4 +278,12 @@ export class Cam extends EventEmitter {
       if (typeof options === 'function') { (options as Callback)(null, result); }
     }).catch(options ? options as Callback : (error) => this.emit('error', error));
   }
+
+  getNTP(callback: Callback) {
+    this.onvif.device.getNTP().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getDNS(callback: Callback) {
+    this.onvif.device.getDNS().then((result) => callback(null, result)).catch(callback);
+  }
 }

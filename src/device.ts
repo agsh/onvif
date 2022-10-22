@@ -1,5 +1,7 @@
 import url from 'url';
-import { Onvif, OnvifServices, SetSystemDateAndTimeOptions } from './onvif';
+import {
+  Onvif, OnvifServices, SetSystemDateAndTimeOptions,
+} from './onvif';
 import { linerase } from './utils';
 
 export interface OnvifService {
@@ -240,7 +242,7 @@ export interface DeviceIOCapabilities {
   extensions: {
     telexCapabilities: any;
     scdlCapabilities: any;
-  }
+  };
 }
 
 export interface DisplayCapabilities {
@@ -380,6 +382,53 @@ export interface DeviceServiceCapabilities {
   auxiliaryCommands?: string[];
 }
 
+type NetworkHostType = 'IPv4'| 'IPv6' | 'DNS';
+type IPv4Address = string;
+type IPv6Address = string;
+
+export interface IPAddress {
+  /** Indicates if the address is an IPv4 or IPv6 address */
+  type: 'IPv4' | 'IPv6';
+  /** IPv4 address */
+  IPv4Address?: IPv4Address;
+  /** IPv6 address */
+  IPv6Address?: IPv6Address;
+}
+
+export interface NetworkHost {
+  /* Network host type: IPv4, IPv6 or DNS. */
+  type: NetworkHostType;
+  /* IPv4 address. */
+  IPv4Address?: IPv4Address;
+  /* IPv6 address. */
+  IPv6Address?: IPv6Address;
+  /* DNS name. */
+  DNSname?: string;
+  extension?: any;
+}
+
+export interface NTPInformation {
+  /* Indicates if NTP information is to be retrieved by using DHCP. */
+  fromDHCP: boolean;
+  /* List of NTP addresses retrieved by using DHCP. */
+  NTPFromDHCP?: NetworkHost[];
+  /* List of manually entered NTP addresses. */
+  NTPManual?: NetworkHost[];
+  extension?: any;
+}
+
+export interface DNSInformation {
+  /* Indicates whether or not DNS information is retrieved from DHCP. */
+  fromDHCP: boolean;
+  /* Search domain. */
+  searchDomain?: string[];
+  /* List of DNS addresses received from DHCP. */
+  DNSFromDHCP?: IPAddress[];
+  /* List of manually entered DNS addresses. */
+  DNSManual?: IPAddress[];
+  extension?: any;
+}
+
 /**
  * Device methods
  */
@@ -397,6 +446,14 @@ export class Device {
   #serviceCapabilities: DeviceServiceCapabilities = {};
   get serviceCapabilities() {
     return this.#serviceCapabilities;
+  }
+  #NTP?: NTPInformation;
+  get NTP() {
+    return this.#NTP;
+  }
+  #DNS?: DNSInformation;
+  get DNS() {
+    return this.#NTP;
   }
 
   constructor(onvif: Onvif) {
@@ -563,5 +620,35 @@ export class Device {
       service : 'device', // or 'deviceIO' ?
       body    : '<SystemReboot xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     }).then(([data]) => data[0].systemRebootResponse[0].message[0]);
+  }
+
+  /**
+   * This operation gets the NTP settings from a device. If the device supports NTP, it shall be possible to get the
+   * NTP server settings through the GetNTP command.
+   */
+  async getNTP(): Promise<NTPInformation> {
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body    : '<GetNTP xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    });
+    this.#NTP = linerase(data[0].getNTPResponse[0].NTPInformation[0]);
+    if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) { this.#NTP.NTPManual = [this.#NTP.NTPManual]; }
+    if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) { this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP]; }
+    return this.#NTP!;
+  }
+
+  /**
+   * This operation gets the DNS settings from a device. The device shall return its DNS configurations through the
+   * GetDNS command.
+   */
+  async getDNS(): Promise<DNSInformation> {
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body    : '<GetDNS xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    });
+    this.#DNS = linerase(data[0].getDNSResponse[0].DNSInformation);
+    if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
+    if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
+    return this.#DNS!;
   }
 }

@@ -2,6 +2,7 @@ import {
   AnyURI, Name, Onvif, ReferenceToken,
 } from './onvif';
 import { linerase } from './utils';
+import { IPAddress } from './device';
 
 export interface IntRectangle {
   x: number;
@@ -149,15 +150,6 @@ export interface H264Configuration {
   govLength: number;
   /** The H.264 profile, either baseline, main, extended or high */
   H264Profile: 'Baseline' | 'Main' | 'Extended' | 'High';
-}
-
-export interface IPAddress {
-  /** Indicates if the address is an IPv4 or IPv6 address */
-  type: 'IPv4' | 'IPv6';
-  /** IPv4 address */
-  IPv4Address?: string;
-  /** IPv6 address */
-  IPv6Address?: string;
 }
 
 export interface MulticastConfiguration {
