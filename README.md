@@ -22,7 +22,7 @@ The library uses NodeJS. And works on the server-side.
 
 `npm install agsh/onvif` - install latest version from GitHub
 
-`npm install agsh/onvif#dev` - install latest development version
+`npm install agsh/onvif#v1` - install latest development version
 
 ### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
