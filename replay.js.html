@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: discovery</title>
+    <title>JSDoc: Source: replay.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,106 +17,63 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: discovery</h1>
+    <h1 class="page-title">Source: replay.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-        <h2>discovery</h2>
-        
-    
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @namespace cam
+ * @description Replay section for Cam class
+ * @author Roger Hardiman &lt;opensource@rjh.org.uk>
+ * @licence MIT
+ */
+module.exports = function(Cam) {
 
-<article>
-    <div class="container-overview">
-    
-        
-            <div class="description">Discovery module</div>
-        
+	const linerase = require('./utils').linerase;
 
-        
+	/**
+	 * @callback Cam~ResponseUriCallback
+	 * @property {string} uri
+	 */
 
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-author">Author:</dt>
-    <dd class="tag-author">
-        <ul>
-            <li><a href="mailto:a.d.laptev@gmail.com">Andrew D.Laptev</a></li>
-        </ul>
-    </dd>
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="discovery.js.html">discovery.js</a>, <a href="discovery.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+	/**
+	 * Receive Replay Stream URI
+	 * @param {Object} [options]
+	 * @param {string} [options.stream]
+	 * @param {string} [options.protocol]
+	 * @param {string} [options.recordingToken]
+	 * @param {Cam~ResponseUriCallback} [callback]
+	 */
+	Cam.prototype.getReplayUri = function(options, callback) {
+		if (callback === undefined) { callback = options; options = {};	}
+		this._request({
+			service: 'replay'
+			, body: this._envelopeHeader() +
+			'&lt;GetReplayUri xmlns="http://www.onvif.org/ver10/replay/wsdl">' +
+				'&lt;StreamSetup>' +
+					'&lt;Stream xmlns="http://www.onvif.org/ver10/schema">' + (options.stream || 'RTP-Unicast') + '&lt;/Stream>' +
+					'&lt;Transport xmlns="http://www.onvif.org/ver10/schema">' +
+						'&lt;Protocol>' + (options.protocol || 'RTSP') + '&lt;/Protocol>' +
+					'&lt;/Transport>' +
+				'&lt;/StreamSetup>' +
+				'&lt;RecordingToken>' + (options.recordingToken) + '&lt;/RecordingToken>' +
+			'&lt;/GetReplayUri>' +
+			this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (callback) {
+				callback.call(this, err, err ? null : linerase(data).getReplayUriResponse.uri, xml);
+			}
+		}.bind(this));
+	};
+};
+</code></pre>
+        </article>
+    </section>
 
 
 

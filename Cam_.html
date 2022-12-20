@@ -1579,6 +1579,81 @@ new Cam({
 
         
             
+<h4 class="name" id="recordingJobItems"><span class="type-signature"></span>recordingJobItems<span class="type-signature"> :Cam~RecordingJobItem|Array.&lt;Cam~RecordingJobItem></span></h4>
+
+
+
+
+<div class="description">
+    Recording Job Items
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Cam~RecordingJobItem</span>
+|
+
+<span class="param-type">Array.&lt;Cam~RecordingJobItem></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="recording.js.html">recording.js</a>, <a href="recording.js.html#line66">line 66</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="scopes"><span class="type-signature"></span>scopes<span class="type-signature"> :undefined|Array.&lt;<a href="Cam_.html#~Scope">Cam~Scope</a>></span></h4>
 
 
@@ -4155,7 +4230,7 @@ new Cam({
                 </td>
             
 
-            <td class="description last">pan velocity, float within 0 to 1</td>
+            <td class="description last">pan velocity, float within -1 to 1</td>
         </tr>
 
     
@@ -4194,7 +4269,7 @@ new Cam({
                 </td>
             
 
-            <td class="description last">tilt velocity, float within 0 to 1</td>
+            <td class="description last">tilt velocity, float within -1 to 1</td>
         </tr>
 
     
@@ -4233,7 +4308,7 @@ new Cam({
                 </td>
             
 
-            <td class="description last">zoom velocity, float within 0 to 1</td>
+            <td class="description last">zoom velocity, float within -1 to 1</td>
         </tr>
 
     
@@ -5146,6 +5221,540 @@ ONVIF can handle custom positons, date/time, text, font sizes, transparency, ima
     
 
     
+    <h4 class="name" id="createRecordingJob"><span class="type-signature"></span>createRecordingJob<span class="signature">(options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>scheduleToken</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>recordingToken</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>mode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>priority</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>source.sourceToken.type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>source.sourceToken.token</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>source.autoCreateReceiver</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>source.tracks.sourceTag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>source.extension</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>extension</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Cam_.html#~GetRecordingsCallback">Cam~GetRecordingsCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="recording.js.html">recording.js</a>, <a href="recording.js.html#line93">line 93</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id="createUsers"><span class="type-signature"></span>createUsers<span class="signature">(users, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
@@ -5450,7 +6059,7 @@ ONVIF can handle custom positons, date/time, text, font sizes, transparency, ima
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1288">line 1288</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1291">line 1291</a>
     </li></ul></dd>
     
 
@@ -8737,7 +9346,7 @@ If token is omitted tries first from #audioEncoderConfigurations array
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1344">line 1344</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1347">line 1347</a>
     </li></ul></dd>
     
 
@@ -10269,6 +10878,155 @@ If token not exist, request all available OSDs.</td>
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
         <a href="media.js.html">media.js</a>, <a href="media.js.html#line915">line 915</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="getRecordingJobs"><span class="type-signature"></span>getRecordingJobs<span class="signature">(callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Get Recording Job Items
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Cam_.html#~GetRecordingsCallback">Cam~GetRecordingsCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="recording.js.html">recording.js</a>, <a href="recording.js.html#line58">line 58</a>
     </li></ul></dd>
     
 
@@ -18049,6 +18807,9 @@ ONVIF can handle custom positons, date/time, text, font sizes, transparency, ima
             <td class="type">
             
                 
+<span class="param-type">object</span>
+|
+
 <span class="param-type">string</span>
 
 
@@ -18069,7 +18830,101 @@ ONVIF can handle custom positons, date/time, text, font sizes, transparency, ima
 
             
 
-            <td class="description last">UpperLeft, UpperRight, LowerLeft or LowerRight. Default LowerLeft   (custom mode currently not implemented)</td>
+            <td class="description last">String options: UpperLeft, UpperRight, LowerLeft or LowerRight. Default LowerLeft. Or an object with x and y position
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>x</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">x position of OSD, range: -1 to 1, counting from left to right</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>y</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">y position of OSD, range: -1 to 1, counting from up to down</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -18140,7 +18995,7 @@ ONVIF can handle custom positons, date/time, text, font sizes, transparency, ima
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1254">line 1254</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1256">line 1256</a>
     </li></ul></dd>
     
 
@@ -28804,7 +29659,7 @@ TODO - Add Termination Time
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1333">line 1333</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1336">line 1336</a>
     </li></ul></dd>
     
 
@@ -31449,7 +32304,7 @@ The password is not included in the response even if it is present in Cam~User</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1321">line 1321</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1324">line 1324</a>
     </li></ul></dd>
     
 
@@ -37217,7 +38072,7 @@ The password is not included in the response even if it is present in Cam~User</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1306">line 1306</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1309">line 1309</a>
     </li></ul></dd>
     
 
@@ -39821,7 +40676,7 @@ The password is not included in the response even if it is present in Cam~User</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1311">line 1311</a>
+        <a href="media.js.html">media.js</a>, <a href="media.js.html#line1314">line 1314</a>
     </li></ul></dd>
     
 
@@ -45497,7 +46352,7 @@ The password is not included in the response even if it is present in Cam~User</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="events.js.html">events.js</a>, <a href="events.js.html#line357">line 357</a>
+        <a href="events.js.html">events.js</a>, <a href="events.js.html#line361">line 361</a>
     </li></ul></dd>
     
 
@@ -45839,7 +46694,7 @@ The password is not included in the response even if it is present in Cam~User</
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sun Mar 13 2022 15:47:52 GMT+0300 (Moscow Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Dec 20 2022 09:47:51 GMT+0300 (Moscow Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

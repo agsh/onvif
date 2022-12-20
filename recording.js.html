@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: recording.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: recording.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @namespace cam
+ * @description Recording section for Cam class
+ * @author Roger Hardiman &lt;opensource@rjh.org.uk>
+ * @licence MIT
+ */
+module.exports = function(Cam) {
+
+	const linerase = require('./utils').linerase;
+
+	/**
+	 * @typedef {object} Cam~RecordingItem
+	 * @property {string} $.token Recording token
+	 * @property {string} configuration.source.sourceid
+	 * @property {string} configuration.content
+	 * @property {string} configuration.maximumretentiontime
+	 * @property {string} tracks.track.tracktoken
+	 * @property {string} tracks.configuration.tracktype
+	 * @property {string} tracks.configuration.description
+	 */
+
+	/**
+	 * @callback Cam~GetRecordingsCallback
+	 * @property {?Error} error
+	 * @property {Cam~RecordingItem|Array.&lt;Cam~RecordingItem>} recording items
+	 * @property {string} xml Raw SOAP response
+	 */
+
+	/**
+	 * Get Recording Items (links Video Sources to Recording Tracks)
+	 * @param {Cam~GetRecordingsCallback} [callback]
+	 */
+	Cam.prototype.getRecordings = function(callback) {
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() +
+				'&lt;GetRecordings xmlns="http://www.onvif.org/ver10/recording/wsdl"/>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				/**
+				 * Recording Item
+				 * @name Cam#recordingItem
+				 * @type {Cam~RecordingItem|Array.&lt;Cam~RecordingItem>}
+				 */
+				this.recordingItems = linerase(data).getRecordingsResponse.recordingItem;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingItems, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * Get Recording Job Items 
+	 * @param {Cam~GetRecordingsCallback} [callback]
+	 */
+	Cam.prototype.getRecordingJobs = function(callback) {
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() +
+				'&lt;GetRecordingJobs xmlns="http://www.onvif.org/ver10/recording/wsdl"/>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				/**
+				 * Recording Job Items
+				 * @name Cam#recordingJobItems
+				 * @type {Cam~RecordingJobItem|Array.&lt;Cam~RecordingJobItem>}
+				 */
+				this.jobItem = linerase(data).getRecordingJobsResponse.jobItem;
+			}
+			if (callback) {
+				callback.call(this, err, this.jobItem, xml);
+			}
+		}.bind(this));
+	};
+
+	/**
+	 * @param {Object} options
+	 * @param {String} [options.scheduleToken]
+	 * @param {String} [options.recordingToken]
+	 * @param {String} [options.mode]
+	 * @param {Number} [options.priority]
+	 * @param {String} [options.source.sourceToken.type]
+	 * @param {String} [options.source.sourceToken.token]
+	 * @param {Boolean} [options.source.autoCreateReceiver]
+	 * @param {String} [options.source.tracks.sourceTag]
+	 * @param {String} [options.source.extension]
+	 * @param {Object} [options.extension]
+	 * @param {Cam~GetRecordingsCallback} [callback]
+	 */
+	Cam.prototype.createRecordingJob = function(options, callback) {
+		let commandSend;
+
+		try {
+			commandSend = '&lt;CreateRecordingJob xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobConfiguration>' +
+				'&lt;ScheduleToken>' + (options.scheduleToken || '') + '&lt;/ScheduleToken>' +
+				'&lt;RecordingToken>' + (options.recordingToken || '') + '&lt;/RecordingToken>' +
+				'&lt;Mode>' + (options.mode || '') + '&lt;/Mode>' +
+				'&lt;Priority>' + (options.priority || '') + '&lt;/Priority>' +
+				'&lt;Source>' +
+				'&lt;SourceToken>' +
+				'&lt;Type>' + (options.source.sourceToken.type || '') + '&lt;/Type>' +
+				'&lt;Token>' + (options.source.sourceToken.token || '') + '&lt;/Token>' +
+				'&lt;/SourceToken>' +
+				'&lt;AutoCreateReceiver>' + (options.source.autoCreateReceiver || '') + '&lt;/AutoCreateReceiver>' +
+				'&lt;Tracks>' +
+				'&lt;SourceTag>' + ((((options ? options.source : '') ? options.source.tracks : '') ? options.source.tracks.sourceTag : '') || '') + '&lt;/SourceTag>' +
+				'&lt;Destination>' + ((((options ? options.source : '') ? options.source.tracks : '') ? options.source.tracks.destination : '') || '') + '&lt;/Destination>' +
+				'&lt;/Tracks>' +
+				'&lt;Extension>' + (options.source.extension || '') + '&lt;/Extension>' +
+				'&lt;/Source>' +
+				'&lt;Extension>' + (options.extension || '') + '&lt;/Extension>' +
+				'&lt;/JobConfiguration>' +
+				'&lt;/CreateRecordingJob>';
+
+		} catch (error) {
+			console.log(error);
+		}
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() + commandSend +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingJob = linerase(data).createRecordingJobResponse;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingJob, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.deleteRecordingJob = function(options, callback) {
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() +
+				'&lt;DeleteRecordingJob xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobToken>' + options.JobToken + '&lt;/JobToken>' +
+				'&lt;/DeleteRecordingJob>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			let getRecordingJobsResponse;
+			if (!err) {
+				getRecordingJobsResponse = linerase(data).getRecordingJobsResponse;
+			}
+			if (callback) {
+				callback.call(this, err, getRecordingJobsResponse, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.getRecordingSummary = function(callback) {
+		this._request({
+			service: 'search',
+			body: this._envelopeHeader() +
+				'&lt;GetRecordingSummary xmlns="http://www.onvif.org/ver10/search/wsdl"/>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingSummary = linerase(data).getRecordingSummaryResponse.summary;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingSummary, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.getRecordingInformation = function(options, callback) {
+		this._request({
+			service: 'search',
+			body: this._envelopeHeader() +
+				'&lt;GetRecordingInformation xmlns="http://www.onvif.org/ver10/search/wsdl">' +
+				'&lt;RecordingToken>' + options.RecordingToken + '&lt;/RecordingToken>' +
+				'&lt;/GetRecordingInformation>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.summary = linerase(data).getRecordingSummaryResponse.summary;
+			}
+			if (callback) {
+				callback.call(this, err, this.summary, xml);
+			}
+		}.bind(this));
+	};
+	Cam.prototype.getRecordingConfiguration = function(options, callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;GetRecordingConfiguration xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;RecordingToken>' + options.RecordingToken + '&lt;/RecordingToken>' +
+				'&lt;/GetRecordingConfiguration>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingConfiguration = linerase(data).getRecordingConfigurationResponse.recordingConfiguration;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingConfiguration, xml);
+			}
+		}.bind(this));
+	};
+	Cam.prototype.getRecordingJobState = function(options, callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;GetRecordingJobState xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobToken>' + options.JobToken + '&lt;/JobToken>' +
+				'&lt;/GetRecordingJobState>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingJobState = linerase(data).getRecordingJobStateResponse.state;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingJobState, xml);
+			}
+		}.bind(this));
+	};
+	
+	Cam.prototype.deleteRecordingJob = function(options, callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;DeleteRecordingJob xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobToken>' + options.JobToken + '&lt;/JobToken>' +
+				'&lt;/DeleteRecordingJob>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			let deleteRecordingJobResponse = {};
+			if (!err) {
+				deleteRecordingJobResponse = linerase(data).deleteRecordingJobResponse;
+			}
+			if (callback) {
+				callback.call(this, err, deleteRecordingJobResponse, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.getRecordingOptions = function(options, callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;GetRecordingOptions xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;RecordingToken>' + options.RecordingToken + '&lt;/RecordingToken>' +
+				'&lt;/GetRecordingOptions>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingOptions = linerase(data).getRecordingOptionsResponse.options;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingOptions, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.getRecordingServiceCapabilities = function(callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;GetServiceCapabilities xmlns="http://www.onvif.org/ver10/recording/wsdl"/>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.searchCapabilities = linerase(data).getServiceCapabilitiesResponse.capabilities;
+			}
+			if (callback) {
+				callback.call(this, err, this.searchCapabilities, xml);
+			}
+		}.bind(this));
+	};
+	Cam.prototype.getTrackConfiguration = function(options, callback) {
+		this._request({
+			service: 'recording',
+			body: this._envelopeHeader() +
+				'&lt;GetTrackConfiguration xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;RecordingToken>' + options.recordingToken + '&lt;/RecordingToken>' +
+				'&lt;TrackToken>' + options.trackToken + '&lt;/TrackToken>' +
+				'&lt;/GetTrackConfiguration>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.trackConfiguration = linerase(data).getTrackConfigurationResponse.trackConfiguration;
+			}
+			if (callback) {
+				callback.call(this, err, this.trackConfiguration, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.getRecordingJobConfiguration = function(options, callback) {
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() +
+				'&lt;GetRecordingJobConfiguration xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobToken>' + (options.JobToken || '') + '&lt;/JobToken>' +
+				'&lt;/GetRecordingJobConfiguration>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingJobConfiguration = linerase(data).getRecordingJobConfigurationResponse.jobConfiguration;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingJobConfiguration, xml);
+			}
+		}.bind(this));
+	};
+
+	Cam.prototype.setRecordingJobMode = function(options, callback) {
+		this._request({
+			service: 'recording'
+			, body: this._envelopeHeader() +
+				'&lt;SetRecordingJobMode xmlns="http://www.onvif.org/ver10/recording/wsdl">' +
+				'&lt;JobToken>' + (options.JobToken || '') + '&lt;/JobToken>' +
+				'&lt;Mode>' + (options.Mode || '') + '&lt;/Mode>' +
+				'&lt;/SetRecordingJobMode>' +
+				this._envelopeFooter()
+		}, function(err, data, xml) {
+			if (!err) {
+				this.recordingJobMode = linerase(data).SetRecordingJobMode;
+			}
+			if (callback) {
+				callback.call(this, err, this.recordingJobMode, xml);
+			}
+		}.bind(this));
+	};
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="cam.html">cam</a></li><li><a href="discovery.html">discovery</a></li><li><a href="utils.html">utils</a></li></ul><h3>Classes</h3><ul><li><a href="Cam_.html">Cam</a></li><li><a href="Discovery_.html">Discovery</a></li></ul><h3>Events</h3><ul><li><a href="Cam_.html#event:connect">connect</a></li><li><a href="Cam_.html#event:event">event</a></li><li><a href="Cam_.html#event:rawRequest">rawRequest</a></li><li><a href="Cam_.html#event:rawResponse">rawResponse</a></li><li><a href="Discovery_.html#event:device">device</a></li><li><a href="Discovery_.html#event:error">error</a></li></ul><h3>Global</h3><ul><li><a href="global.html#guid">guid</a></li><li><a href="global.html#linerase">linerase</a></li><li><a href="global.html#matchXAddr">matchXAddr</a></li><li><a href="global.html#parseSOAPString">parseSOAPString</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Tue Dec 20 2022 09:47:51 GMT+0300 (Moscow Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
