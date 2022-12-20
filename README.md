@@ -10,7 +10,7 @@ This is a wrapper to ONVIF protocol which allows you to get information about yo
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
-The library uses NodeJS.
+The library uses NodeJS. And works on the server-side.
 
 [![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
@@ -22,7 +22,7 @@ The library uses NodeJS.
 
 `npm install agsh/onvif` - install latest version from GitHub
 
-`npm install agsh/onvif#dev` - install latest development version
+`npm install agsh/onvif#v1` - install latest development version
 
 ### Clone the latest version from github
 `git clone https://github.com/agsh/onvif.git`
@@ -82,7 +82,7 @@ camera to me.
 
 # API
 
-This page and API class documentation you can found here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/)
+## You can find this page and full API class documentation here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/) ##
 
 Old concise docs are below.
 
@@ -276,9 +276,9 @@ The options are:
 
 * `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
 * `speed` An object with properties
-  - `x` Pan speed
-  - `y` Tilt speed
-  - `zoom` Zoom speed
+  - `x` Pan speed, float within 0 to 1
+  - `y` Tilt speed, float within 0 to 1
+  - `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -301,11 +301,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
@@ -318,11 +318,11 @@ The options are:
 
 - `x` Pan, number or a string within -1 to 1, optional
 - `y` Tilt, number or a string within -1 to 1, optional
-- `zoom` Zoom, number or a string within -1 to 1, optional
+- `zoom` Zoom, number or a string within 0 to 1, optional
 - `speed` An object with properties
-  * `x` Pan speed
-  * `y` Tilt speed
-  * `zoom` Zoom speed
+  * `x` Pan speed, float within 0 to 1
+  * `y` Tilt speed, float within 0 to 1
+  * `zoom` Zoom speed, float within 0 to 1
 
   If the speed option is omitted, the default speed set by the PTZConfiguration will be used.
 
