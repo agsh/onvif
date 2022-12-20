@@ -186,6 +186,11 @@ describe('PTZ', () => {
 				zoom : 0,
 			}, done);
 		});
+		it('should work with only one parameter', (done) => {
+			cam.continuousMove({
+				zoom : 0.1,
+			}, done);
+		});
 	});
 
 	describe('stop', () => {
