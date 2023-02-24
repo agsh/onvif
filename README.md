@@ -14,6 +14,14 @@ The library uses NodeJS. And works on the server-side.
 
 [![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
+## Testing
+The library is tested on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x Panasonic, 2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S, Profile G and Profile T devices.
+
+It is also tested with some Analogue Encoders from Avigilon, Axis, Bosch and HikVision including testing the RS485 output.
+
+We welcome any donations or long term loans cameras from other vendors to test compatibility especially when testing the Media2 API, ONVIF Events and OSD.
+
+
 ## Installation
 
 ### NPM
