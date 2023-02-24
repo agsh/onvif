@@ -14,7 +14,7 @@ The library uses NodeJS. And works on the server-side.
 
 [![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
-## Testing
+## Troubleshooting
 The library is tested on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x Panasonic, 2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S, Profile G and Profile T devices.
 
 It is also tested with some Analogue Encoders from Avigilon, Axis, Bosch and HikVision including testing the RS485 output.
@@ -83,10 +83,6 @@ For Profile G Recorders it displays the RTSP address of the first recording
 * example6.js - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
 * example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
 * example8.js - example setting OSD On Screen Display. (also uses Promises API)
-
-## Troubleshooting
-Different cameras have different ONVIF implementation. I've tested this module only with a couple of devices. So if you got different problems with this library, please let me know via e-mail. Else please just send the model of your
-camera to me.
 
 # API
 
