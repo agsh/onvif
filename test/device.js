@@ -314,4 +314,14 @@ describe('Device', () => {
 			});
 		});
 	});
+	describe('SendAuxiliaryCommand', () => {
+		it('should send auxiliary command', (done) => {
+			cam.sendAuxiliaryCommand({
+				data: "tt:Wiper|On"
+			}, (err) => {
+				assert.strictEqual(err, null);
+				done();
+			});
+		});
+	});
 });
