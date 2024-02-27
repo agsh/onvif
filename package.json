@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "lodash.get": "^4.4.2",
-    "xml2js": "^0.5.0"
+    "xml2js": "^0.6.2"
   },
   "keywords": [
     "onvif",
