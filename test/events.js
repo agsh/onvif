@@ -35,9 +35,12 @@ describe('Events', () => {
 	});
 	it('should throws an error in PullMessages method when no pull-point subscription exists', (done) => {
 		assert.throws(() => {
-			cam.pullMessages({}, () => {});
+			cam.pullMessages({});
 		});
-		done();
+		cam.pullMessages({}, (err) => {
+			assert.notEqual(err, null);
+			done();
+		});
 	});
 	it('should create PullPointSubscription', (done) => {
 		cam.createPullPointSubscription((err, data) => {
