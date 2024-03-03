@@ -8,3 +8,4 @@ cam_tests
 experiments
 docs
 build
+.nyc_output/

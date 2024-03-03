@@ -13,16 +13,19 @@
  * You can do this in NodeJS or using the Bluebird NPM
  */
 
-var IP_RANGE_START = '192.168.1.1',
-	IP_RANGE_END = '192.168.1.19',
-	PORT_LIST = [80],
+var IP_RANGE_START = '192.168.26.200',
+	IP_RANGE_END = '192.168.26.220',
+	PORT_LIST = [80,8081],
 	USERNAME = 'admin',
-	PASSWORD = 'admin';
+	PASSWORD = 'PASS99pass';
 
 var Cam = require('../lib/onvif').Cam;
 const { promisify } = require("util");
 
+//var ipList = [];
 var ipList = generateRange(IP_RANGE_START, IP_RANGE_END);
+
+ipList.push("192.168.26.108");
 var portList = PORT_LIST;
 
 // hide error messages
@@ -64,90 +67,23 @@ ipList.forEach(function(ipEntry) {
 
 				let videoResults = "";
 				let profiles = await promiseGetProfiles();
-				for (const profile of profiles) {
-					// wrap each URI Stream request in a Try/Catch as some requests (eg for multicast) may return an error
-					// the alternative would be a Promise.Then.Catch and wait for each Promise to complete(resolve)
-					videoResults += "Profile: Name=" + profile.name + " Token=" + profile.$.token + " VideoSource=" + profile.videoSourceConfiguration.name + "\r\n"
 
-					try {
-						videoResults += "SNAPSHOT URL   ";
-						let snapshotUri = await promiseGetSnapshotUri(
-							{
-								profileToken: profile.$.token,
-							});
-						videoResults += profile.name + " " + "JPEG" + " "
-							+ profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + snapshotUri.uri + "\r\n";
+				// GetMoveOptions
+				const promiseimagingGetMoveOptions = promisify(camObj.imagingGetMoveOptions).bind(camObj);
+				
+				let moveOptions = null;
+				try {
+					moveOptions = await promiseimagingGetMoveOptions();
+				} catch {}
 
-					} catch (err) {
-						videoResults += profile.name + " not supported\r\n";
-					}
-	
-					let stream;
-					try {
-						videoResults += "RTSP TCP       ";
-						stream = await promiseGetStreamUri(
-							{
-								profileToken: profile.$.token,
-								protocol: 'RTSP',
-								stream: 'RTP-Unicast',
-							});
-						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
-                            + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
-
-					} catch (err) {
-						videoResults += profile.name + " not supported\r\n";
-					}
-
-
-					try {
-						videoResults += "RTSP UDP       ";
-						stream = await promiseGetStreamUri(
-							{
-								profileToken: profile.$.token,
-								protocol: 'UDP',
-								stream: 'RTP-Unicast',
-							});
-						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
-                            + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
-					} catch (err) {
-						videoResults += profile.name + " not supported\r\n";
-					}
-
-					try {
-						videoResults += "RTSP Multicast ";
-						stream = await promiseGetStreamUri(
-							{
-								profileToken: profile.$.token,
-								protocol: 'UDP',
-								stream: 'RTP-Multicast',
-							});
-						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
-                            + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
-					} catch (err) {
-						videoResults += profile.name + " not supported\r\n";
-					}
-
-					try {
-						videoResults += "RTSP HTTP      ";
-						stream = await promiseGetStreamUri(
-							{
-								profileToken: profile.$.token,
-								protocol: 'HTTP',
-								stream: 'RTP-Unicast',
-							});
-						videoResults += profile.name + " " + profile.videoEncoderConfiguration.encoding + " "
-                            + profile.videoEncoderConfiguration.resolution.width + "x" + profile.videoEncoderConfiguration.resolution.height + " " + stream.uri + "\r\n";
-					} catch (err) {
-						videoResults += profile.name + " not supported\r\n";
-					}
-
-				}
 
 				console.log('------------------------------');
 				console.log('Host: ' + ipEntry + ' Port: ' + portEntry);
 				console.log('Date: = ' + gotDate);
 				console.log('Info: = ' + JSON.stringify(gotInfo));
 				console.log(videoResults);
+				if (moveOptions != null) console.log(moveOptions);
+				else console.log("No Move Options");
 				console.log('------------------------------');
 			});  // end CamFunc
 	}); // foreach
