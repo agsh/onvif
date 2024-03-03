@@ -15,6 +15,7 @@ import {
   SetHomePositionOptions,
   SetPresetOptions, RelativeMoveOptions, ContinuousMoveOptions,
 } from '../ptz';
+import { SetNTPOptions } from '../device';
 
 export type Callback = (error: any, result?: any) => void;
 export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
@@ -281,6 +282,10 @@ export class Cam extends EventEmitter {
 
   getNTP(callback: Callback) {
     this.onvif.device.getNTP().then((result) => callback(null, result)).catch(callback);
+  }
+
+  setNTP(options: SetNTPOptions, callback: Callback) {
+    this.onvif.device.setNTP(options).then((result) => callback(null, result)).catch(callback);
   }
 
   getDNS(callback: Callback) {

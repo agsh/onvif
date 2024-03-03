@@ -417,6 +417,36 @@ export interface NTPInformation {
   extension?: any;
 }
 
+export enum NetworkType {
+  IPv4 = 'IPv4',
+  IPv6 = 'IPv6',
+  DNS = 'DNS',
+}
+
+export interface SetNTPOptions {
+  /* Indicates if NTP information is to be retrieved by using DHCP. */
+  fromDHCP?: boolean;
+  NTPManual?: NTPManual[];
+  // For backward compatibility
+  type?: NetworkType;
+  ipv4Address?: string;
+  ipv6Address?: string;
+  dnsName?: string;
+  extension?: string;
+}
+
+export interface NTPManual {
+  /* Network host type. */
+  type?: NetworkType;
+  /* IPv4 address. */
+  IPv4Address?: string; // IPv4 address
+  /* IPv6 address. */
+  IPv6Address?: string;
+  /* DNS name. */
+  DNSname?: string;
+  extension?: any;
+}
+
 export interface DNSInformation {
   /* Indicates whether or not DNS information is retrieved from DHCP. */
   fromDHCP: boolean;
@@ -762,6 +792,42 @@ export class Device {
     if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) { this.#NTP.NTPManual = [this.#NTP.NTPManual]; }
     if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) { this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP]; }
     return this.#NTP!;
+  }
+
+  async setNTP(options: SetNTPOptions) {
+    if (!Array.isArray(options.NTPManual)) {
+      options.NTPManual = [];
+    }
+    // For backward compatibility
+    if (options.type || options.ipv4Address || options.ipv6Address || options.dnsName || options.extension) {
+      // Note the case changes to follow the xml parser rules
+      options.NTPManual.push({
+        type        : options.type,
+        IPv4Address : options.ipv4Address,
+        IPv6Address : options.ipv6Address,
+        DNSname     : options.dnsName,
+        extension   : options.extension,
+      });
+    }
+    let body = '<SetNTP xmlns="http://www.onvif.org/ver10/device/wsdl">'
+      + `<FromDHCP>${options.fromDHCP}</FromDHCP>`;
+    if (options.NTPManual && Array.isArray(options.NTPManual)) {
+      options.NTPManual.forEach((NTPManual) => {
+        body += (NTPManual.type ? '<NTPManual>'
+          + `<Type xmlns="http://www.onvif.org/ver10/schema">${NTPManual.type}</Type>${
+            NTPManual.IPv4Address ? `<IPv4Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv4Address}</IPv4Address>` : ''
+          }${NTPManual.IPv6Address ? `<IPv6Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv6Address}</IPv6Address>` : ''
+          }${NTPManual.DNSname ? `<DNSname>${NTPManual.DNSname}</DNSname>` : ''
+          }${NTPManual.extension ? `<Extension>${NTPManual.extension}</Extension>` : ''
+          }</NTPManual>` : '');
+      });
+    }
+    body += '</SetNTP>';
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body,
+    });
+    return linerase(data);
   }
 
   /**
