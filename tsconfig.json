@@ -12,7 +12,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": true,
     "skipLibCheck": true,
-    "watch": true,
+    // "watch": true,
     "declaration": true,
   },
   "exclude": [
