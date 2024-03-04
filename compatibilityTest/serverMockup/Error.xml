@@ -1,0 +1,35 @@
+<?xml version=”1.0” ?>
+<SOAP-ENV:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error"
+                  xmlns:xs="http://www.w3.org/2000/10/XMLSchema">
+    <SOAP-ENV:Body>
+        <SOAP-ENV:Fault>
+            <SOAP-ENV:Code>
+                <SOAP-ENV:Value>
+                    fault code
+                </SOAP-ENV:Value>
+                <SOAP-ENV:Subcode>
+                    <SOAP-ENV:Value>
+                        ter:fault subcode
+                    </SOAP-ENV:Value>
+                    <SOAP-ENV:Subcode>
+                        <SOAP-ENV:Value>
+                            ter:fault subcode
+                        </SOAP-ENV:Value>
+                    </SOAP-ENV:Subcode>
+                </SOAP-ENV:Subcode>
+            </SOAP-ENV:Code>
+            <SOAP-ENV:Reason>
+                <SOAP-ENV:Text xml:lang="en">
+                    fault reason
+                </SOAP-ENV:Text>
+            </SOAP-ENV:Reason>
+            <SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node>
+            <SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/role/ultimateReceiver</SOAP-ENV:Role>
+            <SOAP-ENV:Detail>
+                <SOAP-ENV:Text>
+                    fault detail
+                </SOAP-ENV:Text>
+            </SOAP-ENV:Detail>
+        </SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
