@@ -59,6 +59,7 @@
     "dot": "^1.1.3",
     "eslint": "^8.3.0",
     "eslint-plugin-node": "^11.1.0",
+    "jsdoc": "^4.0.2",
     "keypress": "^0.2.1",
     "mocha": "^10.0.0",
     "mocha-lcov-reporter": "^1.3.0",
