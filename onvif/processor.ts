@@ -41,6 +41,7 @@ function dataTypes(xsdType?: string): string {
     case 'unsignedShort': return 'number';
     case 'dateTime': return 'Date';
     case 'anyURI': return 'AnyURI';
+    case 'anyType': return 'any';
     default: return type;
   }
 }
@@ -82,6 +83,7 @@ interface IComplexType {
         type: string;
         use: 'required' | 'optional';
       };
+      'xs:complexType'?: IComplexType[];
       'xs:annotation': {
         'xs:documentation': string[];
       }[];
@@ -205,8 +207,9 @@ export class Processor {
     }
     if (complexType['xs:sequence']) {
       if (!Array.isArray(complexType['xs:sequence'][0]['xs:element'])) {
-        console.log(complexType);
-        console.log('--------------');
+        /** TODO Any and so on */
+        // console.log(complexType);
+        // console.log('--------------');
         // return ts.factory.createPropertySignature(
         //   undefined,
         //   complexType.meta.name,
@@ -218,6 +221,12 @@ export class Processor {
         members = members.concat(
           members = complexType['xs:sequence'][0]['xs:element'].map((attribute) => {
             // console.log(attribute.meta.name);
+            /** TODO complex type inside complex type */
+            if (attribute['xs:complexType']) {
+              attribute['xs:complexType'][0].meta = { name : attribute.meta.name };
+              this.generateComplexTypeInterface(attribute['xs:complexType'][0]);
+              attribute.meta.type = `tt:${attribute.meta.name}`;
+            }
             const cl = this.createProperty(attribute);
             return cl;
           }),
