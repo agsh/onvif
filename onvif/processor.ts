@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from 'fs';
 import { Parser } from 'xml2js';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import ts, { TypeNode } from 'typescript';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { glob } from 'glob';
 
 const sourceFile = ts.createSourceFile(
   'soap-types.ts', // the output file name
@@ -30,19 +32,30 @@ function dataTypes(xsdType?: string): string {
   if (!xsdType) {
     return 'any';
   }
-  const type = xsdType.slice(3);
-  switch (type) {
-    case 'double': return 'number';
-    case 'float': return 'number';
-    case 'int': return 'number';
-    case 'short': return 'number';
-    case 'signedInt': return 'number';
-    case 'unsignedInt': return 'number';
-    case 'unsignedShort': return 'number';
-    case 'dateTime': return 'Date';
-    case 'anyURI': return 'AnyURI';
-    case 'anyType': return 'any';
-    default: return type;
+  // const type = xsdType.slice(3);
+  switch (xsdType) {
+    case 'xs:double': return 'number';
+    case 'xs:float': return 'number';
+    case 'xs:int': return 'number';
+    case 'xs:integer': return 'number';
+    case 'xs:short': return 'number';
+    case 'xs:signedInt': return 'number';
+    case 'xs:unsignedInt': return 'number';
+    case 'xs:unsignedShort': return 'number';
+    case 'xs:dateTime': return 'Date';
+    case 'xs:token': return 'string';
+    case 'xs:anyURI': return 'AnyURI';
+    case 'xs:anyType': return 'any';
+    case 'xs:hexBinary': return 'any';
+    case 'xs:base64Binary': return 'any';
+    case 'xs:duration': return 'any';
+    case 'wsnt:FilterType': return 'any';
+    case 'wsnt:NotificationMessageHolderType': return 'any';
+    case 'soapenv:Envelope': return 'any';
+    case 'soapenv:Fault': return 'any';
+    case 'xs:anySimpleType': return 'any';
+    case 'xs:QName': return 'any';
+    default: return xsdType.slice(xsdType.indexOf(':') + 1);
   }
 }
 
@@ -123,18 +136,12 @@ export class Processor {
     await this.processXSD();
     this.schema!['xs:simpleType'].forEach((simpleType) => this.generateSimpleTypeInterface(simpleType));
     this.schema!['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
-    // const complexTypeInterfaces = serviceDefinition['xs:complexType'].map(
-    //   generateComplexTypeInterface,
-    // );
-
-    // const nodes: ts.Node[] = [anyURI, ...simpleTypeInterfaces, ...complexTypeInterfaces];
-
     return this.nodes;
   }
 
   async processXSD() {
     const xsdData = readFileSync(this.filePath, { encoding : 'utf-8' })
-      .replace(/<xs:documentation>([\s\S]*?)<\/xs:documentation>/g, (_, b) => `<xs:documentation><![CDATA[${b}]]></xs:documentation>`);
+      .replace(/<xs:documentation>([\s\S]*?)<\/xs:documentation>/g, (_, b) => `<xs:documentation><![CDATA[${b.replace(/(\s)+\n/, '\n')}]]></xs:documentation>`);
 
     const xmlParser = new Parser({
       attrkey : 'meta',
@@ -169,7 +176,7 @@ export class Processor {
               interfaceSymbol, // interface name
               undefined,
               ts.factory.createUnionTypeNode(simpleType['xs:restriction'][0]['xs:enumeration']
-                .map((enumValue) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
+                .map((enumValue) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value, true)))),
             ),
           ),
         );
@@ -277,7 +284,10 @@ export class Processor {
   camelCase(name: string): string {
     const secondLetter = name.charAt(1);
     if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
-      return name.charAt(0).toLowerCase() + name.slice(1);
+      name = name.charAt(0).toLowerCase() + name.slice(1);
+    }
+    if (/[-.]/g.test(name)) {
+      name = `'${name}'`;
     }
     return name;
   }
@@ -286,11 +296,19 @@ export class Processor {
     return name.replace(/[-.]/g, '');
   }
 }
+async function start() {
+  let xsds = await glob('../specs/wsdl/**/*.xsd');
+  console.log(xsds);
+  xsds = [xsds[6], xsds[4]];
+  console.log(xsds);
+  const nodes: ts.Node[] = [anyURI];
 
-const name = 'onvif';
-const proc = new Processor(`../specs/wsdl/ver10/schema/${name}.xsd`, []);
-proc.main().then((nodes) => {
-  nodes = [anyURI, ...nodes];
+  for (const xsd of xsds) {
+    console.log(`processing ${xsd}`);
+    const proc = new Processor(xsd, nodes);
+    await proc.main();
+  }
+
   const nodeArr = ts.factory.createNodeArray(nodes);
 
   // printer for writing the AST to a file as code
@@ -302,5 +320,24 @@ proc.main().then((nodes) => {
   );
 
   // write the code to file
-  writeFileSync(`./onvif/interfaces/${name}.ts`, result, { encoding : 'utf-8' });
-}).catch(console.log);
+  writeFileSync('./onvif/interfaces/interface.ts', result, { encoding : 'utf-8' });
+
+  // const name = 'onvif';
+  // const proc = new Processor(`../specs/wsdl/ver10/schema/${name}.xsd`, []);
+  // proc.main().then((nodes) => {
+  //   nodes = [anyURI, ...nodes];
+  //   const nodeArr = ts.factory.createNodeArray(nodes);
+  //
+  //   // printer for writing the AST to a file as code
+  //   const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
+  //   const result = printer.printList(
+  //     ts.ListFormat.MultiLine,
+  //     nodeArr,
+  //     sourceFile,
+  //   );
+  //
+  //   // write the code to file
+  //   writeFileSync(`./onvif/interfaces/${name}.ts`, result, { encoding : 'utf-8' });
+  // }).catch(console.log);
+}
+start().catch(console.error);
