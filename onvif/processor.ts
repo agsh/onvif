@@ -63,6 +63,11 @@ interface ISimpleType {
       };
     }[];
   }[];
+  'xs:list': {
+    meta: {
+      itemType: string;
+    };
+  }[];
 }
 
 interface IComplexType {
@@ -152,21 +157,37 @@ export class Processor {
   }
 
   generateSimpleTypeInterface(simpleType: ISimpleType) {
-    const interfaceSymbol = ts.factory.createIdentifier(simpleType.meta.name);
-    if (simpleType['xs:restriction'][0]['xs:enumeration']) {
-      this.nodes.push(
-        this.createAnnotationIfExists(
-          simpleType,
-          ts.factory.createTypeAliasDeclaration(
-            exportModifier,
-            interfaceSymbol, // interface name
-            undefined,
-            ts.factory.createUnionTypeNode(simpleType['xs:restriction'][0]['xs:enumeration']
-              .map((enumValue) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
+    const interfaceSymbol = ts.factory.createIdentifier(this.cleanName(simpleType.meta.name));
+    if (simpleType['xs:restriction']) {
+      /** RESTRICTIONS */
+      if (simpleType['xs:restriction'][0]['xs:enumeration']) {
+        this.nodes.push(
+          this.createAnnotationIfExists(
+            simpleType,
+            ts.factory.createTypeAliasDeclaration(
+              exportModifier,
+              interfaceSymbol, // interface name
+              undefined,
+              ts.factory.createUnionTypeNode(simpleType['xs:restriction'][0]['xs:enumeration']
+                .map((enumValue) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
+            ),
           ),
-        ),
-      );
-    } else {
+        );
+      } else {
+        this.nodes.push(
+          this.createAnnotationIfExists(
+            simpleType,
+            ts.factory.createTypeAliasDeclaration(
+              exportModifier,
+              interfaceSymbol,
+              undefined,
+              ts.factory.createTypeReferenceNode(dataTypes(simpleType['xs:restriction'][0].meta.base)),
+            ),
+          ),
+        );
+      }
+    } else if (simpleType['xs:list']) {
+      /** LISTS */
       this.nodes.push(
         this.createAnnotationIfExists(
           simpleType,
@@ -174,7 +195,7 @@ export class Processor {
             exportModifier,
             interfaceSymbol,
             undefined,
-            ts.factory.createTypeReferenceNode(dataTypes(simpleType['xs:restriction'][0].meta.base)),
+            ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode(dataTypes(simpleType['xs:list'][0].meta.itemType))),
           ),
         ),
       );
@@ -182,7 +203,12 @@ export class Processor {
   }
 
   createProperty(attribute: any) {
-    let type: TypeNode = ts.factory.createTypeReferenceNode(dataTypes(attribute.meta.type));
+    let type: TypeNode = ts.factory.createTypeReferenceNode(this.cleanName(dataTypes(attribute.meta.type)));
+    /** REFS FOR XMIME */
+    if (!attribute.meta.name && attribute.meta.ref) {
+      attribute.meta.name = attribute.meta.ref.slice(6);
+    }
+    /** ARRAYS */
     if (attribute.meta.maxOccurs === 'unbounded') {
       type = ts.factory.createArrayTypeNode(type);
     }
@@ -249,11 +275,20 @@ export class Processor {
   }
 
   camelCase(name: string): string {
-    return name.charAt(0).toLowerCase() + name.slice(1);
+    const secondLetter = name.charAt(1);
+    if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+      return name.charAt(0).toLowerCase() + name.slice(1);
+    }
+    return name;
+  }
+
+  cleanName(name: string): string {
+    return name.replace(/[-.]/g, '');
   }
 }
 
-const proc = new Processor('../specs/wsdl/ver10/schema/common.xsd', []);
+const name = 'onvif';
+const proc = new Processor(`../specs/wsdl/ver10/schema/${name}.xsd`, []);
 proc.main().then((nodes) => {
   nodes = [anyURI, ...nodes];
   const nodeArr = ts.factory.createNodeArray(nodes);
@@ -267,5 +302,5 @@ proc.main().then((nodes) => {
   );
 
   // write the code to file
-  writeFileSync('soap-types.ts', result, { encoding : 'utf-8' });
+  writeFileSync(`./onvif/interfaces/${name}.ts`, result, { encoding : 'utf-8' });
 }).catch(console.log);
