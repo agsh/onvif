@@ -21,12 +21,15 @@ const exportModifier = ts.factory.createModifiersFromModifierFlags(
   ts.ModifierFlags.Export,
 );
 
-const anyURI = ts.factory.createTypeAliasDeclaration(
+const builtInTypes = Object.entries({
+  AnyURI     : 'string',
+  FilterType : 'any',
+}).map(([name, typeName]) => ts.factory.createTypeAliasDeclaration(
   exportModifier,
-  'AnyURI',
+  name,
   undefined,
-  ts.factory.createTypeReferenceNode('string'),
-);
+  ts.factory.createTypeReferenceNode(typeName),
+));
 
 function dataTypes(xsdType?: string): string {
   if (!xsdType) {
@@ -59,6 +62,21 @@ function dataTypes(xsdType?: string): string {
   }
 }
 
+function cleanName(name: string): string {
+  return name.replace(/[-.]/g, '');
+}
+
+function camelCase(name: string): string {
+  const secondLetter = name.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    name = name.charAt(0).toLowerCase() + name.slice(1);
+  }
+  if (/[-.]/g.test(name)) {
+    name = `'${name}'`;
+  }
+  return name;
+}
+
 interface ISimpleType {
   meta: {
     name: string;
@@ -87,6 +105,14 @@ interface IComplexType {
   meta: {
     name: string;
   };
+  'xs:complexContent': {
+    'xs:extension': {
+      meta: {
+        base: string;
+      };
+      'xs:sequence': any[];
+    }[];
+  }[];
   'xs:attribute'?: {
     meta : {
       name: string;
@@ -117,6 +143,11 @@ interface IXSDSchemaDefinition {
   'xs:complexType': IComplexType[];
 }
 
+interface IWDSLSchemaDefinition {
+  'xs:simpleType': ISimpleType[];
+  'xs:complexType': IComplexType[];
+}
+
 /**
  * Common class to process xml-files
  */
@@ -130,12 +161,17 @@ export class Processor {
   }
 
   async main(): Promise<ts.Node[]> {
-    // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
-    // console.log(wsdls);
-    // const serviceDefinition = await processWSDL('../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl');
-    await this.processXSD();
-    this.schema!['xs:simpleType'].forEach((simpleType) => this.generateSimpleTypeInterface(simpleType));
-    this.schema!['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
+    if (this.filePath.endsWith('.wsdl')) {
+      await this.processWSDL();
+    } else {
+      await this.processXSD();
+    }
+    if (this.schema?.['xs:simpleType']) {
+      this.schema['xs:simpleType'].forEach((simpleType) => this.generateSimpleTypeInterface(simpleType));
+    }
+    if (this.schema?.['xs:complexType']) {
+      this.schema['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
+    }
     return this.nodes;
   }
 
@@ -151,6 +187,19 @@ export class Processor {
     this.schema = serviceDefinition['xs:schema'] as IXSDSchemaDefinition;
   }
 
+  async processWSDL() {
+    const xsdData = readFileSync(this.filePath, { encoding : 'utf-8' })
+      .replace(/<xs:documentation>([\s\S]*?)<\/xs:documentation>/g, (_, b) => `<xs:documentation><![CDATA[${b.replace(/(\s)+\n/, '\n')}]]></xs:documentation>`);
+
+    const xmlParser = new Parser({
+      attrkey : 'meta',
+    });
+
+    const serviceDefinition = await xmlParser.parseStringPromise(xsdData);
+    this.schema = serviceDefinition['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as IXSDSchemaDefinition;
+    console.log('m?');
+  }
+
   createAnnotationIfExists(attribute: any, node: any) {
     if (attribute['xs:annotation']) {
       return ts.addSyntheticLeadingComment(
@@ -164,7 +213,7 @@ export class Processor {
   }
 
   generateSimpleTypeInterface(simpleType: ISimpleType) {
-    const interfaceSymbol = ts.factory.createIdentifier(this.cleanName(simpleType.meta.name));
+    const interfaceSymbol = ts.factory.createIdentifier(cleanName(simpleType.meta.name));
     if (simpleType['xs:restriction']) {
       /** RESTRICTIONS */
       if (simpleType['xs:restriction'][0]['xs:enumeration']) {
@@ -210,7 +259,7 @@ export class Processor {
   }
 
   createProperty(attribute: any) {
-    let type: TypeNode = ts.factory.createTypeReferenceNode(this.cleanName(dataTypes(attribute.meta.type)));
+    let type: TypeNode = ts.factory.createTypeReferenceNode(cleanName(dataTypes(attribute.meta.type)));
     /** REFS FOR XMIME */
     if (!attribute.meta.name && attribute.meta.ref) {
       attribute.meta.name = attribute.meta.ref.slice(6);
@@ -221,7 +270,7 @@ export class Processor {
     }
     const property = ts.factory.createPropertySignature(
       undefined,
-      this.camelCase(attribute.meta.name),
+      camelCase(attribute.meta.name),
       attribute.meta.use !== 'required' ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
       type,
     );
@@ -232,6 +281,19 @@ export class Processor {
     const interfaceSymbol = ts.factory.createIdentifier(complexType.meta.name);
 
     let members: ts.TypeElement[] = [];
+    let heritage;
+
+    /** Complex Content */
+    if (Array.isArray(complexType['xs:complexContent'])) {
+      const name = complexType['xs:complexContent'][0]['xs:extension'][0].meta.base;
+      const heritageName = name.slice(name.indexOf(':') + 1);
+      heritage = extendInterface(heritageName);
+      if (complexType['xs:sequence']) {
+        throw new Error('complexType[\'xs:sequence\'] in complexContent: complexType.meta.name');
+      }
+      complexType['xs:sequence'] = complexType['xs:complexContent'][0]['xs:extension'][0]['xs:sequence'];
+    }
+
     // attribute.use === 'required'; // optional
     if (complexType['xs:attribute']) {
       members = members.concat(
@@ -240,7 +302,8 @@ export class Processor {
     }
     if (complexType['xs:sequence']) {
       if (!Array.isArray(complexType['xs:sequence'][0]['xs:element'])) {
-        /** TODO Any and so on */
+        /** TODO Any */
+
         // console.log(complexType);
         // console.log('--------------');
         // return ts.factory.createPropertySignature(
@@ -272,7 +335,7 @@ export class Processor {
       exportModifier, // modifiers
       interfaceSymbol, // interface name
       undefined, // no generic type parameters
-      undefined, // no heritage clauses (extends, implements)
+      heritage,
       members,
     );
 
@@ -280,34 +343,36 @@ export class Processor {
       this.createAnnotationIfExists(complexType, node),
     );
   }
-
-  camelCase(name: string): string {
-    const secondLetter = name.charAt(1);
-    if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
-      name = name.charAt(0).toLowerCase() + name.slice(1);
-    }
-    if (/[-.]/g.test(name)) {
-      name = `'${name}'`;
-    }
-    return name;
-  }
-
-  cleanName(name: string): string {
-    return name.replace(/[-.]/g, '');
-  }
 }
+
+function extendInterface(interfaceName?: string) {
+  if (interfaceName) {
+    return [ts.factory.createHeritageClause(
+      ts.SyntaxKind.ExtendsKeyword,
+      [ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier(interfaceName), [])],
+    )];
+  }
+  return undefined;
+}
+
 async function start() {
-  let xsds = await glob('../specs/wsdl/**/*.xsd');
+  const xsds = await glob('../specs/wsdl/**/*.xsd');
   console.log(xsds);
-  xsds = [xsds[6], xsds[4]];
-  console.log(xsds);
-  const nodes: ts.Node[] = [anyURI];
+  // xsds = ['../specs/wsdl/ver10/schema/common.xsd', '../specs/wsdl/ver10/schema/onvif.xsd'];
+  // console.log(xsds);
+  const nodes: ts.Node[] = builtInTypes;
 
   for (const xsd of xsds) {
     console.log(`processing ${xsd}`);
     const proc = new Processor(xsd, nodes);
     await proc.main();
   }
+
+  // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
+  // console.log(wsdls);
+  // console.log(wsdls[24]);
+  // const proc = new Processor('../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl', nodes);
+  // await proc.main();
 
   const nodeArr = ts.factory.createNodeArray(nodes);
 
@@ -321,23 +386,5 @@ async function start() {
 
   // write the code to file
   writeFileSync('./onvif/interfaces/interface.ts', result, { encoding : 'utf-8' });
-
-  // const name = 'onvif';
-  // const proc = new Processor(`../specs/wsdl/ver10/schema/${name}.xsd`, []);
-  // proc.main().then((nodes) => {
-  //   nodes = [anyURI, ...nodes];
-  //   const nodeArr = ts.factory.createNodeArray(nodes);
-  //
-  //   // printer for writing the AST to a file as code
-  //   const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
-  //   const result = printer.printList(
-  //     ts.ListFormat.MultiLine,
-  //     nodeArr,
-  //     sourceFile,
-  //   );
-  //
-  //   // write the code to file
-  //   writeFileSync(`./onvif/interfaces/${name}.ts`, result, { encoding : 'utf-8' });
-  // }).catch(console.log);
 }
 start().catch(console.error);
