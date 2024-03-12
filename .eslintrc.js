@@ -28,6 +28,7 @@ const commonRules = {
   }],
   '@typescript-eslint/member-delimiter-style' : 1,
   'import/no-cycle'                           : 0, // IMPORTANT
+  'import/export'                             : 0
 };
 
 module.exports = {
