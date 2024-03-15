@@ -58,11 +58,15 @@ function dataTypes(xsdType?: string): string {
     case 'soapenv:Fault': return 'any';
     case 'xs:anySimpleType': return 'any';
     case 'xs:QName': return 'any';
+    case 'tt:Object': return 'OnvifObject';
     default: return xsdType.slice(xsdType.indexOf(':') + 1);
   }
 }
 
 function cleanName(name: string): string {
+  if (name === 'Object') {
+    return 'OnvifObject';
+  }
   return name.replace(/[-.]/g, '');
 }
 
@@ -138,14 +142,15 @@ interface IComplexType {
   }[];
 }
 
-interface IXSDSchemaDefinition {
+interface ISchemaDefinition {
   'xs:simpleType': ISimpleType[];
   'xs:complexType': IComplexType[];
 }
 
-interface IWDSLSchemaDefinition {
-  'xs:simpleType': ISimpleType[];
-  'xs:complexType': IComplexType[];
+interface ProcessorConstructor {
+  filePath: string;
+  nodes: ts.Node[];
+  types?: Set<string>;
 }
 
 /**
@@ -154,8 +159,11 @@ interface IWDSLSchemaDefinition {
 export class Processor {
   private filePath: string;
   private nodes: ts.Node[] = [];
-  private schema?: IXSDSchemaDefinition;
-  constructor(filePath: string, nodes: ts.Node[]) {
+  private schema?: ISchemaDefinition;
+  constructor({
+    filePath,
+    nodes,
+  }: ProcessorConstructor) {
     this.filePath = filePath;
     this.nodes = nodes;
   }
@@ -175,7 +183,7 @@ export class Processor {
     return this.nodes;
   }
 
-  async processXSD() {
+  async processXML() {
     const xsdData = readFileSync(this.filePath, { encoding : 'utf-8' })
       .replace(/<xs:documentation>([\s\S]*?)<\/xs:documentation>/g, (_, b) => `<xs:documentation><![CDATA[${b.replace(/(\s)+\n/, '\n')}]]></xs:documentation>`);
 
@@ -183,21 +191,15 @@ export class Processor {
       attrkey : 'meta',
     });
 
-    const serviceDefinition = await xmlParser.parseStringPromise(xsdData);
-    this.schema = serviceDefinition['xs:schema'] as IXSDSchemaDefinition;
+    return xmlParser.parseStringPromise(xsdData);
+  }
+
+  async processXSD() {
+    this.schema = (await this.processXML())['xs:schema'] as ISchemaDefinition;
   }
 
   async processWSDL() {
-    const xsdData = readFileSync(this.filePath, { encoding : 'utf-8' })
-      .replace(/<xs:documentation>([\s\S]*?)<\/xs:documentation>/g, (_, b) => `<xs:documentation><![CDATA[${b.replace(/(\s)+\n/, '\n')}]]></xs:documentation>`);
-
-    const xmlParser = new Parser({
-      attrkey : 'meta',
-    });
-
-    const serviceDefinition = await xmlParser.parseStringPromise(xsdData);
-    this.schema = serviceDefinition['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as IXSDSchemaDefinition;
-    console.log('m?');
+    this.schema = (await this.processXML())['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as ISchemaDefinition;
   }
 
   createAnnotationIfExists(attribute: any, node: any) {
@@ -278,7 +280,7 @@ export class Processor {
   }
 
   generateComplexTypeInterface(complexType: IComplexType) {
-    const interfaceSymbol = ts.factory.createIdentifier(complexType.meta.name);
+    const interfaceSymbol = ts.factory.createIdentifier(cleanName(complexType.meta.name));
 
     let members: ts.TypeElement[] = [];
     let heritage;
@@ -355,6 +357,12 @@ function extendInterface(interfaceName?: string) {
   return undefined;
 }
 
+// class ProcessorXSD extends Processor {
+//   constructor(options) {
+//     super(options);
+//   }
+// }
+
 async function start() {
   const xsds = await glob('../specs/wsdl/**/*.xsd');
   console.log(xsds);
@@ -364,15 +372,21 @@ async function start() {
 
   for (const xsd of xsds) {
     console.log(`processing ${xsd}`);
-    const proc = new Processor(xsd, nodes);
+    const proc = new Processor({
+      filePath : xsd,
+      nodes,
+    });
     await proc.main();
   }
 
   // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
   // console.log(wsdls);
   // console.log(wsdls[24]);
-  // const proc = new Processor('../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl', nodes);
-  // await proc.main();
+  const proc = new Processor({
+    filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
+    nodes,
+  });
+  await proc.main();
 
   const nodeArr = ts.factory.createNodeArray(nodes);
 
