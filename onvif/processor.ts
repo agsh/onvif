@@ -150,7 +150,7 @@ interface ISchemaDefinition {
 interface ProcessorConstructor {
   filePath: string;
   nodes: ts.Node[];
-  types?: Set<string>;
+  types: Set<string>;
 }
 
 /**
@@ -158,22 +158,21 @@ interface ProcessorConstructor {
  */
 export class Processor {
   private filePath: string;
-  private nodes: ts.Node[] = [];
-  private schema?: ISchemaDefinition;
+  private readonly nodes: ts.Node[] = [];
+  protected schema?: ISchemaDefinition;
+  private readonly types: Set<string>;
   constructor({
     filePath,
     nodes,
+    types,
   }: ProcessorConstructor) {
     this.filePath = filePath;
     this.nodes = nodes;
+    this.types = types;
   }
 
   async main(): Promise<ts.Node[]> {
-    if (this.filePath.endsWith('.wsdl')) {
-      await this.processWSDL();
-    } else {
-      await this.processXSD();
-    }
+    await this.process();
     if (this.schema?.['xs:simpleType']) {
       this.schema['xs:simpleType'].forEach((simpleType) => this.generateSimpleTypeInterface(simpleType));
     }
@@ -194,12 +193,8 @@ export class Processor {
     return xmlParser.parseStringPromise(xsdData);
   }
 
-  async processXSD() {
-    this.schema = (await this.processXML())['xs:schema'] as ISchemaDefinition;
-  }
-
-  async processWSDL() {
-    this.schema = (await this.processXML())['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as ISchemaDefinition;
+  async process() {
+    throw new Error('Not implemented');
   }
 
   createAnnotationIfExists(attribute: any, node: any) {
@@ -215,7 +210,12 @@ export class Processor {
   }
 
   generateSimpleTypeInterface(simpleType: ISimpleType) {
-    const interfaceSymbol = ts.factory.createIdentifier(cleanName(simpleType.meta.name));
+    const name = cleanName(simpleType.meta.name);
+    if (this.types.has(name)) {
+      return;
+    }
+    this.types.add(name);
+    const interfaceSymbol = ts.factory.createIdentifier(name);
     if (simpleType['xs:restriction']) {
       /** RESTRICTIONS */
       if (simpleType['xs:restriction'][0]['xs:enumeration']) {
@@ -357,48 +357,73 @@ function extendInterface(interfaceName?: string) {
   return undefined;
 }
 
-// class ProcessorXSD extends Processor {
-//   constructor(options) {
-//     super(options);
-//   }
-// }
-
-async function start() {
-  const xsds = await glob('../specs/wsdl/**/*.xsd');
-  console.log(xsds);
-  // xsds = ['../specs/wsdl/ver10/schema/common.xsd', '../specs/wsdl/ver10/schema/onvif.xsd'];
-  // console.log(xsds);
-  const nodes: ts.Node[] = builtInTypes;
-
-  for (const xsd of xsds) {
-    console.log(`processing ${xsd}`);
-    const proc = new Processor({
-      filePath : xsd,
-      nodes,
-    });
-    await proc.main();
+class ProcessorXSD extends Processor {
+  constructor(options: ProcessorConstructor) {
+    super(options);
   }
 
-  // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
-  // console.log(wsdls);
-  // console.log(wsdls[24]);
-  const proc = new Processor({
-    filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
-    nodes,
-  });
-  await proc.main();
-
-  const nodeArr = ts.factory.createNodeArray(nodes);
-
-  // printer for writing the AST to a file as code
-  const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
-  const result = printer.printList(
-    ts.ListFormat.MultiLine,
-    nodeArr,
-    sourceFile,
-  );
-
-  // write the code to file
-  writeFileSync('./onvif/interfaces/interface.ts', result, { encoding : 'utf-8' });
+  async process() {
+    this.schema = (await this.processXML())['xs:schema'] as ISchemaDefinition;
+  }
 }
-start().catch(console.error);
+
+class ProcessorWSDL extends Processor {
+  constructor(options: ProcessorConstructor) {
+    super(options);
+  }
+
+  async process() {
+    this.schema = (await this.processXML())['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as ISchemaDefinition;
+  }
+}
+
+class InterfaceProcessor {
+  private nodes: ts.Node[];
+  private types: Set<string>;
+  constructor() {
+    this.nodes = [];
+    this.types = new Set();
+  }
+  async start() {
+    const xsds = await glob('../specs/wsdl/**/*.xsd');
+    console.log(xsds);
+    // xsds = ['../specs/wsdl/ver10/schema/common.xsd', '../specs/wsdl/ver10/schema/onvif.xsd'];
+    // console.log(xsds);
+    this.nodes = builtInTypes;
+
+    for (const xsd of xsds) {
+      console.log(`processing ${xsd}`);
+      const proc = new ProcessorXSD({
+        filePath : xsd,
+        nodes    : this.nodes,
+        types    : this.types,
+      });
+      await proc.main();
+    }
+
+    // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
+    // console.log(wsdls);
+    // console.log(wsdls[24]);
+    const proc = new ProcessorWSDL({
+      filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
+      nodes    : this.nodes,
+      types    : this.types,
+    });
+    await proc.main();
+
+    const nodeArr = ts.factory.createNodeArray(this.nodes);
+
+    // printer for writing the AST to a file as code
+    const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
+    const result = printer.printList(
+      ts.ListFormat.MultiLine,
+      nodeArr,
+      sourceFile,
+    );
+
+    // write the code to file
+    writeFileSync('./onvif/interfaces/interface.ts', result, { encoding : 'utf-8' });
+  }
+}
+
+(new InterfaceProcessor()).start().catch(console.error);
