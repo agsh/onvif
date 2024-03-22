@@ -7,6 +7,7 @@ import { Parser } from 'xml2js';
 import ts, { TypeNode } from 'typescript';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { glob } from 'glob';
+import * as path from 'node:path';
 
 const sourceFile = ts.createSourceFile(
   'soap-types.ts', // the output file name
@@ -21,15 +22,19 @@ const exportModifier = ts.factory.createModifiersFromModifierFlags(
   ts.ModifierFlags.Export,
 );
 
-const builtInTypes = Object.entries({
-  AnyURI     : 'string',
-  FilterType : 'any',
-}).map(([name, typeName]) => ts.factory.createTypeAliasDeclaration(
-  exportModifier,
-  name,
-  undefined,
-  ts.factory.createTypeReferenceNode(typeName),
-));
+const builtInTypes = [
+  ts.factory.createIdentifier('/* eslint-disable import/export, no-tabs */'),
+  ...Object.entries({
+    AnyURI     : 'string',
+    FilterType : 'any',
+    NCName     : 'string',
+  }).map(([name, typeName]) => ts.factory.createTypeAliasDeclaration(
+    exportModifier,
+    name,
+    undefined,
+    ts.factory.createTypeReferenceNode(typeName),
+  )),
+];
 
 function dataTypes(xsdType?: string): string {
   if (!xsdType) {
@@ -58,7 +63,12 @@ function dataTypes(xsdType?: string): string {
     case 'soapenv:Fault': return 'any';
     case 'xs:anySimpleType': return 'any';
     case 'xs:QName': return 'any';
+    case 'wsnt:TopicExpressionType': return 'any';
+    case 'wsnt:QueryExpressionType': return 'any';
+    case 'xs:positiveInteger': return 'PositiveInteger';
+    case 'xs:nonNegativeInteger': return 'number';
     case 'tt:Object': return 'OnvifObject';
+    case 'xs:time': return 'Time';
     default: return xsdType.slice(xsdType.indexOf(':') + 1);
   }
 }
@@ -136,6 +146,7 @@ interface IComplexType {
         'xs:documentation': string[];
       }[];
     }[];
+    'xs:any'?: any;
   }[];
   'xs:annotation'?: {
     'xs:documentation': string[];
@@ -161,13 +172,14 @@ export class Processor {
   private readonly nodes: ts.Node[] = [];
   protected schema?: ISchemaDefinition;
   private readonly types: Set<string>;
+  private exportNodes: ts.Node[];
   constructor({
     filePath,
     nodes,
     types,
   }: ProcessorConstructor) {
     this.filePath = filePath;
-    this.nodes = nodes;
+    this.exportNodes = nodes;
     this.types = types;
   }
 
@@ -179,7 +191,24 @@ export class Processor {
     if (this.schema?.['xs:complexType']) {
       this.schema['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
     }
+    this.writeInterface();
+    this.exportNodes = this.exportNodes.concat(this.nodes);
     return this.nodes;
+  }
+
+  writeInterface() {
+    const nodeArr = ts.factory.createNodeArray(this.nodes);
+
+    // printer for writing the AST to a file as code
+    const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
+    const result = printer.printList(
+      ts.ListFormat.MultiLine,
+      nodeArr,
+      sourceFile,
+    );
+
+    // write the code to file
+    writeFileSync(`./onvif/interfaces/${path.parse(this.filePath).name}.ts`, result, { encoding : 'utf-8' });
   }
 
   async processXML() {
@@ -305,6 +334,16 @@ export class Processor {
     if (complexType['xs:sequence']) {
       if (!Array.isArray(complexType['xs:sequence'][0]['xs:element'])) {
         /** TODO Any */
+        // if (complexType['xs:sequence'][0]['xs:any']) {
+        //   members.push(
+        //     ts.factory.createPropertySignature(
+        //       undefined,
+        //       '[key: string]',
+        //       undefined,
+        //       ts.factory.createTypeReferenceNode('any'),
+        //     ),
+        //   );
+        // }
 
         // console.log(complexType);
         // console.log('--------------');
@@ -358,22 +397,16 @@ function extendInterface(interfaceName?: string) {
 }
 
 class ProcessorXSD extends Processor {
-  constructor(options: ProcessorConstructor) {
-    super(options);
-  }
-
   async process() {
     this.schema = (await this.processXML())['xs:schema'] as ISchemaDefinition;
   }
 }
 
 class ProcessorWSDL extends Processor {
-  constructor(options: ProcessorConstructor) {
-    super(options);
-  }
-
   async process() {
-    this.schema = (await this.processXML())['wsdl:definitions']['wsdl:types'][0]['xs:schema'][0] as ISchemaDefinition;
+    const xml = await this.processXML();
+    const schemaDefinition = xml['wsdl:definitions']['wsdl:types']?.[0]['xs:schema']?.[0];
+    this.schema = schemaDefinition as ISchemaDefinition;
   }
 }
 
@@ -386,7 +419,7 @@ class InterfaceProcessor {
   }
   async start() {
     const xsds = await glob('../specs/wsdl/**/*.xsd');
-    console.log(xsds);
+    // console.log(xsds);
     // xsds = ['../specs/wsdl/ver10/schema/common.xsd', '../specs/wsdl/ver10/schema/onvif.xsd'];
     // console.log(xsds);
     this.nodes = builtInTypes;
@@ -401,15 +434,24 @@ class InterfaceProcessor {
       await proc.main();
     }
 
-    // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
+    const wsdls = await glob('../specs/wsdl/**/*.wsdl');
     // console.log(wsdls);
     // console.log(wsdls[24]);
-    const proc = new ProcessorWSDL({
-      filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
-      nodes    : this.nodes,
-      types    : this.types,
-    });
-    await proc.main();
+    // const proc = new ProcessorWSDL({
+    //   filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
+    //   nodes    : this.nodes,
+    //   types    : this.types,
+    // });
+    // await proc.main();
+    for (const wdsl of wsdls) {
+      console.log(`processing ${wdsl}`);
+      const proc = new ProcessorWSDL({
+        filePath : wdsl,
+        nodes    : this.nodes,
+        types    : this.types,
+      });
+      await proc.main();
+    }
 
     const nodeArr = ts.factory.createNodeArray(this.nodes);
 
