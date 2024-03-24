@@ -153,9 +153,17 @@ interface IComplexType {
   }[];
 }
 
+interface IElement {
+  meta: {
+    name: string;
+  };
+  'xs:complexType': IComplexType[];
+}
+
 interface ISchemaDefinition {
   'xs:simpleType': ISimpleType[];
   'xs:complexType': IComplexType[];
+  'xs:element': IElement[];
 }
 
 interface ProcessorConstructor {
@@ -190,6 +198,9 @@ export class Processor {
     }
     if (this.schema?.['xs:complexType']) {
       this.schema['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
+    }
+    if (this.schema?.['xs:element']) {
+      this.schema['xs:element'].forEach((element) => this.generateElementType(element));
     }
     this.writeInterface();
     this.exportNodes = this.exportNodes.concat(this.nodes);
@@ -240,10 +251,13 @@ export class Processor {
 
   generateSimpleTypeInterface(simpleType: ISimpleType) {
     const name = cleanName(simpleType.meta.name);
+
     if (this.types.has(name)) {
+      console.error(name);
       return;
     }
     this.types.add(name);
+
     const interfaceSymbol = ts.factory.createIdentifier(name);
     if (simpleType['xs:restriction']) {
       /** RESTRICTIONS */
@@ -308,6 +322,18 @@ export class Processor {
     return this.createAnnotationIfExists(attribute, property);
   }
 
+  generateElementType(element: IElement) {
+    if (element['xs:complexType'] && typeof element['xs:complexType'][0] === 'object') {
+      element['xs:complexType'][0].meta = {
+        name : element.meta.name,
+      };
+      this.generateComplexTypeInterface(element['xs:complexType'][0]);
+    }
+    // TODO method descriptions?
+    // element.meta
+    console.log(`> ${element.meta.name}`);
+  }
+
   generateComplexTypeInterface(complexType: IComplexType) {
     const interfaceSymbol = ts.factory.createIdentifier(cleanName(complexType.meta.name));
 
@@ -325,7 +351,6 @@ export class Processor {
       complexType['xs:sequence'] = complexType['xs:complexContent'][0]['xs:extension'][0]['xs:sequence'];
     }
 
-    // attribute.use === 'required'; // optional
     if (complexType['xs:attribute']) {
       members = members.concat(
         complexType['xs:attribute'].map((attribute) => this.createProperty(attribute)),
@@ -418,44 +443,38 @@ class InterfaceProcessor {
     this.types = new Set();
   }
   async start() {
-    const xsds = await glob('../specs/wsdl/**/*.xsd');
-    // console.log(xsds);
-    // xsds = ['../specs/wsdl/ver10/schema/common.xsd', '../specs/wsdl/ver10/schema/onvif.xsd'];
-    // console.log(xsds);
     this.nodes = builtInTypes;
 
-    for (const xsd of xsds) {
-      console.log(`processing ${xsd}`);
-      const proc = new ProcessorXSD({
-        filePath : xsd,
-        nodes    : this.nodes,
-        types    : this.types,
-      });
-      await proc.main();
-    }
+    // const xsds = await glob('../specs/wsdl/**/*.xsd');
+    // for (const xsd of xsds) {
+    //   console.log(`processing ${xsd}`);
+    //   const proc = new ProcessorXSD({
+    //     filePath : xsd,
+    //     nodes    : this.nodes,
+    //     types    : this.types,
+    //   });
+    //   await proc.main();
+    // }
 
-    const wsdls = await glob('../specs/wsdl/**/*.wsdl');
-    // console.log(wsdls);
-    // console.log(wsdls[24]);
-    // const proc = new ProcessorWSDL({
-    //   filePath : '../specs/wsdl/ver10/device/wsdl/devicemgmt.wsdl',
-    //   nodes    : this.nodes,
-    //   types    : this.types,
-    // });
-    // await proc.main();
-    for (const wdsl of wsdls) {
-      console.log(`processing ${wdsl}`);
-      const proc = new ProcessorWSDL({
-        filePath : wdsl,
-        nodes    : this.nodes,
-        types    : this.types,
-      });
-      await proc.main();
-    }
+    // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
+    // for (const wdsl of wsdls) {
+    //   console.log(`processing ${wdsl}`);
+    //   const proc = new ProcessorWSDL({
+    //     filePath : wdsl,
+    //     nodes    : this.nodes,
+    //     types    : this.types,
+    //   });
+    //   await proc.main();
+    // }
+
+    const proc = new ProcessorWSDL({
+      filePath : '../specs/wsdl/ver20/ptz/wsdl/ptz.wsdl',
+      nodes    : this.nodes,
+      types    : this.types,
+    });
+    await proc.main();
 
     const nodeArr = ts.factory.createNodeArray(this.nodes);
-
-    // printer for writing the AST to a file as code
     const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
     const result = printer.printList(
       ts.ListFormat.MultiLine,
