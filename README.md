@@ -374,10 +374,10 @@ Options and callback are optional. The options properties are:
 configuration object
 
 ### GetRecordings(callback)
-*Recordings.* Get all the recordings track availble on the device. Only [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) devices provide this features.
+*Recordings.* Get all the recordings tracks available on the device. Note: Only [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) devices provide this features.
 
 ### GetReplayUri(callback)
-*Recordings.* Get the replay stream (usually RTSP) for the provided recording token.
+*Recordings.* Get the replay stream or streams (if using a NVR) - usually RTSP - for the provided recording token/s.
 
 ### GetRecordingOptions(callback)
 *Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
