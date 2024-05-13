@@ -373,6 +373,15 @@ Options and callback are optional. The options properties are:
 *PTZ.* Get supported coordinate systems including their range limitations for selected configuration. Extends corresponding
 configuration object
 
+### GetRecordings(callback)
+*Recordings.* Get all the recordings track availble on the device. Only [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) devices provide this features.
+
+### GetReplayUri(callback)
+*Recordings.* Get the replay stream (usually RTSP) for the provided recording token.
+
+### GetRecordingOptions(callback)
+*Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
+
 ## Supported methods
 * GetSystemDateAndTime
 * GetCapabilities
@@ -397,6 +406,7 @@ configuration object
 * SetScopes
 * GetRecordings
 * GetReplayUri
+* GetRecordingOptions
 
 ## Changelog
 - 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
