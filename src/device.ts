@@ -382,13 +382,12 @@ export interface DeviceServiceCapabilities {
   auxiliaryCommands?: string[];
 }
 
-type NetworkHostType = 'IPv4'| 'IPv6' | 'DNS';
 type IPv4Address = string;
 type IPv6Address = string;
 
 export interface IPAddress {
   /** Indicates if the address is an IPv4 or IPv6 address */
-  type: 'IPv4' | 'IPv6';
+  type: NetworkType;
   /** IPv4 address */
   IPv4Address?: IPv4Address;
   /** IPv6 address */
@@ -397,7 +396,7 @@ export interface IPAddress {
 
 export interface NetworkHost {
   /* Network host type: IPv4, IPv6 or DNS. */
-  type: NetworkHostType;
+  type: NetworkType;
   /* IPv4 address. */
   IPv4Address?: IPv4Address;
   /* IPv6 address. */
@@ -487,49 +486,53 @@ export interface NetworkInterfaceLink {
 }
 
 export interface PrefixedIPv4Address {
-  /* IPv4 address */
+  /** IPv4 address */
   address: IPv4Address;
   // Prefix/submask length
   prefixLength: number;
 }
 
 export interface IPv4Configuration {
-  /* List of manually added IPv4 addresses. */
+  /** List of manually added IPv4 addresses. */
   manual?: PrefixedIPv4Address[];
-  /* Link local address. */
+  /** Link local address. */
   linkLocal?: PrefixedIPv4Address;
-  /* IPv4 address configured by using DHCP. */
+  /** IPv4 address configured by using DHCP. */
   fromDHCP?: PrefixedIPv4Address;
-  /* Indicates whether or not DHCP is used. */
-  DHCP: boolean;
+  /** Indicates whether or not DHCP is used. */
+  DHCP?: boolean;
+  /** Indicates whether or not IPv4 is enabled. */
+  enabled?: boolean;
 }
 
 export interface IPv4NetworkInterface {
-  /* Indicates whether or not IPv4 is enabled. */
+  /** Indicates whether or not IPv4 is enabled. */
   enabled: boolean;
-  /* IPv4 configuration. */
+  /** IPv4 configuration. */
   config?: IPv4Configuration;
 }
 
 export interface PrefixedIPv6Address {
-  /* IPv6 address */
+  /** IPv6 address */
   address: IPv6Address;
-  /* Prefix/submask length */
+  /** Prefix/submask length */
   prefixLength: number;
 }
 
 export interface IPv6Configuration {
-  /* Indicates whether router advertisment is used. */
+  /** Indicates whether router advertisment is used. */
   acceptRouterAdvert?: boolean;
-  /* DHCP configuration. */
+  /** Indicates whether or not IPv6 is enabled. */
+  enabled?: boolean;
+  /** DHCP configuration. */
   DHCP: 'Auto' | 'Stateful' | 'Stateless' | 'Off';
-  /* List of manually entered IPv6 addresses. */
+  /** List of manually entered IPv6 addresses. */
   manual?: PrefixedIPv6Address[];
-  /* List of link local IPv6 addresses. */
+  /** List of link local IPv6 addresses. */
   linkLocal?: PrefixedIPv6Address[];
-  /* List of IPv6 addresses configured by using DHCP. */
+  /** List of IPv6 addresses configured by using DHCP. */
   fromDHCP?: PrefixedIPv6Address[];
-  /* List of IPv6 addresses configured by using router advertisment. */
+  /** List of IPv6 addresses configured by using router advertisment. */
   fromRA?: PrefixedIPv6Address[];
   extension?: any;
 }
@@ -794,7 +797,10 @@ export class Device {
     return this.#NTP!;
   }
 
-  async setNTP(options: SetNTPOptions) {
+  /**
+   * Set the NTP settings on a device
+   */
+  async setNTP(options: SetNTPOptions): Promise<NTPInformation> {
     if (!Array.isArray(options.NTPManual)) {
       options.NTPManual = [];
     }
@@ -827,7 +833,7 @@ export class Device {
       service : 'device',
       body,
     });
-    return linerase(data);
+    return linerase(data[0].setNTPResponse);
   }
 
   /**
@@ -864,4 +870,11 @@ export class Device {
     }
     return this.#networkInterfaces;
   }
+
+  /**
+   * Set network interfaces information
+   */
+  // async setNetworkInterfaces(options: SetNetworkInterfacesOptions) {
+  //
+  // }
 }

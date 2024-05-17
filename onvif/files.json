@@ -1,0 +1,6 @@
+{
+  "modules": {
+    "ptz.wsdl": "ptz",
+    "devicemgmt.wsdl": "device"
+  }
+}

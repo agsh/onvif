@@ -1,4 +1,4 @@
-import { Onvif, Discovery, Profile } from './index';
+import { NetworkType, Onvif } from './index';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverMockup = require('../test/serverMockup');
@@ -22,6 +22,12 @@ const serverMockup = require('../test/serverMockup');
   console.log('-------------------------------------------');
   console.log(await cam.ptz.getStatus());
   console.log('-------------------------------------------');
+  console.log(await cam.device.setNTP({
+    NTPManual : [{
+      type : NetworkType.DNS,
+    }],
+  }));
+  console.log(4);
   // console.log(profiles);
   // Discovery.on('device', console.log);
   // const cams = await Discovery.probe({ timeout : 1000 });
