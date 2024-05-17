@@ -170,25 +170,33 @@ interface ProcessorConstructor {
   filePath: string;
   nodes: ts.Node[];
   types: Set<string>;
+  links: Links;
 }
+
+type Links = Map<string, IType>
 
 /**
  * Common class to process xml-files
  */
 export class Processor {
-  private filePath: string;
+  private readonly filePath: string;
   private readonly nodes: ts.Node[] = [];
   protected schema?: ISchemaDefinition;
   private readonly types: Set<string>;
   private exportNodes: ts.Node[];
+  private links: Links;
+  private readonly fileName: string;
   constructor({
     filePath,
     nodes,
     types,
+    links,
   }: ProcessorConstructor) {
     this.filePath = filePath;
     this.exportNodes = nodes;
     this.types = types;
+    this.links = links;
+    this.fileName = path.parse(this.filePath).name;
   }
 
   async main(): Promise<ts.Node[]> {
@@ -219,7 +227,7 @@ export class Processor {
     );
 
     // write the code to file
-    writeFileSync(`./onvif/interfaces/${path.parse(this.filePath).name}.ts`, result, { encoding : 'utf-8' });
+    writeFileSync(`./onvif/interfaces/${this.fileName}.d.ts`, result, { encoding : 'utf-8' });
   }
 
   async processXML() {
@@ -249,6 +257,17 @@ export class Processor {
     return node;
   }
 
+  addNode(name: string, node: ts.Node) {
+    if (this.links.has(name)) {
+      console.log(`>>> ${name}`);
+    }
+    this.links.set(name, {
+      node,
+      name : this.fileName,
+    });
+    this.nodes.push(node);
+  }
+
   generateSimpleTypeInterface(simpleType: ISimpleType) {
     const name = cleanName(simpleType.meta.name);
 
@@ -262,7 +281,8 @@ export class Processor {
     if (simpleType['xs:restriction']) {
       /** RESTRICTIONS */
       if (simpleType['xs:restriction'][0]['xs:enumeration']) {
-        this.nodes.push(
+        this.addNode(
+          name,
           this.createAnnotationIfExists(
             simpleType,
             ts.factory.createTypeAliasDeclaration(
@@ -275,7 +295,8 @@ export class Processor {
           ),
         );
       } else {
-        this.nodes.push(
+        this.addNode(
+          name,
           this.createAnnotationIfExists(
             simpleType,
             ts.factory.createTypeAliasDeclaration(
@@ -289,7 +310,8 @@ export class Processor {
       }
     } else if (simpleType['xs:list']) {
       /** LISTS */
-      this.nodes.push(
+      this.addNode(
+        name,
         this.createAnnotationIfExists(
           simpleType,
           ts.factory.createTypeAliasDeclaration(
@@ -335,7 +357,8 @@ export class Processor {
   }
 
   generateComplexTypeInterface(complexType: IComplexType) {
-    const interfaceSymbol = ts.factory.createIdentifier(cleanName(complexType.meta.name));
+    const { name } = complexType.meta;
+    const interfaceSymbol = ts.factory.createIdentifier(cleanName(name));
 
     let members: ts.TypeElement[] = [];
     let heritage;
@@ -379,7 +402,6 @@ export class Processor {
         //   ts.factory.createTypeReferenceNode('any'),
         // );
       } else {
-        // console.log(complexType);
         members = members.concat(
           members = complexType['xs:sequence'][0]['xs:element'].map((attribute) => {
             // console.log(attribute.meta.name);
@@ -393,7 +415,6 @@ export class Processor {
             return cl;
           }),
         );
-        // console.log('------------');
       }
     }
 
@@ -404,8 +425,8 @@ export class Processor {
       heritage,
       members,
     );
-
-    this.nodes.push(
+    this.addNode(
+      name,
       this.createAnnotationIfExists(complexType, node),
     );
   }
@@ -435,9 +456,15 @@ class ProcessorWSDL extends Processor {
   }
 }
 
+interface IType {
+  name?: string;
+  node: ts.Node;
+}
+
 class InterfaceProcessor {
   private nodes: ts.Node[];
   private types: Set<string>;
+  private links: Links = new Map();
   constructor() {
     this.nodes = [];
     this.types = new Set();
@@ -445,16 +472,17 @@ class InterfaceProcessor {
   async start() {
     this.nodes = builtInTypes;
 
-    // const xsds = await glob('../specs/wsdl/**/*.xsd');
-    // for (const xsd of xsds) {
-    //   console.log(`processing ${xsd}`);
-    //   const proc = new ProcessorXSD({
-    //     filePath : xsd,
-    //     nodes    : this.nodes,
-    //     types    : this.types,
-    //   });
-    //   await proc.main();
-    // }
+    const xsds = await glob('../specs/wsdl/**/*.xsd');
+    for (const xsd of xsds) {
+      console.log(`processing ${xsd}`);
+      const proc = new ProcessorXSD({
+        filePath : xsd,
+        nodes    : this.nodes,
+        types    : this.types,
+        links    : this.links,
+      });
+      await proc.main();
+    }
 
     // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
     // for (const wdsl of wsdls) {
@@ -463,6 +491,7 @@ class InterfaceProcessor {
     //     filePath : wdsl,
     //     nodes    : this.nodes,
     //     types    : this.types,
+    // links    : this.links,
     //   });
     //   await proc.main();
     // }
@@ -471,6 +500,7 @@ class InterfaceProcessor {
       filePath : '../specs/wsdl/ver20/ptz/wsdl/ptz.wsdl',
       nodes    : this.nodes,
       types    : this.types,
+      links    : this.links,
     });
     await proc.main();
 

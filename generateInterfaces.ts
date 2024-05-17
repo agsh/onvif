@@ -1,3 +1,8 @@
+/**
+ * Read:
+ * https://shadeglare.medium.com/typescript-code-generation-using-its-compiler-api-4c50ad9f7884
+ */
+
 import { readFileSync, writeFileSync } from 'fs';
 // eslint-disable-next-line import/no-extraneous-dependencies
 // import { glob } from 'glob';
@@ -25,34 +30,24 @@ const anyURI = ts.factory.createTypeAliasDeclaration(
   ts.factory.createTypeReferenceNode('string'),
 );
 
-// Primitive datatypes defined by SOAP (there are more)
-type SoapPrimitive =
-  | 'xs:boolean'
-  | 'xs:double'
-  | 'xs:float'
-  | 'xs:int'
-  | 'xs:short'
-  | 'xs:signedInt'
-  | 'xs:string'
-  | 'xs:unsignedInt'
-  | 'xs:unsignedShort'
-  | 'xs:dateTime'
-  | 'xs:anyURI'
-;
-
-const dataTypes: Record<SoapPrimitive, string> = {
-  'xs:boolean'       : 'boolean',
-  'xs:double'        : 'number',
-  'xs:float'         : 'number',
-  'xs:int'           : 'number',
-  'xs:string'        : 'string',
-  'xs:short'         : 'number',
-  'xs:signedInt'     : 'number',
-  'xs:unsignedInt'   : 'number',
-  'xs:dateTime'      : 'date',
-  'xs:unsignedShort' : 'number',
-  'xs:anyURI'        : 'AnyURI',
-};
+function dataTypes(xsdType?: string): string {
+  if (!xsdType) {
+    return 'any';
+  }
+  const type = xsdType.slice(3);
+  switch (type) {
+    case 'double': return 'number';
+    case 'float': return 'number';
+    case 'int': return 'number';
+    case 'short': return 'number';
+    case 'signedInt': return 'number';
+    case 'unsignedInt': return 'number';
+    case 'unsignedShort': return 'number';
+    case 'dateTime': return 'Date';
+    case 'anyURI': return 'AnyURI';
+    default: return type;
+  }
+}
 
 interface ISimpleType {
   meta: {
@@ -63,7 +58,7 @@ interface ISimpleType {
   }[];
   'xs:restriction': {
     meta: {
-      base: SoapPrimitive;
+      base: string;
     };
     'xs:enumeration'?: {
       meta: {
@@ -80,16 +75,28 @@ interface IComplexType {
   'xs:attribute'?: {
     meta : {
       name: string;
-      type: SoapPrimitive;
+      type: string;
       use: 'required' | 'optional';
     };
-    'xs:annotation': {
-      'xs:documentation': string[];
+  }[];
+  'xs:sequence'?: {
+    'xs:element': {
+      meta: {
+        name: string;
+        type: string;
+        use: 'required' | 'optional';
+      };
+      'xs:annotation': {
+        'xs:documentation': string[];
+      }[];
     }[];
+  }[];
+  'xs:annotation'?: {
+    'xs:documentation': string[];
   }[];
 }
 
-interface ISchemaDefinition {
+interface IXSDSchemaDefinition {
   'xs:simpleType': ISimpleType[];
   'xs:complexType': IComplexType[];
 }
@@ -103,22 +110,19 @@ async function processXSD(filePath: string) {
   });
 
   const serviceDefinition = await xmlParser.parseStringPromise(wsdlData);
-  return serviceDefinition['xs:schema'] as ISchemaDefinition;
+  return serviceDefinition['xs:schema'] as IXSDSchemaDefinition;
 }
 
-function generateSimpleTypeInterface(simpleType: ISimpleType): ts.Node[] {
-  const cl: ts.Node[] = [];
+function generateSimpleTypeInterface(simpleType: ISimpleType): ts.Node {
   const interfaceSymbol = ts.factory.createIdentifier(simpleType.meta.name);
-  if (simpleType['xs:annotation']) {
-    cl.push(ts.factory.createJSDocComment(simpleType['xs:annotation']?.[0]['xs:documentation'][0]));
-  }
   if (simpleType['xs:restriction'][0]['xs:enumeration']) {
-    cl.push(
-      // ts.factory.createEnumDeclaration(
-      //   exportModifier,
-      //   interfaceSymbol, // interface name
-      //   simpleType['xs:restriction'][0]['xs:enumeration'].map((enumValue) => ts.factory.createEnumMember(enumValue.meta.value, ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
-      // ),
+    // ts.factory.createEnumDeclaration(
+    //   exportModifier,
+    //   interfaceSymbol, // interface name
+    //   simpleType['xs:restriction'][0]['xs:enumeration'].map((enumValue) => ts.factory.createEnumMember(enumValue.meta.value, ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
+    // ),
+    return createAnnotationIfExists(
+      simpleType,
       ts.factory.createTypeAliasDeclaration(
         exportModifier,
         interfaceSymbol, // interface name
@@ -126,52 +130,72 @@ function generateSimpleTypeInterface(simpleType: ISimpleType): ts.Node[] {
         ts.factory.createUnionTypeNode(simpleType['xs:restriction'][0]['xs:enumeration'].map((enumValue) => ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(enumValue.meta.value)))),
       ),
     );
-  } else {
-    cl.push(ts.factory.createTypeAliasDeclaration(
+  }
+  return createAnnotationIfExists(
+    simpleType,
+    ts.factory.createTypeAliasDeclaration(
       exportModifier,
       interfaceSymbol,
       undefined,
-      ts.factory.createTypeReferenceNode(dataTypes[simpleType['xs:restriction'][0].meta.base]),
-    ));
-  }
-  return cl;
-}
-
-function createDocComment(node: any) {
-  if (node['xs:annotation']) {
-    return ts.addSyntheticLeadingComment(
-      ts.factory.createPropertySignature(
-        undefined,
-        node.meta.name,
-        undefined,
-        ts.factory.createTypeReferenceNode(dataTypes[node.meta.type as SoapPrimitive]),
-      ),
-      ts.SyntaxKind.MultiLineCommentTrivia,
-      `* ${node['xs:annotation']?.[0]['xs:documentation'][0]}`,
-      true,
-    );
-  }
-  return ts.factory.createPropertySignature(
-    undefined,
-    node.meta.name,
-    undefined,
-    ts.factory.createTypeReferenceNode(dataTypes[node.meta.type as SoapPrimitive]),
+      ts.factory.createTypeReferenceNode(dataTypes(simpleType['xs:restriction'][0].meta.base)),
+    ),
   );
 }
 
-function generateComplexTypeInterface(complexType: IComplexType) : ts.Node[] {
+function createAnnotationIfExists(attribute: any, node: any) {
+  if (attribute['xs:annotation']) {
+    return ts.addSyntheticLeadingComment(
+      node,
+      ts.SyntaxKind.MultiLineCommentTrivia,
+      `* ${attribute['xs:annotation']?.[0]['xs:documentation'][0]} `,
+      true,
+    );
+  }
+  return node;
+}
+
+function createProperty(attribute: any) {
+  const property = ts.factory.createPropertySignature(
+    undefined,
+    attribute.meta.name,
+    attribute.meta.use !== 'required' ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
+    ts.factory.createTypeReferenceNode(dataTypes(attribute.meta.type)),
+  );
+  return createAnnotationIfExists(attribute, property);
+}
+
+function generateComplexTypeInterface(complexType: IComplexType) : ts.Node {
   const interfaceSymbol = ts.factory.createIdentifier(complexType.meta.name);
 
   let members: ts.TypeElement[] = [];
   // attribute.use === 'required'; // optional
   if (complexType['xs:attribute']) {
-    members = complexType['xs:attribute'].map((attribute) => {
-      const cl = createDocComment(attribute);
-      return cl;
-    });
+    members = members.concat(
+      complexType['xs:attribute'].map((attribute) => {
+        const cl = createProperty(attribute);
+        return cl;
+      }),
+    );
+  }
+  if (complexType['xs:sequence']) {
+    if (!Array.isArray(complexType['xs:sequence'][0]['xs:element'])) {
+      // return ts.factory.createPropertySignature(
+      //   undefined,
+      //   complexType.meta.name,
+      //   ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+      //   ts.factory.createTypeReferenceNode('any'),
+      // );
+    } else {
+      members = members.concat(
+        members = complexType['xs:sequence'][0]['xs:element'].map((attribute) => {
+          const cl = createProperty(attribute);
+          return cl;
+        }),
+      );
+    }
   }
 
-  const cl = ts.factory.createInterfaceDeclaration(
+  const node = ts.factory.createInterfaceDeclaration(
     exportModifier, // modifiers
     interfaceSymbol, // interface name
     undefined, // no generic type parameters
@@ -179,7 +203,7 @@ function generateComplexTypeInterface(complexType: IComplexType) : ts.Node[] {
     members,
   );
 
-  return [cl];
+  return createAnnotationIfExists(complexType, node);
 }
 
 async function main() {
@@ -190,11 +214,11 @@ async function main() {
 
   const simpleTypeInterfaces = serviceDefinition['xs:simpleType'].map(
     generateSimpleTypeInterface,
-  ).flat();
+  );
 
   const complexTypeInterfaces = serviceDefinition['xs:complexType'].map(
     generateComplexTypeInterface,
-  ).flat();
+  );
 
   const nodes: ts.Node[] = [anyURI, ...simpleTypeInterfaces, ...complexTypeInterfaces];
 

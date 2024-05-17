@@ -70,12 +70,6 @@ export class DiscoverySingleton extends EventEmitter {
 
   /**
    * Discover NVT devices in the subnetwork
-   * @param {object} [options]
-   * @param {number} [options.timeout=5000] timeout in milliseconds for discovery responses
-   * @param {boolean} [options.resolve=true] set to `false` if you want omit creating of Cam objects
-   * @param {string} [options.messageId=GUID] WS-Discovery message id
-   * @param {string} [options.device=defaultroute] Interface to bind on for discovery ex. `eth0`
-   * @param {number} [options.listeningPort=null] client will listen to discovery data device sent
    * @example
    * ```typescript
    * import { Discovery } from 'onvif';
