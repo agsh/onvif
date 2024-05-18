@@ -16,6 +16,14 @@ const conf = {
 };
 
 const verbose = process.env.VERBOSE || false;
+const log = (...msgs) => {
+	if (verbose) {
+		console.log(...msgs);
+	}
+};
+let connectionBreaker = {
+	break: false
+};
 
 const listener = (req, res) => {
 	req.setEncoding('utf8');
@@ -44,9 +52,7 @@ const listener = (req, res) => {
 		if (onvifNamespaces) {
 			ns = onvifNamespaces[1];
 		}
-		if (verbose) {
-			console.log('received', ns, command);
-		}
+		log('received', ns, command);
 		if (fs.existsSync(__xmldir + ns + '.' + command + '.xml')) {
 			command = ns + '.' + command;
 		}
@@ -54,10 +60,13 @@ const listener = (req, res) => {
 			command = 'Error';
 		}
 		const fileName = __xmldir + command + '.xml';
-		if (verbose) {
-			console.log('serving', fileName);
-		}
+		log('serving', fileName);
 		res.setHeader('Content-Type', 'application/soap+xml;charset=UTF-8');
+		if (connectionBreaker.break) {
+			log('break connection');
+			res.destroy();
+			return;
+		}
 		res.end(template(fs.readFileSync(fileName))(conf));
 	});
 };
@@ -67,9 +76,7 @@ const discoverReply = dgram.createSocket('udp4');
 const discover = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 discover.on('error', (err) => { throw err; });
 discover.on('message', (msg, rinfo) => {
-	if (verbose) {
-		console.log('Discovery received');
-	}
+	log('Discovery received');
 	// Extract MessageTo from the XML. xml2ns options remove the namespace tags and ensure element character content is accessed with '_'
 	xml2js.parseString(msg.toString(), { explicitCharkey: true, tagNameProcessors: [xml2js.processors.stripPrefix]}, (err, result) => {
 		const msgId = result.Envelope.Header[0].MessageID[0]._;
@@ -93,32 +100,27 @@ discover.on('message', (msg, rinfo) => {
 	});
 });
 
-if (verbose) {
-	console.log('Listening for Discovery Messages on Port 3702');
-}
+log('Listening for Discovery Messages on Port 3702');
 discover.bind(3702, () => discover.addMembership('239.255.255.250'));
 
 const server = http.createServer(listener).listen(conf.port, (err) => {
 	if (err) {
 		throw err;
 	}
-	if (verbose) {
-		console.log('Listening on port', conf.port);
-	}
+	log('Listening on port', conf.port);
 });
 
 const close = () => {
 	discover.close();
 	discoverReply.close();
 	server.close();
-	if (verbose) {
-		console.log('Closing ServerMockup');
-	}
+	log('Closing ServerMockup');
 };
 
 module.exports = {
-	server: server,
-	conf: conf,
-	discover: discover,
-	close: close,
+	server,
+	conf,
+	discover,
+	close,
+	connectionBreaker
 };
