@@ -99,7 +99,13 @@ describe('Events', () => {
 			assert.ok(gotMessage === 11 || gotMessage === 12);
 			assert.ok(pullMessagesCallCount > gotMessage && pullMessagesCallCount > 20);
 			cam.removeListener('event', onEvent);
-			done();
+			cam.unsubscribe(done);
 		}, 1.5 * 1000);
+	});
+	it('should return an error when calling renew without subscription', (done) => {
+		cam.renew({}, (err) => {
+			assert.ok(err instanceof Error);
+			done();
+		});
 	});
 });
