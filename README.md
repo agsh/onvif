@@ -47,28 +47,50 @@ To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise
 `./lib/*.js`
 
 ## Quick example
-This example asks your camera to look up and starts a web server at port 3030 that distributes a web page with vlc-plugin
-container which translates video from the camera.
-```javascript
-var
-  http = require('http'),
-  Cam = require('onvif').Cam;
 
-new Cam({
-  hostname: <CAMERA_HOST>,
-  username: <USERNAME>,
-  password: <PASSWORD>
-}, function(err) {
-  this.absoluteMove({x: 1, y: 1, zoom: 1});
-  this.getStreamUri({protocol:'RTSP'}, function(err, stream) {
-    http.createServer(function (req, res) {
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.end('<html><body>' +
-        '<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
-        '</body></html>');
-    }).listen(3030);
+Special teasing example how to create little funny video server with 1 ffmpeg and 3 node.js libraries:
+<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
+
+```shell
+sudo apt install ffmpeg
+npm install onvif socket.io rtsp-ffmpeg
+```
+
+```js
+const server = require('http').createServer((req, res) =>
+        res.end(`
+<!DOCTYPE html><body>
+<canvas width='640' height='480' />
+<script src="/socket.io/socket.io.js"></script><script>
+  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext("2d");
+  socket.on('data', (data) => {
+    const img = new Image;    
+    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
+    img.onload = () => {
+      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
+      ctx.drawImage(img, 100, 100);
+    };
+    img.src = url;
   });
-});
+</script></body></html>`));
+const { Cam } = require('onvif/promises'), io = require('socket.io')(server), rtsp = require('rtsp-ffmpeg');
+server.listen(6147);
+
+const cam = new Cam({username: 'username', password: 'password', hostname: '192.168.0.116', port: 2020});
+(async() => {
+  await cam.connect();
+  const input = (await cam.getStreamUri({protocol:'RTSP'})).uri.replace('://', `://${cam.username}:${cam.password}@`);
+  const stream = new rtsp.FFMpeg({input, resolution: '320x240', quality: 3});
+  io.on('connection', (socket) => {
+    const pipeStream = socket.emit.bind(socket, 'data');
+    stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
+  });
+  setInterval(() => cam.absoluteMove({
+    x: Math.random() * 2 - 1,
+    y: Math.random() * 2 - 1,
+    zoom: Math.random()
+  }), 3000);
+})().catch(console.error);
 ```
 
 ## Other examples (located in the Examples Folder on the Github)
@@ -90,6 +112,7 @@ For Profile G Recorders it displays the RTSP address of the first recording
 Short description of library possibilities is below.
 
 ## Discovery
+
 Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just works well.
 You can find devices in your subnetwork using `probe` method of the Discovery singleton.
 Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
@@ -148,10 +171,39 @@ Options
  and responseXML is a body of SOAP response
 - `error(error)` fires on some UDP error or on bad SOAP response from NVT
 
+## Promises
+
+Right now master branch have a `onvif/promises` namespace that provides promisified version of Cam constructor returns 
+an object with the same methods as described below or in documentation but returns promises. Short example of common 
+usage is here:
+
+```js
+const onvif = require('onvif/promises');
+onvif.Discovery.on('device', async (cam) => {
+  // Set credentials to connect
+  cam.username = 'username';
+  cam.password = 'password';
+  await cam.connect();
+  cam.on('event', (event)=> console.log(JSON.stringify(event.message, null, '\t')));
+  cam.on('eventsError', console.error);
+  console.log(cam.username, cam.password);
+  console.log((await cam.getStreamUri({protocol:'RTSP'})).uri);
+  const date = await cam.getSystemDateAndTime();
+  console.log(date);
+  await cam.absoluteMove({
+    x: Math.random() * 2 - 1,
+    y: Math.random() * 2 - 1,
+    zoom: Math.random()
+  });
+});
+onvif.Discovery.on('error', console.error);
+onvif.Discovery.probe();
+```
+
 ## Cam class
 
 ```javascript
-var Cam = require('onvif').Cam;
+const Cam = require('onvif').Cam;
 ```
 
 ## new Cam(options, callback)
@@ -353,12 +405,12 @@ Options and callback are optional. The options properties are:
 
 ### getStatus(options, callback)
 *PTZ.* Returns an object with the current PTZ values.
-```javascript
+```js
 {
 	position: {
-		x: 'pan position'
-		, y: 'tilt position'
-		, zoom: 'zoom'
+		x: 'pan position', 
+        y: 'tilt position',
+		zoom: 'zoom'
 	}
 	, moveStatus: {} // camera moving
 	, utcTime: 'current camera datetime'
@@ -381,33 +433,8 @@ configuration object
 ### GetRecordingOptions(callback)
 *Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
 
-## Supported methods
-* GetSystemDateAndTime
-* GetCapabilities
-* GetVideoSources
-* GetProfiles
-* GetServices
-* GetDeviceInformation
-* GetStreamUri
-* GetSnapshotUri
-* GetPresets
-* GotoPreset
-* RelativeMove
-* AbsoluteMove
-* ContinuousMove
-* Stop
-* GetStatus
-* SystemReboot
-* GetImagingSettings
-* SetImagingSettings
-* GetHostname
-* GetScopes
-* SetScopes
-* GetRecordings
-* GetReplayUri
-* GetRecordingOptions
-
 ## Changelog
+- 0.7.1 Improved events handling
 - 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
 - 0.6.1 Workaround for cams that don't send date-time
 - 0.6.0 Refactor modules for proper import in electron-based environment

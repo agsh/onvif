@@ -7,4 +7,5 @@ test.js
 cam_tests
 experiments
 docs
-.nyc_output/
+.nyc_output
+.vscode

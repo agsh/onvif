@@ -25,13 +25,13 @@
  *
  * The GetPresets command is left as an asynchronous command
  * and the presets list may come in some time after the StreamURI is displayed
- * 
+ *
  */
 
-var HOSTNAME = '192.168.1.128',
-	PORT = 80,
-	USERNAME = '',
-	PASSWORD = '',
+var HOSTNAME = '192.168.0.116',
+	PORT = 2020,
+	USERNAME = 'username',
+	PASSWORD = 'password',
 	STOP_DELAY_MS = 50;
 
 var Cam = require('../lib/onvif').Cam;
@@ -160,7 +160,7 @@ new Cam({
 
 	function move(x_speed, y_speed, zoom_speed, msg) {
 		// Step 1 - Turn off the keyboard processing (so keypresses do not buffer up)
-		// Step 2 - Clear any existing 'stop' timeouts. We will re-schedule a new 'stop' command in this function 
+		// Step 2 - Clear any existing 'stop' timeouts. We will re-schedule a new 'stop' command in this function
 		// Step 3 - Send the Pan/Tilt/Zoom 'move' command.
 		// Step 4 - In the callback from the PTZ 'move' command we schedule the ONVIF Stop command to be executed after a short delay and re-enable the keyboard
 
@@ -181,7 +181,7 @@ new Cam({
 				console.log(err);
 			} else {
 				console.log('move command sent ' + msg);
-				// schedule a Stop command to run in the future 
+				// schedule a Stop command to run in the future
 				stop_timer = setTimeout(stop,STOP_DELAY_MS);
 			}
 			// Resume keyboard processing
