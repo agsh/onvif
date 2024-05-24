@@ -47,7 +47,9 @@ To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise
 `./lib/*.js`
 
 ## Quick example
+
 Special teasing example how to create little funny video server with 1 ffmpeg and 3 node.js libraries:
+<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
 
 ```shell
 sudo apt install ffmpeg
