@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -52,7 +52,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=8.0"
+    "node": ">=10.0"
   },
   "devDependencies": {
     "coveralls": "^3.1.1",
