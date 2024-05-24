@@ -48,7 +48,7 @@ To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise
 
 ## Quick example
 
-Special teasing example how to create little funny video server with 1 ffmpeg and 3 node.js libraries:
+Special teasing example how to create little funny video server (http://localhost:6147) with 1 ffmpeg and 3 node.js libraries:
 <video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
 
 ```shell
@@ -62,7 +62,7 @@ const server = require('http').createServer((req, res) =>
 <!DOCTYPE html><body>
 <canvas width='640' height='480' />
 <script src="/socket.io/socket.io.js"></script><script>
-  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext("2d");
+  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
   socket.on('data', (data) => {
     const img = new Image;    
     const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
@@ -94,16 +94,16 @@ const cam = new Cam({username: 'username', password: 'password', hostname: '192.
 ```
 
 ## Other examples (located in the Examples Folder on the Github)
-* example.js - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
-* example2.js - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
+* [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
+* [example2.js](https://github.com/agsh/onvif/blob/master/examples/example2.js) - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
 For Profile S Cameras and Encoders it displays the default RTSP address
 For Profile G Recorders it displays the RTSP address of the first recording
-* example3.js - reads the command line cursor keys and sends PTZ commands to the Camera
-* example4.js - uses Discovery to find cameras on the local network 
-* example5.js - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
-* example6.js - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
-* example7.js - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
-* example8.js - example setting OSD On Screen Display. (also uses Promises API)
+* [example3.js](https://github.com/agsh/onvif/blob/master/examples/example3.js) - reads the command line cursor keys and sends PTZ commands to the Camera
+* [example4.js](https://github.com/agsh/onvif/blob/master/examples/example4.js) - uses Discovery to find cameras on the local network 
+* [example5.js](https://github.com/agsh/onvif/blob/master/examples/example5.js) - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
+* [example6.js](https://github.com/agsh/onvif/blob/master/examples/example6.js) - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
+* [example7.js](https://github.com/agsh/onvif/blob/master/examples/example7.js) - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
+* [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) - example setting OSD On Screen Display. (also uses Promises API)
 
 # API
 
