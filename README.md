@@ -173,8 +173,8 @@ Options
 
 ## Promises
 
-Right now master branch have a `onvif/promises` namespace that provides promisified version of Cam constructor returns 
-an object with the same methods as described below or in documentation but returns promises. Short example of common 
+Right now master branch have a `onvif/promises` namespace. It have promisified version of Cam constructor which returns an object with 
+the same methods as described below or in documentation but returns promises instead of callback function. Short example of common 
 usage is here:
 
 ```js
