@@ -13,7 +13,6 @@
     "lint": "eslint lib/*.js",
     "pretest": "npm run lint",
     "test": "nyc mocha",
-    "test-on-travis": "nyc npm test && nyc report --reporter=text-lcov | coveralls",
     "mockserver": "node startServerMockup.js"
   },
   "contributors": [
@@ -55,14 +54,13 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=6.0"
+    "node": ">=10.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
-    "coveralls": "^3.1.1",
     "dot": "^1.1.3",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -71,10 +69,8 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.3",
     "glob": "^10.3.10",
-    "ip": "^2.0.1",
     "keypress": "^0.2.1",
     "mocha": "^10.3.0",
-    "mocha-lcov-reporter": "^1.3.0",
     "nimble": "^0.0.2",
     "nyc": "^15.1.0",
     "prettier": "^3.2.5",

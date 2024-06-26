@@ -1,5 +1,6 @@
 const assert = require('assert');
 const onvif = require('../lib/onvif');
+const	serverMockup = require('../test/serverMockup');
 
 describe('Events', () => {
 	let cam = null;
@@ -74,5 +75,37 @@ describe('Events', () => {
 			assert.ok(cam.events.terminationTime === undefined);
 			done();
 		}, 1000);
+	});
+	it('should resume long-pulling when connection with server fails', (done) => {
+		// wait 1 second for any Pull requests still running when we removed the listener to complete
+		let gotMessage = 0;
+		let pullMessagesCallCount = 0;
+		const onEvent = () => {
+			if (gotMessage === 10) {
+				// after the tenth message, the next requests will reset the connection
+				serverMockup.connectionBreaker.break = true;
+			}
+			gotMessage += 1;
+		};
+		const pullMessages = cam.pullMessages;
+		cam.pullMessages = function(options, callback) {
+			pullMessagesCallCount += 1;
+			pullMessages.call(cam, options, callback);
+		};
+		cam.on('event', onEvent);
+		setTimeout(() => {
+			serverMockup.connectionBreaker.break = false;
+			cam.pullMessages = pullMessages;
+			assert.ok(gotMessage === 11 || gotMessage === 12);
+			assert.ok(pullMessagesCallCount > gotMessage && pullMessagesCallCount > 20);
+			cam.removeListener('event', onEvent);
+			cam.unsubscribe(done);
+		}, 1.5 * 1000);
+	});
+	it('should return an error when calling renew without subscription', (done) => {
+		cam.renew({}, (err) => {
+			assert.ok(err instanceof Error);
+			done();
+		});
 	});
 });
