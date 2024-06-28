@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "skipLibCheck": true,
     // "watch": true,
     "declaration": true,

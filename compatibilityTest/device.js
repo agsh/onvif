@@ -65,11 +65,11 @@ describe('Device', () => {
 			});
 			it('should set NTP from DHCP', (done) =>
 				cam.setNTP({
-					fromDHCP : true
+					fromDHCP : true,
 				}, (err) => {
 					assert.strictEqual(err, null);
 					done();
-				})
+				}),
 			);
 			it('should set multiple NTPs', (done) => {
 				cam.setNTP({
@@ -84,7 +84,7 @@ describe('Device', () => {
 							ipv6Address : '::1/128',
 							dnsName     : '8.8.8.8',
 						},
-					]
+					],
 				}, (err) => {
 					assert.strictEqual(err, null);
 					done();
@@ -116,9 +116,9 @@ describe('Device', () => {
 						manual  : {
 							address      : '127.0.0.1',
 							prefixLength : 24,
-						}
-					}
-				}
+						},
+					},
+				},
 			}, (err, data) => {
 				const newIP = cam.hostname; // Save the new IP
 				cam.hostname = currentIP; // Then set the original one for other tests
@@ -140,9 +140,9 @@ describe('Device', () => {
 						manual  : {
 							address      : '::1',
 							prefixLength : 24,
-						}
-					}
-				}
+						},
+					},
+				},
 			}, (err, data) => {
 				const newIP = cam.hostname; // Save the new IP
 				cam.hostname = currentIP; // Then set the original one for other tests
@@ -161,7 +161,7 @@ describe('Device', () => {
 				assert.strictEqual(data.IPv4Address, '192.168.0.1');
 				assert.strictEqual(data.IPv6Address, '');
 				done();
-			})
+			}),
 		);
 	});
 
@@ -215,8 +215,8 @@ describe('Device', () => {
 					{
 						type        : 'IPv4',
 						IPv4Address : '9.9.9.9',
-					}
-				]
+					},
+				],
 			}, (err, data) => {
 				assert.strictEqual(err, null);
 				assert.ok(Array.isArray(data.DNSManual)); // Impossible to test the set values as the response is hard written in serverMockup/device.GetNetworkDefaultGateway.xml
@@ -234,8 +234,8 @@ describe('Device', () => {
 					{
 						type        : 'IPv6',
 						IPv6Address : '2001:4860:4860::8844',
-					}
-				]
+					},
+				],
 			}, (err, data) => {
 				assert.strictEqual(err, null);
 				assert.ok(Array.isArray(data.DNSManual)); // Impossible to test the set values as the response is hard written in serverMockup/device.GetNetworkDefaultGateway.xml

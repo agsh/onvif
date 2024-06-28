@@ -2,17 +2,17 @@ const http = require('http');
 const dgram = require('dgram');
 const xml2js = require('xml2js');
 const fs = require('fs');
-const Buffer = require('buffer').Buffer;
-// eslint-disable-next-line node/no-unpublished-require
-const template = require('dot').template;
+const {Buffer} = require('buffer');
+const {template} = require('dot');
+
 const reBody = /<s:Body xmlns:xsi="http:\/\/www.w3.org\/2001\/XMLSchema-instance" xmlns:xsd="http:\/\/www.w3.org\/2001\/XMLSchema">(.*)<\/s:Body>/;
 const reCommand = /<(\S*) /;
 const reNS = /xmlns="http:\/\/www.onvif.org\/\S*\/(\S*)\/wsdl"/;
-const __xmldir = __dirname + '/serverMockup/';
+const __xmldir = `${__dirname  }/serverMockup/`;
 const conf = {
-	port: parseInt(process.env.PORT) || 10101, // server port
-	hostname: process.env.HOSTNAME || 'localhost',
-	pullPointUrl: '/onvif/subscription?Idx=6',
+	port         : parseInt(process.env.PORT) || 10101, // server port
+	hostname     : process.env.HOSTNAME || 'localhost',
+	pullPointUrl : '/onvif/subscription?Idx=6',
 };
 
 const verbose = process.env.VERBOSE || false;
@@ -47,13 +47,13 @@ const listener = (req, res) => {
 		if (verbose) {
 			console.log('received', ns, command);
 		}
-		if (fs.existsSync(__xmldir + ns + '.' + command + '.xml')) {
-			command = ns + '.' + command;
+		if (fs.existsSync(`${__xmldir + ns  }.${  command  }.xml`)) {
+			command = `${ns  }.${  command}`;
 		}
-		if (!fs.existsSync(__xmldir + command + '.xml')) {
+		if (!fs.existsSync(`${__xmldir + command  }.xml`)) {
 			command = 'Error';
 		}
-		const fileName = __xmldir + command + '.xml';
+		const fileName = `${__xmldir + command  }.xml`;
 		if (verbose) {
 			console.log('serving', fileName);
 		}
@@ -64,20 +64,20 @@ const listener = (req, res) => {
 
 // Discovery service
 const discoverReply = dgram.createSocket('udp4');
-const discover = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+const discover = dgram.createSocket({ type : 'udp4', reuseAddr : true });
 discover.on('error', (err) => { throw err; });
 discover.on('message', (msg, rinfo) => {
 	if (verbose) {
 		console.log('Discovery received');
 	}
 	// Extract MessageTo from the XML. xml2ns options remove the namespace tags and ensure element character content is accessed with '_'
-	xml2js.parseString(msg.toString(), { explicitCharkey: true, tagNameProcessors: [xml2js.processors.stripPrefix]}, (err, result) => {
+	xml2js.parseString(msg.toString(), { explicitCharkey : true, tagNameProcessors : [xml2js.processors.stripPrefix]}, (err, result) => {
 		const msgId = result.Envelope.Header[0].MessageID[0]._;
 		const discoverMsg = Buffer.from(fs
-			.readFileSync(__xmldir + 'Probe.xml')
+			.readFileSync(`${__xmldir  }Probe.xml`)
 			.toString()
 			.replace('RELATES_TO', msgId)
-			.replace('SERVICE_URI', 'http://' + conf.hostname + ':' + conf.port + '/onvif/device_service')
+			.replace('SERVICE_URI', `http://${  conf.hostname  }:${  conf.port  }/onvif/device_service`),
 		);
 		switch (msgId) {
 			// Wrong message test
@@ -101,15 +101,15 @@ discover.bind(3702, () => discover.addMembership('239.255.255.250'));
 let server = null;
 const start = (callback) => {
 	if (server !== null) {
-		return server
+		return callback(null, server); // return server;
 	}
 	server = http.createServer(listener).listen(conf.port, (err) => {
 		if (verbose) {
 			console.log('Listening on port', conf.port);
 		}
-		callback(err);
+		return callback(err);
 	});
-	return server;
+	return callback(null, server); // return server;
 }
 
 const close = () => {
@@ -122,9 +122,9 @@ const close = () => {
 };
 
 module.exports = {
-	start: start,
-	server: server,
-	conf: conf,
-	discover: discover,
-	close: close,
+	start,
+	server,
+	conf,
+	discover,
+	close,
 };

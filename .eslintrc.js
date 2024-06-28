@@ -1,6 +1,8 @@
 const commonRules = {
   'no-console'                   : 'warn',
+  'comma-dangle'                 : [ 'error', 'always-multiline' ],
   'import/extensions'            : 0,
+  'import/no-cycle'              : 0,
   'quote-props'                  : 0,
   'import/prefer-default-export' : 0,
   'no-await-in-loop'             : 0,
@@ -9,6 +11,7 @@ const commonRules = {
   'no-underscore-dangle'         : 0,
   'no-param-reassign'            : 0,
   'no-unused-expressions'        : 0,
+  'no-unused-vars'               : 'warn',
   'no-case-declarations'         : 0,
   'no-shadow'                    : 0,
   'brace-style'                  : ["error", "1tbs", { "allowSingleLine" : true }],
@@ -27,8 +30,9 @@ const commonRules = {
     },
   }],
   '@typescript-eslint/member-delimiter-style' : 1,
-  'import/no-cycle'                           : 0, // IMPORTANT
+  'import/no-extraneous-dependencies'         : 0,
   // 'import/export'                             : 0
+  'object-curly-newline'                      : ['error', {multiline : true, consistent : true}],
 };
 
 module.exports = {
