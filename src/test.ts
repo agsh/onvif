@@ -1,14 +1,18 @@
-import { NetworkType, Onvif } from './index';
+import { NetworkType, Onvif, Discovery } from './index';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverMockup = require('../test/serverMockup');
 
 (async () => {
+  // Discovery.on('device', console.log);
+  // Discovery.on('error', console.error);
+  // await Discovery.probe();
+
   const cam = new Onvif({
-    hostname : 'localhost',
-    username : 'admin',
-    password : '9999',
-    port     : 10101,
+    hostname : '192.168.0.116',
+    username : 'username',
+    password : 'password',
+    port     : 2020,
   });
 
   // cam.on('rawResponse', console.log);
