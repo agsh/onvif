@@ -42,7 +42,7 @@ export class DiscoverySingleton extends EventEmitter {
    * discovery.on('device', console.log);
    * ```
    */
-  static device: 'device' = 'device';
+  static device = 'device' as const;
   /**
    * Indicates any errors
    * @param error Error instance or array of error instances from {@link Error}
@@ -52,7 +52,7 @@ export class DiscoverySingleton extends EventEmitter {
    * discovery.on('error', console.error);
    * ```
    */
-  static error: 'error' = 'error';
+  static error = 'error' as const;
 
   private static instance?: DiscoverySingleton;
 
@@ -88,7 +88,7 @@ export class DiscoverySingleton extends EventEmitter {
    *   console.log(await cams[0]?.getSystemDateAndTime());
    * })();
    */
-  probe(options: DiscoveryOptions): Promise<(Onvif | Record<string, unknown>)[]> {
+  probe(options: DiscoveryOptions = {}): Promise<(Onvif | Record<string, unknown>)[]> {
     return new Promise((resolve, reject) => {
       const cams: Map<string, Onvif | Record<string, unknown>> = new Map();
       const errors: Error[] = [];

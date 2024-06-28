@@ -103,7 +103,7 @@ export async function parseSOAPString(rawXml: string): CamResponse {
     }
 
     // console.error('Fault:', reason, detail);
-    throw new Error(`ONVIF SOAP Fault: ${reason}${detail} ${rawXml}`);
+    throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
   }
   return [result.envelope.body, xml];
 }
