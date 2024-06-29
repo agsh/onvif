@@ -7,12 +7,16 @@ const prefixMatch = /(?!xmlns)^.*:/;
 /**
  * Parse SOAP object to pretty JS-object
  */
-export function linerase(xml: any): any {
+export function linerase(xml: any, options?: { array: string[]; name?: string } | number): any {
+  if (typeof options !== 'object') {
+    options = { array : [] };
+  }
   if (Array.isArray(xml)) {
-    if (xml.length > 1) {
-      return xml.map(linerase);
+    if (xml.length === 1 && !options.array.includes(options.name!)) {
+      [xml] = xml;
+    } else {
+      return xml.map((item) => linerase(item, options));
     }
-    [xml] = xml;
   }
   if (typeof xml === 'object') {
     let obj: any = {};
@@ -20,10 +24,10 @@ export function linerase(xml: any): any {
       if (key === '$') { // for xml attributes
         obj = {
           ...obj,
-          ...linerase(xml.$),
+          ...linerase(xml.$, options),
         };
       } else {
-        obj[key] = linerase(xml[key]);
+        obj[key] = linerase(xml[key], { ...options, name : key });
       }
     });
     return obj;
