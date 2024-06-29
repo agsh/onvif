@@ -5,9 +5,10 @@ import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
-import { Capabilities, Device, DeviceInformation } from './device';
+import { Device, DeviceInformation } from './device';
 import { Media, Profile } from './media';
 import { PTZ } from './ptz';
+import { Capabilities } from './interfaces/onvif';
 
 // Common types
 export type AnyURI = string;
@@ -51,6 +52,7 @@ export interface OnvifServices {
   recording?: URL;
   replay?: URL;
   search?: URL;
+  [key: string]: URL | undefined;
 }
 
 export interface OnvifRequestOptions extends RequestOptions{
@@ -288,11 +290,11 @@ export class Onvif extends EventEmitter {
   private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
-      const requestOptions = {
+      const requestOptions: RequestOptions = {
         ...options,
         hostname : this.hostname,
         path     : options.service
-          ? (this.uri[options.service] ? this.uri[options.service]?.pathname : options.service)
+          ? (this.uri[options.service] ? this.uri[options.service]!.pathname : this.path)
           : this.path,
         port    : this.port,
         agent   : this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
