@@ -1,8 +1,9 @@
-import {
-  AnyURI, Name, Onvif, ReferenceToken,
-} from './onvif';
+import { Onvif } from './onvif';
 import { linerase } from './utils';
-import { IPAddress } from './device';
+import { IPAddress, Name } from './interfaces/onvif';
+import { ReferenceToken } from './interfaces/common';
+import { AnyURI } from './interfaces/basics';
+import { GetOSDs, GetOSDsResponse } from './interfaces/media.2';
 
 export interface IntRectangle {
   x: number;
@@ -1010,6 +1011,7 @@ export class Media {
       service : 'media',
       body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
+    const a = linerase(data);
     this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
     // videoSources is an array of video sources, but linerase remove the array if there is only one element inside,
     // so we convert it back to an array
@@ -1105,5 +1107,22 @@ export class Media {
         + '</GetSnapshotUri>',
     });
     return linerase(data).getSnapshotUriResponse.mediaUri;
+  }
+
+  async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {
+    const mediaService = (this.onvif.device.media2Support ? 'media2' : 'media');
+    const mediaNS = (this.onvif.device.media2Support
+      ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl');
+
+    const [data] = await this.onvif.request({
+      service : mediaService,
+      body    : `<GetOSDs xmlns="${mediaNS}" >${
+        configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
+      }${
+        OSDToken ? `<OSDToken>${configurationToken}</OSDToken>` : ''
+      }</GetOSDs>`,
+    });
+    // this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
+    return linerase(data[0].getOSDsResponse[0], { array : ['OSDs'] });
   }
 }

@@ -1,4 +1,5 @@
-import { Onvif } from './index';
+import { Discovery, Onvif } from './index';
+import { Cam as CamJs } from '../promises';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 (async () => {
@@ -12,10 +13,18 @@ import { Onvif } from './index';
     password : 'password',
     port     : 2020,
   });
+  const camJs = new CamJs({
+    hostname : '192.168.0.116',
+    username : 'username',
+    password : 'password',
+    port     : 2020,
+  });
 
   // cam.on('rawResponse', console.log);
   // cam.on('rawRequest', console.log);
   await cam.connect();
+  await camJs.connect();
+
   const profiles = await cam.media.getProfiles();
   console.log((await cam.device.getDeviceInformation()).firmwareVersion);
   console.log((await cam.device.getHostname()));
@@ -35,5 +44,9 @@ import { Onvif } from './index';
   // const cams = await Discovery.probe({ timeout : 1000 });
   // console.log(cams);
 
-  console.log(await cam.device.getDNS());
+  // console.log(await camJs.getOSDs());
+  console.log(await cam.media.getOSDs({
+    configurationToken : 'vsconf',
+    // OSDToken : 'textOSD',
+  }));
 })().catch(console.error);
