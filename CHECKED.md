@@ -8,7 +8,7 @@ ONVIF Interfaces
 - [ ] getCapabilities
 - [ ] getServiceCapabilities
 - [ ] getActiveSources
-- [ ] getServices
+- [x] getServices includeCapability wrapped into object
 - [ ] getDeviceInformation
 - [ ] getHostname
 - [ ] getScopes

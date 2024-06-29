@@ -3,19 +3,8 @@ import {
   Onvif, OnvifServices, ReferenceToken, SetSystemDateAndTimeOptions,
 } from './onvif';
 import { linerase } from './utils';
-import { SetNTP } from './interfaces/devicemgmt';
+import { GetServices, GetServicesResponse, Service, SetNTP } from './interfaces/devicemgmt';
 import { DNSInformation, IPAddress, NTPInformation } from './interfaces/onvif';
-
-export interface OnvifService {
-  /** Namespace uri */
-  namespace: string;
-  /** Uri for requests */
-  XAddr: string;
-  /** Minor version */
-  minor: number;
-  /** Major version */
-  major: number;
-}
 
 export interface OnvifVersion {
   /** Major version number */
@@ -529,7 +518,7 @@ export interface NetworkInterface {
  */
 export class Device {
   private readonly onvif: Onvif;
-  #services: OnvifService[] = [];
+  #services: Service[] = [];
   get services() {
     return this.#services;
   }
@@ -560,13 +549,14 @@ export class Device {
   /**
    * Returns information about services of the device.
    */
-  async getServices(includeCapability = true): Promise<OnvifService[]> {
+  async getServices({ includeCapability }: GetServices = { includeCapability : true }): Promise<GetServicesResponse> {
     const [data] = await this.onvif.request({
       body : '<GetServices xmlns="http://www.onvif.org/ver10/device/wsdl">'
           + `<IncludeCapability>${includeCapability}</IncludeCapability>`
           + '</GetServices>',
     });
-    this.#services = linerase(data).getServicesResponse.service;
+    const result = linerase(data).getServicesResponse;
+    this.#services = result.service;
     // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
     // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
     // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
@@ -575,6 +565,9 @@ export class Device {
       // Look for services with namespaces and XAddr values
       if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
         // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
+        if (!service.namespace || !service.XAddr) {
+          return;
+        }
         const parsedNamespace = url.parse(service.namespace);
         if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.path) {
           const namespaceSplitted = parsedNamespace.path.substring(1).split('/'); // remove leading Slash, then split
@@ -590,7 +583,7 @@ export class Device {
         }
       }
     });
-    return this.#services;
+    return result;
   }
 
   /**
