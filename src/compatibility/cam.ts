@@ -320,6 +320,21 @@ export class Cam extends EventEmitter {
       if (typeof options === 'function') { (options as Callback)(null, result); }
     }).catch(options ? options as Callback : (error) => this.emit('error', error));
   }
+
+  getOSDOptions(options?: GetOSDOptions | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.media.getOSDOptions({
+        configurationToken : (options as GetOSDOptions).videoSourceConfigurationToken,
+      }).then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.media.getOSDOptions().then((result) => {
+      if (typeof options === 'function') { (options as Callback)(null, result); }
+    }).catch(options ? options as Callback : (error) => this.emit('error', error));
+  }
+}
+
+interface GetOSDOptions {
+  videoSourceConfigurationToken: string;
 }
 
 interface SetNTPOptions extends SetNTP{

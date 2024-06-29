@@ -3,7 +3,7 @@ import { linerase } from './utils';
 import { IPAddress, Name } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
-import { GetOSDs, GetOSDsResponse } from './interfaces/media.2';
+import { GetOSDOptions, GetOSDOptionsResponse, GetOSDs, GetOSDsResponse } from './interfaces/media.2';
 
 export interface IntRectangle {
   x: number;
@@ -1124,5 +1124,20 @@ export class Media {
     });
     // this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
     return linerase(data[0].getOSDsResponse[0], { array : ['OSDs'] });
+  }
+
+  async getOSDOptions({ configurationToken }: GetOSDOptions = {}): Promise<GetOSDOptionsResponse> {
+    const mediaService = (this.onvif.device.media2Support ? 'media2' : 'media');
+    const mediaNS = (this.onvif.device.media2Support
+      ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl');
+
+    const [data] = await this.onvif.request({
+      service : mediaService,
+      body    : `<GetOSDOptions xmlns="${mediaNS}" >`
+        + `<ConfigurationToken>${configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken}</ConfigurationToken>`
+        + '</GetOSDOptions>',
+    });
+    const result = linerase(data).getOSDOptionsResponse;
+    return result;
   }
 }
