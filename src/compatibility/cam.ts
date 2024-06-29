@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'events';
 import {
-  Onvif, OnvifRequestOptions, ReferenceToken, SetSystemDateAndTimeOptions,
+  Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions,
 } from '../onvif';
 import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
 import {
@@ -18,6 +18,7 @@ import {
 import { SetNTP } from '../interfaces/devicemgmt';
 import { NetworkHostType } from '../interfaces/onvif';
 import { GetOSDs } from '../interfaces/media.2';
+import { ReferenceToken } from '../interfaces/common';
 
 export type Callback = (error: any, result?: any) => void;
 export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };

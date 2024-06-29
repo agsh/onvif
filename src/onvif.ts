@@ -5,15 +5,11 @@ import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
-import { Device, DeviceInformation } from './device';
+import { Device } from './device';
 import { Media, Profile } from './media';
 import { PTZ } from './ptz';
 import { Capabilities } from './interfaces/onvif';
-
-// Common types
-export type AnyURI = string;
-export type ReferenceToken = string;
-export type Name = string;
+import { GetDeviceInformationResponse } from './interfaces/devicemgmt';
 
 /**
  * Cam constructor options
@@ -178,7 +174,7 @@ export class Onvif extends EventEmitter {
   private activeSources: ActiveSource[] = [];
   public activeSource?: ActiveSource;
   public readonly urn?: string;
-  public deviceInformation?: DeviceInformation;
+  public deviceInformation?: GetDeviceInformationResponse;
 
   constructor(options: OnvifOptions) {
     super();

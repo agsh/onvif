@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc --build",
     "watch": "tsc --build --watch",
-    "typedoc": "typedoc src",
+    "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src",
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint-js": "eslint lib/*.js",
@@ -79,6 +79,7 @@
     "prettier": "^3.2.5",
     "tsx": "^4.15.8",
     "typedoc": "^0.26.2",
+    "typedoc-plugin-missing-exports": "^3.0.0",
     "typescript": "^5.5.2"
   }
 }
