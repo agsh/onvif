@@ -5,7 +5,7 @@ ONVIF Interfaces
 - [ ] _requestPart2
 - [ ] getSystemDateAndTime
 - [ ] setSystemDateAndTime
-- [ ] getCapabilities
+- [x] getCapabilities Capabilities -> GetCapabilitiesResponse
 - [ ] getServiceCapabilities
 - [ ] getActiveSources
 - [x] getServices includeCapability wrapped into object
