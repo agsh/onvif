@@ -44,7 +44,7 @@ import { Cam as CamJs } from '../promises';
   // const cams = await Discovery.probe({ timeout : 1000 });
   // console.log(cams);
 
-  console.log(cam.activeSource);
+  // console.log(cam.activeSource);
 
   // console.log(await camJs.getOSDs());
   console.log(await cam.media.getOSDs({
@@ -52,8 +52,10 @@ import { Cam as CamJs } from '../promises';
     // OSDToken : 'textOSD',
   }));
 
-  console.log((await camJs.getOSDOptions()));
-  console.log((await cam.media.getOSDOptions({ })));
+  // console.log((await camJs.getOSDOptions()));
+  // console.log((await cam.media.getOSDOptions({ })));
+
+  console.log(await cam.device.getServices());
 })().catch((e) => {
   console.error(e);
   console.log(e.rawPacket.toString());

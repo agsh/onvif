@@ -16,7 +16,7 @@ import {
   SetPresetOptions, RelativeMoveOptions, ContinuousMoveOptions,
 } from '../ptz';
 import { SetNTP } from '../interfaces/devicemgmt';
-import { NetworkHost, NetworkHostType } from '../interfaces/onvif';
+import { NetworkHostType } from '../interfaces/onvif';
 import { GetOSDs } from '../interfaces/media.2';
 
 export type Callback = (error: any, result?: any) => void;
@@ -115,9 +115,14 @@ export class Cam extends EventEmitter {
     this.onvif.media.getVideoSources().then((result) => callback(null, result)).catch(callback);
   }
 
-  getServices(includeCapability: boolean, callback: Callback) {
-    this.onvif.device.getServices(includeCapability)
-      .then((result) => callback(null, result)).catch(callback);
+  getServices(includeCapability: boolean | Callback, callback: Callback) {
+    if (callback) {
+      this.onvif.device.getServices({ includeCapability : includeCapability as boolean })
+        .then((result) => callback(null, result.service)).catch(callback);
+    } else {
+      this.onvif.device.getServices()
+        .then((result) => (includeCapability as Callback)(null, result.service)).catch(callback);
+    }
   }
 
   getDeviceInformation(callback: Callback) {
