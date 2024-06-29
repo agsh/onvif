@@ -19,13 +19,13 @@ ONVIF Interfaces
 - [ ] _envelopeHeader
 - [ ] _envelopeFooter
 - [ ] _parseUrl
-- [ ] getNTP
-- [x] setNTP
+- [x] getNTP cam.device.getNTP
+- [x] setNTP cam.device.setNTP
 - [ ] getNetworkInterfaces
 - [ ] setNetworkInterfaces
 - [ ] getNetworkDefaultGateway
 - [ ] setNetworkDefaultGateway
-- [ ] getDNS
+- [x] getDNS cam.device.getDNS
 - [ ] setDNS
 - [ ] getNetworkProtocols
 - [ ] getUsers

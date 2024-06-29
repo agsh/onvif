@@ -4,7 +4,7 @@ import {
 } from './onvif';
 import { linerase } from './utils';
 import { SetNTP } from './interfaces/devicemgmt';
-import { IPAddress, NTPInformation } from './interfaces/onvif';
+import { DNSInformation, IPAddress, NTPInformation } from './interfaces/onvif';
 
 export interface OnvifService {
   /** Namespace uri */
@@ -386,18 +386,6 @@ export interface DeviceServiceCapabilities {
 
 type IPv4Address = string;
 type IPv6Address = string;
-
-export interface DNSInformation {
-  /* Indicates whether or not DNS information is retrieved from DHCP. */
-  fromDHCP: boolean;
-  /* Search domain. */
-  searchDomain?: string[];
-  /* List of DNS addresses received from DHCP. */
-  DNSFromDHCP?: IPAddress[];
-  /* List of manually entered DNS addresses. */
-  DNSManual?: IPAddress[];
-  extension?: any;
-}
 
 export interface NetworkInterfaceInfo {
   /* Network interface name, for example eth0. */
