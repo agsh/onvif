@@ -15,7 +15,8 @@ import {
   SetHomePositionOptions,
   SetPresetOptions, RelativeMoveOptions, ContinuousMoveOptions,
 } from '../ptz';
-import { SetNTPOptions } from '../device';
+import { SetNTP } from '../interfaces/devicemgmt';
+import { NetworkHost, NetworkHostType } from '../interfaces/onvif';
 
 export type Callback = (error: any, result?: any) => void;
 export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
@@ -285,6 +286,20 @@ export class Cam extends EventEmitter {
   }
 
   setNTP(options: SetNTPOptions, callback: Callback) {
+    if (!Array.isArray(options.NTPManual)) {
+      options.NTPManual = [];
+    }
+    // For backward compatibility
+    if (options.type || options.ipv4Address || options.ipv6Address || options.dnsName || options.extension) {
+      // Note the case changes to follow the xml parser rules
+      options.NTPManual.push({
+        type        : options.type,
+        IPv4Address : options.ipv4Address,
+        IPv6Address : options.ipv6Address,
+        DNSname     : options.dnsName,
+        extension   : options.extension,
+      });
+    }
     this.onvif.device.setNTP(options).then((result) => callback(null, result)).catch(callback);
   }
 
@@ -295,4 +310,13 @@ export class Cam extends EventEmitter {
   getNetworkInterfaces(callback: Callback) {
     this.onvif.device.getNetworkInterfaces().then((result) => callback(null, result)).catch(callback);
   }
+}
+
+interface SetNTPOptions extends SetNTP{
+  // For backward compatibility
+  type?: NetworkHostType;
+  ipv4Address?: string;
+  ipv6Address?: string;
+  dnsName?: string;
+  extension?: string;
 }
