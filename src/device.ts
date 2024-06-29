@@ -3,8 +3,21 @@ import {
   Onvif, OnvifServices, ReferenceToken, SetSystemDateAndTimeOptions,
 } from './onvif';
 import { linerase } from './utils';
-import { GetServices, GetServicesResponse, Service, SetNTP } from './interfaces/devicemgmt';
-import { DNSInformation, IPAddress, NTPInformation } from './interfaces/onvif';
+import {
+  DeviceServiceCapabilities,
+  GetCapabilities, GetCapabilitiesResponse,
+  GetServices,
+  GetServicesResponse,
+  Service,
+  SetNTP,
+} from './interfaces/devicemgmt';
+import {
+  Capabilities, CapabilitiesExtension,
+  DNSInformation,
+  IPv4Address,
+  IPv6Address,
+  NTPInformation,
+} from './interfaces/onvif';
 
 export interface OnvifVersion {
   /** Major version number */
@@ -15,316 +28,6 @@ export interface OnvifVersion {
    * Otherwise, minor number is month of release, such as "06" for June
    */
   minor: number;
-}
-
-export interface NetworkCapabilitiesExtension {
-  dot11Configuration?: boolean;
-  extension?: any;
-}
-
-/** Network capabilities */
-export interface NetworkCapabilities {
-  /** Indicates support for IP filtering */
-  IPFilter?: boolean;
-  /** Indicates support for zeroconf */
-  zeroConfiguration?: boolean;
-  /** Indicates support for IPv6 */
-  IPVersion6?: boolean;
-  /** Indicates support for dynamic DNS configuration */
-  dynDNS?: boolean;
-  /** Indicates support for IEEE 802.11 configuration */
-  dot11Configuration?: boolean;
-  /** Indicates the maximum number of Dot1X configurations supported by the device */
-  dot1XConfigurations?: number;
-  /** Indicates support for retrieval of hostname from DHCP */
-  hostnameFromDHCP?: boolean;
-  /** Maximum number of NTP servers supported by the devices SetNTP command */
-  NTP: number;
-  /** Indicates support for Stateful IPv6 DHCP */
-  DHCPv6: boolean;
-  extension: NetworkCapabilitiesExtension;
-}
-
-export interface SystemCapabilitiesExtension {
-  httpFirmwareUpgrade?: boolean;
-  httpSystemBackup?: boolean;
-  httpSystemLogging?: boolean;
-  httpSupportInformation?: boolean;
-  extension?: any;
-}
-
-/** System capabilities */
-export interface SystemCapabilities {
-  /** Indicates whether or not WS Discovery resolve requests are supported */
-  discoveryResolve: boolean;
-  /** Indicates support for WS Discovery resolve requests */
-  discoveryBye: boolean;
-  /** Indicates support for remote discovery */
-  remoteDiscovery: boolean;
-  /** Indicates support for system backup through MTOM */
-  systemBackup: boolean;
-  /** Indicates support for retrieval of system logging through MTOM */
-  systemLogging: boolean;
-  /** Indicates support for firmware upgrade through MTOM */
-  firmwareUpgrade: boolean;
-  /** Indicates support for firmware upgrade through HTTP */
-  httpFirmwareUpgrade?: boolean;
-  /** Indicates support for system backup through HTTP */
-  httpSystemBackup?: boolean;
-  /** Indicates support for retrieval of system logging through HTTP */
-  httpSystemLogging?: boolean;
-  /** Indicates supported ONVIF version(s) */
-  supportedVersions: OnvifVersion;
-  /** Indicates support for retrieving support information through HTTP */
-  httpSupportInformation?: boolean;
-  /** Indicates support for storage configuration interfaces */
-  storageConfiguration?: boolean;
-  /** Indicates maximum number of storage configurations supported */
-  maxStorageConfigurations?: number;
-  /** If present signals support for geo location. The value signals the supported number of entries */
-  geoLocationEntries?: number;
-  /** List of supported automatic GeoLocation adjustment supported by the device. Valid items are defined by tds:AutoGeoMode */
-  autoGeo?: string[];
-  /** Enumerates the supported StorageTypes, see tds:StorageType */
-  storageTypesSupported?: string[];
-  /** Indicates no support for network discovery */
-  discoveryNotSupported?: boolean;
-  /** Indicates no support for network configuration */
-  networkConfigNotSupported?: boolean;
-  /** Indicates no support for user configuration */
-  userConfigNotSupported?: boolean;
-  /** List of supported Addons by the device */
-  addons?: string[];
-  extensions?: SystemCapabilitiesExtension;
-}
-
-export interface IOCapabilitiesExtension {
-  auxiliary?: boolean;
-  auxiliaryCommands?: Record<string, unknown>;
-  extension?: any;
-}
-
-export interface IOCapabilities {
-  /** Number of input connectors */
-  inputConnectors?: number;
-  /** Number of relay outputs */
-  relayOutputs?: number;
-  extension?: IOCapabilitiesExtension;
-}
-
-export interface SecurityCapabilitiesExtension2 {
-  dot1X: boolean;
-  /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry */
-  supportedEAPMethod?: number;
-  remoteUserHandling: boolean;
-}
-
-export interface SecurityCapabilitiesExtension {
-  /** Indicates support for TLS 1.0 */
-  'TLS1.0': boolean;
-  extension?: SecurityCapabilitiesExtension2;
-}
-
-/** Security capabilities */
-export interface SecurityCapabilities {
-  /** Indicates support for TLS 1.1 */
-  'TLS1.0'?: boolean;
-  /** Indicates support for TLS 1.1 */
-  'TLS1.1': boolean;
-  /** Indicates support for TLS 1.2 */
-  'TLS1.2': boolean;
-  /** Indicates support for onboard key generation */
-  onboardKeyGeneration: boolean;
-  /** Indicates support for access policy configuration */
-  accessPolicyConfig: boolean;
-  /** Indicates support for the ONVIF default access policy */
-  defaultAccessPolicy?: boolean;
-  /** Indicates support for IEEE 802.1X configuration */
-  dot1X?: boolean;
-  /** Indicates support for remote user configuration. Used when accessing another device */
-  remoteUserHandling?: boolean;
-  /** Indicates support for WS-Security X.509 token */
-  'X.509Token': boolean;
-  /** Indicates support for WS-Security SAML token */
-  SAMLToken: boolean;
-  /** Indicates support for WS-Security Kerberos token */
-  kerberosToken: boolean;
-  /** Indicates support for WS-Security Username token */
-  usernameToken?: boolean;
-  /** Indicates support for WS over HTTP digest authenticated communication layer */
-  httpDigest?: boolean;
-  /** Indicates support for WS-Security REL token */
-  RELToken: boolean;
-  /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry */
-  supportedEAPMethods?: number[];
-  /** The maximum number of users that the device supports */
-  maxUsers?: number;
-  /** Maximum number of characters supported for the username by CreateUsers */
-  maxUserNameLength?: number;
-  /** Maximum number of characters supported for the password by CreateUsers and SetUser */
-  maxPasswordLength?: number;
-  /** Indicates which security policies are supported. Options are: ModifyPassword, PasswordComplexity, AuthFailureWarnings */
-  securityPolicies?: string[];
-  /** Maximum number of passwords that the device can remember for each user */
-  maxPasswordHistory: number;
-  extension?: SecurityCapabilitiesExtension;
-}
-
-/**
- * Event capabilities
- */
-export interface EventCapabilities {
-  /** Event service URI */
-  XAddr: string;
-  /** Indicates whether or not WS Subscription policy is supported */
-  WSSubscriptionPolicySupport: boolean;
-  /** Indicates whether or not WS Pull Point is supported */
-  WSPullPointSupport: boolean;
-  /** Indicates whether or not WS Pausable Subscription Manager Interface is supported */
-  WSPausableSubscriptionManagerInterfaceSupport: boolean;
-}
-
-export interface ImagingCapabilities {
-  /** Imaging service URI */
-  XAddr: string;
-}
-
-export interface RealTimeStreamingCapabilities {
-  /** Indicates whether or not RTP multicast is supported */
-  RTPMulticast: boolean;
-  /** Indicates whether or not RTP over TCP is supported */
-  RTP_TCP: boolean;
-  /** Indicates whether or not RTP/RTSP/TCP is supported */
-  RTP_RTSP_TCP: boolean;
-  /** Extensions */
-  extension: any;
-}
-
-export interface ProfileCapabilities {
-  maximumNumberOfProfiles: number;
-}
-
-export interface MediaCapabilitiesExtension {
-  profileCapabilities: ProfileCapabilities;
-}
-
-export interface MediaCapabilities {
-  /** Media service URI */
-  XAddr: string;
-  /** Streaming capabilities */
-  streamingCapabilities: RealTimeStreamingCapabilities;
-  extension?: MediaCapabilitiesExtension;
-}
-
-/** PTZ capabilities */
-export interface PTZCapabilities {
-  /** PTZ service URI */
-  XAddr: string;
-}
-
-export interface DeviceIOCapabilities {
-  /** DeviceIO service URI */
-  XAddr: string;
-  videoSources: number;
-  videoOutputs: number;
-  audioSources: number;
-  audioOutputs: number;
-  relayOutputs: number;
-  extensions: {
-    telexCapabilities: any;
-    scdlCapabilities: any;
-  };
-}
-
-export interface DisplayCapabilities {
-  XAddr: string;
-  /** Indication that the SetLayout command supports only predefined layouts */
-  fixedLayout: boolean;
-}
-
-export interface RecordingCapabilities {
-  XAddr: string;
-  receiverSource: boolean;
-  mediaProfileSource: boolean;
-  dynamicRecordings: boolean;
-  dynamicTracks: boolean;
-  maxStringLength: number;
-}
-
-export interface SearchCapabilities {
-  XAddr: string;
-  metadataSearch: boolean;
-}
-
-export interface ReplayCapabilities {
-  XAddr: string;
-}
-
-export interface ReceiverCapabilities {
-  /** The address of the receiver service */
-  XAddr: string;
-  /** Indicates whether the device can receive RTP multicast streams */
-  RTP_Multicast: boolean;
-  /** Indicates whether the device can receive RTP/TCP streams */
-  RTP_TCP: boolean;
-  /** Indicates whether the device can receive RTP/RTSP/TCP streams */
-  RTP_RTSP_TCP: boolean;
-  /** The maximum number of receivers supported by the device */
-  supportedReceivers: number;
-  /** The maximum allowed length for RTSP URIs */
-  maximumRTSPURILength: number;
-}
-
-export interface AnalyticsDeviceCapabilities {
-  XAddr: string;
-  ruleSupport?: boolean;
-  extension?: any;
-}
-
-export interface CapabilitiesExtension {
-  XAddr: string;
-  /** DeviceIO capabilities */
-  deviceIO?: DeviceIOCapabilities;
-  display?: DisplayCapabilities;
-  recording?: RecordingCapabilities;
-  search?: SearchCapabilities;
-  replay?: ReplayCapabilities;
-  receiver?: ReceiverCapabilities;
-  analyticsDevice?: AnalyticsDeviceCapabilities;
-}
-
-/** Device capabilities */
-export interface DeviceCapabilities {
-  /** Device service URI */
-  XAddr: string;
-  network?: NetworkCapabilities;
-  system?: SystemCapabilities;
-  IO?: IOCapabilities;
-  security?: SecurityCapabilities;
-  extensions?: any;
-}
-
-/** Analytics capabilities */
-export interface AnalyticsCapabilities {
-  /** Analytics service URI */
-  XAddr: string;
-  /** Indicates whether rules are supported */
-  ruleSupport: boolean;
-  /** Indicates whether modules are supported */
-  analyticsModuleSupport: boolean;
-}
-
-/**
- * Capability list
- */
-export interface Capabilities {
-  analytics?: AnalyticsCapabilities;
-  device?: DeviceCapabilities;
-  events?: EventCapabilities;
-  imaging?: ImagingCapabilities;
-  media?: MediaCapabilities;
-  ptz?: PTZCapabilities;
-  extension?: CapabilitiesExtension;
 }
 
 export interface HostnameInformation {
@@ -354,27 +57,6 @@ export interface Scope {
   /** Scope item URI */
   scopeItem: string;
 }
-
-export interface MiscCapabilities {
-  /** Lists of commands supported by SendAuxiliaryCommand */
-  auxiliaryCommands: string[];
-}
-
-export interface DeviceServiceCapabilities {
-  /** Network capabilities */
-  network?: NetworkCapabilities;
-  /** Security capabilities */
-  security?: SecurityCapabilities;
-  /** System capabilities */
-  system?: SystemCapabilities;
-  /** Capabilities that do not fit in any of the other categories */
-  misc?: MiscCapabilities;
-  /** The same as misc field */
-  auxiliaryCommands?: string[];
-}
-
-type IPv4Address = string;
-type IPv6Address = string;
 
 export interface NetworkInterfaceInfo {
   /* Network interface name, for example eth0. */
@@ -590,17 +272,20 @@ export class Device {
    * This method has been replaced by the more generic {@link Device.getServices | GetServices} method.
    * For capabilities of individual services refer to the GetServiceCapabilities methods.
    */
-  async getCapabilities(): Promise<Capabilities> {
+  async getCapabilities(options?: GetCapabilities): Promise<GetCapabilitiesResponse> {
+    if (!options || !options.category) {
+      options = { category : ['All'] };
+    }
     const [data] = await this.onvif.request({
-      body : '<GetCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl">'
-          + '<Category>All</Category>'
-          + '</GetCapabilities>',
+      body : `<GetCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl">${
+        options.category!.map((category) => `<Category>${category}</Category>`).join('')
+      }</GetCapabilities>`,
     });
     this.onvif.capabilities = linerase(data[0].getCapabilitiesResponse[0].capabilities[0]);
-    ['PTZ', 'media', 'imaging', 'events', 'device'].forEach((name) => {
+    ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
-        this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr);
+        this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr as string);
       }
     });
     // extensions, eg. deviceIO
@@ -608,11 +293,10 @@ export class Device {
       Object.keys(this.onvif.capabilities.extension).forEach((ext) => {
         const extensionName = ext as keyof CapabilitiesExtension;
         // TODO think about complex extensions like `telexCapabilities` and `scdlCapabilities`
-        if (extensionName !== 'XAddr'
-          && 'XAddr' in this.onvif.capabilities.extension![extensionName]!
+        if ('XAddr' in this.onvif.capabilities.extension![extensionName]!
           && this.onvif.capabilities.extension![extensionName]!.XAddr
         ) {
-          this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr);
+          this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr as string);
         }
       });
       // HACK for a Profile G NVR that has 'replay' but did not have 'recording' in GetCapabilities
@@ -622,7 +306,7 @@ export class Device {
         this.onvif.uri.recording = new URL(tempRecorderXaddr);
       }
     }
-    return this.onvif.capabilities;
+    return { capabilities : this.onvif.capabilities };
   }
 
   /**
@@ -692,7 +376,7 @@ export class Device {
     };
     if (capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc) {
       this.#serviceCapabilities.misc = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc;
-      this.#serviceCapabilities.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.AuxiliaryCommands.split(' ');
+      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.AuxiliaryCommands.split(' ');
     }
     return this.#serviceCapabilities;
   }
