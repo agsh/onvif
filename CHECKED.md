@@ -70,7 +70,7 @@ ONVIF Interfaces
 - [ ] getStreamUri
 - [ ] getSnapshotUri
 - [ ] setSynchronizationPoint
-- [ ] getOSDs
+- [X] getOSDs cam.media.getOSDs (schema strict)
 - [ ] getOSDOptions
 - [ ] createOSD
 - [ ] setOSD

@@ -615,7 +615,10 @@ export class Device {
       Object.keys(this.onvif.capabilities.extension).forEach((ext) => {
         const extensionName = ext as keyof CapabilitiesExtension;
         // TODO think about complex extensions like `telexCapabilities` and `scdlCapabilities`
-        if (extensionName !== 'XAddr' && 'XAddr' in this.onvif.capabilities.extension![extensionName]!) {
+        if (extensionName !== 'XAddr'
+          && 'XAddr' in this.onvif.capabilities.extension![extensionName]!
+          && this.onvif.capabilities.extension![extensionName]!.XAddr
+        ) {
           this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr);
         }
       });
@@ -744,7 +747,7 @@ export class Device {
       });
     }
     body += '</SetNTP>';
-    const [data] = await this.onvif.request({
+    const [data, stat] = await this.onvif.request({
       service : 'device',
       body,
     });

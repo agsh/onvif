@@ -17,6 +17,7 @@ import {
 } from '../ptz';
 import { SetNTP } from '../interfaces/devicemgmt';
 import { NetworkHost, NetworkHostType } from '../interfaces/onvif';
+import { GetOSDs } from '../interfaces/media.2';
 
 export type Callback = (error: any, result?: any) => void;
 export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
@@ -309,6 +310,15 @@ export class Cam extends EventEmitter {
 
   getNetworkInterfaces(callback: Callback) {
     this.onvif.device.getNetworkInterfaces().then((result) => callback(null, result)).catch(callback);
+  }
+
+  getOSDs(options?: GetOSDs | Callback, callback?: Callback) {
+    if (callback) {
+      this.onvif.media.getOSDs(options as GetOSDs).then((result) => callback(null, result)).catch(callback);
+    }
+    this.onvif.media.getOSDs().then((result) => {
+      if (typeof options === 'function') { (options as Callback)(null, result); }
+    }).catch(options ? options as Callback : (error) => this.emit('error', error));
   }
 }
 
