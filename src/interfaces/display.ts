@@ -1,6 +1,11 @@
+import { Capabilities, Layout, LayoutOptions, CodingCapabilities, PaneConfiguration } from './onvif';
 import { ReferenceToken } from './common';
-import { Layout, LayoutOptions, CodingCapabilities, PaneConfiguration } from './onvif';
 
+export interface GetServiceCapabilities {}
+export interface GetServiceCapabilitiesResponse {
+  /** The capabilities for the display service is returned in the Capabilities element. */
+  capabilities?: Capabilities;
+}
 export interface GetLayout {
   /** Token of the Video Output whose Layout is requested */
   videoOutput?: ReferenceToken;
@@ -10,7 +15,7 @@ export interface GetLayoutResponse {
   layout?: Layout;
 }
 export interface SetLayout {
-  /** Token of the Video Output whose Layout shall be changed */
+  /** Token of the Video Output whose Layout shall be changed. */
   videoOutput?: ReferenceToken;
   /** Layout to be set */
   layout?: Layout;
@@ -67,7 +72,10 @@ export interface CreatePaneConfiguration {
   /** Configuration of the pane to be created. */
   paneConfiguration?: PaneConfiguration;
 }
-export interface CreatePaneConfigurationResponse {}
+export interface CreatePaneConfigurationResponse {
+  /** Token of the new pane configuration. */
+  paneToken?: ReferenceToken;
+}
 export interface DeletePaneConfiguration {
   /** Token of the video output where the pane shall be deleted. */
   videoOutput?: ReferenceToken;
