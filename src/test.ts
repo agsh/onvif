@@ -44,9 +44,18 @@ import { Cam as CamJs } from '../promises';
   // const cams = await Discovery.probe({ timeout : 1000 });
   // console.log(cams);
 
+  console.log(cam.activeSource);
+
   // console.log(await camJs.getOSDs());
   console.log(await cam.media.getOSDs({
     configurationToken : 'vsconf',
     // OSDToken : 'textOSD',
   }));
-})().catch(console.error);
+
+  console.log((await camJs.getOSDOptions()));
+  console.log((await cam.media.getOSDOptions({ })));
+})().catch((e) => {
+  console.error(e);
+  console.log(e.rawPacket.toString());
+  process.exit(1);
+});
