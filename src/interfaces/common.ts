@@ -122,7 +122,7 @@ export interface ColorCluster {
 }
 export interface ColorDescriptor {
   colorCluster?: ColorCluster[];
-  extension?: any;
+  extension?: unknown;
 }
 export interface Transformation {
   translate?: Vector;

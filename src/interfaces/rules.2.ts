@@ -52,7 +52,7 @@ export interface MotionRegionConfig {
    * element. If the device does not support Polygons, this structure must contain
    * four points that represent a Rectangle.
    */
-  ygon?: any;
+  ygon?: unknown;
   /** Preset position associated with the motion region defined by Polygon. */
   presetToken?: ReferenceToken;
 }

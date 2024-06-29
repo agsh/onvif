@@ -21,7 +21,7 @@ export type DotDecimalOID = string;
 export type DNAttributeType = string;
 export type DNAttributeValue = string;
 /** A base64-encoded ASN.1 value. */
-export type Base64DERencodedASN1Value = any;
+export type Base64DERencodedASN1Value = unknown;
 /** A list of supported 802.1X authentication methods, such as "EAP-PEAP/MSCHAPv2" and "EAP-MD5".  The '/' character is used as a separator between the outer and inner methods. */
 export type Dot1XMethods = string[];
 export type CRLID = NCName;
@@ -393,7 +393,7 @@ export interface CreateRSAKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID?: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime?: any;
+  estimatedCreationTime?: unknown;
 }
 export interface CreateECCKeyPair {
   /** The name of the elliptic curve to be used for generating the ECC keypair. */
@@ -405,7 +405,7 @@ export interface CreateECCKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID?: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime?: any;
+  estimatedCreationTime?: unknown;
 }
 export interface UploadKeyPairInPKCS8 {
   /** The key pair to be uploaded in a PKCS#8 data structure. */

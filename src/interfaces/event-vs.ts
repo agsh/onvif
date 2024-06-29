@@ -1,28 +1,8 @@
-import { AnyURI } from './basics';
-import { Date } from './onvif';
+import { AnyURI, FilterType } from './basics';
+import { Capabilities, Date } from './onvif';
 
 export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
-export interface Capabilities {
-  /** Indicates that the WS Subscription policy is supported. */
-  WSSubscriptionPolicySupport?: boolean;
-  /** Indicates that the WS Pull Point is supported. */
-  WSPullPointSupport?: boolean;
-  /** Indicates that the WS Pausable Subscription Manager Interface is supported. */
-  WSPausableSubscriptionManagerInterfaceSupport?: boolean;
-  /** Maximum number of supported notification producers as defined by WS-BaseNotification. */
-  maxNotificationProducers?: number;
-  /** Maximum supported number of notification pull points. */
-  maxPullPoints?: number;
-  /** Indication if the device supports persistent notification storage. */
-  persistentNotificationStorage?: boolean;
-  /** A space separated list of supported event broker protocols as defined by the tev:EventBrokerProtocol datatype. */
-  eventBrokerProtocols?: string;
-  /** Maxiumum number of event broker configurations that can be added to the device. */
-  maxEventBrokers?: number;
-  /** Indicates that metadata streaming over MQTT is supported */
-  metadataOverMQTT?: boolean;
-}
 export interface EventBrokerConfig {
   /** Event broker address in the format "scheme://host:port[/resource]". The supported schemes shall be returned by the EventBrokerProtocols capability. The resource part of the URL is only valid when using websocket. The Address must be unique. */
   address?: AnyURI;
@@ -35,7 +15,7 @@ export interface EventBrokerConfig {
   /** Optional certificate ID in the key store pointing to a client certificate to be used for authenticating the device at the message broker. */
   certificateID?: string;
   /** Concrete Topic Expression to select specific event topics to publish. */
-  publishFilter?: any;
+  publishFilter?: FilterType;
   /** Quality of service level to use when publishing. This defines the guarantee of delivery for a specific message: 0 = At most once, 1 = At least once, 2 = Exactly once. */
   qoS?: number;
   /** Current connection status (see tev:ConnectionStatus for possible values). */
@@ -43,7 +23,7 @@ export interface EventBrokerConfig {
   /** The ID of the certification path validation policy used to validate the broker certificate. In case encryption is used but no validation policy is specified, the device shall not validate the broker certificate. */
   certPathValidationPolicyID?: string;
   /** Concrete Topic Expression to select specific metadata topics to publish. */
-  metadataFilter?: any;
+  metadataFilter?: FilterType;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
@@ -53,23 +33,23 @@ export interface GetServiceCapabilitiesResponse {
 export interface SubscriptionPolicy {}
 export interface CreatePullPointSubscription {
   /** Optional XPATH expression to select specific topics. */
-  filter?: any;
+  filter?: FilterType;
   /** Initial termination time. */
-  initialTerminationTime?: any;
+  initialTerminationTime?: unknown;
   /** Refer to Web Services Base Notification 1.3 (WS-BaseNotification). */
   subscriptionPolicy?: SubscriptionPolicy;
 }
 export interface CreatePullPointSubscriptionResponse {
   /** Endpoint reference of the subscription to be used for pulling the messages. */
-  subscriptionReference?: any;
+  subscriptionReference?: unknown;
   /** Current time of the server for synchronization purposes. */
-  urrentTime?: any;
+  urrentTime?: unknown;
   /** Date time when the PullPoint will be shut down without further pull requests. */
-  erminationTime?: any;
+  erminationTime?: unknown;
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
-  timeout?: any;
+  timeout?: unknown;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
   messageLimit?: number;
 }
@@ -79,11 +59,11 @@ export interface PullMessagesResponse {
   /** Date time when the PullPoint will be shut down without further pull requests. */
   terminationTime?: Date;
   /** List of messages. This list shall be empty in case of a timeout. */
-  otificationMessage?: any[];
+  otificationMessage?: unknown[];
 }
 export interface PullMessagesFaultResponse {
   /** Maximum timeout supported by the device. */
-  maxTimeout?: any;
+  maxTimeout?: unknown;
   /** Maximum message limit supported by the device. */
   maxMessageLimit?: number;
 }
@@ -101,9 +81,9 @@ export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
   topicNamespaceLocation?: AnyURI[];
   /** True when topicset is fixed for all times. */
-  ixedTopicSet?: any;
+  ixedTopicSet?: unknown;
   /** Set of topics supported. */
-  topicSet?: any;
+  topicSet?: unknown;
   /**
    * Defines the XPath expression syntax supported for matching topic expressions.
    * The following TopicExpressionDialects are mandatory for an ONVIF compliant device :
@@ -112,7 +92,7 @@ export interface GetEventPropertiesResponse {
    * http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet.
    *
    */
-  opicExpressionDialect?: any[];
+  opicExpressionDialect?: unknown[];
   /**
    * Defines the XPath function set supported for message content filtering.
    * The following MessageContentFilterDialects should be returned if a device supports the message content filtering:

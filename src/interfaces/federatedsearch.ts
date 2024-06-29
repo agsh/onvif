@@ -1,10 +1,10 @@
 import { AnyURI } from './basics';
+import { Capabilities } from './onvif';
 
 /** Corresponds to SimpleTermType definition in ISO/IEC 15938-12 */
 export type SimpleTermType = AnyURI;
 /** Corresponds to mimeType definition in ISO/IEC 15938-12 */
 export type mimeType = string;
-export interface Capabilities {}
 /**
  * Contains features provided by a database, formatted according to
  * presets defined in ISO/IEC 15938-12
@@ -16,8 +16,8 @@ export interface RegisterDatabaseExtension {}
 export interface CapabilityType {
   supportedQFProfile?: TermType;
   supportedMetadata?: AnyURI[];
-  supportedExampleMediaTypes?: any;
-  supportedResultMediaTypes?: any;
+  supportedExampleMediaTypes?: unknown;
+  supportedResultMediaTypes?: unknown;
   supportedQueryTypes?: TermType[];
   supportedExpressions?: TermType[];
 }
@@ -37,7 +37,7 @@ export interface GetServiceFeatures {
    * capabilities and may contain the ID for a particular service to
    * be addressed.
    */
-  inputCapabilities?: any;
+  inputCapabilities?: unknown;
 }
 export interface GetServiceFeaturesResponse {
   /**
@@ -46,7 +46,7 @@ export interface GetServiceFeaturesResponse {
    * service is available or matches the given capabilities, then an
    * empty Output element is returned.
    */
-  outputCapabilities?: any;
+  outputCapabilities?: unknown;
 }
 export interface Search {
   /**
@@ -55,7 +55,7 @@ export interface Search {
    * structure and content of the output query format and a
    * declaration part.
    */
-  inputQuery?: any;
+  inputQuery?: unknown;
 }
 export interface SearchResponse {
   /**
@@ -63,20 +63,20 @@ export interface SearchResponse {
    * a requester. It may contain in addition messages such as error
    * and exception.
    */
-  outputQuery?: any;
+  outputQuery?: unknown;
 }
 export interface GetSearchResults {
   /**
    * Allows to request the results of a previous query
    * issued.
    */
-  results?: any;
+  results?: unknown;
 }
 export interface GetSearchResultsResponse {
   /**
    * Describes a single result returned from a
    * responder.
    */
-  resultItem?: any[];
+  resultItem?: unknown[];
 }
 export interface RegisterDatabaseResponse {}

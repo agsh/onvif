@@ -1,5 +1,6 @@
 import { AnyURI } from './basics';
 import {
+  Capabilities,
   OnvifVersion,
   IntList,
   StringList,
@@ -56,7 +57,6 @@ import { IntRange, ReferenceToken, LocationEntity } from './common';
 
 export type AutoGeoModes = 'Location' | 'Heading' | 'Leveling';
 export type StorageType = 'NFS' | 'CIFS' | 'CDMI' | 'FTP' | 'ObjectStorageS3' | 'ObjectStorageAzure';
-export interface Capabilities {}
 export interface Service {
   /** Namespace of the service being described. This parameter allows to match the service capabilities to the service. Note that only one set of capabilities is supported per namespace. */
   namespace?: AnyURI;
@@ -496,7 +496,7 @@ export interface SetDynamicDNS {
   /** DNS name. */
   name?: DNSName;
   /** DNS record time to live. */
-  TTL?: any;
+  TTL?: unknown;
 }
 export interface SetDynamicDNSResponse {}
 export interface GetNetworkInterfaces {}
@@ -728,13 +728,13 @@ export interface GetSystemUrisResponse {
 export interface StartFirmwareUpgrade {}
 export interface StartFirmwareUpgradeResponse {
   uploadUri?: AnyURI;
-  uploadDelay?: any;
-  expectedDownTime?: any;
+  uploadDelay?: unknown;
+  expectedDownTime?: unknown;
 }
 export interface StartSystemRestore {}
 export interface StartSystemRestoreResponse {
   uploadUri?: AnyURI;
-  expectedDownTime?: any;
+  expectedDownTime?: unknown;
 }
 export interface SetHashingAlgorithm {
   /** Hashing algorithm(s) used in HTTP and RTSP Digest Authentication. */

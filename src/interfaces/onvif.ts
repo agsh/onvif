@@ -10,7 +10,7 @@ import {
   Transformation,
   Color,
 } from './common';
-import { AnyURI, FilterType } from './basics';
+import { FilterType, AnyURI } from './basics';
 
 /** User readable name. Length up to 64 characters. */
 export type Name = string;
@@ -60,11 +60,11 @@ export type DNSName = string;
 export type Domain = string;
 export type IPAddressFilterType = 'Allow' | 'Deny';
 export type DynamicDNSType = 'NoUpdate' | 'ClientUpdates' | 'ServerUpdates';
-export type Dot11SSIDType = any;
+export type Dot11SSIDType = unknown;
 export type Dot11StationMode = 'Ad-hoc' | 'Infrastructure' | 'Extended';
 export type Dot11SecurityMode = 'None' | 'WEP' | 'PSK' | 'Dot1X' | 'Extended';
 export type Dot11Cipher = 'CCMP' | 'TKIP' | 'Any' | 'Extended';
-export type Dot11PSK = any;
+export type Dot11PSK = unknown;
 export type Dot11PSKPassphrase = string;
 export type Dot11SignalStrength = 'None' | 'Very Bad' | 'Bad' | 'Good' | 'Very Good' | 'Extended';
 export type Dot11AuthAndMangementSuite = 'None' | 'Dot1X' | 'PSK' | 'Extended';
@@ -159,8 +159,8 @@ export interface FloatRange {
 }
 /** Range of duration greater equal Min duration and less equal Max duration. */
 export interface DurationRange {
-  min?: any;
-  max?: any;
+  min?: unknown;
+  max?: unknown;
 }
 /** List of values. */
 export interface IntItems {
@@ -363,7 +363,7 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
-  sessionTimeout?: any;
+  sessionTimeout?: unknown;
 }
 export interface VideoResolution {
   /** Number of the columns of the Video image. */
@@ -526,7 +526,7 @@ export interface AudioEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream */
-  sessionTimeout?: any;
+  sessionTimeout?: unknown;
 }
 export interface AudioEncoderConfigurationOptions {
   /** list of supported AudioEncoderConfigurations */
@@ -579,7 +579,7 @@ export interface MetadataConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout?: any;
+  sessionTimeout?: unknown;
   /**
    * Indication which AnalyticsModules shall output metadata.
    * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
@@ -597,7 +597,7 @@ export interface PTZFilter {
 export interface SubscriptionPolicy {}
 /** Subcription handling in the same way as base notification subscription. */
 export interface EventSubscription {
-  filter?: any;
+  filter?: FilterType;
   subscriptionPolicy?: SubscriptionPolicy;
 }
 export interface MetadataConfigurationOptions {
@@ -797,7 +797,7 @@ export interface MediaUri {
   /** Indicates if the Uri is invalid after a reboot of the device. The value shall be set to "false". */
   invalidAfterReboot?: boolean;
   /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes */
-  timeout?: any;
+  timeout?: unknown;
 }
 export interface Scope {
   /** Indicates if the scope is fixed or configurable. */
@@ -967,7 +967,7 @@ export interface DynamicDNSInformation {
   /** DNS name. */
   name?: DNSName;
   /** Time to live. */
-  TTL?: any;
+  TTL?: unknown;
   extension?: DynamicDNSInformationExtension;
 }
 export interface DynamicDNSInformationExtension {}
@@ -1338,13 +1338,13 @@ export interface SupportInformation {
   string?: string;
 }
 export interface BinaryData {
-  contentType?: any;
+  contentType?: unknown;
   /** base64 encoded binary data. */
-  data?: any;
+  data?: unknown;
 }
 export interface AttachmentData {
-  contentType?: any;
-  clude?: any;
+  contentType?: unknown;
+  clude?: unknown;
 }
 export interface BackupFile {
   name?: string;
@@ -1392,7 +1392,6 @@ export interface Time {
   second?: number;
 }
 /**
- * The time zone in POSIX 1003.1 format
  * The TZ format is specified by POSIX, please refer to POSIX 1003.1 section 8.3
  * Example: Europe, Paris TZ=CET-1CEST,M3.5.0/2,M10.5.0/3
  * CET = designation for standard time when daylight saving is not in force
@@ -1497,7 +1496,7 @@ export interface RelayOutputSettings {
    */
   mode?: RelayMode;
   /** Time after which the relay returns to its idle state if it is in monostable mode. If the Mode field is set to bistable mode the value of the parameter can be ignored. */
-  delayTime?: any;
+  delayTime?: unknown;
   /**
    * 'open' or 'closed'
    *
@@ -1556,7 +1555,7 @@ export interface PTZConfiguration extends ConfigurationEntity {
   /** If the PTZ Node supports absolute or relative PTZ movements, it shall specify corresponding default Pan/Tilt and Zoom speeds. */
   defaultPTZSpeed?: PTZSpeed;
   /** If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops. */
-  defaultPTZTimeout?: any;
+  defaultPTZTimeout?: unknown;
   /** The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF. */
   panTiltLimits?: PanTiltLimits;
   /** The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF. */
@@ -1730,7 +1729,7 @@ export interface PTZPresetTourSpot {
   /** Optional parameter to specify Pan/Tilt and Zoom speed on moving toward this tour spot. */
   speed?: PTZSpeed;
   /** Optional parameter to specify time duration of staying on this tour sport. */
-  stayTime?: any;
+  stayTime?: unknown;
   extension?: PTZPresetTourSpotExtension;
 }
 export interface PTZPresetTourSpotExtension {}
@@ -1750,7 +1749,7 @@ export interface PTZPresetTourStartingCondition {
   /** Optional parameter to specify how many times the preset tour is recurred. */
   recurringTime?: number;
   /** Optional parameter to specify how long time duration the preset tour is recurred. */
-  recurringDuration?: any;
+  recurringDuration?: unknown;
   /** Optional parameter to choose which direction the preset tour goes. Forward shall be chosen in case it is omitted. */
   direction?: PTZPresetTourDirection;
   extension?: PTZPresetTourStartingConditionExtension;
@@ -2053,7 +2052,7 @@ export interface IrCutFilterAutoAdjustment {
   /** Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless). */
   boundaryOffset?: number;
   /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels. */
-  responseTime?: any;
+  responseTime?: unknown;
   extension?: IrCutFilterAutoAdjustmentExtension;
 }
 export interface IrCutFilterAutoAdjustmentExtension {}
@@ -2325,7 +2324,7 @@ export interface SimpleItem {
   /** Item name. */
   name: string;
   /** Item value. The type is defined in the corresponding description. */
-  value: any;
+  value: unknown;
 }
 export interface ElementItem {
   /** Item name. */
@@ -2359,13 +2358,13 @@ export interface MessageDescriptionExtension {}
 export interface SimpleItemDescription {
   /** Item name. Must be unique within a list. */
   name: string;
-  type: any;
+  type: unknown;
 }
 export interface ElementItemDescription {
   /** Item name. Must be unique within a list. */
   name: string;
   /** The type of the item. The Type must reference a defined type. */
-  type: any;
+  type: unknown;
 }
 /**
  * Describes a list of items. Each item in the list shall have a unique name.
@@ -2397,7 +2396,7 @@ export interface Config {
   /** Name of the configuration. */
   name: string;
   /** The Type attribute specifies the type of rule and shall be equal to value of one of Name attributes of ConfigDescription elements returned by GetSupportedRules and GetSupportedAnalyticsModules command. */
-  type: any;
+  type: unknown;
   /** List of configuration parameters as defined in the corresponding description. */
   parameters?: ItemList;
 }
@@ -2407,7 +2406,7 @@ export interface Messages extends MessageDescription {
 }
 export interface ConfigDescription {
   /** The Name attribute (e.g. "tt::LineDetector") uniquely identifies the type of rule, not a type definition in a schema. */
-  name: any;
+  name: unknown;
   /** The fixed attribute signals that it is not allowed to add or remove this type of configuration. */
   fixed?: boolean;
   /** The maxInstances attribute signals the maximum number of instances per configuration. */
@@ -2628,7 +2627,7 @@ export interface FindEventResult {
   /** The time when the event occured. */
   time?: Date;
   /** The description of the event. */
-  event?: any;
+  event?: unknown;
   /** If true, indicates that the event is a virtual event generated for this particular search session to give the state of a property at the start time of the search. */
   startStateEvent?: boolean;
 }
@@ -2705,7 +2704,7 @@ export interface RecordingEncryption {
    * Key for encrypting content.
    * The device shall not include this parameter when reading.
    */
-  key?: any;
+  key?: unknown;
   /**
    * Optional list of track tokens to be encrypted.
    * If no track tokens are specified, all tracks are encrypted and no other encryption configurations shall exist for the recording.
@@ -2726,9 +2725,9 @@ export interface RecordingTargetConfiguration {
   /** Path postfix to be inserted in the object key. */
   postfix?: string;
   /** Maximum duration of a span. */
-  spanDuration?: any;
+  spanDuration?: unknown;
   /** Maximum duration of a segment. */
-  segmentDuration?: any;
+  segmentDuration?: unknown;
   /**
    * Optional encryption configuration.
    * See capability trc:EncryptionEntryLimit for the number of supported entries.
@@ -2818,7 +2817,7 @@ export interface RecordingConfiguration {
    * Whatever the value of MaximumRetentionTime, the device may automatically delete
    * recordings to free up storage space for new recordings.
    */
-  maximumRetentionTime?: any;
+  maximumRetentionTime?: unknown;
   /** Optional external storage target configuration. */
   target?: RecordingTargetConfiguration;
 }
@@ -2854,7 +2853,7 @@ export interface RecordingJobConfiguration {
    * This attribute adds an additional requirement for activating the recording job.
    * If this optional field is provided the job shall only record if the schedule exists and is active.
    */
-  scheduleToken?: any;
+  scheduleToken?: unknown;
   /** Identifies the recording to which this job shall store the received data. */
   recordingToken?: RecordingReference;
   /**
@@ -2886,9 +2885,9 @@ export interface Filter {
 export interface RecordingEventFilter {
   filter?: Filter[];
   /** Optional timespan to record before the actual event condition became active. */
-  before?: any;
+  before?: unknown;
   /** Optional timespan to record after the actual event condition becomes inactive. */
-  after?: any;
+  after?: unknown;
 }
 export interface RecordingJobConfigurationExtension {}
 export interface RecordingJobSource {
@@ -2969,7 +2968,7 @@ export interface GetRecordingJobsResponseItem {
 /** Configuration parameters for the replay service. */
 export interface ReplayConfiguration {
   /** The RTSP session timeout. */
-  sessionTimeout?: any;
+  sessionTimeout?: unknown;
 }
 export interface AnalyticsEngine extends ConfigurationEntity {
   analyticsEngineConfiguration?: AnalyticsDeviceEngineConfiguration;
@@ -3029,11 +3028,11 @@ export interface AnalyticsState {
 /** Action Engine Event Payload data structure contains the information about the ONVIF command invocations. Since this event could be generated by other or proprietary actions, the command invocation specific fields are defined as optional and additional extension mechanism is provided for future or additional action definitions. */
 export interface ActionEngineEventPayload {
   /** Request Message */
-  requestInfo?: any;
+  requestInfo?: unknown;
   /** Response Message */
-  responseInfo?: any;
+  responseInfo?: unknown;
   /** Fault Message */
-  fault?: any;
+  fault?: unknown;
   extension?: ActionEngineEventPayloadExtension;
 }
 export interface ActionEngineEventPayloadExtension {}

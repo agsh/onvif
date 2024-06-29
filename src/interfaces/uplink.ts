@@ -1,18 +1,10 @@
-import { StringList } from './onvif';
+import { StringList, Capabilities } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken } from './common';
 
 export type Protocols = 'https' | 'wss';
 export type AuthorizationModes = 'mTLS' | 'JWT';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
-export interface Capabilities {
-  /** Maximum number of uplink connections that can be configured. */
-  maxUplinks?: number;
-  /** Protocols supported by the device. Defined values are 'https' for native h2c-reverse and 'wss' for h2c-reverse over WebSocket as defined by tup:Protocols. */
-  protocols?: StringList;
-  /** Supported authorization mode [mTLS JWT] as defined by tup:AuthorizationModes. */
-  authorizationModes?: StringList;
-}
 export interface Configuration {
   /** Uniform resource locator by which the remote client can be reached. */
   remoteAddress?: AnyURI;

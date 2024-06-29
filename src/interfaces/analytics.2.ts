@@ -1,26 +1,10 @@
-import { StringList, SupportedRules, Config, SupportedAnalyticsModules } from './onvif';
+import { StringList, Capabilities, SupportedRules, Config, SupportedAnalyticsModules } from './onvif';
 import { Frame } from './metadatastream';
 import { ReferenceToken } from './common';
 
-export interface Capabilities {
-  /** Indication that the device supports the rules interface and the rules syntax. */
-  ruleSupport?: boolean;
-  /** Indication that the device supports the scene analytics module interface. */
-  analyticsModuleSupport?: boolean;
-  /** Indication that the device produces the cell based scene description */
-  cellBasedSceneDescriptionSupported?: boolean;
-  /** Indication that the device supports the GetRuleOptions operation on the rules interface */
-  ruleOptionsSupported?: boolean;
-  /** Indication that the device supports the GetAnalyticsModuleOptions operation on the analytics interface */
-  analyticsModuleOptionsSupported?: boolean;
-  /** Indication that the device supports the GetSupportedMetadata operation. */
-  supportedMetadata?: boolean;
-  /** Indication what kinds of method that the device support for sending image, acceptable values are defined in tt:ImageSendingType. */
-  imageSendingType?: StringList;
-}
 export interface ConfigOptions {
   /** The RuleType the ConfigOptions applies to if the Name attribute is ambiguous. */
-  ruleType?: any;
+  ruleType?: unknown;
   /**
    * The Name of the SimpleItemDescription/ElementItemDescription
    * the ConfigOptions applies to.
@@ -31,9 +15,9 @@ export interface ConfigOptions {
    * The Type defines the element contained in this structure.
    * This attribute is deprecated since its value must be identical to the embedded element.
    */
-  type?: any;
+  type?: unknown;
   /** Optional name of the analytics module this constraint applies to. This option is only necessary in cases where different constraints for elements with the same Name exist. */
-  analyticsModule?: any;
+  analyticsModule?: unknown;
   /** Minimal number of occurrences. Defaults to one. */
   minOccurs?: number;
   /** Maximum number of occurrences. Defaults to one. */
@@ -41,7 +25,7 @@ export interface ConfigOptions {
 }
 export interface MetadataInfo {
   /** Reference to an AnalyticsModule Type. */
-  type: any;
+  type: unknown;
   /** Sample frame content starting with the tt:Frame node. */
   sampleFrame?: Frame;
 }
@@ -85,7 +69,7 @@ export interface GetRulesResponse {
 }
 export interface GetRuleOptions {
   /** Reference to an SupportedRule Type returned from GetSupportedRules. */
-  ruleType?: any;
+  ruleType?: unknown;
   /** Reference to an existing analytics configuration. */
   configurationToken?: ReferenceToken;
 }
@@ -125,7 +109,7 @@ export interface GetAnalyticsModulesResponse {
 }
 export interface GetAnalyticsModuleOptions {
   /** Reference to an SupportedAnalyticsModule Type returned from GetSupportedAnalyticsModules. */
-  type?: any;
+  type?: unknown;
   /** Reference to an existing AnalyticsConfiguration. */
   configurationToken?: ReferenceToken;
 }
@@ -135,7 +119,7 @@ export interface GetAnalyticsModuleOptionsResponse {
 }
 export interface GetSupportedMetadata {
   /** Optional reference to an AnalyticsModule Type returned from GetSupportedAnalyticsModules. */
-  type?: any;
+  type?: unknown;
 }
 export interface GetSupportedMetadataResponse {
   analyticsModule?: MetadataInfo[];

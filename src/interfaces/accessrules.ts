@@ -12,11 +12,11 @@ export interface ServiceCapabilities {
    * request. The device shall never return more than this number of entities in a single
    * response.
    */
-  maxLimit: any;
+  maxLimit: unknown;
   /** Indicates the maximum number of access profiles supported by the device. */
-  maxAccessProfiles: any;
+  maxAccessProfiles: unknown;
   /** Indicates the maximum number of access policies per access profile supported by the device. */
-  maxAccessPoliciesPerAccessProfile: any;
+  maxAccessPoliciesPerAccessProfile: unknown;
   /**
    * Indicates whether or not several access policies can refer to the same access point in an
    * access profile.
@@ -49,7 +49,7 @@ export interface AccessPolicy {
    * Service Specification. This field is provided for future extensions; it will allow an
    * access policy being	extended to cover entity types other than access points as well.
    */
-  entityType?: any;
+  entityType?: unknown;
   extension?: AccessPolicyExtension;
 }
 export interface AccessPolicyExtension {}

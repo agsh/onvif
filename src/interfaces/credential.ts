@@ -46,7 +46,7 @@ export interface ServiceCapabilities {
    * the wrong PIN a predetermined number of times).
    * The time period is defined as an [ISO 8601] duration string (e.g. “PT5M”).
    */
-  defaultCredentialSuspensionDuration?: any;
+  defaultCredentialSuspensionDuration?: unknown;
   /** The maximum number of whitelisted credential identifiers supported by the device. */
   maxWhitelistedItems?: number;
   /** The maximum number of blacklisted credential identifiers supported by the device. */
@@ -81,7 +81,7 @@ export interface CredentialInfo extends DataEntity {
    * reference is a username or used ID in an external system, such as a directory
    * service.
    */
-  credentialHolderReference?: any;
+  credentialHolderReference?: unknown;
   /**
    * The start date/time validity of the credential. If the
    * ValiditySupportsTimeValue capability is set to false, then only date is
@@ -143,7 +143,7 @@ export interface CredentialIdentifier {
    */
   exemptedFromAuthentication?: boolean;
   /** The value of the identifier in hexadecimal representation. */
-  value?: any;
+  value?: unknown;
 }
 /**
  * Specifies the name of credential identifier type and its format for the credential
@@ -251,7 +251,7 @@ export interface CredentialIdentifierItem {
   /** Contains the details of the credential identifier type. */
   type?: CredentialIdentifierType;
   /** The value of the identifier in hexadecimal representation. */
-  value?: any;
+  value?: unknown;
 }
 /** Contains information about a format type. */
 export interface FaultResponse {
@@ -459,7 +459,7 @@ export interface GetWhitelist {
   /** Get only whitelisted credential identifiers with the specified identifier format type. */
   formatType?: string;
   /** Get only whitelisted credential identifiers with the specified identifier value. */
-  value?: any;
+  value?: unknown;
 }
 export interface GetWhitelistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
@@ -495,7 +495,7 @@ export interface GetBlacklist {
   /** Get only blacklisted credential identifiers with the specified identifier format type. */
   formatType?: string;
   /** Get only blacklisted credential identifiers with the specified identifier value. */
-  value?: any;
+  value?: unknown;
 }
 export interface GetBlacklistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
