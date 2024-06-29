@@ -60,7 +60,7 @@ export interface Appearance {
   humanFace?: HumanFace;
   humanBody?: HumanBody;
   imageRef?: AnyURI;
-  image?: any;
+  image?: unknown;
   barcodeInfo?: BarcodeInfo;
   sphericalCoordinate?: SphericalCoordinate;
 }
@@ -131,11 +131,11 @@ export interface Frame {
   source?: string;
   PTZStatus?: PTZStatus;
   transformation?: Transformation;
-  object?: any[];
+  object?: unknown[];
   objectTree?: ObjectTree;
   extension?: FrameExtension;
   sceneImageRef?: AnyURI;
-  sceneImage?: any;
+  sceneImage?: unknown;
 }
 export interface FrameExtension {
   motionInCells?: MotionInCells;
@@ -182,7 +182,7 @@ export interface MotionInCells {
   /** Number of rows of the cell grid (y dimension) */
   rows: number;
   /** A “1” denotes a cell where motion is detected and a “0” an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0). */
-  cells: any;
+  cells: unknown;
 }
 export interface MetadataStream {}
 export interface MetadataStreamExtension {

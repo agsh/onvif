@@ -1,6 +1,7 @@
 import {
   StringList,
   StringAttrList,
+  Capabilities,
   RecordingConfiguration,
   RecordingReference,
   GetRecordingsResponseItem,
@@ -18,53 +19,6 @@ import {
 } from './onvif';
 import { ReferenceToken } from './common';
 
-export interface Capabilities {
-  /** Indication if the device supports dynamic creation and deletion of recordings */
-  dynamicRecordings?: boolean;
-  /** Indication if the device supports dynamic creation and deletion of tracks */
-  dynamicTracks?: boolean;
-  /** Indication which encodings are supported for recording. The list may contain one or more enumeration values of tt:VideoEncoding and tt:AudioEncoding. For encodings that are neither defined in tt:VideoEncoding nor tt:AudioEncoding the device shall use the IANA defintions. Note, that a device without audio support shall not return audio encodings. */
-  encoding?: StringList;
-  /** Maximum supported bit rate for all tracks of a recording in kBit/s. */
-  maxRate?: number;
-  /** Maximum supported bit rate for all recordings in kBit/s. */
-  maxTotalRate?: number;
-  /** Maximum number of recordings supported. (Integer values only.) */
-  maxRecordings?: number;
-  /** Maximum total number of supported recording jobs by the device. */
-  maxRecordingJobs?: number;
-  /** Indication if the device supports the GetRecordingOptions command. */
-  options?: boolean;
-  /** Indication if the device supports recording metadata. */
-  metadataRecording?: boolean;
-  /**
-   * Indication that the device supports ExportRecordedData command for the listed export file formats.
-   * The list shall return at least one export file format value. The value of 'ONVIF' refers to
-   * ONVIF Export File Format specification.
-   */
-  supportedExportFileFormats?: StringAttrList;
-  /** Indication that the device supports event triggered recording. */
-  eventRecording?: boolean;
-  /** If present a device shall support configuring before event durations up to the given value. */
-  beforeEventLimit?: any;
-  /** If present a device shall support configuring after event durations up to the given value. */
-  afterEventLimit?: any;
-  /**
-   * List of formats supported by the device for recording to an external target.
-   * See tt:TargetFormat for a list of definitions.
-   */
-  supportedTargetFormats?: StringAttrList;
-  /**
-   * Number of encryption entries supported per recording.
-   * By specifying multiple encryption entries per recording, different tracks can be encrypted with different configurations.
-   */
-  encryptionEntryLimit?: number;
-  /**
-   * Indicates supported encryption modes.
-   * See tt:EncryptionMode for a list of definitions.
-   */
-  supportedEncryptionModes?: StringAttrList;
-}
 export interface RecordingOptions {
   job?: JobOptions;
   track?: TrackOptions;

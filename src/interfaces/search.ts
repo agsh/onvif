@@ -1,4 +1,5 @@
 import {
+  Capabilities,
   RecordingSummary,
   RecordingReference,
   RecordingInformation,
@@ -16,11 +17,6 @@ import {
   SearchState,
 } from './onvif';
 
-export interface Capabilities {
-  metadataSearch?: boolean;
-  /** Indicates support for general virtual property events in the FindEvents method. */
-  generalStartEvents?: boolean;
-}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the search service is returned in the Capabilities element. */
@@ -49,7 +45,7 @@ export interface FindRecordings {
   /** The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires. */
   maxMatches?: number;
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
-  keepAliveTime?: any;
+  keepAliveTime?: unknown;
 }
 export interface FindRecordingsResponse {
   searchToken?: JobToken;
@@ -62,7 +58,7 @@ export interface GetRecordingSearchResults {
   /** The maximum number of results to return in one response. */
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
-  waitTime?: any;
+  waitTime?: unknown;
 }
 export interface GetRecordingSearchResultsResponse {
   resultList?: FindRecordingResultList;
@@ -79,7 +75,7 @@ export interface FindEvents {
   /** The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires. */
   maxMatches?: number;
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
-  keepAliveTime?: any;
+  keepAliveTime?: unknown;
 }
 export interface FindEventsResponse {
   /** A unique reference to the search session created by this request. */
@@ -93,7 +89,7 @@ export interface GetEventSearchResults {
   /** The maximum number of results to return in one response. */
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
-  waitTime?: any;
+  waitTime?: unknown;
 }
 export interface GetEventSearchResultsResponse {
   resultList?: FindEventResultList;
@@ -108,7 +104,7 @@ export interface FindPTZPosition {
   /** The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires. */
   maxMatches?: number;
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
-  keepAliveTime?: any;
+  keepAliveTime?: unknown;
 }
 export interface FindPTZPositionResponse {
   /** A unique reference to the search session created by this request. */
@@ -122,7 +118,7 @@ export interface GetPTZPositionSearchResults {
   /** The maximum number of results to return in one response. */
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
-  waitTime?: any;
+  waitTime?: unknown;
 }
 export interface GetPTZPositionSearchResultsResponse {
   resultList?: FindPTZPositionResultList;
@@ -137,7 +133,7 @@ export interface FindMetadata {
   /** The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires. */
   maxMatches?: number;
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
-  keepAliveTime?: any;
+  keepAliveTime?: unknown;
 }
 export interface FindMetadataResponse {
   /** A unique reference to the search session created by this request. */
@@ -151,7 +147,7 @@ export interface GetMetadataSearchResults {
   /** The maximum number of results to return in one response. */
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
-  waitTime?: any;
+  waitTime?: unknown;
 }
 export interface GetMetadataSearchResultsResponse {
   resultList?: FindMetadataResultList;

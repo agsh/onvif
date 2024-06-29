@@ -1,5 +1,5 @@
 import { ReferenceToken } from './common';
-import { Name, FloatRange } from './onvif';
+import { Name, FloatRange, Capabilities } from './onvif';
 
 export type Polarity = 'WhiteHot' | 'BlackHot';
 /**
@@ -133,10 +133,6 @@ export interface RadiometryConfigurationOptions {
    * for temperature measurement modules (spots and boxes).
    */
   radiometryGlobalParameterOptions?: RadiometryGlobalParameterOptions;
-}
-export interface Capabilities {
-  /** Indicates whether or not radiometric thermal measurements are supported by the thermal device. */
-  radiometry?: boolean;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

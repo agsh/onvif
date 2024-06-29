@@ -1,5 +1,5 @@
-import { ReferenceToken } from './common';
 import {
+  Capabilities,
   AnalyticsEngineInput,
   AnalyticsEngineControl,
   AnalyticsEngine,
@@ -7,9 +7,9 @@ import {
   StreamSetup,
   AnalyticsStateInformation,
 } from './onvif';
+import { ReferenceToken } from './common';
 import { AnyURI } from './basics';
 
-export interface Capabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the analytics device service is returned in the Capabilities element. */

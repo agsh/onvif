@@ -1,5 +1,13 @@
 import { ReferenceToken } from './common';
-import { Name, ImagingSettings20, ImagingOptions20, FocusMove, MoveOptions20, ImagingStatus20 } from './onvif';
+import {
+  Name,
+  Capabilities,
+  ImagingSettings20,
+  ImagingOptions20,
+  FocusMove,
+  MoveOptions20,
+  ImagingStatus20,
+} from './onvif';
 
 /**
  * Describes standard Imaging Preset types, used to facilitate Multi-language support and client display.
@@ -29,17 +37,6 @@ export type ImagingPresetType =
   | 'Motion'
   | 'FlickerFree50'
   | 'FlickerFree60';
-export interface Capabilities {
-  /**
-   * Indicates whether or not Image Stabilization feature is supported.
-   * The use of this capability is deprecated, a client should use GetOption to find out if image stabilization is supported.
-   */
-  imageStabilization?: boolean;
-  /** Indicates whether or not Imaging Presets feature is supported. */
-  presets?: boolean;
-  /** Indicates whether or not imaging preset settings can be updated. */
-  adaptablePreset?: boolean;
-}
 /** Type describing the Imaging Preset settings. */
 export interface ImagingPreset {
   /** Unique identifier of this Imaging Preset. */

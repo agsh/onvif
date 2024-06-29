@@ -11,7 +11,7 @@ export type FileSuffixType = 'none' | 'sequence' | 'dateTime' | 'Extended';
 /** Describes the configuration parameters of an action. */
 export interface ActionConfigDescription {
   /** Action type name */
-  name: any;
+  name: unknown;
   /** Action configuration parameter descriptions */
   parameterDescription?: ItemListDescription;
 }
@@ -38,7 +38,7 @@ export interface ActionEngineCapabilitiesExtension {}
 /** ActionTypeLimits data structure contains maximum and current usage information for a specific action type in the service provider */
 export interface ActionTypeLimits {
   /** Action Type */
-  type: any;
+  type: unknown;
   /** For the specific action type, the maximum number of actions that could be concurrently supported by the service provider */
   maximum: PositiveInteger;
   /** For the specific action type, the number of actions in use by the service provider */
@@ -49,7 +49,7 @@ export interface ActionConfiguration {
   /** User given name. */
   name: string;
   /** Denotes the action type. */
-  type: any;
+  type: unknown;
   /** Action configuration parameter settings. */
   parameters?: ItemList;
 }
@@ -63,9 +63,9 @@ export interface Action {
 /** Action Trigger configuration data type contains mandatory Topic Expression (Section Topic Filter in [Core Specification]), optional Message content expression (Section Message Content Filter in [Core Specification]), and set of actions to be triggered. */
 export interface ActionTriggerConfiguration {
   /** Topic expression, for example, to trigger only for relays. Trigger based on event topic. */
-  topicExpression?: any;
+  topicExpression?: unknown;
   /** Content expression, for example, to trigger only when the relay value is on. Trigger based on content data in event. */
-  contentExpression?: any;
+  contentExpression?: unknown;
   /** Reference to actions to be triggered when the conditions are satisfied. */
   actionToken?: ReferenceToken[];
   extension?: ActionTriggerConfigurationExtension;
@@ -109,7 +109,7 @@ export interface UserCredentials {
   /** Username */
   username?: string;
   /** Password */
-  password?: any;
+  password?: unknown;
   extension?: UserCredentialsExtension;
 }
 export interface UserCredentialsExtension {}
@@ -245,9 +245,9 @@ export interface FtpContentConfiguration {
 }
 export interface FtpContentConfigurationUploadImages {
   /** Upload Image action; how long? */
-  howLong?: any;
+  howLong?: unknown;
   /** Upload Image action; sample interval? */
-  sampleInterval?: any;
+  sampleInterval?: unknown;
   /** Upload Image action; name of destination file */
   fileName?: FtpFileNameConfigurations;
 }
@@ -273,11 +273,11 @@ export interface SMSMessage {
 }
 export interface TriggeredRecordingConfiguration {
   /** Length of recording time before the triggering event */
-  preRecordDuration?: any;
+  preRecordDuration?: unknown;
   /** Recording after alarm recording duration */
-  postRecordDuration?: any;
+  postRecordDuration?: unknown;
   /** Record duration */
-  recordDuration?: any;
+  recordDuration?: unknown;
   /** Recording frame rate */
   recordFrameRate?: PositiveInteger;
   /** Whether Audio recording on/off */

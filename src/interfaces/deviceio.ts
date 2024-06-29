@@ -6,6 +6,7 @@ import {
   DeviceEntity,
   IntItems,
   FloatItems,
+  Capabilities,
   VideoOutput,
   AudioSourceConfiguration,
   AudioOutputConfiguration,
@@ -29,24 +30,6 @@ export type SerialPortType =
   | 'Generic';
 /** The parity for the data error detection. */
 export type ParityBit = 'None' | 'Even' | 'Odd' | 'Mark' | 'Space' | 'Extended';
-export interface Capabilities {
-  /** Number of video sources (defaults to none). */
-  videoSources?: number;
-  /** Number of video outputs (defaults to none). */
-  videoOutputs?: number;
-  /** Number of audio sources (defaults to none). */
-  audioSources?: number;
-  /** Number of audio outputs (defaults to none). */
-  audioOutputs?: number;
-  /** Number of relay outputs (defaults to none). */
-  relayOutputs?: number;
-  /** Number of serial ports (defaults to none). */
-  serialPorts?: number;
-  /** Number of digital inputs (defaults to none). */
-  digitalInputs?: number;
-  /** Indicates support for DigitalInput configuration of the idle state (defaults to false). */
-  digitalInputOptions?: boolean;
-}
 export interface RelayOutputOptions {
   /** Token of the relay output. */
   token: ReferenceToken;
@@ -266,7 +249,7 @@ export interface SendReceiveSerialCommand {
   /** The serial port data. */
   serialData?: SerialData;
   /** Indicates that the command should be responded back within the specified period of time. */
-  timeOut?: any;
+  timeOut?: unknown;
   /** This element may be put in the case that data length returned from the connected serial device is already determined as some fixed bytes length. It indicates the length of received data which can be regarded as available. */
   dataLength?: number;
   /** This element may be put in the case that the delimiter codes returned from the connected serial device is already known. It indicates the termination data sequence of the responded data. In case the string has more than one character a device shall interpret the whole string as a single delimiter. Furthermore a device shall return the delimiter character(s) to the client. */

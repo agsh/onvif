@@ -1,4 +1,4 @@
-import { Date, StringAttrList } from './onvif';
+import { Date, StringAttrList, Capabilities } from './onvif';
 import { AnyURI } from './basics';
 
 export type AppState = 'Active' | 'Inactive' | 'Installing' | 'Uninstalling' | 'Removed' | 'InstallationFailed';
@@ -39,19 +39,6 @@ export interface LicenseInfo {
   validFrom?: Date;
   /** End time of validity */
   validUntil?: Date;
-}
-export interface Capabilities {
-  /** List of supported app container formats that can be uploaded via this service. */
-  formatsSupported?: StringAttrList;
-  /** Signals support for licensing of applications. */
-  licensing?: boolean;
-  /**
-   * Path part of the URI to which applications can be uploaded via http POST.
-   * Clients shall use protocol, hostname and port of the service address since the device may e.g. reside behind NAT translation firewall.
-   */
-  uploadPath?: AnyURI;
-  /** Optional Event Topic prefix used when delivering app events in eventservice. */
-  eventTopicPrefix?: string;
 }
 export interface Uninstall {
   /** App to be uninstalled. Possible failures during deinstallation will be delivered via an event. */

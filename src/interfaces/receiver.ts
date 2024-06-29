@@ -1,18 +1,6 @@
-import { Receiver, ReceiverConfiguration, ReceiverMode, ReceiverStateInformation } from './onvif';
+import { Capabilities, Receiver, ReceiverConfiguration, ReceiverMode, ReceiverStateInformation } from './onvif';
 import { ReferenceToken } from './common';
 
-export interface Capabilities {
-  /** Indicates that the device can receive RTP multicast streams. */
-  RTP_Multicast?: boolean;
-  /** Indicates that the device can receive RTP/TCP streams */
-  RTP_TCP?: boolean;
-  /** Indicates that the device can receive RTP/RTSP/TCP streams. */
-  RTP_RTSP_TCP?: boolean;
-  /** The maximum number of receivers supported by the device. */
-  supportedReceivers: number;
-  /** The maximum allowed length for RTSP URIs (Minimum and default value is 128 octet). */
-  maximumRTSPURILength?: number;
-}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the receiver service is returned in the Capabilities element. */

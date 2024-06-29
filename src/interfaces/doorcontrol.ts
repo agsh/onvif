@@ -98,36 +98,36 @@ export interface Timings {
    * ReleaseTime is the time from when the latch is unlocked until it is
    * relocked again (unless the door is physically opened).
    */
-  releaseTime?: any;
+  releaseTime?: unknown;
   /**
    * The time from when the door is physically opened until the door is set in the
    * DoorOpenTooLong alarm state.
    */
-  openTime?: any;
+  openTime?: unknown;
   /**
    * Some individuals need extra time to open the door before the latch relocks.
    * If supported, ExtendedReleaseTime shall be added to ReleaseTime if UseExtendedTime
    * is set to true in the AccessDoor command.
    */
-  extendedReleaseTime?: any;
+  extendedReleaseTime?: unknown;
   /**
    * If the door is physically opened after access is granted,
    * then DelayTimeBeforeRelock is the time from when the door is physically
    * opened until the latch goes back to locked state.
    */
-  delayTimeBeforeRelock?: any;
+  delayTimeBeforeRelock?: unknown;
   /**
    * Some individuals need extra time to pass through the door. If supported,
    * ExtendedOpenTime shall be added to OpenTime if UseExtendedTime is set to true
    * in the AccessDoor command.
    */
-  extendedOpenTime?: any;
+  extendedOpenTime?: unknown;
   /**
    * Before a DoorOpenTooLong alarm state is generated, a signal will sound to indicate
    * that the door must be closed. PreAlarmTime defines how long before DoorOpenTooLong
    * the warning signal shall sound.
    */
-  preAlarmTime?: any;
+  preAlarmTime?: unknown;
   extension?: TimingsExtension;
 }
 export interface TimingsExtension {}
@@ -389,11 +389,11 @@ export interface AccessDoor {
    */
   useExtendedTime?: boolean;
   /** Optional - overrides ReleaseTime if specified. */
-  accessTime?: any;
+  accessTime?: unknown;
   /** Optional - overrides OpenTime if specified. */
-  openTooLongTime?: any;
+  openTooLongTime?: unknown;
   /** Optional - overrides PreAlarmTime if specified. */
-  preAlarmTime?: any;
+  preAlarmTime?: unknown;
   /** Future extension. */
   extension?: AccessDoorExtension;
 }

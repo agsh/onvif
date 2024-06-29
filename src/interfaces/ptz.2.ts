@@ -1,5 +1,6 @@
 import {
   StringList,
+  Capabilities,
   PTZNode,
   PTZConfiguration,
   PTZConfigurationOptions,
@@ -12,20 +13,6 @@ import {
 } from './onvif';
 import { ReferenceToken, PTZStatus, PTZVector, GeoLocation } from './common';
 
-export interface Capabilities {
-  /** Indicates whether or not EFlip is supported. */
-  EFlip?: boolean;
-  /** Indicates whether or not reversing of PT control direction is supported. */
-  reverse?: boolean;
-  /** Indicates support for the GetCompatibleConfigurations command. */
-  getCompatibleConfigurations?: boolean;
-  /** Indicates that the PTZStatus includes MoveStatus information. */
-  moveStatus?: boolean;
-  /** Indicates that the PTZStatus includes Position information. */
-  statusPosition?: boolean;
-  /** Indication of the methods of MoveAndTrack that are supported, acceptable values are defined in tt:MoveAndTrackMethod. */
-  moveAndTrack?: StringList;
-}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the PTZ service is returned in the Capabilities element. */
@@ -140,7 +127,7 @@ export interface ContinuousMove {
   /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
   velocity?: PTZSpeed;
   /** An optional Timeout parameter. */
-  timeout?: any;
+  timeout?: unknown;
 }
 export interface ContinuousMoveResponse {}
 export interface RelativeMove {
