@@ -1,13 +1,11 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { readFileSync, writeFileSync } from 'fs';
-// eslint-disable-next-line import/no-extraneous-dependencies
-// import { glob } from 'glob';
 import { Parser } from 'xml2js';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import ts, { TypeNode } from 'typescript';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { glob } from 'glob';
+import chalk from 'chalk';
 import * as path from 'node:path';
+
+const BASICS_FILENAME = 'basics';
 
 const sourceFile = ts.createSourceFile(
   'soap-types.ts', // the output file name
@@ -22,19 +20,29 @@ const exportModifier = ts.factory.createModifiersFromModifierFlags(
   ts.ModifierFlags.Export,
 );
 
-const builtInTypes = [
-  ts.factory.createIdentifier('/* eslint-disable import/export, no-tabs */'),
-  ...Object.entries({
+const generateBuiltIns = (): [ts.Node[], Links] => {
+  const types = {
     AnyURI     : 'string',
     FilterType : 'any',
     NCName     : 'string',
-  }).map(([name, typeName]) => ts.factory.createTypeAliasDeclaration(
-    exportModifier,
-    name,
-    undefined,
-    ts.factory.createTypeReferenceNode(typeName),
-  )),
-];
+  };
+  const builtInTypeNodes: ts.Node[] = [
+    ts.factory.createIdentifier('/* eslint-disable import/export, no-tabs */'),
+    ...Object.entries(types).map(([name, typeName]) => ts.factory.createTypeAliasDeclaration(
+      exportModifier,
+      name,
+      undefined,
+      ts.factory.createTypeReferenceNode(typeName),
+    )),
+  ];
+  const builtInLinks: Links = new Map(
+    Object.entries(types).map(([name]) => ([
+      name,
+      { name : BASICS_FILENAME },
+    ])),
+  );
+  return ([builtInTypeNodes, builtInLinks]);
+};
 
 function dataTypes(xsdType?: string): string {
   if (!xsdType) {
@@ -169,7 +177,6 @@ interface ISchemaDefinition {
 interface ProcessorConstructor {
   filePath: string;
   nodes: ts.Node[];
-  types: Set<string>;
   links: Links;
 }
 
@@ -179,26 +186,81 @@ type Links = Map<string, IType>
  * Common class to process xml-files
  */
 export class Processor {
-  private readonly filePath: string;
-  private readonly nodes: ts.Node[] = [];
+  public readonly filePath: string;
+  public readonly nodes: ts.Node[] = [];
   protected schema?: ISchemaDefinition;
-  private readonly types: Set<string>;
-  private exportNodes: ts.Node[];
+  public readonly fileName: string;
   private links: Links;
-  private readonly fileName: string;
+  public readonly declaredTypes: Set<string> = new Set();
+  public readonly usedTypes: Set<string> = new Set();
   constructor({
     filePath,
-    nodes,
-    types,
     links,
   }: ProcessorConstructor) {
     this.filePath = filePath;
-    this.exportNodes = nodes;
-    this.types = types;
     this.links = links;
-    this.fileName = path.parse(this.filePath).name;
+    this.fileName = path.parse(this.filePath).name + (this.filePath.includes('ver2') ? '2' : '');
   }
 
+  /**
+   * Process the xml-file, generates all interface nodes and adds them to exportNodes
+   * Adds interfaces to link map-property of the constructor
+   * Generates usedTypes and declareTypes properties
+   */
+  async prefix(): Promise<ts.Node[]> {
+    await this.process();
+    if (this.schema?.['xs:simpleType']) {
+      this.schema['xs:simpleType'].forEach((simpleType) => this.generateSimpleTypeInterface(simpleType));
+    }
+    if (this.schema?.['xs:complexType']) {
+      this.schema['xs:complexType'].forEach((complexType) => this.generateComplexTypeInterface(complexType));
+    }
+    if (this.schema?.['xs:element']) {
+      this.schema['xs:element'].forEach((element) => this.generateElementType(element));
+    }
+    return this.nodes;
+  }
+
+  /**
+   * Generate imports for all used types in the file using links map
+   * @param links
+   */
+  suffix(links: Links) {
+    const imports = {};
+    // @ts-expect-error Set.prototype.difference is not supported by ts-compiler
+    for (const type of this.usedTypes.difference(this.declaredTypes)) {
+      const fileName = links.get(type)?.name;
+      if (!fileName) {
+        console.warn(chalk.)
+      }
+      console.log(links.get(type));
+      console.log(type, links.get(type)?.name);
+      if (imports[type]) {
+        imports[]
+      }
+    }
+    const importNode = ts.factory.createImportDeclaration(
+      undefined,
+      ts.factory.createImportClause(
+        false,
+        undefined,
+        ts.factory.createNamedImports([
+          ts.factory.createImportSpecifier(
+            false,
+            undefined,
+            ts.factory.createIdentifier('text'),
+          ),
+        ]),
+      ),
+      ts.factory.createStringLiteral('moduleSpec', true),
+    );
+    this.nodes.unshift(importNode);
+    this.writeInterface();
+  }
+
+  /**
+   * @deprecated
+   */
   async main(): Promise<ts.Node[]> {
     await this.process();
     if (this.schema?.['xs:simpleType']) {
@@ -211,7 +273,6 @@ export class Processor {
       this.schema['xs:element'].forEach((element) => this.generateElementType(element));
     }
     this.writeInterface();
-    this.exportNodes = this.exportNodes.concat(this.nodes);
     return this.nodes;
   }
 
@@ -227,7 +288,9 @@ export class Processor {
     );
 
     // write the code to file
-    writeFileSync(`./onvif/interfaces/${this.fileName}.d.ts`, result, { encoding : 'utf-8' });
+    console.log(chalk.yellow(`Save to ./utils/interfaces/${this.fileName}.d.ts`));
+    writeFileSync(`./utils/interfaces/${this.fileName}.ts`, result, { encoding : 'utf-8' });
+    throw 1;
   }
 
   async processXML() {
@@ -259,10 +322,10 @@ export class Processor {
 
   addNode(name: string, node: ts.Node) {
     if (this.links.has(name)) {
-      console.log(`>>> ${name}`);
+      console.log(chalk.magentaBright(`${name} in ${this.links.get(name)!.name} already exists`));
     }
+    this.declaredTypes.add(name);
     this.links.set(name, {
-      node,
       name : this.fileName,
     });
     this.nodes.push(node);
@@ -271,11 +334,7 @@ export class Processor {
   generateSimpleTypeInterface(simpleType: ISimpleType) {
     const name = cleanName(simpleType.meta.name);
 
-    if (this.types.has(name)) {
-      console.error(name);
-      return;
-    }
-    this.types.add(name);
+    // TODO type?
 
     const interfaceSymbol = ts.factory.createIdentifier(name);
     if (simpleType['xs:restriction']) {
@@ -326,7 +385,8 @@ export class Processor {
   }
 
   createProperty(attribute: any) {
-    let type: TypeNode = ts.factory.createTypeReferenceNode(cleanName(dataTypes(attribute.meta.type)));
+    const typeName = cleanName(dataTypes(attribute.meta.type));
+    let type: TypeNode = ts.factory.createTypeReferenceNode(typeName);
     /** REFS FOR XMIME */
     if (!attribute.meta.name && attribute.meta.ref) {
       attribute.meta.name = attribute.meta.ref.slice(6);
@@ -341,6 +401,10 @@ export class Processor {
       attribute.meta.use !== 'required' ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
       type,
     );
+    if (typeName.charAt(0) === typeName.charAt(0).toUpperCase()) {
+      this.usedTypes.add(typeName);
+    }
+    console.log(chalk.yellow(`> ${attribute.meta.name} ${cleanName(dataTypes(attribute.meta.type))}`));
     return this.createAnnotationIfExists(attribute, property);
   }
 
@@ -353,7 +417,7 @@ export class Processor {
     }
     // TODO method descriptions?
     // element.meta
-    console.log(`> ${element.meta.name}`);
+    // console.log(`> ${element.meta.name}`);
   }
 
   generateComplexTypeInterface(complexType: IComplexType) {
@@ -458,51 +522,58 @@ class ProcessorWSDL extends Processor {
 
 interface IType {
   name?: string;
-  node: ts.Node;
 }
 
 class InterfaceProcessor {
-  private nodes: ts.Node[];
-  private types: Set<string>;
+  private nodes: ts.Node[] = [];
   private links: Links = new Map();
-  constructor() {
-    this.nodes = [];
-    this.types = new Set();
-  }
-  async start() {
+  async start(sourcesPath: string, outPath: string) {
+    const [builtInTypes, builtInLinks] = generateBuiltIns();
     this.nodes = builtInTypes;
+    this.links = builtInLinks;
 
-    const xsds = await glob('../specs/wsdl/**/*.xsd');
+    const processors = [];
+
+    const xsds = await glob(path.join(sourcesPath, '/**/*.xsd'));
     for (const xsd of xsds) {
-      console.log(`processing ${xsd}`);
+      console.log(chalk.greenBright(`processing ${xsd}`));
       const proc = new ProcessorXSD({
         filePath : xsd,
         nodes    : this.nodes,
-        types    : this.types,
         links    : this.links,
       });
-      await proc.main();
+      processors.push(proc);
+      const procNodes = await proc.prefix();
+      this.nodes = this.nodes.concat(procNodes);
     }
 
-    // const wsdls = await glob('../specs/wsdl/**/*.wsdl');
-    // for (const wdsl of wsdls) {
-    //   console.log(`processing ${wdsl}`);
-    //   const proc = new ProcessorWSDL({
-    //     filePath : wdsl,
-    //     nodes    : this.nodes,
-    //     types    : this.types,
-    // links    : this.links,
-    //   });
-    //   await proc.main();
-    // }
+    const wsdls = await glob(path.join(sourcesPath, '/**/*.wsdl'));
+    for (const wdsl of wsdls) {
+      console.log(chalk.greenBright(`processing ${wdsl}`));
+      const proc = new ProcessorWSDL({
+        filePath : wdsl,
+        nodes    : this.nodes,
+        links    : this.links,
+      });
+      processors.push(proc);
+      const procNodes = await proc.prefix();
+      this.nodes = this.nodes.concat(procNodes);
+    }
 
-    const proc = new ProcessorWSDL({
-      filePath : '../specs/wsdl/ver20/ptz/wsdl/ptz.wsdl',
-      nodes    : this.nodes,
-      types    : this.types,
-      links    : this.links,
-    });
-    await proc.main();
+    for (const proc of processors) {
+      proc.suffix(this.links);
+      console.log('');
+      console.log('------------------------------');
+      console.log('');
+    }
+
+    // const proc = new ProcessorWSDL({
+    //   filePath : '../specs/wsdl/ver20/ptz/wsdl/ptz.wsdl',
+    //   nodes    : this.nodes,
+    //   types    : this.types,
+    //   links    : this.links,
+    // });
+    // await proc.main();
 
     const nodeArr = ts.factory.createNodeArray(this.nodes);
     const printer = ts.createPrinter({ newLine : ts.NewLineKind.LineFeed });
@@ -513,8 +584,21 @@ class InterfaceProcessor {
     );
 
     // write the code to file
-    writeFileSync('./onvif/interfaces/interface.ts', result, { encoding : 'utf-8' });
+    // writeFileSync(path.join(outPath, `${BASICS_FILENAME}.ts`), result, { encoding : 'utf-8' });
+
+    // console.log(chalk.greenBright([...this.links.entries()]));
   }
 }
 
-(new InterfaceProcessor()).start().catch(console.error);
+//
+
+const [_a, _b, sources, out] = process.argv;
+if (out !== undefined) {
+  (new InterfaceProcessor()).start(sources, out).catch(console.error);
+} else {
+  console.log(`Usage: processor.ts <source> <output>
+  <source> - ONVIF specs source directory
+  <output> - generated interfaces output directory
+  Example: processor.ts "../specs/wsdl/ver20" "./onvif/interfaces"`);
+  process.exit(1);
+}

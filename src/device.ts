@@ -3,6 +3,8 @@ import {
   Onvif, OnvifServices, ReferenceToken, SetSystemDateAndTimeOptions,
 } from './onvif';
 import { linerase } from './utils';
+import { SetNTP } from './interfaces/devicemgmt';
+import { IPAddress, NTPInformation } from './interfaces/onvif';
 
 export interface OnvifService {
   /** Namespace uri */
@@ -385,67 +387,6 @@ export interface DeviceServiceCapabilities {
 type IPv4Address = string;
 type IPv6Address = string;
 
-export interface IPAddress {
-  /** Indicates if the address is an IPv4 or IPv6 address */
-  type: NetworkType;
-  /** IPv4 address */
-  IPv4Address?: IPv4Address;
-  /** IPv6 address */
-  IPv6Address?: IPv6Address;
-}
-
-export interface NetworkHost {
-  /* Network host type: IPv4, IPv6 or DNS. */
-  type: NetworkType;
-  /* IPv4 address. */
-  IPv4Address?: IPv4Address;
-  /* IPv6 address. */
-  IPv6Address?: IPv6Address;
-  /* DNS name. */
-  DNSname?: string;
-  extension?: any;
-}
-
-export interface NTPInformation {
-  /* Indicates if NTP information is to be retrieved by using DHCP. */
-  fromDHCP: boolean;
-  /* List of NTP addresses retrieved by using DHCP. */
-  NTPFromDHCP?: NetworkHost[];
-  /* List of manually entered NTP addresses. */
-  NTPManual?: NetworkHost[];
-  extension?: any;
-}
-
-export enum NetworkType {
-  IPv4 = 'IPv4',
-  IPv6 = 'IPv6',
-  DNS = 'DNS',
-}
-
-export interface SetNTPOptions {
-  /* Indicates if NTP information is to be retrieved by using DHCP. */
-  fromDHCP?: boolean;
-  NTPManual?: NTPManual[];
-  // For backward compatibility
-  type?: NetworkType;
-  ipv4Address?: string;
-  ipv6Address?: string;
-  dnsName?: string;
-  extension?: string;
-}
-
-export interface NTPManual {
-  /* Network host type. */
-  type?: NetworkType;
-  /* IPv4 address. */
-  IPv4Address?: string; // IPv4 address
-  /* IPv6 address. */
-  IPv6Address?: string;
-  /* DNS name. */
-  DNSname?: string;
-  extension?: any;
-}
-
 export interface DNSInformation {
   /* Indicates whether or not DNS information is retrieved from DHCP. */
   fromDHCP: boolean;
@@ -800,23 +741,9 @@ export class Device {
   /**
    * Set the NTP settings on a device
    */
-  async setNTP(options: SetNTPOptions): Promise<NTPInformation> {
-    if (!Array.isArray(options.NTPManual)) {
-      options.NTPManual = [];
-    }
-    // For backward compatibility
-    if (options.type || options.ipv4Address || options.ipv6Address || options.dnsName || options.extension) {
-      // Note the case changes to follow the xml parser rules
-      options.NTPManual.push({
-        type        : options.type,
-        IPv4Address : options.ipv4Address,
-        IPv6Address : options.ipv6Address,
-        DNSname     : options.dnsName,
-        extension   : options.extension,
-      });
-    }
+  async setNTP(options: SetNTP): Promise<NTPInformation> {
     let body = '<SetNTP xmlns="http://www.onvif.org/ver10/device/wsdl">'
-      + `<FromDHCP>${options.fromDHCP}</FromDHCP>`;
+      + `<FromDHCP>${options.fromDHCP ?? false}</FromDHCP>`;
     if (options.NTPManual && Array.isArray(options.NTPManual)) {
       options.NTPManual.forEach((NTPManual) => {
         body += (NTPManual.type ? '<NTPManual>'
