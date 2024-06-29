@@ -1,4 +1,4 @@
-import { Discovery, Onvif } from './index';
+import { Discovery, Onvif } from '../src';
 import { Cam as CamJs } from '../promises';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -47,15 +47,16 @@ import { Cam as CamJs } from '../promises';
   // console.log(cam.activeSource);
 
   // console.log(await camJs.getOSDs());
-  console.log(await cam.media.getOSDs({
-    configurationToken : 'vsconf',
-    // OSDToken : 'textOSD',
-  }));
+  // console.log(await cam.media.getOSDs({
+  //   configurationToken : 'vsconf',
+  //   // OSDToken : 'textOSD',
+  // }));
 
   // console.log((await camJs.getOSDOptions()));
   // console.log((await cam.media.getOSDOptions({ })));
 
-  console.log(await cam.device.getServices());
+  console.log((await cam.device.getCapabilities()).capabilities.extension);
+  // console.log((await camJs.getCapabilities()));
 })().catch((e) => {
   console.error(e);
   console.log(e.rawPacket.toString());

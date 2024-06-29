@@ -15,7 +15,7 @@
     "pretest": "npm run lint",
     "test": "nyc mocha",
     "mockserver": "node startServerMockup.js",
-    "fun": "tsx src/test.ts"
+    "fun": "tsx fun/test.ts"
   },
   "contributors": [
     {
