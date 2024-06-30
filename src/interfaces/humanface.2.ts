@@ -10,7 +10,7 @@ export type EyebrowSpace = 'Joint' | 'Separate';
 export type EyeShape = 'Almond' | 'Round' | 'Other';
 export type Eyelid = 'Single' | 'Double' | 'Other';
 export type Eyeball = 'Black' | 'Blue' | 'Brown' | 'Gray' | 'Green' | 'Pink' | 'Other';
-export type Ear = 'Round' | 'Pointed' | 'Narrow' | 'BroadLobe' | 'Other';
+export type EarShape = 'Round' | 'Pointed' | 'Narrow' | 'BroadLobe' | 'Other';
 export type NoseLength = 'Short' | 'Long';
 export type NoseBridge = 'Straight' | 'Arch';
 export type NoseWing = 'Narrow' | 'Broad';
@@ -18,6 +18,8 @@ export type NoseEnd = 'Snub' | 'Turnedup' | 'Flat' | 'Hooked' | 'Other';
 export type Lip = 'Full' | 'Medium' | 'Thin';
 export type Chin = 'Double' | 'Pointed' | 'Round';
 export type Expression = 'Natural' | 'Smile' | 'RaisedEyebrows' | 'Squint' | 'Frown' | 'Other';
+export type HatType = 'Cap';
+export type HelmetType = 'ConstructionCap' | 'CycleCap' | 'RidingHat';
 export type FrecklesType = 'AroundCheek' | 'Nose' | 'forehead' | 'Other';
 export interface Hair {
   /**
@@ -84,6 +86,11 @@ export interface AccessoryDescription {
   wear?: boolean;
   /** Describe the Color of the accessory. */
   color?: ColorDescriptor;
+  /**
+   * Optional subtype of the accessory. For definitions refer enumerations starting with
+   * the accessory name followed by 'Type' like fc:HatType or fc:HelmetType.
+   */
+  subtype?: string;
 }
 export interface Accessory {
   /** Describe if the object wear opticals. */
@@ -130,8 +137,8 @@ export interface HumanFace {
   eyebrow?: Eyebrow;
   /** Describe the eye of the face. */
   eye?: Eye;
-  /** Describe the Ear of the face. */
-  ear?: Ear;
+  /** Describe the Ear of the face. For definitions see fc:EarShape. */
+  ear?: string;
   /** Describe the nose of the face. */
   nose?: Nose;
   /** Describe the facial hair of the face. */

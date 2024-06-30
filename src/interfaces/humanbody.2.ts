@@ -1,12 +1,12 @@
 import { ColorDescriptor } from './common';
 
 export type BodyShape = 'Fat' | 'Thin' | 'Other';
-export type TopsCategory = 'LongSleeve' | 'ShortSleeve' | 'Other';
+export type TopsCategory = 'LongSleeve' | 'ShortSleeve' | 'Sleeveless' | 'Other';
 export type Grain = 'Stria' | 'Plaid' | 'PureColour' | 'Decal' | 'Other';
-export type TopsStyle = 'Tailor' | 'Jacket' | 'Sweater' | 'Overcoat' | 'Dress' | 'Other';
+export type TopsStyle = 'Tailor' | 'Jacket' | 'Shirt' | 'Sweater' | 'Overcoat' | 'Dress' | 'Vest' | 'Other';
 export type BottomsCategory = 'Trousers' | 'Shorts' | 'Skirt' | 'Other';
 export type BottomsStyle = 'FornalPants' | 'Jeans' | 'Other';
-export type ShoesCategory = 'LeatherShoes' | 'Sneakers' | 'Sandal' | 'Slipper' | 'Other';
+export type ShoesCategory = 'Boots' | 'LeatherShoes' | 'Sneakers' | 'Sandal' | 'Slipper' | 'Other';
 export type KnapsackCategory = 'SingleShoulderBag' | 'Backpack' | 'Other';
 export type CartCategory = 'BabyCarriage' | 'TwoWheelVehicle' | 'Tricyle' | 'Other';
 export type Smoking = 'NoSmoking' | 'Cigar' | 'ElectronicCigarettes' | 'Other';

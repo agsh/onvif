@@ -226,14 +226,17 @@ export interface WebRTCConfiguration {
   defaultProfile?: ReferenceToken;
   /** Enables/disables the configuration. */
   enabled?: boolean;
-  /** Enables/disables the configuration. */
+  /** Indicates if the device is connected to the server. This parameter is read-only. */
   connected?: boolean;
+  /** Optional user readable error information (readonly). */
+  error?: string;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the media service is returned in the Capabilities element. */
   capabilities?: Capabilities2;
 }
+export interface Capabilities extends Capabilities2 {}
 export interface CreateProfile {
   /** friendly name of the profile to be created */
   name?: Name;
@@ -278,34 +281,42 @@ export interface DeleteProfile {
   token?: ReferenceToken;
 }
 export interface DeleteProfileResponse {}
+export interface GetVideoEncoderConfigurations extends GetConfiguration {}
 export interface GetVideoEncoderConfigurationsResponse {
   /** This element contains a list of video encoder configurations. */
   configurations?: VideoEncoder2Configuration[];
 }
+export interface GetVideoSourceConfigurations extends GetConfiguration {}
 export interface GetVideoSourceConfigurationsResponse {
   /** This element contains a list of video source configurations. */
   configurations?: VideoSourceConfiguration[];
 }
+export interface GetAudioEncoderConfigurations extends GetConfiguration {}
 export interface GetAudioEncoderConfigurationsResponse {
   /** This element contains a list of audio encoder configurations. */
   configurations?: AudioEncoder2Configuration[];
 }
+export interface GetAudioSourceConfigurations extends GetConfiguration {}
 export interface GetAudioSourceConfigurationsResponse {
   /** This element contains a list of audio source configurations. */
   configurations?: AudioSourceConfiguration[];
 }
+export interface GetAnalyticsConfigurations extends GetConfiguration {}
 export interface GetAnalyticsConfigurationsResponse {
   /** This element contains a list of Analytics configurations. */
   configurations?: VideoAnalyticsConfiguration[];
 }
+export interface GetMetadataConfigurations extends GetConfiguration {}
 export interface GetMetadataConfigurationsResponse {
   /** This element contains a list of metadata configurations */
   configurations?: MetadataConfiguration[];
 }
+export interface GetAudioOutputConfigurations extends GetConfiguration {}
 export interface GetAudioOutputConfigurationsResponse {
   /** This element contains a list of audio output configurations */
   configurations?: AudioOutputConfiguration[];
 }
+export interface GetAudioDecoderConfigurations extends GetConfiguration {}
 export interface GetAudioDecoderConfigurationsResponse {
   /** This element contains a list of audio decoder configurations */
   configurations?: AudioDecoderConfiguration[];
@@ -314,53 +325,67 @@ export interface SetVideoEncoderConfiguration {
   /** Contains the modified video encoder configuration. The configuration shall exist in the device. */
   configuration?: VideoEncoder2Configuration;
 }
+export interface SetVideoEncoderConfigurationResponse extends SetConfigurationResponse {}
 export interface SetVideoSourceConfiguration {
   /** Contains the modified video source configuration. The configuration shall exist in the device. */
   configuration?: VideoSourceConfiguration;
 }
+export interface SetVideoSourceConfigurationResponse extends SetConfigurationResponse {}
 export interface SetAudioEncoderConfiguration {
   /** Contains the modified audio encoder configuration. The configuration shall exist in the device. */
   configuration?: AudioEncoder2Configuration;
 }
+export interface SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
 export interface SetAudioSourceConfiguration {
   /** Contains the modified audio source configuration. The configuration shall exist in the device. */
   configuration?: AudioSourceConfiguration;
 }
+export interface SetAudioSourceConfigurationResponse extends SetConfigurationResponse {}
 export interface SetMetadataConfiguration {
   /** Contains the modified metadata configuration. The configuration shall exist in the device. */
   configuration?: MetadataConfiguration;
 }
+export interface SetMetadataConfigurationResponse extends SetConfigurationResponse {}
 export interface SetAudioOutputConfiguration {
   /** Contains the modified audio output configuration. The configuration shall exist in the device. */
   configuration?: AudioOutputConfiguration;
 }
+export interface SetAudioOutputConfigurationResponse extends SetConfigurationResponse {}
 export interface SetAudioDecoderConfiguration {
   /** Contains the modified audio decoder configuration. The configuration shall exist in the device. */
   configuration?: AudioDecoderConfiguration;
 }
+export interface SetAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
+export interface GetVideoSourceConfigurationOptions extends GetConfiguration {}
 export interface GetVideoSourceConfigurationOptionsResponse {
   /** This message contains the video source configuration options. If a video source configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: VideoSourceConfigurationOptions;
 }
+export interface GetVideoEncoderConfigurationOptions extends GetConfiguration {}
 export interface GetVideoEncoderConfigurationOptionsResponse {
   options?: VideoEncoder2ConfigurationOptions[];
 }
+export interface GetAudioSourceConfigurationOptions extends GetConfiguration {}
 export interface GetAudioSourceConfigurationOptionsResponse {
   /** This message contains the audio source configuration options. If a audio source configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: AudioSourceConfigurationOptions;
 }
+export interface GetAudioEncoderConfigurationOptions extends GetConfiguration {}
 export interface GetAudioEncoderConfigurationOptionsResponse {
   /** This message contains the audio encoder configuration options. If a audio encoder configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: AudioEncoder2ConfigurationOptions[];
 }
+export interface GetMetadataConfigurationOptions extends GetConfiguration {}
 export interface GetMetadataConfigurationOptionsResponse {
   /** This message contains the metadata configuration options. If a metadata configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: MetadataConfigurationOptions;
 }
+export interface GetAudioOutputConfigurationOptions extends GetConfiguration {}
 export interface GetAudioOutputConfigurationOptionsResponse {
   /** This message contains the audio output configuration options. If a audio output configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: AudioOutputConfigurationOptions;
 }
+export interface GetAudioDecoderConfigurationOptions extends GetConfiguration {}
 export interface GetAudioDecoderConfigurationOptionsResponse {
   /** This message contains the audio decoder configuration options. If a audio decoder configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
   options?: AudioEncoder2ConfigurationOptions[];
@@ -396,6 +421,10 @@ export interface GetSnapshotUriResponse {
   /** Stable Uri to be used for requesting snapshot images. */
   uri?: AnyURI;
 }
+export interface StartMulticastStreaming extends StartStopMulticastStreaming {}
+export interface StartMulticastStreamingResponse extends SetConfigurationResponse {}
+export interface StopMulticastStreaming extends StartStopMulticastStreaming {}
+export interface StopMulticastStreamingResponse extends SetConfigurationResponse {}
 export interface GetVideoSourceModes {
   /** Contains a video source reference for which a video source mode is requested. */
   videoSourceToken?: ReferenceToken;
@@ -428,6 +457,7 @@ export interface SetOSD {
   /** Contains the modified OSD configuration. */
   OSD?: OSDConfiguration;
 }
+export interface SetOSDResponse extends SetConfigurationResponse {}
 export interface GetOSDOptions {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
   configurationToken?: ReferenceToken;
@@ -448,6 +478,7 @@ export interface DeleteOSD {
   /** This element contains a reference to the OSD configuration that should be deleted. */
   OSDToken?: ReferenceToken;
 }
+export interface DeleteOSDResponse extends SetConfigurationResponse {}
 export interface GetMasks {
   /** Optional mask token of an existing mask. */
   token?: ReferenceToken;
@@ -462,6 +493,7 @@ export interface SetMask {
   /** Mask to be updated. */
   mask?: Mask;
 }
+export interface SetMaskResponse extends SetConfigurationResponse {}
 export interface GetMaskOptions {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
   configurationToken?: ReferenceToken;
@@ -482,6 +514,7 @@ export interface DeleteMask {
   /** This element contains a reference to the Mask configuration that should be deleted. */
   token?: ReferenceToken;
 }
+export interface DeleteMaskResponse extends SetConfigurationResponse {}
 export interface GetWebRTCConfigurations {}
 export interface GetWebRTCConfigurationsResponse {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */

@@ -33,7 +33,6 @@ export type BarcodeType =
   | 'ISBN-10'
   | 'ITF-14'
   | 'EAN-2'
-  | 'EAN-2'
   | 'EAN-8'
   | 'EAN-13'
   | 'EAN-14'
