@@ -113,7 +113,7 @@ export class Cam extends EventEmitter {
   }
 
   getVideoSources(callback: Callback) {
-    this.onvif.media.getVideoSources().then((result) => callback(null, result)).catch(callback);
+    this.onvif.media.getVideoSources().then((result) => callback(null, result.videoSources)).catch(callback);
   }
 
   getServices(includeCapability: boolean | Callback, callback: Callback) {

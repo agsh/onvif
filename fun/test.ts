@@ -55,7 +55,7 @@ import { Cam as CamJs } from '../promises';
   // console.log((await camJs.getOSDOptions()));
   // console.log((await cam.media.getOSDOptions({ })));
 
-  console.log((await cam.device.getCapabilities()).capabilities.extension);
+  console.log((await cam.media.getVideoSources()));
   // console.log((await camJs.getCapabilities()));
 })().catch((e) => {
   console.error(e);
