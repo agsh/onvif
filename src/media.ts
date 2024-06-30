@@ -7,7 +7,7 @@ import {
   GetOSDOptions,
   GetOSDOptionsResponse,
   GetOSDs,
-  GetOSDsResponse,
+  GetOSDsResponse, GetVideoSourceConfigurationOptions, GetVideoSourceConfigurationOptionsResponse,
   GetVideoSourceConfigurations,
 } from './interfaces/media.2';
 import { GetVideoSourceConfigurationsResponse, GetVideoSourcesResponse } from './interfaces/media';
@@ -1036,6 +1036,21 @@ export class Media {
 
     const [data] = await this.onvif.request({ service, body });
     return linerase(data, { array : ['configurations'] }).getVideoSourceConfigurationsResponse;
+  }
+
+  async getVideoSourceConfigurationOptions({ configurationToken, profileToken }: GetVideoSourceConfigurationOptions = {}):
+    Promise<GetVideoSourceConfigurationOptionsResponse> {
+    const body = `<GetVideoSourceConfigurationOptions xmlns="${
+      this.onvif.device.media2Support ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl'
+    }">${
+      configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
+    }${
+      profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
+    }</GetVideoSourceConfigurationOptions>`;
+    const service = (this.onvif.device.media2Support ? 'media2' : 'media');
+
+    const [data] = await this.onvif.request({ service, body });
+    return linerase(data, { array : ['videoSourceTokensAvailable'] }).getVideoSourceConfigurationOptionsResponse;
   }
 
   /**
