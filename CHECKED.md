@@ -49,7 +49,7 @@ ONVIF Interfaces
 - [x] getVideoSourceConfigurationOptions new
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
-- [ ] getVideoEncoderConfigurations
+- [x] getVideoEncoderConfigurations
 - [ ] setVideoEncoderConfiguration
 - [ ] getAudioSources
 - [ ] getAudioEncoderConfigurations

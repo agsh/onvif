@@ -56,9 +56,10 @@ import { Cam as CamJs } from '../promises';
   // console.log((await cam.media.getOSDOptions({ })));
 
   // console.log((await camJs.getVideoSourceConfigurations()));
-  console.log((await cam.media.getVideoSourceConfigurationOptions({
+  console.log((await cam.media.getVideoEncoderConfigurations({
     configurationToken : 'VideoSourceConfigVideoSourceConfig',
   })));
+  console.log(await cam.media.getProfiles());
 })().catch((e) => {
   console.error(e);
   console.log(e.rawPacket.toString());
