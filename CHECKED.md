@@ -46,6 +46,7 @@ ONVIF Interfaces
 - [ ] parseEventXML
 - [x] getVideoSources
 - [x] getVideoSourceConfigurations
+- [x] getVideoSourceConfigurationOptions new
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
 - [ ] getVideoEncoderConfigurations
