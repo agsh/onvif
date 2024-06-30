@@ -6,7 +6,7 @@ ONVIF Interfaces
 - [ ] getSystemDateAndTime
 - [ ] setSystemDateAndTime
 - [x] getCapabilities Capabilities -> GetCapabilitiesResponse
-- [x] getServiceCapabilities 
+- [x] getServiceCapabilities DeviceServiceCapabilities -> GetServiceCapabilitiesResponse
 - [ ] getActiveSources
 - [x] getServices includeCapability wrapped into object
 - [ ] getDeviceInformation
@@ -44,7 +44,7 @@ ONVIF Interfaces
 - [ ] _eventPull
 - [ ] _restartEventRequest
 - [ ] parseEventXML
-- [ ] getVideoSources
+- [x] getVideoSources
 - [ ] getVideoSourceConfigurations
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions

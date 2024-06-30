@@ -4,6 +4,7 @@ import { IPAddress, Name } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
 import { GetOSDOptions, GetOSDOptionsResponse, GetOSDs, GetOSDsResponse } from './interfaces/media.2';
+import { GetVideoSourcesResponse } from './interfaces/media';
 
 export interface IntRectangle {
   x: number;
@@ -1006,17 +1007,14 @@ export class Media {
     return this.profiles;
   }
 
-  async getVideoSources() {
+  async getVideoSources(): Promise<GetVideoSourcesResponse> {
     const [data] = await this.onvif.request({
       service : 'media',
       body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
-    const a = linerase(data);
-    this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
-    // videoSources is an array of video sources, but linerase remove the array if there is only one element inside,
-    // so we convert it back to an array
-    if (!Array.isArray(this.videoSources)) { this.videoSources = [this.videoSources]; }
-    return this.videoSources;
+    const videoSourcesResponse = linerase(data, { array : ['videoSources'] }).getVideoSourcesResponse;
+    this.videoSources = videoSourcesResponse.videoSources;
+    return videoSourcesResponse;
   }
 
   /**
