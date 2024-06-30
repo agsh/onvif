@@ -356,7 +356,7 @@ export class Onvif extends EventEmitter {
         }
       });
 
-      this.emit('rawRequest', options.body);
+      this.emit('rawRequest', options.body, requestOptions);
       request.write(options.body);
       request.end();
     });

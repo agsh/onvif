@@ -3,8 +3,14 @@ import { linerase } from './utils';
 import { IPAddress, Name } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
-import { GetOSDOptions, GetOSDOptionsResponse, GetOSDs, GetOSDsResponse } from './interfaces/media.2';
-import { GetVideoSourcesResponse } from './interfaces/media';
+import {
+  GetOSDOptions,
+  GetOSDOptionsResponse,
+  GetOSDs,
+  GetOSDsResponse,
+  GetVideoSourceConfigurations,
+} from './interfaces/media.2';
+import { GetVideoSourceConfigurationsResponse, GetVideoSourcesResponse } from './interfaces/media';
 
 export interface IntRectangle {
   x: number;
@@ -1015,6 +1021,21 @@ export class Media {
     const videoSourcesResponse = linerase(data, { array : ['videoSources'] }).getVideoSourcesResponse;
     this.videoSources = videoSourcesResponse.videoSources;
     return videoSourcesResponse;
+  }
+
+  async getVideoSourceConfigurations({ configurationToken, profileToken }: GetVideoSourceConfigurations = {}):
+    Promise<GetVideoSourceConfigurationsResponse> {
+    const body = `<GetVideoSourceConfigurations xmlns="${
+      this.onvif.device.media2Support ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl'
+    }">${
+      configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
+    }${
+      profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
+    }</GetVideoSourceConfigurations>`;
+    const service = (this.onvif.device.media2Support ? 'media2' : 'media');
+
+    const [data] = await this.onvif.request({ service, body });
+    return linerase(data, { array : ['configurations'] }).getVideoSourceConfigurationsResponse;
   }
 
   /**
