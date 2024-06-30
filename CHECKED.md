@@ -45,7 +45,7 @@ ONVIF Interfaces
 - [ ] _restartEventRequest
 - [ ] parseEventXML
 - [x] getVideoSources
-- [ ] getVideoSourceConfigurations
+- [x] getVideoSourceConfigurations
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
 - [ ] getVideoEncoderConfigurations
