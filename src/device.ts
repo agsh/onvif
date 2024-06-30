@@ -5,7 +5,7 @@ import {
 import { linerase } from './utils';
 import {
   DeviceServiceCapabilities,
-  GetCapabilities, GetCapabilitiesResponse, GetDeviceInformationResponse,
+  GetCapabilities, GetCapabilitiesResponse, GetDeviceInformationResponse, GetServiceCapabilitiesResponse,
   GetServices,
   GetServicesResponse,
   Service,
@@ -186,21 +186,16 @@ export class Device {
   /**
    * Returns the capabilities of the device service. The result is returned in a typed answer
    */
-  async getServiceCapabilities() {
+  async getServiceCapabilities(): Promise<GetServiceCapabilitiesResponse> {
     const [data] = await this.onvif.request({
       body : '<GetServiceCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl" />',
     });
-    const capabilitiesResponse = linerase(data);
-    this.#serviceCapabilities = {
-      network  : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.network,
-      security : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.security,
-      system   : capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.system,
-    };
+    const capabilitiesResponse = linerase(data).getServiceCapabilitiesResponse;
+    this.#serviceCapabilities = capabilitiesResponse.capabilities;
     if (capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc) {
-      this.#serviceCapabilities.misc = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc;
-      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.AuxiliaryCommands.split(' ');
+      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
     }
-    return this.#serviceCapabilities;
+    return capabilitiesResponse;
   }
 
   /**
