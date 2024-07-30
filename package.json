@@ -12,6 +12,13 @@
     "test": "nyc mocha",
     "mockserver": "node startServerMockup.js"
   },
+  "files": [
+    "lib",
+    "promises",
+    "examples",
+    "package.json",
+    "package-lock.json"
+  ],
   "contributors": [
     {
       "name": "Andrew D.Laptev",
