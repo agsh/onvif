@@ -1,10 +1,10 @@
 ONVIF Interfaces
 
-- [ ] connect
-- [ ] _request
-- [ ] _requestPart2
-- [ ] getSystemDateAndTime
-- [ ] setSystemDateAndTime
+- [x] connect
+- [x] _request
+- [x] _requestPart2
+- [x] getSystemDateAndTime
+- [x] setSystemDateAndTime accepts SetSystemDateAndTimeOptions
 - [x] getCapabilities Capabilities -> GetCapabilitiesResponse
 - [x] getServiceCapabilities DeviceServiceCapabilities -> GetServiceCapabilitiesResponse
 - [ ] getActiveSources
@@ -43,7 +43,7 @@ ONVIF Interfaces
 - [ ] _eventRequest
 - [ ] _eventPull
 - [ ] _restartEventRequest
-- [ ] parseEventXML
+- [x] parseEventXML
 - [x] getVideoSources
 - [x] getVideoSourceConfigurations
 - [x] getVideoSourceConfigurationOptions new

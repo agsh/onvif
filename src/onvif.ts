@@ -6,9 +6,9 @@ import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Device } from './device';
-import { Media, Profile } from './media';
+import { Media } from './media';
 import { PTZ } from './ptz';
-import { Capabilities } from './interfaces/onvif';
+import { Capabilities, Profile } from './interfaces/onvif';
 import { GetDeviceInformationResponse } from './interfaces/devicemgmt';
 
 /**
@@ -397,10 +397,10 @@ export class Onvif extends EventEmitter {
     // The ONVIF spec says this should work without a Password as we need to know any difference in the
     // remote NVT's time relative to our own time clock (called the timeShift) before we can calculate the
     // correct timestamp in nonce SOAP Authentication header.
-    // But.. Panasonic and Digital Barriers both have devices that implement ONVIF that only work with
+    // But... Panasonic and Digital Barriers both have devices that implement ONVIF that only work with
     // authenticated getSystemDateAndTime. So for these devices we need to do an authenticated getSystemDateAndTime.
     // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
-    // to the correct time if the camera implements Replay Attack Protection (eg Axis)
+    // to the correct time if the camera implements Replay Attack Protection (e.g. Axis)
     const [data, xml] = await this.rawRequest({
       // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
       body :
@@ -501,8 +501,8 @@ export class Onvif extends EventEmitter {
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {
         const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
         this.activeSources[idx].encoding = configuration?.encoding;
-        this.activeSources[idx].width = configuration?.resolution.width;
-        this.activeSources[idx].height = configuration?.resolution.height;
+        this.activeSources[idx].width = configuration?.resolution?.width;
+        this.activeSources[idx].height = configuration?.resolution?.height;
         this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit;
         this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit;
       }
@@ -513,7 +513,7 @@ export class Onvif extends EventEmitter {
 
       if (this.defaultProfiles[idx].PTZConfiguration) {
         this.activeSources[idx].ptz = {
-          name  : this.defaultProfiles[idx].PTZConfiguration!.name,
+          name  : this.defaultProfiles[idx].PTZConfiguration!.name as string,
           token : this.defaultProfiles[idx].PTZConfiguration!.token,
         };
         /*
