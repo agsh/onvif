@@ -15,10 +15,10 @@ ONVIF Interfaces
 - [ ] setScopes
 - [ ] systemReboot
 - [ ] setSystemFactoryDefault
-- [ ] _passwordDigest
-- [ ] _envelopeHeader
-- [ ] _envelopeFooter
-- [ ] _parseUrl
+- [x] _passwordDigest
+- [x] _envelopeHeader
+- [x] _envelopeFooter
+- [x] _parseUrl
 - [x] getNTP cam.device.getNTP
 - [x] setNTP cam.device.setNTP
 - [ ] getNetworkInterfaces
