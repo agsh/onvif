@@ -21,6 +21,7 @@ class CamPromise {
 			},
 			set(target, name, value) {
 				target._cam[name] = value;
+				return true;
 			},
 		});
 	}
