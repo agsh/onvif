@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:timg="http://www.onvif.org/ver20/imaging/wsdl">
+   <SOAP-ENV:Body>
+      <timg:GetOptionsResponse>
+         <timg:ImagingOptions>
+            <tt:Brightness>
+               <tt:Min>0.00</tt:Min>
+               <tt:Max>255.00</tt:Max>
+            </tt:Brightness>
+            <tt:ColorSaturation>
+               <tt:Min>0.00</tt:Min>
+               <tt:Max>255.00</tt:Max>
+            </tt:ColorSaturation>
+            <tt:Contrast>
+               <tt:Min>0.00</tt:Min>
+               <tt:Max>255.00</tt:Max>
+            </tt:Contrast>
+         </timg:ImagingOptions>
+      </timg:GetOptionsResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
