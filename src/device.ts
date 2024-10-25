@@ -235,8 +235,8 @@ export class Device {
           + `<Type xmlns="http://www.onvif.org/ver10/schema">${NTPManual.type}</Type>${
             NTPManual.IPv4Address ? `<IPv4Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv4Address}</IPv4Address>` : ''
           }${NTPManual.IPv6Address ? `<IPv6Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv6Address}</IPv6Address>` : ''
-          }${NTPManual.DNSname ? `<DNSname>${NTPManual.DNSname}</DNSname>` : ''
-          }${NTPManual.extension ? `<Extension>${NTPManual.extension}</Extension>` : ''
+          }${NTPManual.DNSname ? `<DNSname xmlns="http://www.onvif.org/ver10/schema">${NTPManual.DNSname}</DNSname>` : ''
+          }${NTPManual.extension ? `<Extension xmlns="http://www.onvif.org/ver10/schema">${NTPManual.extension}</Extension>` : ''
           }</NTPManual>` : '');
       });
     }
