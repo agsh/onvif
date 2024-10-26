@@ -2,9 +2,9 @@ import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
   AudioEncoderConfiguration, MediaUri,
-  Profile,
+  Profile, VideoEncoder2Configuration,
   VideoEncoderConfiguration,
-  VideoSource,
+  VideoSource, VideoSourceConfiguration,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
@@ -17,7 +17,7 @@ import {
   GetVideoEncoderConfigurations, GetVideoEncoderConfigurationsResponse as GetVideoEncoder2ConfigurationsResponse,
   GetVideoSourceConfigurationOptions,
   GetVideoSourceConfigurationOptionsResponse,
-  GetVideoSourceConfigurations, MediaProfile,
+  GetVideoSourceConfigurations, MediaProfile, SetVideoSourceConfigurationResponse,
 } from './interfaces/media.2';
 import {
   GetVideoSourceConfigurationsResponse,
@@ -145,6 +145,74 @@ export class Media {
 
     const [data] = await this.onvif.request({ service, body });
     return linerase(data, { array : ['videoSourceTokensAvailable'] }).getVideoSourceConfigurationOptionsResponse;
+  }
+
+  /** Common setVideoSourceConfiguration for media and media2 profiles. It depends on media2support flag */
+  async setVideoSourceConfiguration(configuration: VideoSourceConfiguration | VideoEncoder2Configuration, forcePersistence: boolean = true):
+    Promise<any> {
+    const service = this.onvif.device.media2Support ? 'media2' : 'media';
+    const xmlns = this.onvif.device.media2Support
+      ? 'http://www.onvif.org/ver20/media/wsdl'
+      : 'http://www.onvif.org/ver10/media/wsdl';
+    const body = `<SetVideoEncoderConfiguration xmlns="${xmlns}">`
+      + `<Configuration token="${configuration.token}"${
+        'govLength' in configuration ? ` GovLength="${configuration.govLength}"` : ''
+      }${'profile' in configuration ? ` Profile="${configuration.profile}"` : ''
+      }${'anchorFrameDistance' in configuration ? ` AnchorFrameDistance="${configuration.anchorFrameDistance}"` : ''
+      }${'guaranteedFrameRate' in configuration ? ` GuaranteedFrameRate="${configuration.guaranteedFrameRate}"` : ''
+      }${'viewMode' in configuration ? ` GuaranteedFrameRate="${configuration.viewMode}"` : ''
+      }>${
+        configuration.name ? `<Name xmlns="http://www.onvif.org/ver10/schema">${configuration.name}</Name>` : ''
+      }${configuration.useCount ? `<UseCount xmlns="http://www.onvif.org/ver10/schema">${configuration.useCount}</UseCount>` : ''
+      }${'encoding' in configuration && configuration.encoding
+        ? `<Encoding xmlns="http://www.onvif.org/ver10/schema">${configuration.encoding}</Encoding>` : ''
+      }${'resolution' in configuration && configuration.resolution
+        ? `<Resolution xmlns="http://www.onvif.org/ver10/schema">${
+          configuration.resolution.width ? `<Width>${configuration.resolution.width}</Width>` : ''
+        }${configuration.resolution.height ? `<Height>${configuration.resolution.height}</Height>` : ''
+        }</Resolution>` : ''
+      }${'quality' in configuration ? `<Quality xmlns="http://www.onvif.org/ver10/schema">${configuration.quality}</Quality>` : ''
+      }${'rateControl' in configuration && configuration.rateControl
+        ? `<RateControl ConstantBitRate="${configuration.rateControl.constantBitRate}" xmlns="http://www.onvif.org/ver10/schema"><FrameRateLimit>${
+          configuration.rateControl.frameRateLimit}</FrameRateLimit><BitrateLimit>${configuration.rateControl.bitrateLimit
+        }</BitrateLimit></RateControl>` : ''
+      }${'multicast' in configuration && configuration.multicast
+        ? `<Multicast xmlns="http://www.onvif.org/ver10/schema">${
+          configuration.multicast.address
+            ? `<Address>${
+              configuration.multicast.address.type ? `<Type>${configuration.multicast.address.type}</Type>` : ''
+            }${configuration.multicast.address.IPv4Address ? `<IPv4Address>${configuration.multicast.address.IPv4Address}</IPv4Address>` : ''
+            }${configuration.multicast.address.IPv6Address ? `<IPv6Address>${configuration.multicast.address.IPv6Address}</IPv6Address>` : ''
+            }</Address>` : ''
+        }${configuration.multicast.port !== undefined ? `<Port>${configuration.multicast.port}</Port>` : ''
+        }${configuration.multicast.TTL !== undefined ? `<TTL>${configuration.multicast.TTL}</TTL>` : ''
+        }${configuration.multicast.autoStart !== undefined ? `<AutoStart>${configuration.multicast.autoStart}</AutoStart>` : ''
+        }</Multicast>` : ''
+      }${'quality' in configuration ? `<Quality>${configuration.quality}</Quality>` : ''
+      }${'sourceToken' in configuration ? `<SourceToken xmlns="http://www.onvif.org/ver10/schema">${configuration.sourceToken}</SourceToken>` : ''
+      }${'bounds' in configuration
+        ? `<Bounds xmlns="http://www.onvif.org/ver10/schema" x="${
+        configuration.bounds!.x
+        }" y="${
+        configuration.bounds!.y
+        }" width="${
+        configuration.bounds!.width
+        }" height="${
+        configuration.bounds!.height
+        }">` : ''
+      }${'extension' in configuration && configuration.extension
+        ? `<Extention xmlns="http://www.onvif.org/ver10/schema">${
+          'rotate' in configuration.extension && configuration.extension.rotate ? `<Rotate xmlns="http://www.onvif.org/ver10/schema"><Mode>${
+            configuration.extension.rotate.mode}</Mode>${
+            configuration.extension.rotate.degree ? `<Degree>${configuration.extension.rotate.degree}</Degree>` : ''
+          }</Rotate>` : ''
+        }</Extention>` : ''
+      }</Configuration>${
+        (!this.onvif.device.media2Support ? `<ForcePersistence>${forcePersistence}</ForcePersistence>` : '')
+      }`
+      + '</SetVideoEncoderConfiguration>';
+    const [data] = await this.onvif.request({ service, body });
+    return data;
   }
 
   /**
