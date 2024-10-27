@@ -148,6 +148,9 @@
             <tptz:Preset token="Home">
                 <tt:Name>Home</tt:Name>
             </tptz:Preset>
+            <tptz:Preset token="Home2">
+                <tt:Name>Home</tt:Name>
+            </tptz:Preset>
             {{?}}
         </tptz:GetPresetsResponse>
     </SOAP-ENV:Body>
