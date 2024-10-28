@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -16,7 +16,7 @@
     {
       "name": "Andrew D.Laptev",
       "email": "a.d.laptev@gmail.com",
-      "url": "https://github.com/agsh/onvif"
+      "url": "https://github.com/agsh"
     },
     {
       "name": "Chris Wiggins",
@@ -39,7 +39,6 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
-    "lodash.get": "^4.4.2",
     "xml2js": "^0.6.2"
   },
   "keywords": [
@@ -51,7 +50,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=12.0"
+    "node": ">=14.0"
   },
   "devDependencies": {
     "dot": "^1.1.3",
