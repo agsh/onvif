@@ -107,7 +107,7 @@ For Profile G Recorders it displays the RTSP address of the first recording
 
 # API
 
-## You can find this page and full API class documentation here: [http://agsh.github.io/onvif/](http://agsh.github.io/onvif/) ##
+## You can find this page and full API class documentation here: [https://onvif.pages.dev/](https://onvif.pages.dev/) ##
 
 Short description of library possibilities is below.
 
