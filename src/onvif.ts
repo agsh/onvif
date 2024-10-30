@@ -19,6 +19,8 @@ export interface OnvifOptions {
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
   secureOptions?: SecureContextOptions;
+  /** Use WS-Security SOAP headers */
+  useWSSecurity?: boolean;
   hostname: string;
   username?: string;
   password?: string;
@@ -51,7 +53,7 @@ export interface OnvifServices {
   [key: string]: URL | undefined;
 }
 
-export interface OnvifRequestOptions extends RequestOptions{
+export interface OnvifRequestOptions extends RequestOptions {
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
@@ -157,6 +159,8 @@ export class Onvif extends EventEmitter {
   public readonly ptz: PTZ;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
+  public useWSSecurity: boolean;
+  private nc: number = 0;
   public hostname: string;
   public username?: string;
   public password?: string;
@@ -180,6 +184,7 @@ export class Onvif extends EventEmitter {
     super();
     this.useSecure = options.useSecure ?? false;
     this.secureOptions = options.secureOptions ?? {};
+    this.useWSSecurity = options.useWSSecurity ?? true;
     this.hostname = options.hostname;
     this.username = options.username;
     this.password = options.password;
@@ -222,7 +227,7 @@ export class Onvif extends EventEmitter {
     let header = '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">'
         + '<s:Header>';
     // Only insert Security if there is a username and password
-    if (this.username && this.password) {
+    if (this.useWSSecurity && this.username && this.password) {
       const req = this.passwordDigest();
       header += '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">'
           + '<UsernameToken>'
@@ -297,8 +302,9 @@ export class Onvif extends EventEmitter {
         timeout : this.timeout,
       };
       requestOptions.headers = {
+        ...options.headers,
         'Content-Type'   : 'application/soap+xml',
-        'Content-Length' : Buffer.byteLength(options.body, 'utf8'),
+        'Content-Length' : Buffer.byteLength(options.body, 'utf8').toString(),
         charset          : 'utf-8',
       };
       requestOptions.method = 'POST';
@@ -306,7 +312,21 @@ export class Onvif extends EventEmitter {
       if (this.useSecure) {
         Object.assign(requestOptions, this.secureOptions);
       }
-      const request = httpLibrary.request(requestOptions, (response) => {
+      const request = httpLibrary.request(requestOptions, async (response) => {
+        const wwwAuthenticate = response.headers['www-authenticate'];
+        const { statusCode } = response;
+        if (statusCode === 401 && wwwAuthenticate !== undefined) {
+          // Re-request with digest auth header
+          response.destroy();
+          try {
+            options.headers!.Authorization = this.digestAuth(wwwAuthenticate, requestOptions.path!);
+            const digestResponse = await this.rawRequest(options);
+            return resolve(digestResponse);
+          } catch (e) {
+            return reject(e);
+          }
+        }
+
         const bufs: Buffer[] = [];
         let length = 0;
 
@@ -329,6 +349,7 @@ export class Onvif extends EventEmitter {
           this.emit('rawResponse', xml);
           resolve(parseSOAPString(xml));
         });
+        return undefined;
       });
 
       request.setTimeout(this.timeout, () => {
@@ -362,14 +383,79 @@ export class Onvif extends EventEmitter {
     });
   }
 
+  private digestAuth(wwwAuthenticate: string, path: string) {
+    const challenge = this.parseChallenge(wwwAuthenticate);
+    const ha1 = crypto.createHash('md5');
+    ha1.update([this.username, challenge.realm, this.password].join(':'));
+    const ha2 = crypto.createHash('md5');
+    ha2.update(['POST', path].join(':'));
+
+    let cnonce = null;
+    let nc = null;
+    if (typeof challenge.qop === 'string') {
+      const cnonceHash = crypto.createHash('md5');
+      cnonceHash.update(Math.random().toString(36));
+      cnonce = cnonceHash.digest('hex').substring(0, 8);
+      nc = this.updateNC();
+    }
+
+    const response = crypto.createHash('md5');
+    const responseParams = [
+      ha1.digest('hex'),
+      challenge.nonce,
+    ];
+    if (cnonce) {
+      responseParams.push(nc);
+      responseParams.push(cnonce);
+    }
+
+    responseParams.push(challenge.qop);
+    responseParams.push(ha2.digest('hex'));
+    response.update(responseParams.join(':'));
+
+    const authParams: { [key: string]: string } = {
+      username : this.username!,
+      realm    : challenge.realm,
+      nonce    : challenge.nonce,
+      uri      : path,
+      qop      : challenge.qop,
+      response : response.digest('hex'),
+    };
+    if (challenge.opaque) {
+      authParams.opaque = challenge.opaque;
+    }
+    if (cnonce && nc) {
+      authParams.nc = nc;
+      authParams.cnonce = cnonce;
+    }
+    return `Digest ${Object.entries(authParams).map(([key, value]) => `${key}="${value}"`).join(',')}`;
+  }
+
   public request(options: OnvifRequestOptions) {
     if (!options.body) {
       throw new Error("There is no 'body' field in request options");
     }
+    options.headers = options.headers ?? {};
     return this.rawRequest({
       ...options,
       body : `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
     });
+  }
+
+  private parseChallenge(digest: string) {
+    const prefix = 'Digest ';
+    const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
+    const parts = challenge.split(',')
+      .map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
+    return Object.fromEntries(parts);
+  }
+
+  private updateNC() {
+    this.nc += 1;
+    if (this.nc > 99999999) {
+      this.nc = 1;
+    }
+    return String(this.nc).padStart(8, '0');
   }
 
   /**
