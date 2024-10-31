@@ -27,6 +27,12 @@ const cam = new onvif.Cam({...connect_options});
 })().catch(console.error);
 ```
 
+**Capabilities information:**
+JSON that you can get by running GetServiceCapabilities: 
+```js 
+console.log(await cam.getServiceCapabilities());
+```
+
 **Information (please complete the following information):**
  - Device manufacturer
  - Device model
