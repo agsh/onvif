@@ -20,10 +20,17 @@ describe('Imaging', () => {
 	});
 
 	describe('getPresets', () => {
+		const isValidPrest = (preset) => {
+			return typeof preset == 'object' &&
+				// name and PTZPosition are optional in the standard onvif specs
+				// https://www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
+				// only token is required
+				typeof preset.$.token == 'string';
+		};
 		it('should return array of preset objects and sets them to #presets', (done) => {
 			cam.getPresets({}, (err, data) => {
 				assert.strictEqual(err, null);
-				assert.ok(Object.keys(data).every((presetName) => typeof data[presetName] == 'string'));
+				assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
 				assert.strictEqual(cam.presets, data);
 				done();
 			});
@@ -31,7 +38,7 @@ describe('Imaging', () => {
 		it('should return array of preset objects and sets them to #presets without options', (done) => {
 			cam.getPresets((err, data) => {
 				assert.strictEqual(err, null);
-				assert.ok(Object.keys(data).every((presetName) => typeof data[presetName] == 'string'));
+				assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
 				assert.strictEqual(cam.presets, data);
 				done();
 			});
@@ -41,7 +48,7 @@ describe('Imaging', () => {
 				serverMockup.conf.one = true;
 				cam.getPresets((err, data) => {
 					assert.strictEqual(err, null);
-					assert.ok(Object.keys(data).every((presetName) => typeof data[presetName] == 'string'));
+					assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
 					assert.strictEqual(cam.presets, data);
 					delete serverMockup.conf.one;
 					done();
