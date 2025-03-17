@@ -1,5 +1,6 @@
 const commonRules = {
   'no-console'                   : 'warn',
+  'quotes'                       : ['error', 'single'],
   'comma-dangle'                 : [ 'error', 'always-multiline' ],
   'import/extensions'            : 0,
   'import/no-cycle'              : 0,
@@ -14,7 +15,7 @@ const commonRules = {
   'no-unused-vars'               : 'warn',
   'no-case-declarations'         : 0,
   'no-shadow'                    : 0,
-  'brace-style'                  : ["error", "1tbs", { "allowSingleLine" : true }],
+  'brace-style'                  : ['error', '1tbs', { 'allowSingleLine' : true }],
   'lines-between-class-members'  : 0,
   'max-len'                      : ['warn', 200],
   'class-methods-use-this'       : 0,
