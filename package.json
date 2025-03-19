@@ -46,7 +46,6 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
-    "lodash.get": "^4.4.2",
     "xml2js": "^0.6.2"
   },
   "keywords": [
@@ -83,8 +82,8 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.2.6",
     "tsx": "^4.15.8",
-    "typedoc": "^0.26.2",
-    "typedoc-plugin-missing-exports": "^3.0.0",
+    "typedoc": "^0.27.9",
+    "typedoc-plugin-missing-exports": "^3.1.0",
     "typescript": "^5.8.2"
   }
 }
