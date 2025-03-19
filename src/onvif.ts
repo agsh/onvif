@@ -433,7 +433,7 @@ export class Onvif extends EventEmitter {
 
   public request(options: OnvifRequestOptions) {
     if (!options.body) {
-      throw new Error("There is no 'body' field in request options");
+      throw new Error('There is no \'body\' field in request options');
     }
     options.headers = options.headers ?? {};
     return this.rawRequest({

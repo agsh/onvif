@@ -149,7 +149,7 @@ export class Media {
 
   /** Common setVideoSourceConfiguration for media and media2 profiles. It depends on media2support flag */
   async setVideoSourceConfiguration(configuration: VideoSourceConfiguration | VideoEncoder2Configuration, forcePersistence: boolean = true):
-    Promise<any> {
+    Promise<SetVideoSourceConfigurationResponse> {
     const service = this.onvif.device.media2Support ? 'media2' : 'media';
     const xmlns = this.onvif.device.media2Support
       ? 'http://www.onvif.org/ver20/media/wsdl'

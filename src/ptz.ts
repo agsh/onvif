@@ -1,9 +1,7 @@
 import { Onvif } from './onvif';
 import { linerase } from './utils';
-import {
-  Duration, PTZConfiguration, PTZSpeed, Space1DDescription, Space2DDescription, Vector1D, Vector2D,
-} from './media';
-import { ReferenceToken } from './interfaces/common';
+import { Duration, ReferenceToken, Vector1D, Vector2D } from './interfaces/common';
+import { PTZConfiguration, PTZNode, PTZSpeed, Space1DDescription, Space2DDescription } from './interfaces/onvif';
 
 export interface PTZPresetTourSupported {
   /** Indicates number of preset tours that can be created. Required preset tour operations shall be available for this
@@ -11,33 +9,6 @@ export interface PTZPresetTourSupported {
   maximumNumberOfPresetTours: number;
   /** Indicates which preset tour operations are available for this PTZ Node */
   ptzPresetTourOperation: 'Start' | 'Stop' | 'Pause' | 'Extended';
-}
-
-export interface PTZNode {
-  /** Unique identifier referencing the physical entity */
-  token: ReferenceToken;
-  /** Indication whether the HomePosition of a Node is fixed or it can be changed via the SetHomePosition command */
-  fixedHomePosition: boolean;
-  /** Indication whether the Node supports the geo-referenced move command */
-  geoMove: boolean;
-  /** A unique identifier that is used to reference PTZ Nodes */
-  name?: string;
-  /** A list of Coordinate Systems available for the PTZ Node. For each Coordinate System, the PTZ Node MUST specify
-   * its allowed range */
-  supportedPTZSpaces: PTZSpace[];
-  /** All preset operations MUST be available for this PTZ Node if one preset is supported */
-  maximumNumberOfPresets: number;
-  /** A boolean operator specifying the availability of a home position. If set to true, the Home Position Operations
-   * MUST be available for this PTZ Node */
-  homeSupported: boolean;
-  /** A list of supported Auxiliary commands. If the list is not empty, the Auxiliary Operations MUST be available for
-   * this PTZ Node */
-  auxiliaryCommands?: any;
-  extension?: {
-    /** Detail of supported Preset Tour feature */
-    supportedPresetTour?: PTZPresetTourSupported;
-    extension?: any;
-  };
 }
 
 export interface PTZSpace {

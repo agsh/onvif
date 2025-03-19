@@ -12,7 +12,8 @@ import {
   SetNTP,
 } from './interfaces/devicemgmt';
 import {
-  Capabilities, CapabilitiesExtension,
+  Capabilities,
+  CapabilitiesExtension,
   DNSInformation, HostnameInformation, NetworkInterface,
   NTPInformation, Scope,
 } from './interfaces/onvif';
@@ -103,7 +104,7 @@ export class Device {
         options.category!.map((category) => `<Category>${category}</Category>`).join('')
       }</GetCapabilities>`,
     });
-    this.onvif.capabilities = linerase(data[0].getCapabilitiesResponse[0].capabilities[0]);
+    this.onvif.capabilities = linerase(data[0].getCapabilitiesResponse[0].capabilities[0]) as Capabilities;
     ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in this.onvif.capabilities[capabilityName]!) {

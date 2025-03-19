@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import {
   Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions,
 } from '../onvif';
-import { GetSnapshotUriOptions, GetStreamUriOptions } from '../media';
+import { GetStreamUriOptions } from '../media';
 import {
   GetPresetsOptions, GetStatusOptions,
   GotoHomePositionOptions,
@@ -17,7 +17,7 @@ import {
 } from '../ptz';
 import { SetNTP } from '../interfaces/devicemgmt';
 import { NetworkHostType } from '../interfaces/onvif';
-import { GetOSDs } from '../interfaces/media.2';
+import { GetOSDs, GetSnapshotUri } from '../interfaces/media.2';
 import { ReferenceToken } from '../interfaces/common';
 
 export type Callback = (error: any, result?: any) => void;
@@ -150,11 +150,11 @@ export class Cam extends EventEmitter {
       .then((result) => (options as Callback)(null, result)).catch(options as Callback);
   }
 
-  getSnapshotUri(options: GetSnapshotUriOptions, callback: Callback): void
+  getSnapshotUri(options: GetSnapshotUri, callback: Callback): void
   getSnapshotUri(callback: Callback): void
-  getSnapshotUri(options: GetSnapshotUriOptions | Callback, callback?: Callback) {
+  getSnapshotUri(options: GetSnapshotUri | Callback, callback?: Callback) {
     if (callback) {
-      this.onvif.media.getSnapshotUri(options as GetSnapshotUriOptions)
+      this.onvif.media.getSnapshotUri(options as GetSnapshotUri)
         .then((result) => callback(null, result)).catch(callback);
     }
     this.onvif.media.getSnapshotUri().then((result) => (options as Callback)(null, result))
