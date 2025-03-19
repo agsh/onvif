@@ -46,7 +46,7 @@ export interface SourceCapabilities {
 /** The capabilities of Provisioning Service on the device. */
 export interface Capabilities {
   /** Maximum time before stopping movement after a move operation. */
-  defaultTimeout?: unknown;
+  defaultTimeout?: string;
   /** Capabilities per video source. */
   source?: SourceCapabilities[];
 }
@@ -61,7 +61,7 @@ export interface PanMove {
   /** "left" or "right". */
   direction?: PanDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface PanMoveResponse {}
 export interface TiltMove {
@@ -70,7 +70,7 @@ export interface TiltMove {
   /** "up" or "down". */
   direction?: TiltDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface TiltMoveResponse {}
 export interface ZoomMove {
@@ -79,7 +79,7 @@ export interface ZoomMove {
   /** "wide" or "telephoto". */
   direction?: ZoomDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface ZoomMoveResponse {}
 export interface RollMove {
@@ -88,7 +88,7 @@ export interface RollMove {
   /** "clockwise", "counterclockwise", or "auto". */
   direction?: RollDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface RollMoveResponse {}
 export interface FocusMove {
@@ -97,7 +97,7 @@ export interface FocusMove {
   /** "near", "far", or "auto". */
   direction?: FocusDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface FocusMoveResponse {}
 export interface Stop {

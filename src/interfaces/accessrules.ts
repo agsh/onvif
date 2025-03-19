@@ -80,6 +80,7 @@ export interface AccessProfile extends AccessProfileInfo {
   extension?: AccessProfileExtension;
 }
 export interface AccessProfileExtension {}
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**

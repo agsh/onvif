@@ -245,9 +245,9 @@ export interface FtpContentConfiguration {
 }
 export interface FtpContentConfigurationUploadImages {
   /** Upload Image action; how long? */
-  howLong?: unknown;
+  howLong?: string;
   /** Upload Image action; sample interval? */
-  sampleInterval?: unknown;
+  sampleInterval?: string;
   /** Upload Image action; name of destination file */
   fileName?: FtpFileNameConfigurations;
 }
@@ -273,11 +273,11 @@ export interface SMSMessage {
 }
 export interface TriggeredRecordingConfiguration {
   /** Length of recording time before the triggering event */
-  preRecordDuration?: unknown;
+  preRecordDuration?: string;
   /** Recording after alarm recording duration */
-  postRecordDuration?: unknown;
+  postRecordDuration?: string;
   /** Record duration */
-  recordDuration?: unknown;
+  recordDuration?: string;
   /** Recording frame rate */
   recordFrameRate?: PositiveInteger;
   /** Whether Audio recording on/off */
@@ -314,6 +314,7 @@ export interface ModifyActions {
 export interface GetServiceCapabilitiesResponse {
   capabilities?: ActionEngineCapabilities;
 }
+export interface Capabilities extends ActionEngineCapabilities {}
 export interface GetActionTriggersResponse {
   /** Array of current Action Trigger configurations */
   actionTrigger?: ActionTrigger[];

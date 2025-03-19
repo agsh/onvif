@@ -207,6 +207,7 @@ export interface SecurityLevel extends SecurityLevelInfo {
   extension?: SecurityLevelExtension;
 }
 export interface SecurityLevelExtension {}
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**

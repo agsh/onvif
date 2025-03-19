@@ -127,7 +127,7 @@ export interface ContinuousMove {
   /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
   velocity?: PTZSpeed;
   /** An optional Timeout parameter. */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface ContinuousMoveResponse {}
 export interface RelativeMove {

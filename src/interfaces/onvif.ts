@@ -159,8 +159,8 @@ export interface FloatRange {
 }
 /** Range of duration greater equal Min duration and less equal Max duration. */
 export interface DurationRange {
-  min?: unknown;
-  max?: unknown;
+  min?: string;
+  max?: string;
 }
 /** List of values. */
 export interface IntItems {
@@ -243,6 +243,8 @@ export interface ConfigurationEntity {
   useCount?: number;
 }
 export interface VideoSourceConfiguration extends ConfigurationEntity {
+  /** Readonly parameter signalling Source configuration's view mode, for devices supporting different view modes as defined in tt:viewModes. */
+  viewMode?: string;
   /** Reference to the physical input. */
   sourceToken?: ReferenceToken;
   /** Rectangle specifying the Video capturing area. The capturing area shall not be larger than the whole Video source area. */
@@ -348,6 +350,12 @@ export interface SceneOrientation {
   orientation?: string;
 }
 export interface VideoEncoderConfiguration extends ConfigurationEntity {
+  /**
+   * A value of true indicates that frame rate is a fixed value rather than an upper limit,
+   * and that the video encoder shall prioritize frame rate over all other adaptable
+   * configuration values such as bitrate.  Default is false.
+   */
+  guaranteedFrameRate?: boolean;
   /** Used video codec, either Jpeg, H.264 or Mpeg4 */
   encoding?: VideoEncoding;
   /** Configured video resolution */
@@ -363,7 +371,7 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
-  sessionTimeout?: unknown;
+  sessionTimeout?: string;
 }
 export interface VideoResolution {
   /** Number of the columns of the Video image. */
@@ -459,6 +467,18 @@ export interface H264Options2 extends H264Options {
   bitrateRange?: IntRange;
 }
 export interface VideoEncoder2Configuration extends ConfigurationEntity {
+  /** Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
+  govLength?: number;
+  /** Distance between anchor frames of type I-Frame and P-Frame. '1' indicates no B-Frames, '2' indicates that every 2nd frame is encoded as B-Frame, '3' indicates a structure like IBBPBBP..., etc. */
+  anchorFrameDistance?: number;
+  /** The encoder profile as defined in tt:VideoEncodingProfiles. */
+  profile?: string;
+  /**
+   * A value of true indicates that frame rate is a fixed value rather than an upper limit,
+   * and that the video encoder shall prioritize frame rate over all other adaptable
+   * configuration values such as bitrate.  Default is false.
+   */
+  guaranteedFrameRate?: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding?: string;
   /** Configured video resolution */
@@ -526,7 +546,7 @@ export interface AudioEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream */
-  sessionTimeout?: unknown;
+  sessionTimeout?: string;
 }
 export interface AudioEncoderConfigurationOptions {
   /** list of supported AudioEncoderConfigurations */
@@ -563,6 +583,12 @@ export interface VideoAnalyticsConfiguration extends ConfigurationEntity {
   ruleEngineConfiguration?: RuleEngineConfiguration;
 }
 export interface MetadataConfiguration extends ConfigurationEntity {
+  /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType. */
+  compressionType?: string;
+  /** Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target. */
+  geoLocation?: boolean;
+  /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon. */
+  shapePolygon?: boolean;
   /** optional element to configure which PTZ related data is to include in the metadata stream */
   PTZStatus?: PTZFilter;
   /**
@@ -579,7 +605,7 @@ export interface MetadataConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout?: unknown;
+  sessionTimeout?: string;
   /**
    * Indication which AnalyticsModules shall output metadata.
    * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
@@ -797,7 +823,7 @@ export interface MediaUri {
   /** Indicates if the Uri is invalid after a reboot of the device. The value shall be set to "false". */
   invalidAfterReboot?: boolean;
   /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes */
-  timeout?: unknown;
+  timeout?: string;
 }
 export interface Scope {
   /** Indicates if the scope is fixed or configurable. */
@@ -967,7 +993,7 @@ export interface DynamicDNSInformation {
   /** DNS name. */
   name?: DNSName;
   /** Time to live. */
-  TTL?: unknown;
+  TTL?: string;
   extension?: DynamicDNSInformationExtension;
 }
 export interface DynamicDNSInformationExtension {}
@@ -1496,7 +1522,7 @@ export interface RelayOutputSettings {
    */
   mode?: RelayMode;
   /** Time after which the relay returns to its idle state if it is in monostable mode. If the Mode field is set to bistable mode the value of the parameter can be ignored. */
-  delayTime?: unknown;
+  delayTime?: string;
   /**
    * 'open' or 'closed'
    *
@@ -1509,8 +1535,15 @@ export interface RelayOutputSettings {
 export interface RelayOutput extends DeviceEntity {
   properties?: RelayOutputSettings;
 }
-export interface DigitalInput extends DeviceEntity {}
+export interface DigitalInput extends DeviceEntity {
+  /** Indicate the Digital IdleState status. */
+  idleState?: DigitalIdleState;
+}
 export interface PTZNode extends DeviceEntity {
+  /** Indication whether the HomePosition of a Node is fixed or it can be changed via the SetHomePosition command. */
+  fixedHomePosition?: boolean;
+  /** Indication whether the Node supports the geo-referenced move command. */
+  geoMove?: boolean;
   /** A unique identifier that is used to reference PTZ Nodes. */
   name?: Name;
   /** A list of Coordinate Systems available for the PTZ Node. For each Coordinate System, the PTZ Node MUST specify its allowed range. */
@@ -1538,6 +1571,12 @@ export interface PTZPresetTourSupported {
 }
 export interface PTZPresetTourSupportedExtension {}
 export interface PTZConfiguration extends ConfigurationEntity {
+  /** The optional acceleration ramp used by the device when moving. */
+  moveRamp?: number;
+  /** The optional acceleration ramp used by the device when recalling presets. */
+  presetRamp?: number;
+  /** The optional acceleration ramp used by the device when executing PresetTours. */
+  presetTourRamp?: number;
   /** A mandatory reference to the PTZ Node that the PTZ Configuration belongs to. */
   nodeToken?: ReferenceToken;
   /** If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default. */
@@ -1555,7 +1594,7 @@ export interface PTZConfiguration extends ConfigurationEntity {
   /** If the PTZ Node supports absolute or relative PTZ movements, it shall specify corresponding default Pan/Tilt and Zoom speeds. */
   defaultPTZSpeed?: PTZSpeed;
   /** If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops. */
-  defaultPTZTimeout?: unknown;
+  defaultPTZTimeout?: string;
   /** The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF. */
   panTiltLimits?: PanTiltLimits;
   /** The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF. */
@@ -1729,7 +1768,7 @@ export interface PTZPresetTourSpot {
   /** Optional parameter to specify Pan/Tilt and Zoom speed on moving toward this tour spot. */
   speed?: PTZSpeed;
   /** Optional parameter to specify time duration of staying on this tour sport. */
-  stayTime?: unknown;
+  stayTime?: string;
   extension?: PTZPresetTourSpotExtension;
 }
 export interface PTZPresetTourSpotExtension {}
@@ -1749,7 +1788,7 @@ export interface PTZPresetTourStartingCondition {
   /** Optional parameter to specify how many times the preset tour is recurred. */
   recurringTime?: number;
   /** Optional parameter to specify how long time duration the preset tour is recurred. */
-  recurringDuration?: unknown;
+  recurringDuration?: string;
   /** Optional parameter to choose which direction the preset tour goes. Forward shall be chosen in case it is omitted. */
   direction?: PTZPresetTourDirection;
   extension?: PTZPresetTourStartingConditionExtension;
@@ -2052,7 +2091,7 @@ export interface IrCutFilterAutoAdjustment {
   /** Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless). */
   boundaryOffset?: number;
   /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels. */
-  responseTime?: unknown;
+  responseTime?: string;
   extension?: IrCutFilterAutoAdjustmentExtension;
 }
 export interface IrCutFilterAutoAdjustmentExtension {}
@@ -2725,9 +2764,9 @@ export interface RecordingTargetConfiguration {
   /** Path postfix to be inserted in the object key. */
   postfix?: string;
   /** Maximum duration of a span. */
-  spanDuration?: unknown;
+  spanDuration?: string;
   /** Maximum duration of a segment. */
-  segmentDuration?: unknown;
+  segmentDuration?: string;
   /**
    * Optional encryption configuration.
    * See capability trc:EncryptionEntryLimit for the number of supported entries.
@@ -2817,7 +2856,7 @@ export interface RecordingConfiguration {
    * Whatever the value of MaximumRetentionTime, the device may automatically delete
    * recordings to free up storage space for new recordings.
    */
-  maximumRetentionTime?: unknown;
+  maximumRetentionTime?: string;
   /** Optional external storage target configuration. */
   target?: RecordingTargetConfiguration;
 }
@@ -2885,9 +2924,9 @@ export interface Filter {
 export interface RecordingEventFilter {
   filter?: Filter[];
   /** Optional timespan to record before the actual event condition became active. */
-  before?: unknown;
+  before?: string;
   /** Optional timespan to record after the actual event condition becomes inactive. */
-  after?: unknown;
+  after?: string;
 }
 export interface RecordingJobConfigurationExtension {}
 export interface RecordingJobSource {
@@ -2968,7 +3007,7 @@ export interface GetRecordingJobsResponseItem {
 /** Configuration parameters for the replay service. */
 export interface ReplayConfiguration {
   /** The RTSP session timeout. */
-  sessionTimeout?: unknown;
+  sessionTimeout?: string;
 }
 export interface AnalyticsEngine extends ConfigurationEntity {
   analyticsEngineConfiguration?: AnalyticsDeviceEngineConfiguration;

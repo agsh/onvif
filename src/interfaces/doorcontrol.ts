@@ -98,36 +98,36 @@ export interface Timings {
    * ReleaseTime is the time from when the latch is unlocked until it is
    * relocked again (unless the door is physically opened).
    */
-  releaseTime?: unknown;
+  releaseTime?: string;
   /**
    * The time from when the door is physically opened until the door is set in the
    * DoorOpenTooLong alarm state.
    */
-  openTime?: unknown;
+  openTime?: string;
   /**
    * Some individuals need extra time to open the door before the latch relocks.
    * If supported, ExtendedReleaseTime shall be added to ReleaseTime if UseExtendedTime
    * is set to true in the AccessDoor command.
    */
-  extendedReleaseTime?: unknown;
+  extendedReleaseTime?: string;
   /**
    * If the door is physically opened after access is granted,
    * then DelayTimeBeforeRelock is the time from when the door is physically
    * opened until the latch goes back to locked state.
    */
-  delayTimeBeforeRelock?: unknown;
+  delayTimeBeforeRelock?: string;
   /**
    * Some individuals need extra time to pass through the door. If supported,
    * ExtendedOpenTime shall be added to OpenTime if UseExtendedTime is set to true
    * in the AccessDoor command.
    */
-  extendedOpenTime?: unknown;
+  extendedOpenTime?: string;
   /**
    * Before a DoorOpenTooLong alarm state is generated, a signal will sound to indicate
    * that the door must be closed. PreAlarmTime defines how long before DoorOpenTooLong
    * the warning signal shall sound.
    */
-  preAlarmTime?: unknown;
+  preAlarmTime?: string;
   extension?: TimingsExtension;
 }
 export interface TimingsExtension {}
@@ -281,6 +281,7 @@ export interface DoorFault {
 }
 /** Extension for the AccessDoor command. */
 export interface AccessDoorExtension {}
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**
@@ -389,11 +390,11 @@ export interface AccessDoor {
    */
   useExtendedTime?: boolean;
   /** Optional - overrides ReleaseTime if specified. */
-  accessTime?: unknown;
+  accessTime?: string;
   /** Optional - overrides OpenTime if specified. */
-  openTooLongTime?: unknown;
+  openTooLongTime?: string;
   /** Optional - overrides PreAlarmTime if specified. */
-  preAlarmTime?: unknown;
+  preAlarmTime?: string;
   /** Future extension. */
   extension?: AccessDoorExtension;
 }

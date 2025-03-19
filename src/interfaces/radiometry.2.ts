@@ -135,7 +135,7 @@ export interface RadiometryTemperatureRuleConfig {
   /** Indicates the temperature reference value the rule shall be checked against. */
   thresholdTemperature?: number;
   /** Indicates the time interval during which the rule condition shall be met to trigger an event. */
-  thresholdTime?: unknown;
+  thresholdTime?: string;
   /** Indicates the width in Kelvin of the temerature hysteresis band to be considered by the rule. */
   hysteresisTemperature?: number;
 }

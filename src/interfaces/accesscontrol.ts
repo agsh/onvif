@@ -233,6 +233,7 @@ export interface AccessPointState {
    */
   enabled?: boolean;
 }
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**

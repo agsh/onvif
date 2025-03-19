@@ -10,6 +10,8 @@ export type mimeType = string;
  * presets defined in ISO/IEC 15938-12
  */
 export interface RegisterDatabase extends CapabilityType {
+  serviceID: AnyURI;
+  recordingSearchInterfaceRegistration?: boolean;
   extension?: RegisterDatabaseExtension;
 }
 export interface RegisterDatabaseExtension {}

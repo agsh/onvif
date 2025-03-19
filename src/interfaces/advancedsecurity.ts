@@ -38,7 +38,11 @@ export type TLSVersions = string[];
 export type PasswordBasedEncryptionAlgorithms = string[];
 /** A list of password based MAC algorithms. */
 export type PasswordBasedMACAlgorithms = string[];
-export type AuthorizationServerConfigurationType = 'OAuthAuthorizationCode' | 'OAuthClientCredentials';
+export type AuthorizationServerConfigurationType =
+  | 'OAuthAuthorizationCode'
+  | 'OAuthClientCredentials'
+  | 'OIDC2AuthorizationCode';
+/** Client Authentication methods listed are referenced from  IANA OAuth Token Endpoint Authentication Methods. */
 export type ClientAuthenticationMethod =
   | 'client_secret_basic'
   | 'client_secret_post'
@@ -393,7 +397,7 @@ export interface CreateRSAKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID?: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime?: unknown;
+  estimatedCreationTime?: string;
 }
 export interface CreateECCKeyPair {
   /** The name of the elliptic curve to be used for generating the ECC keypair. */
@@ -405,7 +409,7 @@ export interface CreateECCKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID?: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime?: unknown;
+  estimatedCreationTime?: string;
 }
 export interface UploadKeyPairInPKCS8 {
   /** The key pair to be uploaded in a PKCS#8 data structure. */
