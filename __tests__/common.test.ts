@@ -4,7 +4,7 @@ describe('Onvif base methods', () => {
   let cam: Onvif;
   beforeAll(async () => {
     cam = new Onvif({
-      hostname      : '192.168.0.149',
+      hostname      : 'localhost',
       username      : 'admin',
       password      : 'admin',
       port          : 8000,
