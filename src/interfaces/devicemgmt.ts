@@ -1,6 +1,5 @@
 import { AnyURI } from './basics';
 import {
-  Capabilities,
   OnvifVersion,
   IntList,
   StringList,
@@ -51,7 +50,7 @@ import {
   Dot11Capabilities,
   Dot11Status,
   Dot11AvailableNetworks,
-  SystemLogUriList,
+  SystemLogUriList, Capabilities,
 } from './onvif';
 import { IntRange, ReferenceToken, LocationEntity } from './common';
 
@@ -223,6 +222,7 @@ export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the device service is returned in the Capabilities element. */
   capabilities?: DeviceServiceCapabilities;
 }
+// export interface Capabilities extends DeviceServiceCapabilities {}
 export interface GetDeviceInformation {}
 export interface GetDeviceInformationResponse {
   /** The manufactor of the device. */
@@ -496,7 +496,7 @@ export interface SetDynamicDNS {
   /** DNS name. */
   name?: DNSName;
   /** DNS record time to live. */
-  TTL?: unknown;
+  TTL?: string;
 }
 export interface SetDynamicDNSResponse {}
 export interface GetNetworkInterfaces {}
@@ -728,13 +728,13 @@ export interface GetSystemUrisResponse {
 export interface StartFirmwareUpgrade {}
 export interface StartFirmwareUpgradeResponse {
   uploadUri?: AnyURI;
-  uploadDelay?: unknown;
-  expectedDownTime?: unknown;
+  uploadDelay?: string;
+  expectedDownTime?: string;
 }
 export interface StartSystemRestore {}
 export interface StartSystemRestoreResponse {
   uploadUri?: AnyURI;
-  expectedDownTime?: unknown;
+  expectedDownTime?: string;
 }
 export interface SetHashingAlgorithm {
   /** Hashing algorithm(s) used in HTTP and RTSP Digest Authentication. */

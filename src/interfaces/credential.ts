@@ -46,7 +46,7 @@ export interface ServiceCapabilities {
    * the wrong PIN a predetermined number of times).
    * The time period is defined as an [ISO 8601] duration string (e.g. “PT5M”).
    */
-  defaultCredentialSuspensionDuration?: unknown;
+  defaultCredentialSuspensionDuration?: string;
   /** The maximum number of whitelisted credential identifiers supported by the device. */
   maxWhitelistedItems?: number;
   /** The maximum number of blacklisted credential identifiers supported by the device. */
@@ -271,6 +271,7 @@ export interface FaultResponse {
   extension?: FaultResponseExtension;
 }
 export interface FaultResponseExtension {}
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**

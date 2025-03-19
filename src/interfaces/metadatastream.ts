@@ -117,6 +117,8 @@ export interface OtherType {
   likelihood?: number;
 }
 export interface OnvifObject extends ObjectId {
+  /** Object ID of the parent object. eg: License plate object has Vehicle object as parent. */
+  parent?: number;
   appearance?: Appearance;
   behaviour?: Behaviour;
   extension?: ObjectExtension;

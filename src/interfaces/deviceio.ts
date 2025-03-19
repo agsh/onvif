@@ -97,6 +97,12 @@ export interface GetRelayOutputOptionsResponse {
   /** Valid values and ranges for the configuration of a relay output. */
   relayOutputOptions?: RelayOutputOptions[];
 }
+export interface GetVideoSources extends Get {}
+export interface GetVideoSourcesResponse extends GetResponse {}
+export interface GetAudioSources extends Get {}
+export interface GetAudioSourcesResponse extends GetResponse {}
+export interface GetAudioOutputs extends Get {}
+export interface GetAudioOutputsResponse extends GetResponse {}
 export interface GetVideoOutputs {}
 export interface GetVideoOutputsResponse {
   /** List containing all physical Video output connections of a device. */
@@ -249,7 +255,7 @@ export interface SendReceiveSerialCommand {
   /** The serial port data. */
   serialData?: SerialData;
   /** Indicates that the command should be responded back within the specified period of time. */
-  timeOut?: unknown;
+  timeOut?: string;
   /** This element may be put in the case that data length returned from the connected serial device is already determined as some fixed bytes length. It indicates the length of received data which can be regarded as available. */
   dataLength?: number;
   /** This element may be put in the case that the delimiter codes returned from the connected serial device is already known. It indicates the termination data sequence of the responded data. In case the string has more than one character a device shall interpret the whole string as a single delimiter. Furthermore a device shall return the delimiter character(s) to the client. */

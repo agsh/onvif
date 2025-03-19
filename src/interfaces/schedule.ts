@@ -188,6 +188,7 @@ export interface SpecialDayGroup extends SpecialDayGroupInfo {
   extension?: SpecialDayGroupExtension;
 }
 export interface SpecialDayGroupExtension {}
+export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /**

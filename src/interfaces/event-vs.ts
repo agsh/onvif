@@ -49,7 +49,7 @@ export interface CreatePullPointSubscriptionResponse {
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
-  timeout?: unknown;
+  timeout?: string;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
   messageLimit?: number;
 }
@@ -63,7 +63,7 @@ export interface PullMessagesResponse {
 }
 export interface PullMessagesFaultResponse {
   /** Maximum timeout supported by the device. */
-  maxTimeout?: unknown;
+  maxTimeout?: string;
   /** Maximum message limit supported by the device. */
   maxMessageLimit?: number;
 }

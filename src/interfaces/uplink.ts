@@ -16,8 +16,10 @@ export interface Configuration {
   status?: string;
   /** CertPathValidationPolicyID used to validate the uplink server certificate. If CertPathValidationPolicyID is not configured, uplink server certificate shall not be validated. */
   certPathValidationPolicyID?: string;
-  /** The configuration to be used to obtain a JWT token to authorize with the uplink server. */
+  /** JWTConfiguration token referring to an Authorization server that provides JWT token to authorize with the uplink server. */
   authorizationServer?: ReferenceToken;
+  /** Optional user readable error information (readonly). */
+  error?: string;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
