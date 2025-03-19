@@ -1,10 +1,12 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} * */
 module.exports = {
   testEnvironment : 'node',
-  testRegex       : '\/__tests__\/.*.test.ts$',
+  testRegex       : '/__tests__/.*.test.ts$',
   transform       : {
     '.ts$' : ['ts-jest', {}],
   },
   collectCoverage   : true,
   coverageDirectory : 'coverage',
+  // setupFilesAfterEnv : ['<rootDir>/__tests__/setup.ts'],
+  // globalSetup: '',
 };

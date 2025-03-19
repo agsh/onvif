@@ -14,7 +14,8 @@
     "lint": "",
     "pretest": "npm run lint",
     "test-js": "nyc mocha",
-    "test": "jest --env=node --colors --coverage test",
+    "test2": "jest --env=node --colors --coverage test",
+    "test": "./__tests__/happytime-onvif-server/start.sh & jest --env=node --colors --coverage test && ./__tests__/happytime-onvif-server/stop.sh",
     "mockserver": "node startServerMockup.js",
     "fun": "tsx fun/test.ts"
   },
