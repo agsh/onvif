@@ -29,4 +29,5 @@ https://github.com/agsh/onvif/blob/v1/src/compatibility/cam.ts where all methods
 Thanks a lot for your interest and I will be glad to any questions and comments!
 
 P.S. I still need device access to test the code, any help would be greatly appreciated.
+https://www.happytimesoft.com/products/onvif-server/index.html
 
