@@ -7,23 +7,22 @@ import {
   Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions,
 } from '../onvif';
 import { GetStreamUriOptions } from '../media';
-import {
-  GetPresetsOptions, GetStatusOptions,
-  GotoHomePositionOptions,
-  GotoPresetOptions, AbsoluteMoveOptions,
-  RemovePresetOptions,
-  SetHomePositionOptions,
-  SetPresetOptions, RelativeMoveOptions,
-} from '../ptz';
 import { SetNTP } from '../interfaces/devicemgmt';
 import { NetworkHostType } from '../interfaces/onvif';
 import { GetOSDs, GetSnapshotUri } from '../interfaces/media.2';
 import { ReferenceToken } from '../interfaces/common';
-import { ContinuousMove } from '../interfaces/ptz.2';
+import {
+  AbsoluteMove,
+  ContinuousMove, GetPresets,
+  GetStatus,
+  GotoHomePosition, GotoPreset,
+  RelativeMove, RemovePreset,
+  SetHomePosition, SetPreset,
+} from '../interfaces/ptz.2';
 
 export type Callback = (error: any, result?: any) => void;
-export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
-export type CompatibilityRelativeMoveOptions = RelativeMoveOptions & { x?: number; y?: number; zoom?: number };
+export type CompatibilityAbsoluteMoveOptions = AbsoluteMove & { x?: number; y?: number; zoom?: number };
+export type CompatibilityRelativeMoveOptions = RelativeMove & { x?: number; y?: number; zoom?: number };
 interface CompatibilityContinuousMoveOptions extends ContinuousMove {
   x?: number;
   y?: number;
@@ -179,11 +178,11 @@ export class Cam extends EventEmitter {
     this.onvif.device.systemReboot().then((result) => callback(null, result)).catch(callback);
   }
 
-  getPresets(options: GetPresetsOptions, callback: Callback): void
+  getPresets(options: GetPresets, callback: Callback): void
   getPresets(callback: Callback): void
-  getPresets(options: GetPresetsOptions | Callback, callback?: Callback) {
+  getPresets(options: GetPresets | Callback, callback?: Callback) {
     if (callback) {
-      this.onvif.ptz.getPresets(options as GetPresetsOptions)
+      this.onvif.ptz.getPresets(options as GetPresets)
         .then((result) => callback(
           null,
           Object.fromEntries(Object.values(result).map((preset) => [preset.name, preset.token])),
@@ -198,37 +197,37 @@ export class Cam extends EventEmitter {
       .catch(options as Callback);
   }
 
-  gotoPreset(options: GotoPresetOptions, callback: Callback) {
+  gotoPreset(options: GotoPreset, callback: Callback) {
     this.onvif.ptz.gotoPreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  setPreset(options: SetPresetOptions, callback: Callback) {
+  setPreset(options: SetPreset, callback: Callback) {
     this.onvif.ptz.setPreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  removePreset(options: RemovePresetOptions, callback: Callback) {
+  removePreset(options: RemovePreset, callback: Callback) {
     this.onvif.ptz.removePreset(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  gotoHomePosition(options: GotoHomePositionOptions, callback: Callback) {
+  gotoHomePosition(options: GotoHomePosition, callback: Callback) {
     this.onvif.ptz.gotoHomePosition(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  setHomePosition(options: SetHomePositionOptions, callback: Callback) {
+  setHomePosition(options: SetHomePosition, callback: Callback) {
     this.onvif.ptz.setHomePosition(options).then((result) => callback(null, result)).catch(callback);
   }
 
-  getStatus(options: GetStatusOptions, callback: Callback): void
+  getStatus(options: GetStatus, callback: Callback): void
   getStatus(callback: Callback): void
-  getStatus(options: GetStatusOptions | Callback, callback?: Callback) {
+  getStatus(options: GetStatus | Callback, callback?: Callback) {
     if (callback) {
-      this.onvif.ptz.getStatus(options as GetStatusOptions).then((result) => callback(null, result)).catch(callback);
+      this.onvif.ptz.getStatus(options as GetStatus).then((result) => callback(null, result)).catch(callback);
     }
     this.onvif.ptz.getStatus().then((result) => (options as Callback)(null, result)).catch(options as Callback);
   }
 
   absoluteMove(compatibilityOptions: CompatibilityAbsoluteMoveOptions, callback?: Callback): void {
-    const options: AbsoluteMoveOptions = {
+    const options: AbsoluteMove = {
       ...compatibilityOptions,
       position : {
         panTilt : {
@@ -246,7 +245,7 @@ export class Cam extends EventEmitter {
   }
 
   relativeMove(compatibilityOptions: CompatibilityRelativeMoveOptions, callback?: Callback): void {
-    const options: RelativeMoveOptions = {
+    const options: RelativeMove = {
       ...compatibilityOptions,
       translation : {
         panTilt : {
@@ -286,11 +285,11 @@ export class Cam extends EventEmitter {
   }
 
   stop(): void
-  stop(options: GetStatusOptions, callback: Callback): void
+  stop(options: GetStatus, callback: Callback): void
   stop(callback: Callback): void
-  stop(options?: GetStatusOptions | Callback, callback?: Callback) {
+  stop(options?: GetStatus | Callback, callback?: Callback) {
     if (callback) {
-      this.onvif.ptz.stop(options as GetStatusOptions).then((result) => callback(null, result)).catch(callback);
+      this.onvif.ptz.stop(options as GetStatus).then((result) => callback(null, result)).catch(callback);
     }
     this.onvif.ptz.stop().then((result) => {
       if (typeof options === 'function') { (options as Callback)(null, result); }
