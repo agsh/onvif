@@ -7,7 +7,6 @@ import { Date } from './onvif';
  * Length up to 64 characters. Token may be extended by intermediate terminal with adding prefix to make it global unique.
  * The length should be within 36 characters for generating at local device. See "Remote Token" section in Resource Query specification.
  */
-export type Duration = string;
 export type ReferenceToken = string;
 export type MoveStatus = 'IDLE' | 'MOVING' | 'UNKNOWN';
 export type Entity = 'Device' | 'VideoSource' | 'AudioSource';

@@ -1,7 +1,15 @@
 import { Onvif } from './onvif';
 import { linerase } from './utils';
-import { Duration, ReferenceToken, Vector1D, Vector2D } from './interfaces/common';
-import { PTZConfiguration, PTZNode, PTZSpeed, Space1DDescription, Space2DDescription } from './interfaces/onvif';
+import { ReferenceToken, Vector1D, Vector2D } from './interfaces/common';
+import {
+  DurationRange,
+  PTZConfiguration,
+  PTZNode,
+  PTZSpeed,
+  Space1DDescription,
+  Space2DDescription,
+} from './interfaces/onvif';
+import { ContinuousMove } from './interfaces/ptz.2';
 
 export interface PTZPresetTourSupported {
   /** Indicates number of preset tours that can be created. Required preset tour operations shall be available for this
@@ -50,11 +58,6 @@ export interface PTZSpace {
    * translation. In contrast to the velocity spaces, speed spaces do not contain any directional information */
   zoomSpeedSpace?: Space1DDescription;
   extension?: any;
-}
-
-export interface DurationRange {
-  min: Duration;
-  max: Duration;
 }
 
 export interface PTControlDirectionOptions {
@@ -203,15 +206,6 @@ export interface RelativeMoveOptions {
   speed?: PTZSpeed;
 }
 
-export interface ContinuousMoveOptions {
-  /** A reference to the MediaProfile. */
-  profileToken?: ReferenceToken;
-  /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
-  velocity: PTZSpeed;
-  /** An optional Timeout parameter. Milliseconds or duration string. */
-  timeout?: Duration | number;
-}
-
 export interface StopOptions {
   /** A reference to the MediaProfile that indicate what should be stopped. */
   profileToken?: ReferenceToken;
@@ -341,7 +335,7 @@ export class PTZ {
     };
   }
 
-  private static PTZVectorToXML(input: PTZVector | PTZInputVector) {
+  private static PTZVectorToXML(input: PTZVector | PTZInputVector | PTZSpeed) {
     const vector: PTZVector = ('x' in input || 'pan' in input) ? PTZ.formatPTZSimpleVector(input) : (input as PTZVector);
     return (
       (vector.panTilt ? `<PanTilt x="${vector.panTilt.x}" y="${vector.panTilt.y}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
@@ -505,7 +499,10 @@ export class PTZ {
     profileToken = this.onvif.activeSource?.profileToken,
     velocity,
     timeout,
-  }: ContinuousMoveOptions): Promise<void> {
+  }: ContinuousMove): Promise<void> {
+    if (!velocity) {
+      throw new Error('\'velocity\' is required');
+    }
     await this.onvif.request({
       service : 'PTZ',
       body    : '<ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'

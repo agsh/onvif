@@ -13,17 +13,18 @@ import {
   GotoPresetOptions, AbsoluteMoveOptions,
   RemovePresetOptions,
   SetHomePositionOptions,
-  SetPresetOptions, RelativeMoveOptions, ContinuousMoveOptions,
+  SetPresetOptions, RelativeMoveOptions,
 } from '../ptz';
 import { SetNTP } from '../interfaces/devicemgmt';
 import { NetworkHostType } from '../interfaces/onvif';
 import { GetOSDs, GetSnapshotUri } from '../interfaces/media.2';
 import { ReferenceToken } from '../interfaces/common';
+import { ContinuousMove } from '../interfaces/ptz.2';
 
 export type Callback = (error: any, result?: any) => void;
 export type CompatibilityAbsoluteMoveOptions = AbsoluteMoveOptions & { x?: number; y?: number; zoom?: number };
 export type CompatibilityRelativeMoveOptions = RelativeMoveOptions & { x?: number; y?: number; zoom?: number };
-interface CompatibilityContinuousMoveOptions extends ContinuousMoveOptions {
+interface CompatibilityContinuousMoveOptions extends ContinuousMove {
   x?: number;
   y?: number;
   zoom?: number;
@@ -263,7 +264,7 @@ export class Cam extends EventEmitter {
   }
 
   continuousMove(compatibilityOptions: CompatibilityContinuousMoveOptions, callback?: Callback): void {
-    const options: ContinuousMoveOptions = {
+    const options: ContinuousMove = {
       ...compatibilityOptions,
       velocity : {
         ...(compatibilityOptions.x && compatibilityOptions.y && !compatibilityOptions.onlySendZoom && {
