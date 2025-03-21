@@ -1,5 +1,6 @@
 import { AnyURI } from './basics';
 import {
+  Capabilities,
   OnvifVersion,
   IntList,
   StringList,
@@ -50,7 +51,7 @@ import {
   Dot11Capabilities,
   Dot11Status,
   Dot11AvailableNetworks,
-  SystemLogUriList, Capabilities,
+  SystemLogUriList,
 } from './onvif';
 import { IntRange, ReferenceToken, LocationEntity } from './common';
 
@@ -222,7 +223,6 @@ export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the device service is returned in the Capabilities element. */
   capabilities?: DeviceServiceCapabilities;
 }
-// export interface Capabilities extends DeviceServiceCapabilities {}
 export interface GetDeviceInformation {}
 export interface GetDeviceInformationResponse {
   /** The manufactor of the device. */
