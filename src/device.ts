@@ -1,6 +1,6 @@
 import url from 'url';
 import {
-  Onvif, OnvifServices, SetSystemDateAndTimeOptions,
+  Onvif, OnvifServices, SetSystemDateAndTimeExtended,
 } from './onvif';
 import { linerase } from './utils';
 import {
@@ -47,7 +47,7 @@ export class Device {
     return this.onvif.getSystemDateAndTime();
   }
 
-  setSystemDateAndTime(options: SetSystemDateAndTimeOptions) {
+  setSystemDateAndTime(options: SetSystemDateAndTimeExtended) {
     return this.onvif.setSystemDateAndTime(options);
   }
 
