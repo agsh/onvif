@@ -8,8 +8,8 @@ import { linerase, parseSOAPString } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { PTZ } from './ptz';
-import { Capabilities, Profile } from './interfaces/onvif';
-import { GetDeviceInformationResponse } from './interfaces/devicemgmt';
+import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
+import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 
 /**
  * Cam constructor options
@@ -88,10 +88,11 @@ export interface ActiveSource {
   };
 }
 
-export interface SetSystemDateAndTimeOptions {
+export interface SetSystemDateAndTimeExtended extends SetSystemDateAndTime {
+  /**
+   * Javascript Date object to use instead of UTCDateTime
+   */
   dateTime?: Date;
-  dateTimeType: 'Manual' | 'NTP';
-  daylightSavings?: boolean;
   /**
    * The TZ format is specified by POSIX, please refer to POSIX 1003.1 section 8.3
    * Example: Europe, Paris TZ=CET-1CEST,M3.5.0/2,M10.5.0/3
@@ -105,6 +106,13 @@ export interface SetSystemDateAndTimeOptions {
    * /3, = the local time when the switch occurs = 3 a.m. in this case
    */
   timezone?: string;
+}
+
+export interface SystemDateTimeExtended extends SystemDateTime {
+  /**
+   * Javascript Date object to use instead of UTCDateTime
+   */
+  dateTime: Date;
 }
 
 export class Onvif extends EventEmitter {
@@ -269,23 +277,6 @@ export class Onvif extends EventEmitter {
       nonce : nonce.toString('base64'),
       timestamp,
     };
-  }
-
-  private setupSystemDateAndTime(data: any) {
-    const systemDateAndTime = data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0];
-    const dateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
-    let time;
-    if (dateTime === undefined) {
-      // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
-      time = new Date();
-    } else {
-      const dt = linerase(dateTime[0]);
-      time = new Date(Date.UTC(dt.date.year, dt.date.month - 1, dt.date.day, dt.time.hour, dt.time.minute, dt.time.second));
-    }
-    if (!this.timeShift) {
-      this.timeShift = time.getTime() - (process.uptime() * 1000);
-    }
-    return time;
   }
 
   private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
@@ -479,7 +470,7 @@ export class Onvif extends EventEmitter {
   /**
    * Receive date and time from cam
    */
-  async getSystemDateAndTime(): Promise<Date> {
+  async getSystemDateAndTime() {
     // The ONVIF spec says this should work without a Password as we need to know any difference in the
     // remote NVT's time relative to our own time clock (called the timeShift) before we can calculate the
     // correct timestamp in nonce SOAP Authentication header.
@@ -509,43 +500,90 @@ export class Onvif extends EventEmitter {
       throw error;
     }
   }
+
+  /**
+   * Receive only date and time from cam (old behaviour, returns only Date object)
+   */
+  async getOnlySystemDateAndTime() {
+    return (await this.getSystemDateAndTime()).dateTime;
+  }
+
+  /**
+   * Add time shift to use with ONVIF timestamps
+   * @param data
+   * @private
+   */
+  private setupSystemDateAndTime(data: any): SystemDateTimeExtended {
+    const { systemDateAndTime } = linerase(data).getSystemDateAndTimeResponse;
+    // UTCDateTime is mandatory since version 2.0
+    const UTCDateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
+    let dateTime;
+    if (UTCDateTime === undefined) {
+      // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
+      dateTime = new Date();
+    } else {
+      dateTime = new Date(Date.UTC(UTCDateTime.date.year, UTCDateTime.date.month - 1, UTCDateTime.date.day, UTCDateTime.time.hour, UTCDateTime.time.minute, UTCDateTime.time.second));
+    }
+    if (!this.timeShift) {
+      this.timeShift = dateTime.getTime() - (process.uptime() * 1000);
+    }
+    systemDateAndTime.dateTime = dateTime;
+    return systemDateAndTime;
+  }
+
   /**
    * Set the device system date and time
+   * Supports two possible date and time values: UTCDateTime(ONVIF types) or dateTime(js Date-object, preferred)
    */
-  async setSystemDateAndTime(options: SetSystemDateAndTimeOptions) {
-    if (!['Manual', 'NTP'].includes(options.dateTimeType)) {
+  async setSystemDateAndTime(options: SetSystemDateAndTimeExtended): Promise<SystemDateTimeExtended> {
+    if (!['Manual', 'NTP'].includes(options.dateTimeType!)) {
       throw new Error('DateTimeType should be `Manual` or `NTP`');
     }
-    const [data] = await this.request({
-      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
-      body :
-        '<SetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl">'
-        + `<DateTimeType>${
-          options.dateTimeType
-        }</DateTimeType>`
-        + `<DaylightSavings>${
-          !!options.daylightSavings
-        }</DaylightSavings>${
-          options.timezone !== undefined
-            ? '<TimeZone>'
+    if (options.dateTimeType === 'Manual' && !options.dateTime && !options.UTCDateTime) {
+      throw new Error('`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`');
+    }
+    const body = '<SetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl">'
+      + `<DateTimeType>${
+        options.dateTimeType
+      }</DateTimeType>`
+      + `<DaylightSavings>${
+        !!options.daylightSavings
+      }</DaylightSavings>${
+        options.timezone !== undefined || options.timeZone?.TZ !== undefined
+          ? '<TimeZone>'
           + `<TZ xmlns="http://www.onvif.org/ver10/schema">${
-            options.timezone
+            options.timezone || options.timeZone?.TZ
           }</TZ>`
           + '</TimeZone>' : ''
-        }${options.dateTime !== undefined && options.dateTime instanceof Date
-          ? '<UTCDateTime>'
-          + '<Time xmlns="http://www.onvif.org/ver10/schema">'
-          + `<Hour>${options.dateTime.getUTCHours()}</Hour>`
-          + `<Minute>${options.dateTime.getUTCMinutes()}</Minute>`
-          + `<Second>${options.dateTime.getUTCSeconds()}</Second>`
-          + '</Time>'
-          + '<Date xmlns="http://www.onvif.org/ver10/schema">'
-          + `<Year>${options.dateTime.getUTCFullYear()}</Year>`
-          + `<Month>${options.dateTime.getUTCMonth() + 1}</Month>`
-          + `<Day>${options.dateTime.getUTCDate()}</Day>`
-          + '</Date>'
-          + '</UTCDateTime>' : ''
-        }</SetSystemDateAndTime>`,
+      }${options.dateTime !== undefined && options.dateTime instanceof Date
+        ? '<UTCDateTime>'
+        + '<Time xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Hour>${options.dateTime.getUTCHours()}</Hour>`
+        + `<Minute>${options.dateTime.getUTCMinutes()}</Minute>`
+        + `<Second>${options.dateTime.getUTCSeconds()}</Second>`
+        + '</Time>'
+        + '<Date xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Year>${options.dateTime.getUTCFullYear()}</Year>`
+        + `<Month>${options.dateTime.getUTCMonth() + 1}</Month>`
+        + `<Day>${options.dateTime.getUTCDate()}</Day>`
+        + '</Date>'
+        + '</UTCDateTime>'
+        : (options.UTCDateTime !== undefined ? '<UTCDateTime>'
+        + '<Time xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Hour>${options.UTCDateTime?.time?.hour}</Hour>`
+        + `<Minute>${options.UTCDateTime?.time?.minute}</Minute>`
+        + `<Second>${options.UTCDateTime?.time?.second}</Second>`
+        + '</Time>'
+        + '<Date xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Year>${options.UTCDateTime?.date?.year}</Year>`
+        + `<Month>${options.UTCDateTime?.date?.month}</Month>`
+        + `<Day>${options.UTCDateTime?.date?.day}</Day>`
+        + '</Date>'
+        + '</UTCDateTime>' : '')
+      }</SetSystemDateAndTime>`;
+    const [data] = await this.request({
+      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
+      body,
     });
     if (linerase(data).setSystemDateAndTimeResponse !== '') {
       throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
