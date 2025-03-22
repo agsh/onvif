@@ -11,7 +11,7 @@ beforeAll(async () => {
   await cam.connect();
 });
 
-describe('Startup', () => {
+describe('Common', () => {
   it('should connect to the cam, fill startup properties', () => {
     expect(cam.uri.PTZ?.href).toBeDefined();
     expect(cam.uri.media).toBeDefined();
@@ -19,6 +19,10 @@ describe('Startup', () => {
     expect(cam.media.profiles).toBeDefined();
     expect(cam.defaultProfile).toBeDefined();
     expect(cam.activeSource).toBeDefined();
+  });
+
+  it('should throw an error when trying to send empty request', () => {
+    expect(() => (cam as any).request({})).toThrow();
   });
 });
 
@@ -32,6 +36,36 @@ describe('Date and time', () => {
       expect(result.UTCDateTime).toHaveProperty('date');
       expect(result.UTCDateTime).toHaveProperty('time');
       expect(result.timeZone?.TZ).toBeDefined();
+    });
+
+    it('should try to send request with WSSecurity if authorization is required', async () => {
+      jest.spyOn(cam as any, 'rawRequest')
+        .mockImplementationOnce(() => Promise.resolve([{}, 'sender not authorized']));
+      jest.spyOn(cam as any, 'request')
+        .mockImplementationOnce(() => (cam as any).rawRequest({
+          // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
+          body :
+            '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">'
+            + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+            + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>'
+            + '</s:Body>'
+            + '</s:Envelope>',
+        }));
+      const result = await cam.getSystemDateAndTime();
+      expect(result.dateTime).toBeInstanceOf(Date);
+      expect((cam as any).timeShift).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should use current time if there is no UTCDateTime in the response', async () => {
+      jest.spyOn(cam as any, 'rawRequest')
+        .mockImplementationOnce(async (options) => {
+          const [data, xml] = await (cam as any).rawRequest(options);
+          delete data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0].UTCDateTime;
+          return [data, xml];
+        });
+      const result = await cam.getSystemDateAndTime();
+      expect(result.dateTime).toBeInstanceOf(Date);
+      expect((cam as any).timeShift).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -55,6 +89,16 @@ describe('Date and time', () => {
       expect(
         cam.setSystemDateAndTime({
           dateTimeType : 'Manual',
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should throw an error when the response from the device is not empty string', () => {
+      jest.spyOn(cam as any, 'request')
+        .mockReturnValueOnce('whatever');
+      expect(
+        cam.setSystemDateAndTime({
+          dateTimeType : 'NTP',
         }),
       ).rejects.toThrow();
     });
