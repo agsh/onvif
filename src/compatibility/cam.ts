@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'events';
 import {
-  Onvif, OnvifRequestOptions, SetSystemDateAndTimeOptions,
+  Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended,
 } from '../onvif';
 import { GetStreamUriOptions } from '../media';
 import { SetNTP } from '../interfaces/devicemgmt';
@@ -81,7 +81,7 @@ export class Cam extends EventEmitter {
     this.onvif.device.getSystemDateAndTime().then((result) => callback(null, result)).catch(callback);
   }
 
-  setSystemDateAndTime(value: SetSystemDateAndTimeOptions, callback: Callback) {
+  setSystemDateAndTime(value: SetSystemDateAndTimeExtended, callback: Callback) {
     this.onvif.device.setSystemDateAndTime(value).then((result) => callback(null, result)).catch(callback);
   }
 

@@ -3,4 +3,4 @@ export * from './device';
 export * from './media';
 export * from './discovery';
 export * from './ptz';
-export * from './compatibility/cam';
+// export * from './compatibility/cam'; // development frozen
