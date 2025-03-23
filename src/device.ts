@@ -95,7 +95,7 @@ export class Device {
    * This method has been replaced by the more generic {@link Device.getServices | GetServices} method.
    * For capabilities of individual services refer to the GetServiceCapabilities methods.
    */
-  async getCapabilities(options?: GetCapabilities): Promise<GetCapabilitiesResponse> {
+  async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
     if (!options || !options.category) {
       options = { category : ['All'] };
     }
@@ -129,7 +129,7 @@ export class Device {
         this.onvif.uri.recording = new URL(tempRecorderXaddr);
       }
     }
-    return { capabilities : this.onvif.capabilities };
+    return this.onvif.capabilities;
   }
 
   /**
