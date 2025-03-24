@@ -56,5 +56,8 @@ are more convenient to work with. A keyword is used at the end of the names, for
 `SetSystemDateAndTimeExtended` with `dateTime?: Date;` field.
 
 ### Tests
-https://www.happytimesoft.com/products/onvif-server/index.html
+All tests are written using Jest. You can run them with `npm test`.
+The tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) as a test device. 
 
+Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) company for the opportunity to test full ONVIF 
+specification. You can download and purchase their products here: https://www.happytimesoft.com/product.html
