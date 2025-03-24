@@ -37,7 +37,7 @@ export class Device {
   #DNS?: DNSInformation;
   get DNS() { return this.#NTP; }
   #networkInterfaces?: NetworkInterface[];
-  get newtworkInterfaces() { return this.#networkInterfaces; }
+  get networkInterfaces() { return this.#networkInterfaces; }
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;

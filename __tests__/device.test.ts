@@ -14,6 +14,14 @@ beforeAll(async () => {
   await cam.connect();
 });
 
+describe('Getters', () => {
+  it('should returns private properties from the class', () => {
+    expect(cam.device.services).toBeDefined();
+    expect(cam.device.scopes).toBeDefined();
+    expect(cam.device.serviceCapabilities).toBeDefined();
+  });
+});
+
 describe('getCapabilities', () => {
   it('should return a result without options', async () => {
     const result = await cam.device.getCapabilities();
@@ -53,5 +61,40 @@ describe('getHostname', () => {
     const result = await cam.device.getHostname();
     expect(result.name).toBeDefined();
     expect(result.fromDHCP).toBeDefined();
+  });
+});
+
+describe('getScopes', () => {
+  it('should return device scopes', async () => {
+    const result = await cam.device.getScopes();
+    expect(result).toBeInstanceOf(Array);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('should return device scopes as an array if there is only one scope', async () => {
+    jest.spyOn(cam as any, 'request').mockReturnValueOnce([[{
+      getScopesResponse : [{
+        scopes : [{
+          'scopeDef' : [
+            'Fixed',
+          ],
+          'scopeItem' : [
+            'onvif://www.onvif.org/type/audio_encoder',
+          ],
+        }],
+      }],
+    }], '<Scopes><Scope>scope</Scope></Scopes>']);
+    const result = await cam.device.getScopes();
+    expect(result).toBeInstanceOf(Array);
+    expect(result).toHaveLength(1);
+  });
+
+  it('should return empty array if there are no scopes', async () => {
+    jest.spyOn(cam as any, 'request').mockReturnValueOnce([[{
+      getScopesResponse : [],
+    }], '<Scopes><Scope>scope</Scope></Scopes>']);
+    const result = await cam.device.getScopes();
+    expect(result).toBeInstanceOf(Array);
+    expect(result).toHaveLength(0);
   });
 });
