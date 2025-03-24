@@ -33,6 +33,24 @@ P.S. I still need device access to test the code, any help would be greatly appr
 ### Interfaces
 Interfaces are generated according to the latest version of the [ONVIF specification](https://github.com/onvif/specs).
 
+All methods accepts options from the ONVIF specs and returns data inside the `<method_name>Response`. For example, 
+method `getCapabilities` accepts one argument with the type `GetCapabilities` and returns result with the type
+`Capabilities` This is the inner structure of the GetCapabilitiesResponse type:
+```ts
+export interface GetCapabilitiesResponse {
+  /** Capability information. */
+  capabilities?: Capabilities;
+}
+class Device {
+  // ...
+  async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
+    // ...
+  }
+  // ...
+}
+```
+Of course, there are exceptions everywhere, the main rule is to try not to return an object with one property.
+
 In some cases, where it is more convenient to use native js types, interfaces are extended by adding new fields that 
 are more convenient to work with. A keyword is used at the end of the names, for example `SetSystemDateAndTime` becomes
 `SetSystemDateAndTimeExtended` with `dateTime?: Date;` field.
