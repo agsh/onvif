@@ -1,0 +1,119 @@
+ONVIF Interfaces
+
+- [x] connect
+- [ ] _request
+- [ ] _requestPart2
+- [x] getSystemDateAndTime
+- [x] setSystemDateAndTime accepts SetSystemDateAndTimeOptions
+- [x] getCapabilities Capabilities -> GetCapabilitiesResponse
+- [ ] getServiceCapabilities DeviceServiceCapabilities -> GetServiceCapabilitiesResponse
+- [ ] getActiveSources
+- [ ] getServices includeCapability wrapped into object
+- [ ] getDeviceInformation
+- [ ] getHostname
+- [ ] getScopes
+- [ ] setScopes
+- [ ] systemReboot
+- [ ] setSystemFactoryDefault
+- [x] _passwordDigest
+- [ ] _envelopeHeader
+- [ ] _envelopeFooter
+- [ ] _parseUrl
+- [ ] getNTP cam.device.getNTP
+- [ ] setNTP cam.device.setNTP
+- [ ] getNetworkInterfaces
+- [ ] setNetworkInterfaces
+- [ ] getNetworkDefaultGateway
+- [ ] setNetworkDefaultGateway
+- [ ] getDNS cam.device.getDNS
+- [ ] setDNS
+- [ ] getNetworkProtocols
+- [ ] getUsers
+- [ ] createUsers
+- [ ] setUsers
+- [ ] deleteUsers
+- [ ] sendAuxiliaryCommand
+- [ ] getEventProperties
+- [ ] getEventServiceCapabilities
+- [ ] subscribe
+- [ ] createPullPointSubscription
+- [ ] renew
+- [ ] pullMessages
+- [ ] unsubscribe
+- [ ] _eventRequest
+- [ ] _eventPull
+- [ ] _restartEventRequest
+- [ ] parseEventXML
+- [ ] getVideoSources
+- [ ] getVideoSourceConfigurations
+- [ ] getVideoSourceConfigurationOptions new
+- [ ] getVideoEncoderConfiguration
+- [ ] getVideoEncoderConfigurationOptions
+- [ ] getVideoEncoderConfigurations
+- [ ] setVideoEncoderConfiguration
+- [ ] getAudioSources
+- [ ] getAudioEncoderConfigurations
+- [ ] getAudioEncoderConfiguration
+- [ ] getAudioEncoderConfigurationOptions
+- [ ] setAudioEncoderConfiguration
+- [ ] getAudioSourceConfigurations
+- [ ] getAudioOutputs
+- [ ] getAudioOutputConfigurations
+- [ ] addAudioEncoderConfiguration
+- [ ] addAudioSourceConfiguration
+- [ ] addVideoEncoderConfiguration
+- [ ] addVideoSourceConfiguration
+- [ ] removeAudioEncoderConfiguration
+- [ ] removeAudioSourceConfiguration
+- [ ] getProfiles
+- [ ] createProfile
+- [ ] deleteProfile
+- [ ] getStreamUri
+- [ ] getSnapshotUri
+- [ ] setSynchronizationPoint
+- [ ] getOSDs cam.media.getOSDs (schema strict)
+- [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
+- [ ] createOSD
+- [ ] setOSD
+- [ ] deleteOSD
+- [ ] getMediaServiceCapabilities
+- [ ] getPresets
+- [ ] gotoPreset
+- [ ] setPreset
+- [ ] removePreset
+- [ ] gotoHomePosition
+- [ ] setHomePosition
+- [ ] getStatus
+- [ ] getNodes
+- [ ] getConfigurations
+- [ ] getConfigurationOptions
+- [ ] relativeMove
+- [ ] absoluteMove
+- [ ] continuousMove
+- [ ] stop
+- [ ] _panTiltZoomVectors
+- [ ] ptzSendAuxiliaryCommand
+- [ ] getImagingSettings
+- [ ] setImagingSettings
+- [ ] getImagingServiceCapabilities
+- [ ] getCurrentImagingPreset
+- [ ] setCurrentImagingPreset
+- [ ] getVideoSourceOptions
+- [ ] imagingGetMoveOptions
+- [ ] imagingGetStatus
+- [ ] imagingMove
+- [ ] imagingStop
+- [ ] getRecordings
+- [ ] getRecordingJobs
+- [ ] createRecordingJob
+- [ ] deleteRecordingJob
+- [ ] getRecordingSummary
+- [ ] getRecordingInformation
+- [ ] getRecordingConfiguration
+- [ ] getRecordingJobState
+- [ ] getRecordingOptions
+- [ ] getRecordingServiceCapabilities
+- [ ] getTrackConfiguration
+- [ ] getRecordingJobConfiguration
+- [ ] setRecordingJobMode
+- [ ] getReplayUri
