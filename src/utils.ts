@@ -62,6 +62,15 @@ export function guid() {
 
 export type CamResponse = Promise<[Record<string, any>, string]>;
 
+function camelCase(tag: string) {
+  const str = tag.replace(prefixMatch, '');
+  const secondLetter = str.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+  }
+  return str;
+}
+
 /**
  * Parse SOAP response
  */
@@ -70,14 +79,8 @@ export async function parseSOAPString(rawXml: string): CamResponse {
   const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
   const result = await xml2js.parseStringPromise(xml, {
-    tagNameProcessors : [(tag) => {
-      const str = tag.replace(prefixMatch, '');
-      const secondLetter = str.charAt(1);
-      if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
-        return str.charAt(0).toLowerCase() + str.slice(1);
-      }
-      return str;
-    }],
+    tagNameProcessors  : [camelCase],
+    attrNameProcessors : [camelCase],
   });
   if (!result || !result.envelope || !result.envelope.body) {
     throw new Error('Wrong ONVIF SOAP response');
