@@ -38,6 +38,16 @@ describe('Date and time', () => {
       expect(result.timeZone?.TZ).toBeDefined();
     });
 
+    it('should return valid object from devices module', async () => {
+      const result = await cam.device.getSystemDateAndTime();
+      expect(result.dateTime).toBeInstanceOf(Date);
+      expect(result.dateTimeType).toBeDefined();
+      expect(result.UTCDateTime).toBeDefined();
+      expect(result.UTCDateTime).toHaveProperty('date');
+      expect(result.UTCDateTime).toHaveProperty('time');
+      expect(result.timeZone?.TZ).toBeDefined();
+    });
+
     it('should try to send request with WSSecurity if authorization is required', async () => {
       jest.spyOn(cam as any, 'rawRequest')
         .mockImplementationOnce(() => Promise.resolve([{}, 'sender not authorized']));
@@ -127,6 +137,17 @@ describe('Date and time', () => {
 
     it('should set date and time using js Date object', async () => {
       const result = await cam.setSystemDateAndTime({
+        dateTimeType : 'Manual',
+        dateTime     : new Date(2021, 5, 15, 19, 14, 37),
+      });
+      expect(result.dateTime).toBeInstanceOf(Date);
+      expect(result.dateTimeType).toBeDefined();
+      expect(result.UTCDateTime).toBeDefined();
+      expect(result.timeZone?.TZ).toBeDefined();
+    });
+
+    it('should set date and time using device module', async () => {
+      const result = await cam.device.setSystemDateAndTime({
         dateTimeType : 'Manual',
         dateTime     : new Date(2021, 5, 15, 19, 14, 37),
       });
