@@ -103,7 +103,7 @@ export class Cam extends EventEmitter {
 
   getServiceCapabilities(callback: Callback) {
     this.onvif.device.getServiceCapabilities()
-      .then((result) => callback(null, result.capabilities)).catch(callback);
+      .then((result) => callback(null, result)).catch(callback);
   }
 
   getActiveSources(callback: Callback) {
