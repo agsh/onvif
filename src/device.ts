@@ -5,10 +5,10 @@ import {
 import { linerase } from './utils';
 import {
   DeviceServiceCapabilities,
-  GetCapabilities, GetCapabilitiesResponse, GetDeviceInformationResponse, GetServiceCapabilitiesResponse,
+  GetCapabilities, GetDeviceInformationResponse,
   GetServices,
   GetServicesResponse,
-  Service,
+  Service, SetDNS,
   SetNTP,
 } from './interfaces/devicemgmt';
 import {
@@ -17,6 +17,7 @@ import {
   DNSInformation, HostnameInformation, NetworkInterface,
   NTPInformation, Scope,
 } from './interfaces/onvif';
+import { AnyURI } from './interfaces/basics';
 
 /**
  * Device methods
@@ -35,7 +36,7 @@ export class Device {
   #NTP?: NTPInformation;
   get NTP() { return this.#NTP; }
   #DNS?: DNSInformation;
-  get DNS() { return this.#NTP; }
+  get DNS() { return this.#DNS; }
   #networkInterfaces?: NetworkInterface[];
   get networkInterfaces() { return this.#networkInterfaces; }
 
@@ -171,7 +172,7 @@ export class Device {
    * Set the scope parameters of a device
    * @param scopes Array of scope's uris
    */
-  async setScopes(scopes: string[]) {
+  async setScopes(scopes: AnyURI[]) {
     const [data] = await this.onvif.request({
       body : `<SetScopes xmlns="http://www.onvif.org/ver10/device/wsdl">${
         scopes.map((uri) => `<Scopes>${uri}</Scopes>`).join('')
@@ -187,16 +188,16 @@ export class Device {
   /**
    * Returns the capabilities of the device service. The result is returned in a typed answer
    */
-  async getServiceCapabilities(): Promise<GetServiceCapabilitiesResponse> {
+  async getServiceCapabilities() {
     const [data] = await this.onvif.request({
       body : '<GetServiceCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl" />',
     });
     const capabilitiesResponse = linerase(data).getServiceCapabilitiesResponse;
     this.#serviceCapabilities = capabilitiesResponse.capabilities;
-    if (capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc) {
-      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.getServiceCapabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
+    if (capabilitiesResponse.capabilities?.misc?.auxiliaryCommands !== undefined) {
+      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
     }
-    return capabilitiesResponse;
+    return this.#serviceCapabilities;
   }
 
   /**
@@ -242,11 +243,14 @@ export class Device {
       });
     }
     body += '</SetNTP>';
-    const [data, stat] = await this.onvif.request({
+    const [data] = await this.onvif.request({
       service : 'device',
       body,
     });
-    return linerase(data[0].setNTPResponse);
+    if (data[0].setNTPResponse[0] !== '') {
+      throw new Error('Wrong `SetNTP` response');
+    }
+    return this.getNTP();
   }
 
   /**
@@ -262,6 +266,31 @@ export class Device {
     if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
     if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
     return this.#DNS!;
+  }
+
+  async setDNS(options: SetDNS): Promise<DNSInformation> {
+    let body = '<SetDNS xmlns="http://www.onvif.org/ver10/device/wsdl">'
+      + `<FromDHCP>\${!!options.fromDHCP}</FromDHCP>${
+        options.searchDomain && Array.isArray(options.searchDomain) ? options.searchDomain
+          .map((domain) => `<SearchDomain>${domain}</SearchDomain>`).join('') : ''}`;
+    if (options.DNSManual && Array.isArray(options.DNSManual)) {
+      options.DNSManual.forEach((DNSManual) => {
+        body += (DNSManual.type ? '<DNSManual>'
+          + `<Type xmlns="http://www.onvif.org/ver10/schema">${DNSManual.type}</Type>${
+            DNSManual.IPv4Address ? `<IPv4Address xmlns="http://www.onvif.org/ver10/schema">${DNSManual.IPv4Address}</IPv4Address>` : ''
+          }${DNSManual.IPv6Address ? `<IPv6Address xmlns="http://www.onvif.org/ver10/schema">${DNSManual.IPv6Address}</IPv6Address>` : ''
+          }</DNSManual>` : '');
+      });
+    }
+    body += '</SetDNS>';
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body,
+    });
+    if (data[0].setDNSResponse[0] !== '') {
+      throw new Error('Wrong `SetDNS` response');
+    }
+    return this.getDNS();
   }
 
   /**
