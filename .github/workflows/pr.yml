@@ -24,3 +24,5 @@ jobs:
       # can be used to compile TS -> JS prior to testing if needed
       - run: npm run build --if-present
       - run: npm test
+      - name: Update Coverage Badge
+        uses: we-cli/coverage-badge-action@main
