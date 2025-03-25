@@ -1,12 +1,15 @@
 # ONVIF
 
+[![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
+[![Coverage Status](https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages-debug/badges/coverage.svg)](https://github.com/agsh/onvif/tree/v1)
+
 ONVIF Client protocol Profile S (Live Streaming) and Profile G (Replay) Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
-The library uses NodeJS.
+The library uses NodeJS. And works on the server-side.
 
 [![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
