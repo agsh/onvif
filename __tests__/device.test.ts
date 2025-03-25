@@ -5,11 +5,10 @@ const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname      : 'localhost',
-    username      : 'admin',
-    password      : 'admin',
-    port          : 8000,
-    useWSSecurity : false, // force disable WSSecurity (specs 1.1 and 1.2)
+    hostname : 'localhost',
+    username : 'admin',
+    password : 'admin',
+    port     : 8000,
   });
   await cam.connect();
 });
