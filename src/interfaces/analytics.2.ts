@@ -47,18 +47,18 @@ export interface GetSupportedRulesResponse {
 export interface CreateRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken?: ReferenceToken;
-  rule?: Config[];
+  rule: Config[];
 }
 export interface DeleteRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken?: ReferenceToken;
   /** References the specific rule to be deleted (e.g. "MyLineDetector"). */
-  ruleName?: string[];
+  ruleName: string[];
 }
 export interface ModifyRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken?: ReferenceToken;
-  rule?: Config[];
+  rule: Config[];
 }
 export interface GetRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */

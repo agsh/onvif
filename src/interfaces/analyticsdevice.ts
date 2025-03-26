@@ -22,12 +22,12 @@ export interface DeleteAnalyticsEngineControl {
 export interface DeleteAnalyticsEngineControlResponse {}
 export interface CreateAnalyticsEngineInputs {
   /** Settings of the configurations to be created. */
-  configuration?: AnalyticsEngineInput[];
-  forcePersistence?: boolean[];
+  configuration: AnalyticsEngineInput[];
+  forcePersistence: boolean[];
 }
 export interface CreateAnalyticsEngineInputsResponse {
   /** Configurations containing token generated. */
-  configuration?: AnalyticsEngineInput[];
+  configuration: AnalyticsEngineInput[];
 }
 export interface CreateAnalyticsEngineControl {
   /** Settings of the Analytics Engine Control configuration to be created. Mode shall be set to "idle". */
@@ -35,7 +35,7 @@ export interface CreateAnalyticsEngineControl {
 }
 export interface CreateAnalyticsEngineControlResponse {
   /** Configuration containing token generated. */
-  configuration?: AnalyticsEngineInput[];
+  configuration: AnalyticsEngineInput[];
 }
 export interface SetAnalyticsEngineControl {
   /** Contains the modified Analytics Engine Control configuration. */
@@ -54,7 +54,7 @@ export interface GetAnalyticsEngineControlResponse {
 export interface GetAnalyticsEngineControls {}
 export interface GetAnalyticsEngineControlsResponse {
   /** List of available AnalyticsEngineControl configurations. */
-  analyticsEngineControls?: AnalyticsEngineControl[];
+  analyticsEngineControls: AnalyticsEngineControl[];
 }
 export interface GetAnalyticsEngine {
   /** Token of the requested AnalyticsEngine configuration. */
@@ -67,7 +67,7 @@ export interface GetAnalyticsEngineResponse {
 export interface GetAnalyticsEngines {}
 export interface GetAnalyticsEnginesResponse {
   /** List of available AnalyticsEngine configurations. */
-  configuration?: AnalyticsEngine[];
+  configuration: AnalyticsEngine[];
 }
 export interface SetVideoAnalyticsConfiguration {
   /** Contains the modified video analytics configuration. The configuration shall exist in the device. */
@@ -92,7 +92,7 @@ export interface GetAnalyticsEngineInputResponse {
 export interface GetAnalyticsEngineInputs {}
 export interface GetAnalyticsEngineInputsResponse {
   /** List of available AnalyticsEngineInput configurations. */
-  configuration?: AnalyticsEngineInput[];
+  configuration: AnalyticsEngineInput[];
 }
 export interface GetAnalyticsDeviceStreamUri {
   /** Configuration of the URI requested. */
@@ -114,7 +114,7 @@ export interface GetVideoAnalyticsConfigurationResponse {
 }
 export interface DeleteAnalyticsEngineInputs {
   /** LIst of tokens of Analytics Engine Input configurations to be deleted. */
-  configurationToken?: ReferenceToken[];
+  configurationToken: ReferenceToken[];
 }
 export interface DeleteAnalyticsEngineInputsResponse {}
 export interface GetAnalyticsState {

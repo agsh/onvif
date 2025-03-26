@@ -207,7 +207,7 @@ export interface GetScheduleStateResponse {
 }
 export interface GetScheduleInfo {
   /** Tokens of ScheduleInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetScheduleInfoResponse {
   /** List of ScheduleInfo items. */
@@ -237,7 +237,7 @@ export interface GetScheduleInfoListResponse {
 }
 export interface GetSchedules {
   /** Tokens of Schedule items to get */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetSchedulesResponse {
   /** List of schedule items. */
@@ -267,7 +267,7 @@ export interface GetScheduleListResponse {
 }
 export interface CreateSchedule {
   /** The Schedule to create */
-  schedule?: Schedule;
+  schedule: Schedule;
 }
 export interface CreateScheduleResponse {
   /** The token of created Schedule */
@@ -275,22 +275,22 @@ export interface CreateScheduleResponse {
 }
 export interface SetSchedule {
   /** The Schedule to modify/create */
-  schedule?: Schedule;
+  schedule: Schedule;
 }
 export interface SetScheduleResponse {}
 export interface ModifySchedule {
   /** The Schedule to modify/update */
-  schedule?: Schedule;
+  schedule: Schedule;
 }
 export interface ModifyScheduleResponse {}
 export interface DeleteSchedule {
   /** The token of the schedule to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteScheduleResponse {}
 export interface GetSpecialDayGroupInfo {
   /** Tokens of SpecialDayGroupInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetSpecialDayGroupInfoResponse {
   /** List of SpecialDayGroupInfo items. */
@@ -320,7 +320,7 @@ export interface GetSpecialDayGroupInfoListResponse {
 }
 export interface GetSpecialDayGroups {
   /** Tokens of the SpecialDayGroup items to get */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetSpecialDayGroupsResponse {
   /** List of SpecialDayGroup items. */
@@ -350,20 +350,20 @@ export interface GetSpecialDayGroupListResponse {
 }
 export interface CreateSpecialDayGroup {
   /** The special day group to create. */
-  specialDayGroup?: SpecialDayGroup;
+  specialDayGroup: SpecialDayGroup;
 }
 export interface CreateSpecialDayGroupResponse {
   /** The token of created special day group. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface SetSpecialDayGroup {
   /** The SpecialDayGroup to modify/create */
-  specialDayGroup?: SpecialDayGroup;
+  specialDayGroup: SpecialDayGroup;
 }
 export interface SetSpecialDayGroupResponse {}
 export interface ModifySpecialDayGroup {
   /** The special day group to modify/update. */
-  specialDayGroup?: SpecialDayGroup;
+  specialDayGroup: SpecialDayGroup;
 }
 export interface ModifySpecialDayGroupResponse {}
 export interface DeleteSpecialDayGroup {

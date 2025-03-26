@@ -57,7 +57,7 @@ export interface ServiceCapabilities {
    * types as defined in pt:RecognitionType. Please note that pt:REX is not an identifier
    * type. For custom defined identifier types, free text can be used.
    */
-  supportedIdentifierType?: Name[];
+  supportedIdentifierType: Name[];
   extension?: ServiceCapabilitiesExtension;
 }
 export interface ServiceCapabilitiesExtension {
@@ -107,7 +107,7 @@ export interface Credential extends CredentialInfo {
    * credential identifier is required. Maximum one credential identifier structure
    * per type is allowed.
    */
-  credentialIdentifier?: CredentialIdentifier[];
+  credentialIdentifier: CredentialIdentifier[];
   /** A list of credential access profile structures. */
   credentialAccessProfile?: CredentialAccessProfile[];
   /**
@@ -286,11 +286,11 @@ export interface GetSupportedFormatTypes {
 }
 export interface GetSupportedFormatTypesResponse {
   /** Identifier format type */
-  formatTypeInfo?: CredentialIdentifierFormatTypeInfo[];
+  formatTypeInfo: CredentialIdentifierFormatTypeInfo[];
 }
 export interface GetCredentialInfo {
   /** Tokens of CredentialInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetCredentialInfoResponse {
   /** List of CredentialInfo items. */
@@ -320,7 +320,7 @@ export interface GetCredentialInfoListResponse {
 }
 export interface GetCredentials {
   /** Token of Credentials to get */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetCredentialsResponse {
   /** List of Credential items. */
@@ -434,14 +434,14 @@ export interface SetCredentialAccessProfiles {
   /** Token of the Credential */
   credentialToken?: ReferenceToken;
   /** Access Profiles of the credential */
-  credentialAccessProfile?: CredentialAccessProfile[];
+  credentialAccessProfile: CredentialAccessProfile[];
 }
 export interface SetCredentialAccessProfilesResponse {}
 export interface DeleteCredentialAccessProfiles {
   /** Token of the Credential */
   credentialToken?: ReferenceToken;
   /** Tokens of Access Profiles */
-  accessProfileToken?: ReferenceToken[];
+  accessProfileToken: ReferenceToken[];
 }
 export interface DeleteCredentialAccessProfilesResponse {}
 export interface GetWhitelist {

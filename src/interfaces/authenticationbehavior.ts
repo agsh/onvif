@@ -103,7 +103,7 @@ export interface AuthenticationPolicy {
    * for what security level to use.
    * Minimum one security level constraint must be specified.
    */
-  securityLevelConstraint?: SecurityLevelConstraint[];
+  securityLevelConstraint: SecurityLevelConstraint[];
   extension?: AuthenticationPolicyExtension;
 }
 export interface AuthenticationPolicyExtension {}
@@ -218,7 +218,7 @@ export interface GetServiceCapabilitiesResponse {
 }
 export interface GetAuthenticationProfileInfo {
   /** Tokens of AuthenticationProfileInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetAuthenticationProfileInfoResponse {
   /** List of AuthenticationProfileInfo items. */
@@ -248,7 +248,7 @@ export interface GetAuthenticationProfileInfoListResponse {
 }
 export interface GetAuthenticationProfiles {
   /** Tokens of AuthenticationProfile items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetAuthenticationProfilesResponse {
   /** List of AuthenticationProfile items. */
@@ -301,7 +301,7 @@ export interface DeleteAuthenticationProfile {
 export interface DeleteAuthenticationProfileResponse {}
 export interface GetSecurityLevelInfo {
   /** Tokens of SecurityLevelInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetSecurityLevelInfoResponse {
   /** List of SecurityLevelInfo items. */
@@ -331,7 +331,7 @@ export interface GetSecurityLevelInfoListResponse {
 }
 export interface GetSecurityLevels {
   /** Tokens of SecurityLevel items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetSecurityLevelsResponse {
   /** List of SecurityLevel items. */

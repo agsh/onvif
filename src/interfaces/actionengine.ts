@@ -121,7 +121,7 @@ export interface AuthenticationConfig {
 }
 export interface EMailReceiverConfiguration {
   /** Configuration for E-mail TO */
-  TO?: string[];
+  TO: string[];
   /** Configuration for E-mail CC */
   CC?: string[];
   /**/
@@ -149,7 +149,7 @@ export interface MediaSource {
 }
 export interface HttpHostConfigurations {
   /** Destination HTTP Server configuration */
-  httpDestination?: HttpDestinationConfiguration[];
+  httpDestination: HttpDestinationConfiguration[];
   /**/
   extension?: HttpHostConfigurationsExtension;
 }
@@ -200,7 +200,7 @@ export interface PostBodyConfiguration {
 }
 export interface FtpHostConfigurations {
   /** FTP Action destination configuration */
-  ftpDestination?: FtpDestinationConfiguration[];
+  ftpDestination: FtpDestinationConfiguration[];
   /**/
   extension?: FtpHostConfigurationsExtension;
 }
