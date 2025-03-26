@@ -8,7 +8,7 @@ import {
   GetCapabilities, GetDeviceInformationResponse,
   GetServices,
   GetServicesResponse,
-  Service, SetDNS,
+  Service, SetDNS, SetNetworkInterfaces, SetNetworkInterfacesResponse,
   SetNTP,
 } from './interfaces/devicemgmt';
 import {
@@ -302,21 +302,61 @@ export class Device {
       service : 'device',
       body    : '<GetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     });
-    const networkInterfaces = linerase(data[0].getNetworkInterfacesResponse[0].networkInterfaces);
-    // networkInterfaces is an array of network interfaces, but linerase remove the array if there is only one element inside
-    // so we convert it back to an array
-    if (!Array.isArray(networkInterfaces)) {
-      this.#networkInterfaces = [networkInterfaces];
-    } else {
-      this.#networkInterfaces = networkInterfaces;
-    }
+    const { networkInterfaces } = linerase(data[0].getNetworkInterfacesResponse, { array : ['networkInterfaces', 'manual'] });
+    this.#networkInterfaces = Array.isArray(networkInterfaces) ? networkInterfaces : [];
     return this.#networkInterfaces;
   }
 
   /**
    * Set network interfaces information
    */
-  // async setNetworkInterfaces(options: SetNetworkInterfacesOptions) {
-  //
-  // }
+  async setNetworkInterfaces(options: SetNetworkInterfaces): Promise<SetNetworkInterfacesResponse> {
+    const { networkInterface } = options;
+    if (!networkInterface) {
+      return { rebootNeeded : false };
+    }
+    const body = '<SetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl">'
+      + `<InterfaceToken>${options.interfaceToken}</InterfaceToken>`
+      + '<NetworkInterface>'
+      + `<Enabled xmlns="http://www.onvif.org/ver10/schema">${networkInterface.enabled}</Enabled>${
+        networkInterface.link
+          ? '<Link xmlns="http://www.onvif.org/ver10/schema">'
+          + `<AutoNegotiation>${networkInterface.link.autoNegotiation}</AutoNegotiation>`
+          + `<Speed>${networkInterface.link.speed}</Speed>`
+          + `<Duplex>${networkInterface.link.duplex}</Duplex>`
+          + '</Link>'
+          : ''
+      }${!Number.isNaN(networkInterface.MTU) ? `<MTU xmlns="http://www.onvif.org/ver10/schema">${networkInterface.MTU}</MTU>` : ''
+      }${networkInterface.IPv4
+        ? '<IPv4 xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Enabled>${networkInterface.IPv4.enabled}</Enabled>${
+          networkInterface.IPv4.manual ? networkInterface.IPv4.manual
+            .map((ipv4) => `<Manual><Address>${ipv4.address}</Address><PrefixLength>${ipv4.prefixLength}</PrefixLength></Manual>`).join('') : ''
+        }<DHCP>${networkInterface.IPv4.DHCP}</DHCP>`
+        + '</IPv4>'
+        : ''
+      }${networkInterface.IPv6
+        ? '<IPv6 xmlns="http://www.onvif.org/ver10/schema">'
+        + `<Enabled>${networkInterface.IPv6.enabled}</Enabled>`
+        + `<AcceptRouterAdvert >${networkInterface.IPv6.acceptRouterAdvert}</AcceptRouterAdvert>`
+        + `${networkInterface.IPv6.manual ? networkInterface.IPv6.manual
+          .map((ipv6) => `<Manual><Address>${ipv6.address}</Address><PrefixLength>${ipv6.prefixLength}</PrefixLength></Manual>`).join('') : ''}`
+        + `<DHCP>${networkInterface.IPv6.DHCP}</DHCP>`
+        + '</IPv6>'
+        : ''
+      }</NetworkInterface>`
+      + '</SetNetworkInterfaces>';
+    const [data] = await this.onvif.request({
+      service : 'device',
+      body,
+    });
+    const result = linerase(data[0].setNetworkInterfacesResponse);
+    if (Array.isArray(networkInterface.IPv6?.manual) && networkInterface.IPv6.manual.length > 0) {
+      this.onvif.hostname = networkInterface.IPv6.manual[0].address!;
+    }
+    if (Array.isArray(networkInterface.IPv4?.manual) && networkInterface.IPv4.manual.length > 0) {
+      this.onvif.hostname = networkInterface.IPv4.manual[0].address!;
+    }
+    return result;
+  }
 }

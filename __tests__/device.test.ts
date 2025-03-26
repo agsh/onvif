@@ -1,3 +1,4 @@
+import { type } from 'node:os';
 import { Onvif } from '../src';
 import { SetDNS } from '../src/interfaces/devicemgmt';
 
@@ -229,6 +230,37 @@ describe('Network interfaces', () => {
 
     it('should return stored network interfaces information as a property', async () => {
       expect(cam.device.networkInterfaces).toBeInstanceOf(Array);
+    });
+  });
+
+  describe('setNetworkInterfaces', () => {
+    it('should set network interfaces settings and return network interfaces information', async () => {
+      await cam.device.getNetworkInterfaces(); // to ensure we have cam.device.networkInterfaces
+      const result = await cam.device.setNetworkInterfaces({
+        interfaceToken   : cam.device.networkInterfaces![0].token,
+        networkInterface : {
+          enabled : true,
+          MTU     : 1500,
+          IPv4    : {
+            enabled : true,
+            DHCP    : false,
+            manual  : [{ address : cam.device.networkInterfaces![0].IPv4!.config!.manual![0].address, prefixLength : 24 }, { address : '127.0.0.1', prefixLength : 24 }],
+          },
+          IPv6 : {
+            enabled            : false,
+            acceptRouterAdvert : false,
+            DHCP               : 'Off',
+            manual             : [{ address : '::1', prefixLength : 24 }],
+          },
+        },
+      });
+      expect(result).toHaveProperty('rebootNeeded');
+      expect(typeof result.rebootNeeded).toBe('boolean');
+    });
+
+    it('should do nothing when there is no network interfaces in options', async () => {
+      const result = await cam.device.setNetworkInterfaces({});
+      expect(result.rebootNeeded).toBe(false);
     });
   });
 });
