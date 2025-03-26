@@ -5,9 +5,9 @@ export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
 export interface EventBrokerConfig {
   /** Event broker address in the format "scheme://host:port[/resource]". The supported schemes shall be returned by the EventBrokerProtocols capability. The resource part of the URL is only valid when using websocket. The Address must be unique. */
-  address?: AnyURI;
+  address: AnyURI;
   /** Prefix that will be prepended to all topics before they are published. This is used to make published topics unique for each device. TopicPrefix is not allowed to be empty. */
-  topicPrefix?: string;
+  topicPrefix: string;
   /** User name for the event broker. */
   userName?: string;
   /** Password for the event broker. Password shall not be included when returned with GetEventBrokers. */
@@ -79,7 +79,7 @@ export interface SetSynchronizationPointResponse {}
 export interface GetEventProperties {}
 export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
-  topicNamespaceLocation?: AnyURI[];
+  topicNamespaceLocation: AnyURI[];
   /** True when topicset is fixed for all times. */
   ixedTopicSet?: unknown;
   /** Set of topics supported. */
@@ -92,7 +92,7 @@ export interface GetEventPropertiesResponse {
    * http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet.
    *
    */
-  opicExpressionDialect?: unknown[];
+  opicExpressionDialect: unknown[];
   /**
    * Defines the XPath function set supported for message content filtering.
    * The following MessageContentFilterDialects should be returned if a device supports the message content filtering:
@@ -101,7 +101,7 @@ export interface GetEventPropertiesResponse {
    *
    * A device that does not support any MessageContentFilterDialect returns a single empty url.
    */
-  messageContentFilterDialect?: AnyURI[];
+  messageContentFilterDialect: AnyURI[];
   /** Optional ProducerPropertiesDialects. Refer to Web Services Base Notification 1.3 (WS-BaseNotification) for advanced filtering. */
   producerPropertiesFilterDialect?: AnyURI[];
   /**
@@ -111,14 +111,14 @@ export interface GetEventPropertiesResponse {
    * used in the description of notifications, with MessageContentSchemaLocation elements.
    * This list shall at least contain the URI of the ONVIF schema file.
    */
-  messageContentSchemaLocation?: AnyURI[];
+  messageContentSchemaLocation: AnyURI[];
 }
 export interface AddEventBroker {
-  eventBroker?: EventBrokerConfig;
+  eventBroker: EventBrokerConfig;
 }
 export interface AddEventBrokerResponse {}
 export interface DeleteEventBroker {
-  address?: AnyURI;
+  address: AnyURI;
 }
 export interface DeleteEventBrokerResponse {}
 export interface GetEventBrokers {

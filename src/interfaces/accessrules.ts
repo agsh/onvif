@@ -91,7 +91,7 @@ export interface GetServiceCapabilitiesResponse {
 }
 export interface GetAccessProfileInfo {
   /** Tokens of AccessProfileInfo items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetAccessProfileInfoResponse {
   /** List of AccessProfileInfo items. */
@@ -121,7 +121,7 @@ export interface GetAccessProfileInfoListResponse {
 }
 export interface GetAccessProfiles {
   /** Tokens of AccessProfile items to get. */
-  token?: ReferenceToken[];
+  token: ReferenceToken[];
 }
 export interface GetAccessProfilesResponse {
   /** List of Access Profile items. */

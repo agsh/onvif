@@ -269,12 +269,12 @@ export interface SystemRebootResponse {
   message?: string;
 }
 export interface RestoreSystem {
-  backupFiles?: BackupFile[];
+  backupFiles: BackupFile[];
 }
 export interface RestoreSystemResponse {}
 export interface GetSystemBackup {}
 export interface GetSystemBackupResponse {
-  backupFiles?: BackupFile[];
+  backupFiles: BackupFile[];
 }
 export interface GetSystemSupportInformation {}
 export interface GetSystemSupportInformationResponse {
@@ -292,16 +292,16 @@ export interface GetSystemLogResponse {
 export interface GetScopes {}
 export interface GetScopesResponse {
   /** Contains a list of URI definining the device scopes. Scope parameters can be of two types: fixed and configurable. Fixed parameters can not be altered. */
-  scopes?: Scope[];
+  scopes: Scope[];
 }
 export interface SetScopes {
   /** Contains a list of scope parameters that will replace all existing configurable scope parameters. */
-  scopes?: AnyURI[];
+  scopes: AnyURI[];
 }
 export interface SetScopesResponse {}
 export interface AddScopes {
   /** Contains a list of new configurable scope parameters that will be added to the existing configurable scope. */
-  scopeItem?: AnyURI[];
+  scopeItem: AnyURI[];
 }
 export interface AddScopesResponse {}
 export interface RemoveScopes {
@@ -309,7 +309,7 @@ export interface RemoveScopes {
    * Contains a list of URIs that should be removed from the device scope.
    * Note that the response message always will match the request or an error will be returned. The use of the response is for that reason deprecated.
    */
-  scopeItem?: AnyURI[];
+  scopeItem: AnyURI[];
 }
 export interface RemoveScopesResponse {
   /** Contains a list of URIs that has been removed from the device scope */
@@ -362,17 +362,17 @@ export interface GetUsersResponse {
 }
 export interface CreateUsers {
   /** Creates new device users and corresponding credentials. Each user entry includes: username, password and user level. Either all users are created successfully or a fault message MUST be returned without creating any user. If trying to create several users with exactly the same username the request is rejected and no users are created. If password is missing, then fault message Too weak password is returned. */
-  user?: User[];
+  user: User[];
 }
 export interface CreateUsersResponse {}
 export interface DeleteUsers {
   /** Deletes users on an device and there may exist users that cannot be deleted to ensure access to the unit. Either all users are deleted successfully or a fault message MUST be returned and no users be deleted. If a username exists multiple times in the request, then a fault message is returned. */
-  username?: string[];
+  username: string[];
 }
 export interface DeleteUsersResponse {}
 export interface SetUser {
   /** Updates the credentials for one or several users on an device. Either all change requests are processed successfully or a fault message MUST be returned. If the request contains the same username multiple times, a fault message is returned. */
-  user?: User[];
+  user: User[];
 }
 export interface SetUserResponse {}
 export interface GetWsdlUrl {}
@@ -502,7 +502,7 @@ export interface SetDynamicDNSResponse {}
 export interface GetNetworkInterfaces {}
 export interface GetNetworkInterfacesResponse {
   /** List of network interfaces. */
-  networkInterfaces?: NetworkInterface[];
+  networkInterfaces: NetworkInterface[];
 }
 export interface SetNetworkInterfaces {
   /** Symbolic network interface name. */
@@ -521,7 +521,7 @@ export interface SetNetworkInterfacesResponse {
    * its previous IP address. The settings will only be activated when the device is
    * rebooted via the SystemReboot command.
    */
-  rebootNeeded?: boolean;
+  rebootNeeded: boolean;
 }
 export interface GetNetworkProtocols {}
 export interface GetNetworkProtocolsResponse {
@@ -530,7 +530,7 @@ export interface GetNetworkProtocolsResponse {
 }
 export interface SetNetworkProtocols {
   /** Configures one or more defined network protocols supported by the device. There are currently three protocols defined; HTTP, HTTPS and RTSP. The following parameters can be set for each protocol: port and enable/disable. */
-  networkProtocols?: NetworkProtocol[];
+  networkProtocols: NetworkProtocol[];
 }
 export interface SetNetworkProtocolsResponse {}
 export interface GetNetworkDefaultGateway {}
@@ -612,7 +612,7 @@ export interface SetCertificatesStatus {
 export interface SetCertificatesStatusResponse {}
 export interface DeleteCertificates {
   /** List of ids of certificates to delete. */
-  certificateID?: string[];
+  certificateID: string[];
 }
 export interface DeleteCertificatesResponse {}
 export interface GetPkcs10Request {
@@ -629,7 +629,7 @@ export interface GetPkcs10RequestResponse {
 }
 export interface LoadCertificates {
   /** Optional id and base64 encoded DER representation of certificate. */
-  NVTCertificate?: Certificate[];
+  NVTCertificate: Certificate[];
 }
 export interface LoadCertificatesResponse {}
 export interface GetClientCertificateMode {}
@@ -647,32 +647,32 @@ export interface GetCACertificatesResponse {
   CACertificate?: Certificate[];
 }
 export interface LoadCertificateWithPrivateKey {
-  certificateWithPrivateKey?: CertificateWithPrivateKey[];
+  certificateWithPrivateKey: CertificateWithPrivateKey[];
 }
 export interface LoadCertificateWithPrivateKeyResponse {}
 export interface GetCertificateInformation {
-  certificateID?: string;
+  certificateID: string;
 }
 export interface GetCertificateInformationResponse {
-  certificateInformation?: CertificateInformation;
+  certificateInformation: CertificateInformation;
 }
 export interface LoadCACertificates {
-  CACertificate?: Certificate[];
+  CACertificate: Certificate[];
 }
 export interface LoadCACertificatesResponse {}
 export interface CreateDot1XConfiguration {
-  dot1XConfiguration?: Dot1XConfiguration;
+  dot1XConfiguration: Dot1XConfiguration;
 }
 export interface CreateDot1XConfigurationResponse {}
 export interface SetDot1XConfiguration {
-  dot1XConfiguration?: Dot1XConfiguration;
+  dot1XConfiguration: Dot1XConfiguration;
 }
 export interface SetDot1XConfigurationResponse {}
 export interface GetDot1XConfiguration {
-  dot1XConfigurationToken?: ReferenceToken;
+  dot1XConfigurationToken: ReferenceToken;
 }
 export interface GetDot1XConfigurationResponse {
-  dot1XConfiguration?: Dot1XConfiguration;
+  dot1XConfiguration: Dot1XConfiguration;
 }
 export interface GetDot1XConfigurations {}
 export interface GetDot1XConfigurationsResponse {
@@ -692,12 +692,12 @@ export interface SetRelayOutputSettings {
 }
 export interface SetRelayOutputSettingsResponse {}
 export interface SetRelayOutputState {
-  relayOutputToken?: ReferenceToken;
-  logicalState?: RelayLogicalState;
+  relayOutputToken: ReferenceToken;
+  logicalState: RelayLogicalState;
 }
 export interface SetRelayOutputStateResponse {}
 export interface SendAuxiliaryCommand {
-  auxiliaryCommand?: AuxiliaryData;
+  auxiliaryCommand: AuxiliaryData;
 }
 export interface SendAuxiliaryCommandResponse {
   auxiliaryCommandResponse?: AuxiliaryData;
