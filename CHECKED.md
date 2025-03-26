@@ -1,32 +1,33 @@
-ONVIF Interfaces
+## ONVIF methods
+That exists in the v0.x version. And implemented in the v1.x with the tests coverage
 
-- [x] connect
-- [x] _request
-- [x] _requestPart2
+- [ ] connect
+- [ ] _request
+- [ ] _requestPart2
 - [x] getSystemDateAndTime
-- [x] setSystemDateAndTime accepts SetSystemDateAndTimeOptions
-- [x] getCapabilities Capabilities -> GetCapabilitiesResponse
-- [x] getServiceCapabilities DeviceServiceCapabilities -> GetServiceCapabilitiesResponse
+- [x] setSystemDateAndTime
+- [x] getCapabilities
+- [x] getServiceCapabilities
 - [ ] getActiveSources
-- [x] getServices includeCapability wrapped into object
-- [ ] getDeviceInformation
-- [ ] getHostname
-- [ ] getScopes
-- [ ] setScopes
-- [ ] systemReboot
+- [ ] getServices includeCapability wrapped into object
+- [x] getDeviceInformation
+- [x] getHostname
+- [x] getScopes
+- [x] setScopes
+- [x] systemReboot
 - [ ] setSystemFactoryDefault
 - [x] _passwordDigest
 - [x] _envelopeHeader
 - [x] _envelopeFooter
 - [x] _parseUrl
-- [x] getNTP cam.device.getNTP
-- [x] setNTP cam.device.setNTP
-- [ ] getNetworkInterfaces
-- [ ] setNetworkInterfaces
+- [x] getNTP
+- [x] setNTP
+- [x] getNetworkInterfaces
+- [x] setNetworkInterfaces
 - [ ] getNetworkDefaultGateway
 - [ ] setNetworkDefaultGateway
-- [x] getDNS cam.device.getDNS
-- [ ] setDNS
+- [x] getDNS
+- [x] setDNS
 - [ ] getNetworkProtocols
 - [ ] getUsers
 - [ ] createUsers
@@ -43,13 +44,13 @@ ONVIF Interfaces
 - [ ] _eventRequest
 - [ ] _eventPull
 - [ ] _restartEventRequest
-- [x] parseEventXML
-- [x] getVideoSources
-- [x] getVideoSourceConfigurations
-- [x] getVideoSourceConfigurationOptions new
+- [ ] parseEventXML
+- [ ] getVideoSources
+- [ ] getVideoSourceConfigurations
+- [ ] getVideoSourceConfigurationOptions new
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
-- [x] getVideoEncoderConfigurations
+- [ ] getVideoEncoderConfigurations
 - [ ] setVideoEncoderConfiguration
 - [ ] getAudioSources
 - [ ] getAudioEncoderConfigurations
@@ -71,8 +72,8 @@ ONVIF Interfaces
 - [ ] getStreamUri
 - [ ] getSnapshotUri
 - [ ] setSynchronizationPoint
-- [x] getOSDs cam.media.getOSDs (schema strict)
-- [x] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
+- [ ] getOSDs cam.media.getOSDs (schema strict)
+- [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
 - [ ] createOSD
 - [ ] setOSD
 - [ ] deleteOSD
