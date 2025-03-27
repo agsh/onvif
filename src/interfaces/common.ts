@@ -12,8 +12,8 @@ export type MoveStatus = 'IDLE' | 'MOVING' | 'UNKNOWN';
 export type Entity = 'Device' | 'VideoSource' | 'AudioSource';
 /** Range of values greater equal Min value and less equal Max value. */
 export interface IntRange {
-  min?: number;
-  max?: number;
+  min: number;
+  max: number;
 }
 export interface Vector2D {
   x: number;
@@ -26,7 +26,7 @@ export interface Vector2D {
    *  http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace
    *
    */
-  space?: AnyURI;
+  space: AnyURI;
 }
 export interface Vector1D {
   x: number;
@@ -38,13 +38,19 @@ export interface Vector1D {
    *  http://www.onvif.org/ver10/tptz/ZoomSpaces/ZoomGenericSpeedSpace
    *
    */
-  space?: AnyURI;
+  space: AnyURI;
 }
 export interface PTZVector {
   /** Pan and tilt position. The x component corresponds to pan and the y component to tilt. */
   panTilt?: Vector2D;
   /** A zoom position. */
   zoom?: Vector1D;
+}
+export interface FieldOfView {
+  /** Horizontal field-of-view in degrees. */
+  hfov: number;
+  /** Vertical field-of-view in degrees. */
+  vfov: number;
 }
 export interface PTZStatus {
   /** Specifies the absolute position of the PTZ unit together with the Space references. The default absolute spaces of the corresponding PTZ configuration MUST be referenced within the Position element. */
@@ -54,7 +60,9 @@ export interface PTZStatus {
   /** States a current PTZ error. */
   error?: string;
   /** Specifies the UTC time when this status was generated. */
-  utcTime?: Date;
+  utcTime: Date;
+  /** States the current field of view of the video stream. */
+  fieldOfView?: FieldOfView;
 }
 export interface PTZMoveStatus {
   /**/
@@ -63,14 +71,14 @@ export interface PTZMoveStatus {
   zoom?: MoveStatus;
 }
 export interface Vector {
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
 }
 export interface Rectangle {
-  bottom?: number;
-  top?: number;
-  right?: number;
-  left?: number;
+  bottom: number;
+  top: number;
+  right: number;
+  left: number;
 }
 export interface Polygon {
   point?: Vector[];
@@ -101,22 +109,22 @@ export interface Color {
    * http://www.onvif.org/ver10/colorspace/HSV - HSV
    *
    */
-  colorspace?: AnyURI;
+  colorspace: AnyURI;
   /** Likelihood that the color is correct. */
-  likelihood?: number;
+  likelihood: number;
 }
 export interface ColorCovariance {
   XX: number;
   YY: number;
   ZZ: number;
-  XY?: number;
-  XZ?: number;
-  YZ?: number;
+  XY: number;
+  XZ: number;
+  YZ: number;
   /** Acceptable values are the same as in tt:Color. */
-  colorspace?: AnyURI;
+  colorspace: AnyURI;
 }
 export interface ColorCluster {
-  color?: Color;
+  color: Color;
   weight?: number;
   covariance?: ColorCovariance;
 }
@@ -132,55 +140,55 @@ export interface Transformation {
 export interface TransformationExtension {}
 export interface GeoLocation {
   /** East west location as angle. */
-  lon?: number;
+  lon: number;
   /** North south location as angle. */
-  lat?: number;
+  lat: number;
   /** Hight in meters above sea level. */
-  elevation?: number;
+  elevation: number;
 }
 export interface GeoOrientation {
   /** Rotation around the x axis. */
-  roll?: number;
+  roll: number;
   /** Rotation around the y axis. */
-  pitch?: number;
+  pitch: number;
   /** Rotation around the z axis. */
-  yaw?: number;
+  yaw: number;
 }
 export interface LocalLocation {
   /** East west location as angle. */
-  x?: number;
+  x: number;
   /** North south location as angle. */
-  y?: number;
+  y: number;
   /** Offset in meters from the sea level. */
-  z?: number;
+  z: number;
 }
 export interface LocalOrientation {
   /** Rotation around the y axis. */
-  pan?: number;
+  pan: number;
   /** Rotation around the z axis. */
-  tilt?: number;
+  tilt: number;
   /** Rotation around the x axis. */
-  roll?: number;
+  roll: number;
 }
 export interface SphericalCoordinate {
   /** Distance in meters to the object. */
-  distance?: number;
+  distance: number;
   /** Elevation angle in the range -90 to 90 degrees, where 0 is in level with the x-y plane. */
-  elevationAngle?: number;
+  elevationAngle: number;
   /** Azimuth angle in the range -180 to 180 degrees counter clockwise, where 0 is rightwards. */
-  azimuthAngle?: number;
+  azimuthAngle: number;
 }
 export interface LocationEntity {
   /** Entity type the entry refers to, use a value from the tt:Entity enumeration. */
-  entity?: string;
+  entity: string;
   /** Optional entity token. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** If this value is true the entity cannot be deleted. */
-  fixed?: boolean;
+  fixed: boolean;
   /** Optional reference to the XAddr of another devices DeviceManagement service. */
-  geoSource?: AnyURI;
+  geoSource: AnyURI;
   /** If set the geo location is obtained internally. */
-  autoGeo?: boolean;
+  autoGeo: boolean;
   /** Location on earth. */
   geoLocation?: GeoLocation;
   /** Orientation relative to earth. */

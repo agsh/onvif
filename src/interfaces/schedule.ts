@@ -69,7 +69,7 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating schedules and special day groups.
    * To enable the use of the commands SetSchedule and SetSpecialDayGroup, the value must be set to true.
    */
-  clientSuppliedTokenSupported?: boolean;
+  clientSuppliedTokenSupported: boolean;
 }
 /**
  * The ScheduleInfo type represents the schedule as a physical object.
@@ -77,7 +77,7 @@ export interface ServiceCapabilities {
  */
 export interface ScheduleInfo extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /** User readable description for the schedule. It shall be up to 1024 characters. */
   description?: Description;
 }
@@ -95,7 +95,7 @@ export interface Schedule extends ScheduleInfo {
    * ExtendedRecurrenceSupported to false will enable more devices
    * to be ONVIF compliant. Is of type string (but contains an iCalendar structure).
    */
-  standard?: string;
+  standard: string;
   /**
    * For devices that are not able to support all the features of iCalendar,
    * supporting special days is essential. Each SpecialDaysSchedule
@@ -110,7 +110,7 @@ export interface ScheduleExtension {}
 /** A override schedule that defines alternate time periods for a group of special days. */
 export interface SpecialDaysSchedule {
   /** Indicates the list of special days in a schedule. */
-  groupToken?: ReferenceToken;
+  groupToken: ReferenceToken;
   /**
    * Indicates the alternate time periods for the list of special days
    * (overrides the regular schedule). For example, the regular schedule indicates
@@ -132,7 +132,7 @@ export interface ScheduleState {
    * schedule is being used for triggering automatic recording on a video source,
    * the Active flag will be true when the schedule-based recording is supposed to record.
    */
-  active?: boolean;
+  active: boolean;
   /**
    * Indicates that the current time is within the boundaries of its special
    * days schedules’ time periods. For example, if this schedule is being used
@@ -152,7 +152,7 @@ export interface ScheduleStateExtension {}
  */
 export interface TimePeriod {
   /** Indicates the start time. */
-  from?: Time;
+  from: Time;
   /**
    * Indicates the end time. Is optional, if omitted, the period ends at midnight.
    * The end time is exclusive, meaning that that exact moment in time is not
@@ -166,7 +166,7 @@ export interface TimePeriodExtension {}
 /** The SpecialDayGroupInfo structure contains the basic information about the special days list. */
 export interface SpecialDayGroupInfo extends DataEntity {
   /** User readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /**
    * User readable description for the special days. It shall be up to 1024
    * characters.
@@ -195,15 +195,15 @@ export interface GetServiceCapabilitiesResponse {
    * The capability response message contains the requested schedule service
    * capabilities using a hierarchical XML capability structure.
    */
-  capabilities?: ServiceCapabilities;
+  capabilities: ServiceCapabilities;
 }
 export interface GetScheduleState {
   /** Token of schedule instance to get ScheduleState. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface GetScheduleStateResponse {
   /** ScheduleState item. */
-  scheduleState?: ScheduleState;
+  scheduleState: ScheduleState;
 }
 export interface GetScheduleInfo {
   /** Tokens of ScheduleInfo items to get. */
@@ -271,7 +271,7 @@ export interface CreateSchedule {
 }
 export interface CreateScheduleResponse {
   /** The token of created Schedule */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface SetSchedule {
   /** The Schedule to modify/create */
@@ -368,6 +368,6 @@ export interface ModifySpecialDayGroup {
 export interface ModifySpecialDayGroupResponse {}
 export interface DeleteSpecialDayGroup {
   /** The token of the special day group item to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteSpecialDayGroupResponse {}

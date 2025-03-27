@@ -4,7 +4,7 @@ import { ReferenceToken } from './common';
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the receiver service is returned in the Capabilities element. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface GetReceivers {}
 export interface GetReceiversResponse {
@@ -13,44 +13,44 @@ export interface GetReceiversResponse {
 }
 export interface GetReceiver {
   /** The token of the receiver to be retrieved. */
-  receiverToken?: ReferenceToken;
+  receiverToken: ReferenceToken;
 }
 export interface GetReceiverResponse {
   /** The details of the receiver. */
-  receiver?: Receiver;
+  receiver: Receiver;
 }
 export interface CreateReceiver {
   /** The initial configuration for the new receiver. */
-  configuration?: ReceiverConfiguration;
+  configuration: ReceiverConfiguration;
 }
 export interface CreateReceiverResponse {
   /** The details of the receiver that was created. */
-  receiver?: Receiver;
+  receiver: Receiver;
 }
 export interface DeleteReceiver {
   /** The token of the receiver to be deleted. */
-  receiverToken?: ReferenceToken;
+  receiverToken: ReferenceToken;
 }
 export interface DeleteReceiverResponse {}
 export interface ConfigureReceiver {
   /** The token of the receiver to be configured. */
-  receiverToken?: ReferenceToken;
+  receiverToken: ReferenceToken;
   /** The new configuration for the receiver. */
-  configuration?: ReceiverConfiguration;
+  configuration: ReceiverConfiguration;
 }
 export interface ConfigureReceiverResponse {}
 export interface SetReceiverMode {
   /** The token of the receiver to be changed. */
-  receiverToken?: ReferenceToken;
+  receiverToken: ReferenceToken;
   /** The new receiver mode. Options available are: */
-  mode?: ReceiverMode;
+  mode: ReceiverMode;
 }
 export interface SetReceiverModeResponse {}
 export interface GetReceiverState {
   /** The token of the receiver to be queried. */
-  receiverToken?: ReferenceToken;
+  receiverToken: ReferenceToken;
 }
 export interface GetReceiverStateResponse {
   /** Description of the current receiver state. */
-  receiverState?: ReceiverStateInformation;
+  receiverState: ReceiverStateInformation;
 }

@@ -8,17 +8,17 @@ export interface RadiometryModuleConfigOptions {
    * The total number of temperature measurement modules that can be created on the
    * device, screen based or geolocated, of any type (spots or boxes).
    */
-  maxMeasurementModules?: number;
+  maxMeasurementModules: number;
   /**
    * The total number of spot measurement modules that can be loaded simultaneously on the
    * screen by the device. A value of 0 shall be used to indicate no support for Spots.
    */
-  maxScreenSpots?: number;
+  maxScreenSpots: number;
   /**
    * The total number of box measurement modules that can be loaded simultaneously on the
    * screen by the device. A value of 0 shall be used to indicate no support for Boxes.
    */
-  maxScreenBoxes?: number;
+  maxScreenBoxes: number;
   /** Specifies valid ranges for the different radiometry parameters used for temperature calculation. */
   radiometryParameterOptions?: RadiometryParameterOptions;
 }
@@ -43,11 +43,11 @@ export interface RadiometryParameterOptions {
 }
 export interface RadiometrySpotModuleConfig {
   /** Unique identifier for this Spot Temperature Measurement Analytics Module. */
-  itemID?: ReferenceToken;
+  itemID: ReferenceToken;
   /** Indicates if the Temperature Measurement Item is enabled to provide temperature readings. */
-  active?: boolean;
+  active: boolean;
   /** Screen coordinates, if spot is currently on screen. Assumes normalized screen limits (-1.0, 1.0). */
-  screenCoords?: Vector;
+  screenCoords: Vector;
   /**
    * Absolute orientation of the PTZ Vector with the Spot on screen. If no PTZVector is present
    * the spot shall behave as a screen element, and stay on the same screen coordinates as the PTZ
@@ -61,11 +61,11 @@ export interface RadiometrySpotModuleConfig {
 }
 export interface RadiometryBoxModuleConfig {
   /** Unique identifier for this Box Temperature Measurement Analytics Module. */
-  itemID?: ReferenceToken;
+  itemID: ReferenceToken;
   /** Indicates if the Temperature Measurement Item is enabled to provide temperature readings. */
-  active?: boolean;
+  active: boolean;
   /** Screen coordinates, if box is currently on screen. Assumes normalized screen limits (-1.0, 1.0). */
-  screenCoords?: Rectangle;
+  screenCoords: Rectangle;
   /**
    * Absolute orientation of the PTZ Vector with the Box on screen. If no PTZVector is present
    * the box shall behave as a screen element, and stay on the same screen coordinates as the PTZ
@@ -78,7 +78,7 @@ export interface RadiometryBoxModuleConfig {
   radiometryParameters?: RadiometryParameters;
 }
 export interface SpotTemperatureReading {
-  itemID?: ReferenceToken;
+  itemID: ReferenceToken;
   spotTemperature: number;
   /** Not present means Global Parameters from Thermal Service are being used. */
   radiometryParameters?: RadiometryParameters;
@@ -87,8 +87,8 @@ export interface BoxTemperatureReading {
   itemID: ReferenceToken;
   maxTemperature: number;
   minTemperature: number;
-  averageTemperature?: number;
-  medianTemperature?: number;
+  averageTemperature: number;
+  medianTemperature: number;
   /** Not present means Global Parameters from Thermal Service are being used. */
   radiometryParameters?: RadiometryParameters;
 }
@@ -113,7 +113,7 @@ export interface RadiometryRuleConfigOptions {
 /** Describes valid ranges for radiometric rule condition thresholds and reference parameters. */
 export interface RadiometryRuleOptions {
   /** Valid range of temperature values, in Kelvin. */
-  thresholdTemperature?: FloatRange;
+  thresholdTemperature: FloatRange;
   /** Valid range of hysteresis time interval for temperature conditions, in seconds. */
   thresholdTime?: FloatRange;
   /** Valid range of temperature hysteresis values, in Kelvin. */
@@ -121,9 +121,9 @@ export interface RadiometryRuleOptions {
 }
 export interface RadiometryTemperatureRuleConfig {
   /** Reference Token to the Temperature Measurement Analytics Module providing the Temperature on which rule is defined. */
-  radiometryModuleID?: ReferenceToken;
+  radiometryModuleID: ReferenceToken;
   /** Indicates if the Temperature Rule is enabled to provide temperature alarm events. */
-  enabled?: boolean;
+  enabled: boolean;
   /**
    * Indicates which of the temperature values provided by the input Analytics Module
    * shall be used by the rule. In the case of Analytics Modules providing a single
@@ -131,11 +131,11 @@ export interface RadiometryTemperatureRuleConfig {
    */
   temperatureType?: TemperatureType;
   /** Indicates the type of temperature condition to check. */
-  ruleCondition?: TemperatureCondition;
+  ruleCondition: TemperatureCondition;
   /** Indicates the temperature reference value the rule shall be checked against. */
-  thresholdTemperature?: number;
+  thresholdTemperature: number;
   /** Indicates the time interval during which the rule condition shall be met to trigger an event. */
-  thresholdTime?: string;
+  thresholdTime: string;
   /** Indicates the width in Kelvin of the temerature hysteresis band to be considered by the rule. */
-  hysteresisTemperature?: number;
+  hysteresisTemperature: number;
 }

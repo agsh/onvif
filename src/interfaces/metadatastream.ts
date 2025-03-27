@@ -45,6 +45,7 @@ export type BarcodeType =
   | 'UPC-E'
   | 'PDF417'
   | 'QRCode';
+export type LabelAuthority = 'ISO_3864' | 'ISO_7010' | 'UNECE_ADR' | 'UNECE_GHS';
 export type ObjectType = 'Animal' | 'HumanFace' | 'Human' | 'Bicycle' | 'Vehicle' | 'LicensePlate' | 'Bike' | 'Barcode';
 export type ClassType = 'Animal' | 'Face' | 'Human' | 'Vehical' | 'Other';
 export interface Appearance {
@@ -62,24 +63,30 @@ export interface Appearance {
   image?: unknown;
   barcodeInfo?: BarcodeInfo;
   sphericalCoordinate?: SphericalCoordinate;
+  label?: LabelInfo[];
 }
 export interface AppearanceExtension {}
 export interface BarcodeInfo {
   /** Information encoded in barcode */
-  data?: StringLikelihood;
+  data: StringLikelihood;
   /** Acceptable values are defined in tt:BarcodeType */
   type?: StringLikelihood;
   /** Refers to the pixels per module */
   PPM?: number;
 }
+export interface LabelInfo {
+  likelihood: number;
+  authority: string;
+  ID: unknown;
+}
 export interface VehicleInfo {
-  type?: StringLikelihood;
+  type: StringLikelihood;
   brand?: StringLikelihood;
   model?: StringLikelihood;
 }
 export interface LicensePlateInfo {
   /** A string of vehicle license plate number. */
-  plateNumber?: StringLikelihood;
+  plateNumber: StringLikelihood;
   /** A description of the vehicle license plate, e.g., "Normal", "Police", "Diplomat" */
   plateType?: StringLikelihood;
   /** Describe the country of the license plate, in order to avoid the same license plate number. */
@@ -88,16 +95,16 @@ export interface LicensePlateInfo {
   issuingEntity?: StringLikelihood;
 }
 export interface ShapeDescriptor {
-  boundingBox?: Rectangle;
-  centerOfGravity?: Vector;
+  boundingBox: Rectangle;
+  centerOfGravity: Vector;
   polygon?: Polygon[];
   extension?: ShapeDescriptorExtension;
 }
 export interface ShapeDescriptorExtension {}
 export interface StringLikelihood {}
 export interface ClassCandidate {
-  type?: ClassType;
-  likelihood?: number;
+  type: ClassType;
+  likelihood: number;
 }
 export interface ClassDescriptor {
   classCandidate?: ClassCandidate[];
@@ -112,13 +119,15 @@ export interface ClassDescriptorExtension {
 export interface ClassDescriptorExtension2 {}
 export interface OtherType {
   /** Object Class Type */
-  type?: string;
+  type: string;
   /** A likelihood/probability that the corresponding object belongs to this class. The sum of the likelihoods shall NOT exceed 1 */
-  likelihood?: number;
+  likelihood: number;
 }
 export interface OnvifObject extends ObjectId {
   /** Object ID of the parent object. eg: License plate object has Vehicle object as parent. */
-  parent?: number;
+  parent: number;
+  /** Object UUID of the parent object. eg: License plate object has Vehicle object as parent. */
+  parentUUID: string;
   appearance?: Appearance;
   behaviour?: Behaviour;
   extension?: ObjectExtension;
@@ -127,9 +136,9 @@ export interface ObjectExtension {}
 export interface Frame {
   utcTime: Date;
   /** Default color space of Color definitions in frame. Valid values are "RGB" and "YCbCr". Defaults to "YCbCr". */
-  colorspace?: string;
+  colorspace: string;
   /** Optional name of the analytics module that generated this frame. */
-  source?: string;
+  source: string;
   PTZStatus?: PTZStatus;
   transformation?: Transformation;
   object?: unknown[];
@@ -145,18 +154,20 @@ export interface FrameExtension {
 export interface FrameExtension2 {}
 export interface Merge {
   from?: ObjectId[];
-  to?: ObjectId;
+  to: ObjectId;
 }
 export interface Split {
-  from?: ObjectId;
+  from: ObjectId;
   to?: ObjectId[];
 }
 export interface Rename {
-  from?: ObjectId;
-  to?: ObjectId;
+  from: ObjectId;
+  to: ObjectId;
 }
 export interface ObjectId {
-  objectId?: number;
+  objectId: number;
+  /** Object unique identifier. */
+  UUID: string;
 }
 export interface Removed {}
 export interface Idle {}

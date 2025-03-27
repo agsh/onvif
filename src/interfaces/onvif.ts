@@ -102,7 +102,8 @@ export type ToneCompensationMode = 'OFF' | 'ON' | 'AUTO';
 export type DefoggingMode = 'OFF' | 'ON' | 'AUTO';
 export type ImageSendingType = 'Embedded' | 'LocalStorage' | 'RemoteStorage';
 export type PropertyOperation = 'Initialized' | 'Deleted' | 'Changed';
-export type Direction = 'Left' | 'Right' | 'Any';
+/** Entering represents object coming into the polygon boundary. */
+export type ExtendedDirection = 'Left' | 'Right' | 'Any' | 'Entering' | 'Exiting' | 'Approaching' | 'Departing';
 /** Specifies a receiver connection mode. */
 export type ReceiverMode = 'AutoConnect' | 'AlwaysConnect' | 'NeverConnect' | 'Unknown';
 /** Specifies the current connection state of the receiver. */
@@ -144,23 +145,23 @@ export interface IntRectangle {
 /** Range of a rectangle. The rectangle itself is defined by lower left corner position and size. Units are pixel. */
 export interface IntRectangleRange {
   /** Range of X-axis. */
-  XRange?: IntRange;
+  XRange: IntRange;
   /** Range of Y-axis. */
-  YRange?: IntRange;
+  YRange: IntRange;
   /** Range of width. */
-  widthRange?: IntRange;
+  widthRange: IntRange;
   /** Range of height. */
-  heightRange?: IntRange;
+  heightRange: IntRange;
 }
 /** Range of values greater equal Min value and less equal Max value. */
 export interface FloatRange {
-  min?: number;
-  max?: number;
+  min: number;
+  max: number;
 }
 /** Range of duration greater equal Min duration and less equal Max duration. */
 export interface DurationRange {
-  min?: string;
-  max?: string;
+  min: string;
+  max: string;
 }
 /** List of values. */
 export interface IntItems {
@@ -173,9 +174,9 @@ export interface AnyHolder {}
 /** Representation of a physical video input. */
 export interface VideoSource extends DeviceEntity {
   /** Frame rate in frames per second. */
-  framerate?: number;
+  framerate: number;
   /** Horizontal and vertical resolution */
-  resolution?: VideoResolution;
+  resolution: VideoResolution;
   /** Optional configuration of the image sensor. */
   imaging?: ImagingSettings;
   extension?: VideoSourceExtension;
@@ -189,7 +190,7 @@ export interface VideoSourceExtension2 {}
 /** Representation of a physical audio input. */
 export interface AudioSource extends DeviceEntity {
   /** number of available audio channels. (1: mono, 2: stereo) */
-  channels?: number;
+  channels: number;
 }
 /**
  * A media profile consists of a set of media configurations. Media profiles are used by a client
@@ -205,9 +206,9 @@ export interface Profile {
   /** Unique identifier of the profile. */
   token: ReferenceToken;
   /** A value of true signals that the profile cannot be deleted. Default is false. */
-  fixed?: boolean;
+  fixed: boolean;
   /** User readable name of the profile. */
-  name?: Name;
+  name: Name;
   /** Optional configuration of the Video input. */
   videoSourceConfiguration?: VideoSourceConfiguration;
   /** Optional configuration of the Audio input. */
@@ -238,17 +239,17 @@ export interface ConfigurationEntity {
   /** Token that uniquely references this configuration. Length up to 64 characters. */
   token: ReferenceToken;
   /** User readable name. Length up to 64 characters. */
-  name?: Name;
+  name: Name;
   /** Number of internal references currently using this configuration. This informational parameter is read-only. Deprecated for Media2 Service. */
-  useCount?: number;
+  useCount: number;
 }
 export interface VideoSourceConfiguration extends ConfigurationEntity {
   /** Readonly parameter signalling Source configuration's view mode, for devices supporting different view modes as defined in tt:viewModes. */
-  viewMode?: string;
+  viewMode: string;
   /** Reference to the physical input. */
-  sourceToken?: ReferenceToken;
+  sourceToken: ReferenceToken;
   /** Rectangle specifying the Video capturing area. The capturing area shall not be larger than the whole Video source area. */
-  bounds?: IntRectangle;
+  bounds: IntRectangle;
   extension?: VideoSourceConfigurationExtension;
 }
 export interface VideoSourceConfigurationExtension {
@@ -270,7 +271,7 @@ export interface VideoSourceConfigurationExtension2 {
 }
 export interface Rotate {
   /** Parameter to enable/disable Rotation feature. */
-  mode?: RotateMode;
+  mode: RotateMode;
   /** Optional parameter to configure how much degree of clockwise rotation of image  for On mode. Omitting this parameter for On mode means 180 degree rotation. */
   degree?: number;
   extension?: RotateExtension;
@@ -278,23 +279,23 @@ export interface Rotate {
 export interface RotateExtension {}
 export interface LensProjection {
   /** Angle of incidence. */
-  angle?: number;
+  angle: number;
   /** Mapping radius as a consequence of the emergent angle. */
-  radius?: number;
+  radius: number;
   /** Optional ray absorption at the given angle due to vignetting. A value of one means no absorption. */
   transmittance?: number;
 }
 export interface LensOffset {
   /** Optional horizontal offset of the lens center in normalized coordinates. */
-  x?: number;
+  x: number;
   /** Optional vertical offset of the lens center in normalized coordinates. */
-  y?: number;
+  y: number;
 }
 export interface LensDescription {
   /** Optional focal length of the optical system. */
-  focalLength?: number;
+  focalLength: number;
   /** Offset of the lens center to the imager center in normalized coordinates. */
-  offset?: LensOffset;
+  offset: LensOffset;
   /**
    * Radial description of the projection characteristics. The resulting curve is defined by the B-Spline interpolation
    * over the given elements. The element for Radius zero shall not be provided. The projection points shall be ordered with ascending Radius.
@@ -302,17 +303,17 @@ export interface LensDescription {
    */
   projection?: LensProjection[];
   /** Compensation of the x coordinate needed for the ONVIF normalized coordinate system. */
-  XFactor?: number;
+  XFactor: number;
 }
 export interface VideoSourceConfigurationOptions {
   /** Maximum number of profiles. */
-  maximumNumberOfProfiles?: number;
+  maximumNumberOfProfiles: number;
   /**
    * Supported range for the capturing area.
    * Device that does not support cropped streaming shall express BoundsRange option as mentioned below
    * BoundsRange->XRange and BoundsRange->YRange with same Min/Max values HeightRange and WidthRange Min/Max values same as VideoSource Height and Width Limits.
    */
-  boundsRange?: IntRectangleRange;
+  boundsRange: IntRectangleRange;
   /** List of physical inputs. */
   videoSourceTokensAvailable?: ReferenceToken[];
   extension?: VideoSourceConfigurationOptionsExtension;
@@ -331,7 +332,7 @@ export interface RotateOptions {
    * Signals if a device requires a reboot after changing the rotation.
    * If a device can handle rotation changes without rebooting this value shall be set to false.
    */
-  reboot?: boolean;
+  reboot: boolean;
   /** Supported options of Rotate mode parameter. */
   mode?: RotateMode[];
   /** List of supported degree value for rotation. */
@@ -341,7 +342,7 @@ export interface RotateOptions {
 export interface RotateOptionsExtension {}
 export interface SceneOrientation {
   /** Parameter to assign the way the camera determines the scene orientation. */
-  mode?: SceneOrientationMode;
+  mode: SceneOrientationMode;
   /**
    * Assigned or determined scene orientation based on the Mode. When assigning the Mode to AUTO, this field
    * is optional and will be ignored by the device. When assigning the Mode to MANUAL, this field is required
@@ -355,13 +356,13 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
    * and that the video encoder shall prioritize frame rate over all other adaptable
    * configuration values such as bitrate.  Default is false.
    */
-  guaranteedFrameRate?: boolean;
+  guaranteedFrameRate: boolean;
   /** Used video codec, either Jpeg, H.264 or Mpeg4 */
-  encoding?: VideoEncoding;
+  encoding: VideoEncoding;
   /** Configured video resolution */
-  resolution?: VideoResolution;
+  resolution: VideoResolution;
   /** Relative value for the video quantizers and the quality of the video. A high value within supported quality range means higher quality */
-  quality?: number;
+  quality: number;
   /** Optional element to configure rate control related parameters. */
   rateControl?: VideoRateControl;
   /** Optional element to configure Mpeg4 related parameters. */
@@ -369,41 +370,41 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
   /** Optional element to configure H.264 related parameters. */
   H264?: H264Configuration;
   /** Defines the multicast settings that could be used for video streaming. */
-  multicast?: MulticastConfiguration;
+  multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
-  sessionTimeout?: string;
+  sessionTimeout: string;
 }
 export interface VideoResolution {
-  /** Number of the columns of the Video image. */
-  width?: number;
-  /** Number of the lines of the Video image. */
-  height?: number;
+  /** Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image. */
+  width: number;
+  /** Number of the lines of the Video image. If there is a 90-degree rotation, this represents the number of columns of the Video image. */
+  height: number;
 }
 export interface VideoRateControl {
   /** Maximum output framerate in fps. If an EncodingInterval is provided the resulting encoded framerate will be reduced by the given factor. */
-  frameRateLimit?: number;
+  frameRateLimit: number;
   /** Interval at which images are encoded and transmitted. (A value of 1 means that every frame is encoded, a value of 2 means that every 2nd frame is encoded ...) */
-  encodingInterval?: number;
+  encodingInterval: number;
   /** the maximum output bitrate in kbps */
-  bitrateLimit?: number;
+  bitrateLimit: number;
 }
 export interface Mpeg4Configuration {
   /** Determines the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
-  govLength?: number;
+  govLength: number;
   /** the Mpeg4 profile, either simple profile (SP) or advanced simple profile (ASP) */
-  mpeg4Profile?: Mpeg4Profile;
+  mpeg4Profile: Mpeg4Profile;
 }
 export interface H264Configuration {
   /** Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
-  govLength?: number;
+  govLength: number;
   /** the H.264 profile, either baseline, main, extended or high */
-  H264Profile?: H264Profile;
+  H264Profile: H264Profile;
 }
 export interface VideoEncoderConfigurationOptions {
   /** Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoderConfiguration element. */
-  guaranteedFrameRateSupported?: boolean;
+  guaranteedFrameRateSupported: boolean;
   /** Range of the quality values. A high value means higher quality. */
-  qualityRange?: IntRange;
+  qualityRange: IntRange;
   /** Optional JPEG encoder settings ranges (See also Extension element). */
   JPEG?: JpegOptions;
   /** Optional MPEG-4 encoder settings ranges (See also Extension element). */
@@ -426,109 +427,111 @@ export interface JpegOptions {
   /** List of supported image sizes. */
   resolutionsAvailable?: VideoResolution[];
   /** Supported frame rate in fps (frames per second). */
-  frameRateRange?: IntRange;
+  frameRateRange: IntRange;
   /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
-  encodingIntervalRange?: IntRange;
+  encodingIntervalRange: IntRange;
 }
 export interface JpegOptions2 extends JpegOptions {
   /** Supported range of encoded bitrate in kbps. */
-  bitrateRange?: IntRange;
+  bitrateRange: IntRange;
 }
 export interface Mpeg4Options {
   /** List of supported image sizes. */
   resolutionsAvailable?: VideoResolution[];
   /** Supported group of Video frames length. This value typically corresponds to the I-Frame distance. */
-  govLengthRange?: IntRange;
+  govLengthRange: IntRange;
   /** Supported frame rate in fps (frames per second). */
-  frameRateRange?: IntRange;
+  frameRateRange: IntRange;
   /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
-  encodingIntervalRange?: IntRange;
+  encodingIntervalRange: IntRange;
   /** List of supported MPEG-4 profiles. */
   mpeg4ProfilesSupported?: Mpeg4Profile[];
 }
 export interface Mpeg4Options2 extends Mpeg4Options {
   /** Supported range of encoded bitrate in kbps. */
-  bitrateRange?: IntRange;
+  bitrateRange: IntRange;
 }
 export interface H264Options {
   /** List of supported image sizes. */
   resolutionsAvailable?: VideoResolution[];
   /** Supported group of Video frames length. This value typically corresponds to the I-Frame distance. */
-  govLengthRange?: IntRange;
+  govLengthRange: IntRange;
   /** Supported frame rate in fps (frames per second). */
-  frameRateRange?: IntRange;
+  frameRateRange: IntRange;
   /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
-  encodingIntervalRange?: IntRange;
+  encodingIntervalRange: IntRange;
   /** List of supported H.264 profiles. */
   H264ProfilesSupported?: H264Profile[];
 }
 export interface H264Options2 extends H264Options {
   /** Supported range of encoded bitrate in kbps. */
-  bitrateRange?: IntRange;
+  bitrateRange: IntRange;
 }
 export interface VideoEncoder2Configuration extends ConfigurationEntity {
   /** Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
-  govLength?: number;
+  govLength: number;
   /** Distance between anchor frames of type I-Frame and P-Frame. '1' indicates no B-Frames, '2' indicates that every 2nd frame is encoded as B-Frame, '3' indicates a structure like IBBPBBP..., etc. */
-  anchorFrameDistance?: number;
+  anchorFrameDistance: number;
   /** The encoder profile as defined in tt:VideoEncodingProfiles. */
-  profile?: string;
+  profile: string;
   /**
    * A value of true indicates that frame rate is a fixed value rather than an upper limit,
    * and that the video encoder shall prioritize frame rate over all other adaptable
    * configuration values such as bitrate.  Default is false.
    */
-  guaranteedFrameRate?: boolean;
+  guaranteedFrameRate: boolean;
+  /** Indicates if this stream will be signed according to the Media Signing Specification. */
+  signed: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** Configured video resolution */
-  resolution?: VideoResolution2;
+  resolution: VideoResolution2;
   /** Optional element to configure rate control related parameters. */
   rateControl?: VideoRateControl2;
   /** Defines the multicast settings that could be used for video streaming. */
   multicast?: MulticastConfiguration;
   /** Relative value for the video quantizers and the quality of the video. A high value within supported quality range means higher quality */
-  quality?: number;
+  quality: number;
 }
 export interface VideoResolution2 {
-  /** Number of the columns of the Video image. */
-  width?: number;
-  /** Number of the lines of the Video image. */
-  height?: number;
+  /** Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image. */
+  width: number;
+  /** Number of the lines of the Video image. If there is a 90-degree rotation, this represents the number of columns of the Video image. */
+  height: number;
 }
 export interface VideoRateControl2 {
   /** Enforce constant bitrate. */
-  constantBitRate?: boolean;
+  constantBitRate: boolean;
   /** Desired frame rate in fps. The actual rate may be lower due to e.g. performance limitations. */
-  frameRateLimit?: number;
+  frameRateLimit: number;
   /** the maximum output bitrate in kbps */
-  bitrateLimit?: number;
+  bitrateLimit: number;
 }
 export interface VideoEncoder2ConfigurationOptions {
   /** Exactly two values, which define the Lower and Upper bounds for the supported group of Video frames length. These values typically correspond to the I-Frame distance. */
-  govLengthRange?: IntList;
+  govLengthRange: IntList;
   /** Signals support for B-Frames. Upper bound for the supported anchor frame distance (must be larger than one). */
-  maxAnchorFrameDistance?: number;
+  maxAnchorFrameDistance: number;
   /** List of supported target frame rates in fps (frames per second). The list shall be sorted with highest values first. */
-  frameRatesSupported?: FloatList;
+  frameRatesSupported: FloatList;
   /** List of supported encoder profiles as defined in tt::VideoEncodingProfiles. */
-  profilesSupported?: StringAttrList;
+  profilesSupported: StringAttrList;
   /** Signal whether enforcing constant bitrate is supported. */
-  constantBitRateSupported?: boolean;
+  constantBitRateSupported: boolean;
   /** Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoder2Configuration element. */
-  guaranteedFrameRateSupported?: boolean;
+  guaranteedFrameRateSupported: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** Range of the quality values. A high value means higher quality. */
-  qualityRange?: FloatRange;
+  qualityRange: FloatRange;
   /** List of supported image sizes. */
   resolutionsAvailable?: VideoResolution2[];
   /** Supported range of encoded bitrate in kbps. */
-  bitrateRange?: IntRange;
+  bitrateRange: IntRange;
 }
 export interface AudioSourceConfiguration extends ConfigurationEntity {
   /** Token of the Audio Source the configuration applies to */
-  sourceToken?: ReferenceToken;
+  sourceToken: ReferenceToken;
 }
 export interface AudioSourceConfigurationOptions {
   /** Tokens of the audio source the configuration can be used for. */
@@ -538,15 +541,15 @@ export interface AudioSourceConfigurationOptions {
 export interface AudioSourceOptionsExtension {}
 export interface AudioEncoderConfiguration extends ConfigurationEntity {
   /** Audio codec used for encoding the audio input (either G.711, G.726 or AAC) */
-  encoding?: AudioEncoding;
+  encoding: AudioEncoding;
   /** The output bitrate in kbps. */
-  bitrate?: number;
+  bitrate: number;
   /** The output sample rate in kHz. */
-  sampleRate?: number;
+  sampleRate: number;
   /** Defines the multicast settings that could be used for video streaming. */
-  multicast?: MulticastConfiguration;
+  multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream */
-  sessionTimeout?: string;
+  sessionTimeout: string;
 }
 export interface AudioEncoderConfigurationOptions {
   /** list of supported AudioEncoderConfigurations */
@@ -554,41 +557,41 @@ export interface AudioEncoderConfigurationOptions {
 }
 export interface AudioEncoderConfigurationOption {
   /** The enoding used for audio data (either G.711, G.726 or AAC) */
-  encoding?: AudioEncoding;
+  encoding: AudioEncoding;
   /** List of supported bitrates in kbps for the specified Encoding */
-  bitrateList?: IntItems;
+  bitrateList: IntItems;
   /** List of supported Sample Rates in kHz for the specified Encoding */
-  sampleRateList?: IntItems;
+  sampleRateList: IntItems;
 }
 export interface AudioEncoder2Configuration extends ConfigurationEntity {
   /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** Optional multicast configuration of the audio stream. */
   multicast?: MulticastConfiguration;
   /** The output bitrate in kbps. */
-  bitrate?: number;
+  bitrate: number;
   /** The output sample rate in kHz. */
-  sampleRate?: number;
+  sampleRate: number;
 }
 export interface AudioEncoder2ConfigurationOptions {
   /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** List of supported bitrates in kbps for the specified Encoding */
-  bitrateList?: IntItems;
+  bitrateList: IntItems;
   /** List of supported Sample Rates in kHz for the specified Encoding */
-  sampleRateList?: IntItems;
+  sampleRateList: IntItems;
 }
 export interface VideoAnalyticsConfiguration extends ConfigurationEntity {
-  analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
-  ruleEngineConfiguration?: RuleEngineConfiguration;
+  analyticsEngineConfiguration: AnalyticsEngineConfiguration;
+  ruleEngineConfiguration: RuleEngineConfiguration;
 }
 export interface MetadataConfiguration extends ConfigurationEntity {
   /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType. */
-  compressionType?: string;
+  compressionType: string;
   /** Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target. */
-  geoLocation?: boolean;
+  geoLocation: boolean;
   /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon. */
-  shapePolygon?: boolean;
+  shapePolygon: boolean;
   /** optional element to configure which PTZ related data is to include in the metadata stream */
   PTZStatus?: PTZFilter;
   /**
@@ -603,9 +606,9 @@ export interface MetadataConfiguration extends ConfigurationEntity {
   /** Defines whether the streamed metadata will include metadata from the analytics engines (video, cell motion, audio etc.) */
   analytics?: boolean;
   /** Defines the multicast settings that could be used for video streaming. */
-  multicast?: MulticastConfiguration;
+  multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout?: string;
+  sessionTimeout: string;
   /**
    * Indication which AnalyticsModules shall output metadata.
    * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
@@ -616,9 +619,11 @@ export interface MetadataConfiguration extends ConfigurationEntity {
 export interface MetadataConfigurationExtension {}
 export interface PTZFilter {
   /** True if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN) */
-  status?: boolean;
+  status: boolean;
   /** True if the metadata stream shall contain the PTZ position */
-  position?: boolean;
+  position: boolean;
+  /** True if the metadata stream shall contain the field-of-view information */
+  fieldOfView?: boolean;
 }
 export interface SubscriptionPolicy {}
 /** Subcription handling in the same way as base notification subscription. */
@@ -628,10 +633,10 @@ export interface EventSubscription {
 }
 export interface MetadataConfigurationOptions {
   /** True if the device is able to stream the Geo Located positions of each target. */
-  geoLocation?: boolean;
+  geoLocation: boolean;
   /** A device signalling support for content filtering shall support expressions with the provided expression size. */
-  maxContentFilterSize?: number;
-  PTZStatusFilterOptions?: PTZStatusFilterOptions;
+  maxContentFilterSize: number;
+  PTZStatusFilterOptions: PTZStatusFilterOptions;
   extension?: MetadataConfigurationOptionsExtension;
 }
 export interface MetadataConfigurationOptionsExtension {
@@ -642,19 +647,21 @@ export interface MetadataConfigurationOptionsExtension {
 export interface MetadataConfigurationOptionsExtension2 {}
 export interface PTZStatusFilterOptions {
   /** True if the device is able to stream pan or tilt status information. */
-  panTiltStatusSupported?: boolean;
+  panTiltStatusSupported: boolean;
   /** True if the device is able to stream zoom status inforamtion. */
-  zoomStatusSupported?: boolean;
+  zoomStatusSupported: boolean;
   /** True if the device is able to stream the pan or tilt position. */
   panTiltPositionSupported?: boolean;
   /** True if the device is able to stream zoom position information. */
   zoomPositionSupported?: boolean;
   extension?: PTZStatusFilterOptionsExtension;
+  /** True if the device is able to stream the field-of-view information. */
+  fieldOfViewSupported?: boolean;
 }
 export interface PTZStatusFilterOptionsExtension {}
 /** Representation of a physical video outputs. */
 export interface VideoOutput extends DeviceEntity {
-  layout?: Layout;
+  layout: Layout;
   /** Resolution of the display in Pixel. */
   resolution?: VideoResolution;
   /** Refresh rate of the display in Hertz. */
@@ -666,7 +673,7 @@ export interface VideoOutput extends DeviceEntity {
 export interface VideoOutputExtension {}
 export interface VideoOutputConfiguration extends ConfigurationEntity {
   /** Token of the Video Output the configuration applies to */
-  outputToken?: ReferenceToken;
+  outputToken: ReferenceToken;
 }
 export interface VideoOutputConfigurationOptions {}
 export interface VideoDecoderConfigurationOptions {
@@ -684,17 +691,17 @@ export interface H264DecOptions {
   /** List of supported H264 Profiles (either baseline, main, extended or high) */
   supportedH264Profiles?: H264Profile[];
   /** Supported H.264 bitrate range in kbps */
-  supportedInputBitrate?: IntRange;
+  supportedInputBitrate: IntRange;
   /** Supported H.264 framerate range in fps */
-  supportedFrameRate?: IntRange;
+  supportedFrameRate: IntRange;
 }
 export interface JpegDecOptions {
   /** List of supported Jpeg Video Resolutions */
   resolutionsAvailable?: VideoResolution[];
   /** Supported Jpeg bitrate range in kbps */
-  supportedInputBitrate?: IntRange;
+  supportedInputBitrate: IntRange;
   /** Supported Jpeg framerate range in fps */
-  supportedFrameRate?: IntRange;
+  supportedFrameRate: IntRange;
 }
 export interface Mpeg4DecOptions {
   /** List of supported Mpeg4 Video Resolutions */
@@ -702,16 +709,16 @@ export interface Mpeg4DecOptions {
   /** List of supported Mpeg4 Profiles (either SP or ASP) */
   supportedMpeg4Profiles?: Mpeg4Profile[];
   /** Supported Mpeg4 bitrate range in kbps */
-  supportedInputBitrate?: IntRange;
+  supportedInputBitrate: IntRange;
   /** Supported Mpeg4 framerate range in fps */
-  supportedFrameRate?: IntRange;
+  supportedFrameRate: IntRange;
 }
 export interface VideoDecoderConfigurationOptionsExtension {}
 /** Representation of a physical audio outputs. */
 export interface AudioOutput extends DeviceEntity {}
 export interface AudioOutputConfiguration extends ConfigurationEntity {
   /** Token of the phsycial Audio output. */
-  outputToken?: ReferenceToken;
+  outputToken: ReferenceToken;
   /**
    * An audio channel MAY support different types of audio transmission. While for full duplex
    * operation no special handling is required, in half duplex operation the transmission direction
@@ -733,7 +740,7 @@ export interface AudioOutputConfiguration extends ConfigurationEntity {
    */
   sendPrimacy?: AnyURI;
   /** Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange. */
-  outputLevel?: number;
+  outputLevel: number;
 }
 export interface AudioOutputConfigurationOptions {
   /** Tokens of the physical Audio outputs (typically one). */
@@ -759,7 +766,7 @@ export interface AudioOutputConfigurationOptions {
    */
   sendPrimacyOptions?: AnyURI[];
   /** Minimum and maximum level range supported for this Output. */
-  outputLevelRange?: IntRange;
+  outputLevelRange: IntRange;
 }
 /**
  * The Audio Decoder Configuration does not contain any that parameter to configure the
@@ -777,63 +784,63 @@ export interface AudioDecoderConfigurationOptions {
 }
 export interface G711DecOptions {
   /** List of supported bitrates in kbps */
-  bitrate?: IntItems;
+  bitrate: IntItems;
   /** List of supported sample rates in kHz */
-  sampleRateRange?: IntItems;
+  sampleRateRange: IntItems;
 }
 export interface AACDecOptions {
   /** List of supported bitrates in kbps */
-  bitrate?: IntItems;
+  bitrate: IntItems;
   /** List of supported sample rates in kHz */
-  sampleRateRange?: IntItems;
+  sampleRateRange: IntItems;
 }
 export interface G726DecOptions {
   /** List of supported bitrates in kbps */
-  bitrate?: IntItems;
+  bitrate: IntItems;
   /** List of supported sample rates in kHz */
-  sampleRateRange?: IntItems;
+  sampleRateRange: IntItems;
 }
 export interface AudioDecoderConfigurationOptionsExtension {}
 export interface MulticastConfiguration {
   /** The multicast address (if this address is set to 0 no multicast streaming is enaled) */
-  address?: IPAddress;
+  address: IPAddress;
   /** The RTP mutlicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification. */
-  port?: number;
+  port: number;
   /** In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope. */
-  TTL?: number;
+  TTL: number;
   /** Read only property signalling that streaming is persistant. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state. */
-  autoStart?: boolean;
+  autoStart: boolean;
 }
 export interface StreamSetup {
   /** Defines if a multicast or unicast stream is requested */
-  stream?: StreamType;
-  transport?: Transport;
+  stream: StreamType;
+  transport: Transport;
 }
 export interface Transport {
   /** Defines the network protocol for streaming, either UDP=RTP/UDP, RTSP=RTP/RTSP/TCP or HTTP=RTP/RTSP/HTTP/TCP */
-  protocol?: TransportProtocol;
+  protocol: TransportProtocol;
   /** Optional element to describe further tunnel options. This element is normally not needed */
   tunnel?: Transport;
 }
 export interface MediaUri {
   /** Stable Uri to be used for requesting the media stream */
-  uri?: AnyURI;
+  uri: AnyURI;
   /** Indicates if the Uri is only valid until the connection is established. The value shall be set to "false". */
-  invalidAfterConnect?: boolean;
+  invalidAfterConnect: boolean;
   /** Indicates if the Uri is invalid after a reboot of the device. The value shall be set to "false". */
-  invalidAfterReboot?: boolean;
+  invalidAfterReboot: boolean;
   /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes */
-  timeout?: string;
+  timeout: string;
 }
 export interface Scope {
   /** Indicates if the scope is fixed or configurable. */
-  scopeDef?: ScopeDefinition;
+  scopeDef: ScopeDefinition;
   /** Scope item URI. */
-  scopeItem?: AnyURI;
+  scopeItem: AnyURI;
 }
 export interface NetworkInterface extends DeviceEntity {
   /** Indicates whether or not an interface is enabled. */
-  enabled?: boolean;
+  enabled: boolean;
   /** Network interface information */
   info?: NetworkInterfaceInfo;
   /** Link configuration. */
@@ -845,7 +852,7 @@ export interface NetworkInterface extends DeviceEntity {
   extension?: NetworkInterfaceExtension;
 }
 export interface NetworkInterfaceExtension {
-  interfaceType?: IANAIfTypes;
+  interfaceType: IANAIfTypes;
   /** Extension point prepared for future 802.3 configuration. */
   dot3?: Dot3Configuration[];
   dot11?: Dot11Configuration[];
@@ -855,39 +862,39 @@ export interface Dot3Configuration {}
 export interface NetworkInterfaceExtension2 {}
 export interface NetworkInterfaceLink {
   /** Configured link settings. */
-  adminSettings?: NetworkInterfaceConnectionSetting;
+  adminSettings: NetworkInterfaceConnectionSetting;
   /** Current active link settings. */
-  operSettings?: NetworkInterfaceConnectionSetting;
+  operSettings: NetworkInterfaceConnectionSetting;
   /** Integer indicating interface type, for example: 6 is ethernet. */
-  interfaceType?: IANAIfTypes;
+  interfaceType: IANAIfTypes;
 }
 export interface NetworkInterfaceConnectionSetting {
   /** Auto negotiation on/off. */
-  autoNegotiation?: boolean;
+  autoNegotiation: boolean;
   /** Speed. */
-  speed?: number;
+  speed: number;
   /** Duplex type, Half or Full. */
-  duplex?: Duplex;
+  duplex: Duplex;
 }
 export interface NetworkInterfaceInfo {
   /** Network interface name, for example eth0. */
   name?: string;
   /** Network interface MAC address. */
-  hwAddress?: HwAddress;
+  hwAddress: HwAddress;
   /** Maximum transmission unit. */
   MTU?: number;
 }
 export interface IPv6NetworkInterface {
   /** Indicates whether or not IPv6 is enabled. */
-  enabled?: boolean;
+  enabled: boolean;
   /** IPv6 configuration. */
   config?: IPv6Configuration;
 }
 export interface IPv4NetworkInterface {
   /** Indicates whether or not IPv4 is enabled. */
-  enabled?: boolean;
+  enabled: boolean;
   /** IPv4 configuration. */
-  config?: IPv4Configuration;
+  config: IPv4Configuration;
 }
 export interface IPv4Configuration {
   /** List of manually added IPv4 addresses. */
@@ -897,13 +904,13 @@ export interface IPv4Configuration {
   /** IPv4 address configured by using DHCP. */
   fromDHCP?: PrefixedIPv4Address;
   /** Indicates whether or not DHCP is used. */
-  DHCP?: boolean;
+  DHCP: boolean;
 }
 export interface IPv6Configuration {
   /** Indicates whether router advertisment is used. */
   acceptRouterAdvert?: boolean;
   /** DHCP configuration. */
-  DHCP?: IPv6DHCPConfiguration;
+  DHCP: IPv6DHCPConfiguration;
   /** List of manually entered IPv6 addresses. */
   manual?: PrefixedIPv6Address[];
   /** List of link local IPv6 addresses. */
@@ -917,9 +924,9 @@ export interface IPv6Configuration {
 export interface IPv6ConfigurationExtension {}
 export interface NetworkProtocol {
   /** Network protocol type string. */
-  name?: NetworkProtocolType;
+  name: NetworkProtocolType;
   /** Indicates if the protocol is enabled or not. */
-  enabled?: boolean;
+  enabled: boolean;
   /** The port that is used by the protocol. */
   port?: number[];
   extension?: NetworkProtocolExtension;
@@ -927,7 +934,7 @@ export interface NetworkProtocol {
 export interface NetworkProtocolExtension {}
 export interface NetworkHost {
   /** Network host type: IPv4, IPv6 or DNS. */
-  type?: NetworkHostType;
+  type: NetworkHostType;
   /** IPv4 address. */
   IPv4Address?: IPv4Address;
   /** IPv6 address. */
@@ -939,7 +946,7 @@ export interface NetworkHost {
 export interface NetworkHostExtension {}
 export interface IPAddress {
   /** Indicates if the address is an IPv4 or IPv6 address. */
-  type?: IPType;
+  type: IPType;
   /** IPv4 address. */
   IPv4Address?: IPv4Address;
   /** IPv6 address */
@@ -947,19 +954,19 @@ export interface IPAddress {
 }
 export interface PrefixedIPv4Address {
   /** IPv4 address */
-  address?: IPv4Address;
+  address: IPv4Address;
   /** Prefix/submask length */
-  prefixLength?: number;
+  prefixLength: number;
 }
 export interface PrefixedIPv6Address {
   /** IPv6 address */
-  address?: IPv6Address;
+  address: IPv6Address;
   /** Prefix/submask length */
-  prefixLength?: number;
+  prefixLength: number;
 }
 export interface HostnameInformation {
   /** Indicates whether the hostname has been obtained from DHCP or not. */
-  fromDHCP?: boolean;
+  fromDHCP: boolean;
   /** Indicates the device hostname or an empty string if no hostname has been assigned. */
   name?: string;
   extension?: HostnameInformationExtension;
@@ -967,7 +974,7 @@ export interface HostnameInformation {
 export interface HostnameInformationExtension {}
 export interface DNSInformation {
   /** Indicates whether or not DNS information is retrieved from DHCP. */
-  fromDHCP?: boolean;
+  fromDHCP: boolean;
   /** Search domain. */
   searchDomain?: string[];
   /** List of DNS addresses received from DHCP. */
@@ -979,7 +986,7 @@ export interface DNSInformation {
 export interface DNSInformationExtension {}
 export interface NTPInformation {
   /** Indicates if NTP information is to be retrieved by using DHCP. */
-  fromDHCP?: boolean;
+  fromDHCP: boolean;
   /** List of NTP addresses retrieved by using DHCP. */
   NTPFromDHCP?: NetworkHost[];
   /** List of manually entered NTP addresses. */
@@ -989,7 +996,7 @@ export interface NTPInformation {
 export interface NTPInformationExtension {}
 export interface DynamicDNSInformation {
   /** Dynamic DNS type. */
-  type?: DynamicDNSType;
+  type: DynamicDNSType;
   /** DNS name. */
   name?: DNSName;
   /** Time to live. */
@@ -1041,9 +1048,9 @@ export interface NetworkGateway {
 }
 export interface NetworkZeroConfiguration {
   /** Unique identifier of network interface. */
-  interfaceToken?: ReferenceToken;
+  interfaceToken: ReferenceToken;
   /** Indicates whether the zero-configuration is enabled or not. */
-  enabled?: boolean;
+  enabled: boolean;
   /** The zero-configuration IPv4 address(es) */
   addresses?: IPv4Address[];
   extension?: NetworkZeroConfigurationExtension;
@@ -1055,21 +1062,21 @@ export interface NetworkZeroConfigurationExtension {
 }
 export interface NetworkZeroConfigurationExtension2 {}
 export interface IPAddressFilter {
-  type?: IPAddressFilterType;
+  type: IPAddressFilterType;
   IPv4Address?: PrefixedIPv4Address[];
   IPv6Address?: PrefixedIPv6Address[];
   extension?: IPAddressFilterExtension;
 }
 export interface IPAddressFilterExtension {}
 export interface Dot11Configuration {
-  SSID?: Dot11SSIDType;
-  mode?: Dot11StationMode;
-  alias?: Name;
-  priority?: NetworkInterfaceConfigPriority;
-  security?: Dot11SecurityConfiguration;
+  SSID: Dot11SSIDType;
+  mode: Dot11StationMode;
+  alias: Name;
+  priority: NetworkInterfaceConfigPriority;
+  security: Dot11SecurityConfiguration;
 }
 export interface Dot11SecurityConfiguration {
-  mode?: Dot11SecurityMode;
+  mode: Dot11SecurityMode;
   algorithm?: Dot11Cipher;
   PSK?: Dot11PSKSet;
   dot1X?: ReferenceToken;
@@ -1093,22 +1100,22 @@ export interface Dot11PSKSet {
 export interface Dot11PSKSetExtension {}
 export interface NetworkInterfaceSetConfigurationExtension2 {}
 export interface Dot11Capabilities {
-  TKIP?: boolean;
-  scanAvailableNetworks?: boolean;
-  multipleConfiguration?: boolean;
-  adHocStationMode?: boolean;
-  WEP?: boolean;
+  TKIP: boolean;
+  scanAvailableNetworks: boolean;
+  multipleConfiguration: boolean;
+  adHocStationMode: boolean;
+  WEP: boolean;
 }
 export interface Dot11Status {
-  SSID?: Dot11SSIDType;
+  SSID: Dot11SSIDType;
   BSSID?: string;
   pairCipher?: Dot11Cipher;
   groupCipher?: Dot11Cipher;
   signalStrength?: Dot11SignalStrength;
-  activeConfigAlias?: ReferenceToken;
+  activeConfigAlias: ReferenceToken;
 }
 export interface Dot11AvailableNetworks {
-  SSID?: Dot11SSIDType;
+  SSID: Dot11SSIDType;
   BSSID?: string;
   /** See IEEE802.11 7.3.2.25.2 for details. */
   authAndMangementSuite?: Dot11AuthAndMangementSuite[];
@@ -1146,15 +1153,15 @@ export interface CapabilitiesExtension {
 export interface CapabilitiesExtension2 {}
 export interface AnalyticsCapabilities {
   /** Analytics service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Indicates whether or not rules are supported. */
-  ruleSupport?: boolean;
+  ruleSupport: boolean;
   /** Indicates whether or not modules are supported. */
-  analyticsModuleSupport?: boolean;
+  analyticsModuleSupport: boolean;
 }
 export interface DeviceCapabilities {
   /** Device service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Network capabilities. */
   network?: NetworkCapabilities;
   /** System capabilities. */
@@ -1168,13 +1175,13 @@ export interface DeviceCapabilities {
 export interface DeviceCapabilitiesExtension {}
 export interface EventCapabilities {
   /** Event service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Indicates whether or not WS Subscription policy is supported. */
-  WSSubscriptionPolicySupport?: boolean;
+  WSSubscriptionPolicySupport: boolean;
   /** Indicates whether or not WS Pull Point is supported. */
-  WSPullPointSupport?: boolean;
+  WSPullPointSupport: boolean;
   /** Indicates whether or not WS Pausable Subscription Manager Interface is supported. */
-  WSPausableSubscriptionManagerInterfaceSupport?: boolean;
+  WSPausableSubscriptionManagerInterfaceSupport: boolean;
 }
 export interface IOCapabilities {
   /** Number of input connectors. */
@@ -1186,18 +1193,18 @@ export interface IOCapabilities {
 export interface IOCapabilitiesExtension {
   auxiliary?: boolean;
   auxiliaryCommands?: AuxiliaryData[];
-  extension?: IOCapabilitiesExtension2;
+  extension: IOCapabilitiesExtension2;
 }
 export interface IOCapabilitiesExtension2 {}
 export interface MediaCapabilities {
   /** Media service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Streaming capabilities. */
-  streamingCapabilities?: RealTimeStreamingCapabilities;
+  streamingCapabilities: RealTimeStreamingCapabilities;
   extension?: MediaCapabilitiesExtension;
 }
 export interface MediaCapabilitiesExtension {
-  profileCapabilities?: ProfileCapabilities;
+  profileCapabilities: ProfileCapabilities;
 }
 export interface RealTimeStreamingCapabilities {
   /** Indicates whether or not RTP multicast is supported. */
@@ -1211,7 +1218,7 @@ export interface RealTimeStreamingCapabilities {
 export interface RealTimeStreamingCapabilitiesExtension {}
 export interface ProfileCapabilities {
   /** Maximum number of profiles. */
-  maximumNumberOfProfiles?: number;
+  maximumNumberOfProfiles: number;
 }
 export interface NetworkCapabilities {
   /** Indicates whether or not IP filtering is supported. */
@@ -1231,46 +1238,46 @@ export interface NetworkCapabilitiesExtension {
 export interface NetworkCapabilitiesExtension2 {}
 export interface SecurityCapabilities {
   /** Indicates whether or not TLS 1.1 is supported. */
-  'TLS1.1'?: boolean;
+  'TLS1.1': boolean;
   /** Indicates whether or not TLS 1.2 is supported. */
-  'TLS1.2'?: boolean;
+  'TLS1.2': boolean;
   /** Indicates whether or not onboard key generation is supported. */
-  onboardKeyGeneration?: boolean;
+  onboardKeyGeneration: boolean;
   /** Indicates whether or not access policy configuration is supported. */
-  accessPolicyConfig?: boolean;
+  accessPolicyConfig: boolean;
   /** Indicates whether or not WS-Security X.509 token is supported. */
-  'X.509Token'?: boolean;
+  'X.509Token': boolean;
   /** Indicates whether or not WS-Security SAML token is supported. */
-  SAMLToken?: boolean;
+  SAMLToken: boolean;
   /** Indicates whether or not WS-Security Kerberos token is supported. */
-  kerberosToken?: boolean;
+  kerberosToken: boolean;
   /** Indicates whether or not WS-Security REL token is supported. */
-  RELToken?: boolean;
+  RELToken: boolean;
   extension?: SecurityCapabilitiesExtension;
 }
 export interface SecurityCapabilitiesExtension {
-  'TLS1.0'?: boolean;
+  'TLS1.0': boolean;
   extension?: SecurityCapabilitiesExtension2;
 }
 export interface SecurityCapabilitiesExtension2 {
-  dot1X?: boolean;
+  dot1X: boolean;
   /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry. */
   supportedEAPMethod?: number[];
-  remoteUserHandling?: boolean;
+  remoteUserHandling: boolean;
 }
 export interface SystemCapabilities {
   /** Indicates whether or not WS Discovery resolve requests are supported. */
-  discoveryResolve?: boolean;
+  discoveryResolve: boolean;
   /** Indicates whether or not WS-Discovery Bye is supported. */
-  discoveryBye?: boolean;
+  discoveryBye: boolean;
   /** Indicates whether or not remote discovery is supported. */
-  remoteDiscovery?: boolean;
+  remoteDiscovery: boolean;
   /** Indicates whether or not system backup is supported. */
-  systemBackup?: boolean;
+  systemBackup: boolean;
   /** Indicates whether or not system logging is supported. */
-  systemLogging?: boolean;
+  systemLogging: boolean;
   /** Indicates whether or not firmware upgrade is supported. */
-  firmwareUpgrade?: boolean;
+  firmwareUpgrade: boolean;
   /** Indicates supported ONVIF version(s). */
   supportedVersions?: OnvifVersion[];
   extension?: SystemCapabilitiesExtension;
@@ -1285,67 +1292,67 @@ export interface SystemCapabilitiesExtension {
 export interface SystemCapabilitiesExtension2 {}
 export interface OnvifVersion {
   /** Major version number. */
-  major?: number;
+  major: number;
   /**
    * Two digit minor version number.
    * If major version number is less than "16", X.0.1 maps to "01" and X.2.1 maps to "21" where X stands for Major version number.
    * Otherwise, minor number is month of release, such as "06" for June.
    */
-  minor?: number;
+  minor: number;
 }
 export interface ImagingCapabilities {
   /** Imaging service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
 }
 export interface PTZCapabilities {
   /** PTZ service URI. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
 }
 export interface DeviceIOCapabilities {
-  XAddr?: AnyURI;
-  videoSources?: number;
-  videoOutputs?: number;
-  audioSources?: number;
-  audioOutputs?: number;
-  relayOutputs?: number;
+  XAddr: AnyURI;
+  videoSources: number;
+  videoOutputs: number;
+  audioSources: number;
+  audioOutputs: number;
+  relayOutputs: number;
 }
 export interface DisplayCapabilities {
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Indication that the SetLayout command supports only predefined layouts. */
-  fixedLayout?: boolean;
+  fixedLayout: boolean;
 }
 export interface RecordingCapabilities {
-  XAddr?: AnyURI;
-  receiverSource?: boolean;
-  mediaProfileSource?: boolean;
-  dynamicRecordings?: boolean;
-  dynamicTracks?: boolean;
-  maxStringLength?: number;
+  XAddr: AnyURI;
+  receiverSource: boolean;
+  mediaProfileSource: boolean;
+  dynamicRecordings: boolean;
+  dynamicTracks: boolean;
+  maxStringLength: number;
 }
 export interface SearchCapabilities {
-  XAddr?: AnyURI;
-  metadataSearch?: boolean;
+  XAddr: AnyURI;
+  metadataSearch: boolean;
 }
 export interface ReplayCapabilities {
   /** The address of the replay service. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
 }
 export interface ReceiverCapabilities {
   /** The address of the receiver service. */
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Indicates whether the device can receive RTP multicast streams. */
-  RTP_Multicast?: boolean;
+  RTP_Multicast: boolean;
   /** Indicates whether the device can receive RTP/TCP streams */
-  RTP_TCP?: boolean;
+  RTP_TCP: boolean;
   /** Indicates whether the device can receive RTP/RTSP/TCP streams. */
-  RTP_RTSP_TCP?: boolean;
+  RTP_RTSP_TCP: boolean;
   /** The maximum number of receivers supported by the device. */
-  supportedReceivers?: number;
+  supportedReceivers: number;
   /** The maximum allowed length for RTSP URIs. */
-  maximumRTSPURILength?: number;
+  maximumRTSPURILength: number;
 }
 export interface AnalyticsDeviceCapabilities {
-  XAddr?: AnyURI;
+  XAddr: AnyURI;
   /** Obsolete property. */
   ruleSupport?: boolean;
   extension?: AnalyticsDeviceExtension;
@@ -1364,31 +1371,31 @@ export interface SupportInformation {
   string?: string;
 }
 export interface BinaryData {
-  contentType?: unknown;
+  contentType: unknown;
   /** base64 encoded binary data. */
-  data?: unknown;
+  data: unknown;
 }
 export interface AttachmentData {
-  contentType?: unknown;
-  clude?: unknown;
+  contentType: unknown;
+  clude: unknown;
 }
 export interface BackupFile {
-  name?: string;
-  data?: AttachmentData;
+  name: string;
+  data: AttachmentData;
 }
 export interface SystemLogUriList {
   systemLog?: SystemLogUri[];
 }
 export interface SystemLogUri {
-  type?: SystemLogType;
-  uri?: AnyURI;
+  type: SystemLogType;
+  uri: AnyURI;
 }
 /** General date time inforamtion returned by the GetSystemDateTime method. */
 export interface SystemDateTime {
   /** Indicates if the time is set manully or through NTP. */
-  dateTimeType?: SetDateTimeType;
+  dateTimeType: SetDateTimeType;
   /** Informative indicator whether daylight savings is currently on/off. */
-  daylightSavings?: boolean;
+  daylightSavings: boolean;
   /** Timezone information in Posix format. */
   timeZone?: TimeZone;
   /** Current system date and time in UTC format. This field is mandatory since version 2.0. */
@@ -1399,23 +1406,23 @@ export interface SystemDateTime {
 }
 export interface SystemDateTimeExtension {}
 export interface DateTime {
-  time?: Time;
-  date?: Date;
+  time: Time;
+  date: Date;
 }
 export interface Date {
-  year?: number;
+  year: number;
   /** Range is 1 to 12. */
-  month?: number;
+  month: number;
   /** Range is 1 to 31. */
-  day?: number;
+  day: number;
 }
 export interface Time {
   /** Range is 0 to 23. */
-  hour?: number;
+  hour: number;
   /** Range is 0 to 59. */
-  minute?: number;
+  minute: number;
   /** Range is 0 to 61 (typically 59). */
-  second?: number;
+  second: number;
 }
 /**
  * The TZ format is specified by POSIX, please refer to POSIX 1003.1 section 8.3
@@ -1431,20 +1438,20 @@ export interface Time {
  */
 export interface TimeZone {
   /** Posix timezone string. */
-  TZ?: string;
+  TZ: string;
 }
 export interface RemoteUser {
-  username?: string;
+  username: string;
   password?: string;
-  useDerivedPassword?: boolean;
+  useDerivedPassword: boolean;
 }
 export interface User {
   /** Username string. */
-  username?: string;
+  username: string;
   /** Password string. */
   password?: string;
   /** User level string. */
-  userLevel?: UserLevel;
+  userLevel: UserLevel;
   extension?: UserExtension;
 }
 export interface UserExtension {}
@@ -1458,23 +1465,23 @@ export interface CertificateGenerationParameters {
 export interface CertificateGenerationParametersExtension {}
 export interface Certificate {
   /** Certificate id. */
-  certificateID?: string;
+  certificateID: string;
   /** base64 encoded DER representation of certificate. */
-  certificate?: BinaryData;
+  certificate: BinaryData;
 }
 export interface CertificateStatus {
   /** Certificate id. */
-  certificateID?: string;
-  /** Indicates whether or not a certificate is used in a HTTPS configuration. */
-  status?: boolean;
+  certificateID: string;
+  /** Indicates whether or not a certificate is used in an HTTPS configuration. */
+  status: boolean;
 }
 export interface CertificateWithPrivateKey {
   certificateID?: string;
-  certificate?: BinaryData;
-  privateKey?: BinaryData;
+  certificate: BinaryData;
+  privateKey: BinaryData;
 }
 export interface CertificateInformation {
-  certificateID?: string;
+  certificateID: string;
   issuerDN?: string;
   subjectDN?: string;
   keyUsage?: CertificateUsage;
@@ -1490,11 +1497,11 @@ export interface CertificateInformation {
 export interface CertificateUsage {}
 export interface CertificateInformationExtension {}
 export interface Dot1XConfiguration {
-  dot1XConfigurationToken?: ReferenceToken;
-  identity?: string;
+  dot1XConfigurationToken: ReferenceToken;
+  identity: string;
   anonymousID?: string;
   /** EAP Method type as defined in IANA EAP Registry. */
-  EAPMethod?: number;
+  EAPMethod: number;
   CACertificateID?: string[];
   EAPMethodConfiguration?: EAPMethodConfiguration;
   extension?: Dot1XConfigurationExtension;
@@ -1509,7 +1516,7 @@ export interface EAPMethodConfiguration {
 }
 export interface EapMethodExtension {}
 export interface TLSConfiguration {
-  certificateID?: string;
+  certificateID: string;
 }
 export interface GenericEapPwdConfigurationExtension {}
 export interface RelayOutputSettings {
@@ -1520,9 +1527,9 @@ export interface RelayOutputSettings {
    * Monostable – After setting the state, the relay returns to its idle state after the specified time.
    *
    */
-  mode?: RelayMode;
+  mode: RelayMode;
   /** Time after which the relay returns to its idle state if it is in monostable mode. If the Mode field is set to bistable mode the value of the parameter can be ignored. */
-  delayTime?: string;
+  delayTime: string;
   /**
    * 'open' or 'closed'
    *
@@ -1530,28 +1537,28 @@ export interface RelayOutputSettings {
    * 'closed' means that the relay is closed when the relay state is set to 'inactive' through the trigger command and open when the state is set to 'active' through the same command.
    *
    */
-  idleState?: RelayIdleState;
+  idleState: RelayIdleState;
 }
 export interface RelayOutput extends DeviceEntity {
-  properties?: RelayOutputSettings;
+  properties: RelayOutputSettings;
 }
 export interface DigitalInput extends DeviceEntity {
   /** Indicate the Digital IdleState status. */
-  idleState?: DigitalIdleState;
+  idleState: DigitalIdleState;
 }
 export interface PTZNode extends DeviceEntity {
   /** Indication whether the HomePosition of a Node is fixed or it can be changed via the SetHomePosition command. */
-  fixedHomePosition?: boolean;
+  fixedHomePosition: boolean;
   /** Indication whether the Node supports the geo-referenced move command. */
-  geoMove?: boolean;
+  geoMove: boolean;
   /** A unique identifier that is used to reference PTZ Nodes. */
   name?: Name;
   /** A list of Coordinate Systems available for the PTZ Node. For each Coordinate System, the PTZ Node MUST specify its allowed range. */
-  supportedPTZSpaces?: PTZSpaces;
+  supportedPTZSpaces: PTZSpaces;
   /** All preset operations MUST be available for this PTZ Node if one preset is supported. */
-  maximumNumberOfPresets?: number;
+  maximumNumberOfPresets: number;
   /** A boolean operator specifying the availability of a home position. If set to true, the Home Position Operations MUST be available for this PTZ Node. */
-  homeSupported?: boolean;
+  homeSupported: boolean;
   /** A list of supported Auxiliary commands. If the list is not empty, the Auxiliary Operations MUST be available for this PTZ Node. */
   auxiliaryCommands?: AuxiliaryData[];
   extension?: PTZNodeExtension;
@@ -1564,7 +1571,7 @@ export interface PTZNodeExtension {
 export interface PTZNodeExtension2 {}
 export interface PTZPresetTourSupported {
   /** Indicates number of preset tours that can be created. Required preset tour operations shall be available for this PTZ Node if one or more preset tour is supported. */
-  maximumNumberOfPresetTours?: number;
+  maximumNumberOfPresetTours: number;
   /** Indicates which preset tour operations are available for this PTZ Node. */
   PTZPresetTourOperation?: PTZPresetTourOperation[];
   extension?: PTZPresetTourSupportedExtension;
@@ -1572,13 +1579,13 @@ export interface PTZPresetTourSupported {
 export interface PTZPresetTourSupportedExtension {}
 export interface PTZConfiguration extends ConfigurationEntity {
   /** The optional acceleration ramp used by the device when moving. */
-  moveRamp?: number;
+  moveRamp: number;
   /** The optional acceleration ramp used by the device when recalling presets. */
-  presetRamp?: number;
+  presetRamp: number;
   /** The optional acceleration ramp used by the device when executing PresetTours. */
-  presetTourRamp?: number;
+  presetTourRamp: number;
   /** A mandatory reference to the PTZ Node that the PTZ Configuration belongs to. */
-  nodeToken?: ReferenceToken;
+  nodeToken: ReferenceToken;
   /** If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default. */
   defaultAbsolutePantTiltPositionSpace?: AnyURI;
   /** If the PTZ Node supports absolute zoom movements, it shall specify one Absolute Zoom Position Space as default. */
@@ -1618,11 +1625,11 @@ export interface PTControlDirection {
 export interface PTControlDirectionExtension {}
 export interface EFlip {
   /** Parameter to enable/disable E-Flip feature. */
-  mode?: EFlipMode;
+  mode: EFlipMode;
 }
 export interface Reverse {
   /** Parameter to enable/disable Reverse feature. */
-  mode?: ReverseMode;
+  mode: ReverseMode;
 }
 export interface PTZConfigurationOptions {
   /**
@@ -1630,11 +1637,11 @@ export interface PTZConfigurationOptions {
    * smallest acceleration value corresponds to the minimal index, the
    * highest acceleration corresponds to the maximum index.
    */
-  PTZRamps?: IntList;
+  PTZRamps: IntList;
   /** A list of supported coordinate systems including their range limitations. */
-  spaces?: PTZSpaces;
+  spaces: PTZSpaces;
   /** A timeout Range within which Timeouts are accepted by the PTZ Node. */
-  PTZTimeout?: DurationRange;
+  PTZTimeout: DurationRange;
   /** Supported options for PT Direction Control. */
   PTControlDirection?: PTControlDirectionOptions;
   extension?: PTZConfigurationOptions2;
@@ -1662,11 +1669,11 @@ export interface ReverseOptions {
 export interface ReverseOptionsExtension {}
 export interface PanTiltLimits {
   /** A range of pan tilt limits. */
-  range?: Space2DDescription;
+  range: Space2DDescription;
 }
 export interface ZoomLimits {
   /** A range of zoom limit */
-  range?: Space1DDescription;
+  range: Space1DDescription;
 }
 export interface PTZSpaces {
   /**
@@ -1720,17 +1727,17 @@ export interface PTZSpaces {
 export interface PTZSpacesExtension {}
 export interface Space2DDescription {
   /** A URI of coordinate systems. */
-  URI?: AnyURI;
+  URI: AnyURI;
   /** A range of x-axis. */
-  XRange?: FloatRange;
+  XRange: FloatRange;
   /** A range of y-axis. */
-  YRange?: FloatRange;
+  YRange: FloatRange;
 }
 export interface Space1DDescription {
   /** A URI of coordinate systems. */
-  URI?: AnyURI;
+  URI: AnyURI;
   /** A range of x-axis. */
-  XRange?: FloatRange;
+  XRange: FloatRange;
 }
 export interface PTZSpeed {
   /** Pan and tilt speed. The x component corresponds to pan and the y component to tilt. If omitted in a request, the current (if any) PanTilt movement should not be affected. */
@@ -1740,7 +1747,7 @@ export interface PTZSpeed {
 }
 export interface PTZPreset {
   /**/
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** A list of preset position name. */
   name?: Name;
   /** A list of preset position. */
@@ -1748,15 +1755,15 @@ export interface PTZPreset {
 }
 export interface PresetTour {
   /** Unique identifier of this preset tour. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** Readable name of the preset tour. */
   name?: Name;
   /** Read only parameters to indicate the status of the preset tour. */
-  status?: PTZPresetTourStatus;
+  status: PTZPresetTourStatus;
   /** Auto Start flag of the preset tour. True allows the preset tour to be activated always. */
-  autoStart?: boolean;
+  autoStart: boolean;
   /** Parameters to specify the detail behavior of the preset tour. */
-  startingCondition?: PTZPresetTourStartingCondition;
+  startingCondition: PTZPresetTourStartingCondition;
   /** A list of detail of touring spots including preset positions. */
   tourSpot?: PTZPresetTourSpot[];
   extension?: PTZPresetTourExtension;
@@ -1764,7 +1771,7 @@ export interface PresetTour {
 export interface PTZPresetTourExtension {}
 export interface PTZPresetTourSpot {
   /** Detail definition of preset position of the tour spot. */
-  presetDetail?: PTZPresetTourPresetDetail;
+  presetDetail: PTZPresetTourPresetDetail;
   /** Optional parameter to specify Pan/Tilt and Zoom speed on moving toward this tour spot. */
   speed?: PTZSpeed;
   /** Optional parameter to specify time duration of staying on this tour sport. */
@@ -1776,7 +1783,7 @@ export interface PTZPresetTourPresetDetail {}
 export interface PTZPresetTourTypeExtension {}
 export interface PTZPresetTourStatus {
   /** Indicates state of this preset tour by Idle/Touring/Paused. */
-  state?: PTZPresetTourState;
+  state: PTZPresetTourState;
   /** Indicates a tour spot currently staying. */
   currentTourSpot?: PTZPresetTourSpot;
   extension?: PTZPresetTourStatusExtension;
@@ -1784,7 +1791,7 @@ export interface PTZPresetTourStatus {
 export interface PTZPresetTourStatusExtension {}
 export interface PTZPresetTourStartingCondition {
   /** Execute presets in random order. If set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly. */
-  randomPresetOrder?: boolean;
+  randomPresetOrder: boolean;
   /** Optional parameter to specify how many times the preset tour is recurred. */
   recurringTime?: number;
   /** Optional parameter to specify how long time duration the preset tour is recurred. */
@@ -1796,17 +1803,17 @@ export interface PTZPresetTourStartingCondition {
 export interface PTZPresetTourStartingConditionExtension {}
 export interface PTZPresetTourOptions {
   /** Indicates whether or not the AutoStart is supported. */
-  autoStart?: boolean;
+  autoStart: boolean;
   /** Supported options for Preset Tour Starting Condition. */
-  startingCondition?: PTZPresetTourStartingConditionOptions;
+  startingCondition: PTZPresetTourStartingConditionOptions;
   /** Supported options for Preset Tour Spot. */
-  tourSpot?: PTZPresetTourSpotOptions;
+  tourSpot: PTZPresetTourSpotOptions;
 }
 export interface PTZPresetTourSpotOptions {
   /** Supported options for detail definition of preset position of the tour spot. */
-  presetDetail?: PTZPresetTourPresetDetailOptions;
+  presetDetail: PTZPresetTourPresetDetailOptions;
   /** Supported range of stay time for a tour spot. */
-  stayTime?: DurationRange;
+  stayTime: DurationRange;
 }
 export interface PTZPresetTourPresetDetailOptions {
   /** A list of available Preset Tokens for tour spots. */
@@ -1831,26 +1838,26 @@ export interface PTZPresetTourStartingConditionOptions {
 }
 export interface PTZPresetTourStartingConditionOptionsExtension {}
 export interface ImagingStatus {
-  focusStatus?: FocusStatus;
+  focusStatus: FocusStatus;
 }
 export interface FocusStatus {
   /** Status of focus position. */
-  position?: number;
+  position: number;
   /** Status of focus MoveStatus. */
-  moveStatus?: MoveStatus;
+  moveStatus: MoveStatus;
   /** Error status of focus. */
-  error?: string;
+  error: string;
 }
 export interface FocusConfiguration {
-  autoFocusMode?: AutoFocusMode;
-  defaultSpeed?: number;
+  autoFocusMode: AutoFocusMode;
+  defaultSpeed: number;
   /** Parameter to set autofocus near limit (unit: meter). */
-  nearLimit?: number;
+  nearLimit: number;
   /**
    * Parameter to set autofocus far limit (unit: meter).
    * If set to 0.0, infinity will be used.
    */
-  farLimit?: number;
+  farLimit: number;
 }
 export interface ImagingSettings {
   /** Enabled/disabled BLC mode (on/off). */
@@ -1884,85 +1891,85 @@ export interface Exposure {
    * Manual – Disabled exposure algorithm on the NVT.
    *
    */
-  mode?: ExposureMode;
+  mode: ExposureMode;
   /** The exposure priority mode (low noise/framerate). */
-  priority?: ExposurePriority;
+  priority: ExposurePriority;
   /** Rectangular exposure mask. */
-  window?: Rectangle;
+  window: Rectangle;
   /** Minimum value of exposure time range allowed to be used by the algorithm. */
-  minExposureTime?: number;
+  minExposureTime: number;
   /** Maximum value of exposure time range allowed to be used by the algorithm. */
-  maxExposureTime?: number;
+  maxExposureTime: number;
   /** Minimum value of the sensor gain range that is allowed to be used by the algorithm. */
-  minGain?: number;
+  minGain: number;
   /** Maximum value of the sensor gain range that is allowed to be used by the algorithm. */
-  maxGain?: number;
+  maxGain: number;
   /** Minimum value of the iris range allowed to be used by the algorithm. */
-  minIris?: number;
+  minIris: number;
   /** Maximum value of the iris range allowed to be used by the algorithm. */
-  maxIris?: number;
+  maxIris: number;
   /** The fixed exposure time used by the image sensor (&#956;s). */
-  exposureTime?: number;
+  exposureTime: number;
   /** The fixed gain used by the image sensor (dB). */
-  gain?: number;
+  gain: number;
   /** The fixed attenuation of input light affected by the iris (dB). 0dB maps to a fully opened iris. */
-  iris?: number;
+  iris: number;
 }
 export interface WideDynamicRange {
   /** White dynamic range (on/off) */
-  mode?: WideDynamicMode;
+  mode: WideDynamicMode;
   /** Optional level parameter (unitless) */
-  level?: number;
+  level: number;
 }
 export interface BacklightCompensation {
   /** Backlight compensation mode (on/off). */
-  mode?: BacklightCompensationMode;
+  mode: BacklightCompensationMode;
   /** Optional level parameter (unit unspecified). */
-  level?: number;
+  level: number;
 }
 export interface ImagingOptions {
-  backlightCompensation?: BacklightCompensationOptions;
-  brightness?: FloatRange;
-  colorSaturation?: FloatRange;
-  contrast?: FloatRange;
-  exposure?: ExposureOptions;
-  focus?: FocusOptions;
+  backlightCompensation: BacklightCompensationOptions;
+  brightness: FloatRange;
+  colorSaturation: FloatRange;
+  contrast: FloatRange;
+  exposure: ExposureOptions;
+  focus: FocusOptions;
   irCutFilterModes?: IrCutFilterMode[];
-  sharpness?: FloatRange;
-  wideDynamicRange?: WideDynamicRangeOptions;
-  whiteBalance?: WhiteBalanceOptions;
+  sharpness: FloatRange;
+  wideDynamicRange: WideDynamicRangeOptions;
+  whiteBalance: WhiteBalanceOptions;
 }
 export interface WideDynamicRangeOptions {
   mode?: WideDynamicMode[];
-  level?: FloatRange;
+  level: FloatRange;
 }
 export interface BacklightCompensationOptions {
   mode?: WideDynamicMode[];
-  level?: FloatRange;
+  level: FloatRange;
 }
 export interface FocusOptions {
   autoFocusModes?: AutoFocusMode[];
-  defaultSpeed?: FloatRange;
-  nearLimit?: FloatRange;
-  farLimit?: FloatRange;
+  defaultSpeed: FloatRange;
+  nearLimit: FloatRange;
+  farLimit: FloatRange;
 }
 export interface ExposureOptions {
   mode?: ExposureMode[];
   priority?: ExposurePriority[];
-  minExposureTime?: FloatRange;
-  maxExposureTime?: FloatRange;
-  minGain?: FloatRange;
-  maxGain?: FloatRange;
-  minIris?: FloatRange;
-  maxIris?: FloatRange;
-  exposureTime?: FloatRange;
-  gain?: FloatRange;
-  iris?: FloatRange;
+  minExposureTime: FloatRange;
+  maxExposureTime: FloatRange;
+  minGain: FloatRange;
+  maxGain: FloatRange;
+  minIris: FloatRange;
+  maxIris: FloatRange;
+  exposureTime: FloatRange;
+  gain: FloatRange;
+  iris: FloatRange;
 }
 export interface WhiteBalanceOptions {
   mode?: WhiteBalanceMode[];
-  yrGain?: FloatRange;
-  ybGain?: FloatRange;
+  yrGain: FloatRange;
+  ybGain: FloatRange;
 }
 export interface FocusMove {
   /** Parameters for the absolute focus control. */
@@ -1974,19 +1981,19 @@ export interface FocusMove {
 }
 export interface AbsoluteFocus {
   /** Position parameter for the absolute focus control. */
-  position?: number;
+  position: number;
   /** Speed parameter for the absolute focus control. */
   speed?: number;
 }
 export interface RelativeFocus {
   /** Distance parameter for the relative focus control. */
-  distance?: number;
+  distance: number;
   /** Speed parameter for the relative focus control. */
   speed?: number;
 }
 export interface ContinuousFocus {
   /** Speed parameter for the Continuous focus control. */
-  speed?: number;
+  speed: number;
 }
 export interface MoveOptions {
   absolute?: AbsoluteFocusOptions;
@@ -1995,27 +2002,27 @@ export interface MoveOptions {
 }
 export interface AbsoluteFocusOptions {
   /** Valid ranges of the position. */
-  position?: FloatRange;
+  position: FloatRange;
   /** Valid ranges of the speed. */
   speed?: FloatRange;
 }
 export interface RelativeFocusOptions {
   /** Valid ranges of the distance. */
-  distance?: FloatRange;
+  distance: FloatRange;
   /** Valid ranges of the speed. */
-  speed?: FloatRange;
+  speed: FloatRange;
 }
 export interface ContinuousFocusOptions {
   /** Valid ranges of the speed. */
-  speed?: FloatRange;
+  speed: FloatRange;
 }
 export interface WhiteBalance {
   /** Auto whitebalancing mode (auto/manual). */
-  mode?: WhiteBalanceMode;
+  mode: WhiteBalanceMode;
   /** Rgain (unitless). */
-  crGain?: number;
+  crGain: number;
   /** Bgain (unitless). */
-  cbGain?: number;
+  cbGain: number;
 }
 export interface ImagingStatus20 {
   /** Status of focus. */
@@ -2025,9 +2032,9 @@ export interface ImagingStatus20 {
 export interface ImagingStatus20Extension {}
 export interface FocusStatus20 {
   /** Status of focus position. */
-  position?: number;
+  position: number;
   /** Status of focus MoveStatus. */
-  moveStatus?: MoveStatus;
+  moveStatus: MoveStatus;
   /** Error status of focus. */
   error?: string;
   extension?: FocusStatus20Extension;
@@ -2079,7 +2086,7 @@ export interface ImagingSettingsExtension203 {
 export interface ImagingSettingsExtension204 {}
 export interface ImageStabilization {
   /** Parameter to enable/disable Image Stabilization feature. */
-  mode?: ImageStabilizationMode;
+  mode: ImageStabilizationMode;
   /** Optional level parameter (unit unspecified) */
   level?: number;
   extension?: ImageStabilizationExtension;
@@ -2087,7 +2094,7 @@ export interface ImageStabilization {
 export interface ImageStabilizationExtension {}
 export interface IrCutFilterAutoAdjustment {
   /** Specifies which boundaries to automatically toggle Ir cut filter following parameters are applied to. Its options shall be chosen from tt:IrCutFilterAutoBoundaryType. */
-  boundaryType?: string;
+  boundaryType: string;
   /** Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless). */
   boundaryOffset?: number;
   /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels. */
@@ -2098,14 +2105,14 @@ export interface IrCutFilterAutoAdjustmentExtension {}
 /** Type describing whether WDR mode is enabled or disabled (on/off). */
 export interface WideDynamicRange20 {
   /** Wide dynamic range mode (on/off). */
-  mode?: WideDynamicMode;
+  mode: WideDynamicMode;
   /** Optional level parameter (unit unspecified). */
   level?: number;
 }
 /** Type describing whether BLC mode is enabled or disabled (on/off). */
 export interface BacklightCompensation20 {
   /** Backlight compensation mode (on/off). */
-  mode?: BacklightCompensationMode;
+  mode: BacklightCompensationMode;
   /** Optional level parameter (unit unspecified). */
   level?: number;
 }
@@ -2118,7 +2125,7 @@ export interface Exposure20 {
    * Manual – Disabled exposure algorithm on the device.
    *
    */
-  mode?: ExposureMode;
+  mode: ExposureMode;
   /** The exposure priority mode (low noise/framerate). */
   priority?: ExposurePriority;
   /** Rectangular exposure mask. */
@@ -2144,7 +2151,7 @@ export interface Exposure20 {
 }
 export interface ToneCompensation {
   /** Parameter to enable/disable or automatic ToneCompensation feature. Its options shall be chosen from tt:ToneCompensationMode Type. */
-  mode?: string;
+  mode: string;
   /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0. */
   level?: number;
   extension?: ToneCompensationExtension;
@@ -2152,7 +2159,7 @@ export interface ToneCompensation {
 export interface ToneCompensationExtension {}
 export interface Defogging {
   /** Parameter to enable/disable or automatic Defogging feature. Its options shall be chosen from tt:DefoggingMode Type. */
-  mode?: string;
+  mode: string;
   /** Optional level parameter specified with unitless normalized value from 0.0 to +1.0. */
   level?: number;
   extension?: DefoggingExtension;
@@ -2160,7 +2167,7 @@ export interface Defogging {
 export interface DefoggingExtension {}
 export interface NoiseReduction {
   /** Level parameter specified with unitless normalized value from 0.0 to +1.0. Level=0 means no noise reduction or minimal noise reduction. */
-  level?: number;
+  level: number;
 }
 export interface ImagingOptions20 {
   /** Valid range of Backlight Compensation. */
@@ -2273,13 +2280,13 @@ export interface MoveOptions20 {
 }
 export interface RelativeFocusOptions20 {
   /** Valid ranges of the distance. */
-  distance?: FloatRange;
+  distance: FloatRange;
   /** Valid ranges of the speed. */
   speed?: FloatRange;
 }
 export interface WhiteBalance20 {
   /** 'AUTO' or 'MANUAL' */
-  mode?: WhiteBalanceMode;
+  mode: WhiteBalanceMode;
   /** Rgain (unitless). */
   crGain?: number;
   /** Bgain (unitless). */
@@ -2289,7 +2296,7 @@ export interface WhiteBalance20 {
 export interface WhiteBalance20Extension {}
 export interface FocusConfiguration20 {
   /** Zero or more modes as defined in enumeration tt:AFModes. */
-  AFMode?: StringAttrList;
+  AFMode: StringAttrList;
   /**
    * Mode of auto focus.
    *
@@ -2298,7 +2305,7 @@ export interface FocusConfiguration20 {
    *
    * Note: for devices supporting both manual and auto operation at the same time manual operation may be supported even if the Mode parameter is set to Auto.
    */
-  autoFocusMode?: AutoFocusMode;
+  autoFocusMode: AutoFocusMode;
   defaultSpeed?: number;
   /** Parameter to set autofocus near limit (unit: meter). */
   nearLimit?: number;
@@ -2346,17 +2353,17 @@ export interface ToneCompensationOptions {
   /** Supported options for Tone Compensation mode. Its options shall be chosen from tt:ToneCompensationMode Type. */
   mode?: string[];
   /** Indicates whether or not support Level parameter for Tone Compensation. */
-  level?: boolean;
+  level: boolean;
 }
 export interface DefoggingOptions {
   /** Supported options for Defogging mode. Its options shall be chosen from tt:DefoggingMode Type. */
   mode?: string[];
   /** Indicates whether or not support Level parameter for Defogging. */
-  level?: boolean;
+  level: boolean;
 }
 export interface NoiseReductionOptions {
   /** Indicates whether or not support Level parameter for NoiseReduction. */
-  level?: boolean;
+  level: boolean;
 }
 export interface MessageExtension {}
 export interface SimpleItem {
@@ -2379,7 +2386,7 @@ export interface ItemList {
 export interface ItemListExtension {}
 export interface MessageDescription {
   /** Must be set to true when the described Message relates to a property. An alternative term of "property" is a "state" in contrast to a pure event, which contains relevant information for only a single point in time.Default is false. */
-  isProperty?: boolean;
+  isProperty: boolean;
   /**
    * Set of tokens producing this message. The list may only contain SimpleItemDescription items.
    * The set of tokens identify the component within the WS-Endpoint, which is responsible for the producing the message.
@@ -2437,25 +2444,25 @@ export interface Config {
   /** The Type attribute specifies the type of rule and shall be equal to value of one of Name attributes of ConfigDescription elements returned by GetSupportedRules and GetSupportedAnalyticsModules command. */
   type: unknown;
   /** List of configuration parameters as defined in the corresponding description. */
-  parameters?: ItemList;
+  parameters: ItemList;
 }
 export interface Messages extends MessageDescription {
   /** The topic of the message. For historical reason the element is named ParentTopic, but the full topic is expected. */
-  parentTopic?: string;
+  parentTopic: string;
 }
 export interface ConfigDescription {
   /** The Name attribute (e.g. "tt::LineDetector") uniquely identifies the type of rule, not a type definition in a schema. */
   name: unknown;
   /** The fixed attribute signals that it is not allowed to add or remove this type of configuration. */
-  fixed?: boolean;
+  fixed: boolean;
   /** The maxInstances attribute signals the maximum number of instances per configuration. */
-  maxInstances?: number;
+  maxInstances: number;
   /**
    * List describing the configuration parameters. The names of the parameters must be unique. If possible SimpleItems
    * should be used to transport the information to ease parsing of dynamically defined messages by a client
    * application.
    */
-  parameters?: ItemListDescription;
+  parameters: ItemListDescription;
   /**
    * The analytics modules and rule engine produce Events, which must be listed within the Analytics Module Description. In order to do so
    * the structure of the Message is defined and consists of three groups: Source, Key, and Data. It is recommended to use SimpleItemDescriptions wherever applicable.
@@ -2468,7 +2475,7 @@ export interface ConfigDescription {
 export interface ConfigDescriptionExtension {}
 export interface SupportedRules {
   /** Maximum number of concurrent instances. */
-  limit?: number;
+  limit: number;
   /** Lists the location of all schemas that are referenced in the rules. */
   ruleContentSchemaLocation?: AnyURI[];
   /** List of rules supported by the Video Analytics configuration.. */
@@ -2478,7 +2485,7 @@ export interface SupportedRules {
 export interface SupportedRulesExtension {}
 export interface SupportedAnalyticsModules {
   /** Maximum number of concurrent instances. */
-  limit?: number;
+  limit: number;
   /**
    * It optionally contains a list of URLs that provide the location of schema files.
    * These schema files describe the types and elements used in the analytics module descriptions.
@@ -2490,24 +2497,14 @@ export interface SupportedAnalyticsModules {
   extension?: SupportedAnalyticsModulesExtension;
 }
 export interface SupportedAnalyticsModulesExtension {}
-export interface PolylineArray {
-  /** Contains array of Polyline */
-  segment?: Polyline[];
-  extension?: PolylineArrayExtension;
-}
-export interface PolylineArrayExtension {}
-export interface PolylineArrayConfiguration {
-  /** Contains PolylineArray configuration data */
-  polylineArray?: PolylineArray;
-}
 export interface MotionExpression {
-  type?: string;
+  type: string;
   /** Motion Expression data structure contains motion expression which is based on Scene Descriptor schema with XPATH syntax. The Type argument could allow introduction of different dialects */
-  expression?: string;
+  expression: string;
 }
 export interface MotionExpressionConfiguration {
   /** Contains Rule MotionExpression configuration */
-  motionExpression?: MotionExpression;
+  motionExpression: MotionExpression;
 }
 export interface CellLayout {
   /** Number of columns of the cell grid (x dimension) */
@@ -2515,7 +2512,7 @@ export interface CellLayout {
   /** Number of rows of the cell grid (y dimension) */
   rows: number;
   /** Mapping of the cell grid to the Video frame. The cell grid is starting from the upper left corner and x dimension is going from left to right and the y dimension from up to down. */
-  transformation?: Transformation;
+  transformation: Transformation;
 }
 /** Configuration of the streaming and coding settings of a Video window. */
 export interface PaneConfiguration {
@@ -2544,14 +2541,14 @@ export interface PaneConfiguration {
    */
   receiverToken?: ReferenceToken;
   /** A unique identifier in the display device. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 /** A pane layout describes one Video window of a display. It links a pane configuration to a region of the screen. */
 export interface PaneLayout {
   /** Reference to the configuration of the streaming and coding parameters. */
-  pane?: ReferenceToken;
+  pane: ReferenceToken;
   /** Describes the location and size of the area on the monitor. The area coordinate values are espressed in normalized units [-1.0, 1.0]. */
-  area?: Rectangle;
+  area: Rectangle;
 }
 /** A layout describes a set of Video windows that are displayed simultaniously on a display. */
 export interface Layout {
@@ -2567,7 +2564,7 @@ export interface CodingCapabilities {
   /** If the device supports audio decoding this section describes the supported codecs and their settings. */
   audioDecodingCapabilities?: AudioDecoderConfigurationOptions;
   /** This section describes the supported video codesc and their configuration. */
-  videoDecodingCapabilities?: VideoDecoderConfigurationOptions;
+  videoDecodingCapabilities: VideoDecoderConfigurationOptions;
 }
 /** The options supported for a display layout. */
 export interface LayoutOptions {
@@ -2586,41 +2583,41 @@ export interface PaneOptionExtension {}
 /** Description of a receiver, including its token and configuration. */
 export interface Receiver {
   /** Unique identifier of the receiver. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** Describes the configuration of the receiver. */
-  configuration?: ReceiverConfiguration;
+  configuration: ReceiverConfiguration;
 }
 /** Describes the configuration of a receiver. */
 export interface ReceiverConfiguration {
   /** The following connection modes are defined: */
-  mode?: ReceiverMode;
+  mode: ReceiverMode;
   /** Details of the URI to which the receiver should connect. */
-  mediaUri?: AnyURI;
+  mediaUri: AnyURI;
   /** Stream connection parameters. */
-  streamSetup?: StreamSetup;
+  streamSetup: StreamSetup;
 }
 /** Contains information about a receiver's current state. */
 export interface ReceiverStateInformation {
   /** The connection state of the receiver may have one of the following states: */
-  state?: ReceiverState;
+  state: ReceiverState;
   /** Indicates whether or not the receiver was created automatically. */
-  autoCreated?: boolean;
+  autoCreated: boolean;
 }
 export interface SourceReference {
-  type?: AnyURI;
-  token?: ReferenceToken;
+  type: AnyURI;
+  token: ReferenceToken;
 }
 export interface DateTimeRange {
-  from?: Date;
-  until?: Date;
+  from: Date;
+  until: Date;
 }
 export interface RecordingSummary {
   /** The earliest point in time where there is recorded data on the device. */
-  dataFrom?: Date;
+  dataFrom: Date;
   /** The most recent point in time where there is recorded data on the device. */
-  dataUntil?: Date;
+  dataUntil: Date;
   /** The device contains this many recordings. */
-  numberRecordings?: number;
+  numberRecordings: number;
 }
 /** A structure for defining a limited scope when searching in recorded data. */
 export interface SearchScope {
@@ -2637,83 +2634,83 @@ export interface SearchScopeExtension {}
 export interface EventFilter extends FilterType {}
 export interface PTZPositionFilter {
   /** The lower boundary of the PTZ volume to look for. */
-  minPosition?: PTZVector;
+  minPosition: PTZVector;
   /** The upper boundary of the PTZ volume to look for. */
-  maxPosition?: PTZVector;
+  maxPosition: PTZVector;
   /** If true, search for when entering the specified PTZ volume. */
-  enterOrExit?: boolean;
+  enterOrExit: boolean;
 }
 export interface MetadataFilter {
-  metadataStreamFilter?: XPathExpression;
+  metadataStreamFilter: XPathExpression;
 }
 export interface FindRecordingResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
-  searchState?: SearchState;
+  searchState: SearchState;
   /** A RecordingInformation structure for each found recording matching the search. */
   recordingInformation?: RecordingInformation[];
 }
 export interface FindEventResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
-  searchState?: SearchState;
+  searchState: SearchState;
   /** A FindEventResult structure for each found event matching the search. */
   result?: FindEventResult[];
 }
 export interface FindEventResult {
   /** The recording where this event was found. Empty string if no recording is associated with this event. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** A reference to the track where this event was found. Empty string if no track is associated with this event. */
-  trackToken?: TrackReference;
+  trackToken: TrackReference;
   /** The time when the event occured. */
-  time?: Date;
+  time: Date;
   /** The description of the event. */
-  event?: unknown;
+  event: unknown;
   /** If true, indicates that the event is a virtual event generated for this particular search session to give the state of a property at the start time of the search. */
-  startStateEvent?: boolean;
+  startStateEvent: boolean;
 }
 export interface FindPTZPositionResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
-  searchState?: SearchState;
+  searchState: SearchState;
   /** A FindPTZPositionResult structure for each found PTZ position matching the search. */
   result?: FindPTZPositionResult[];
 }
 export interface FindPTZPositionResult {
   /** A reference to the recording containing the PTZ position. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** A reference to the metadata track containing the PTZ position. */
-  trackToken?: TrackReference;
+  trackToken: TrackReference;
   /** The time when the PTZ position was valid. */
-  time?: Date;
+  time: Date;
   /** The PTZ position. */
-  position?: PTZVector;
+  position: PTZVector;
 }
 export interface FindMetadataResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
-  searchState?: SearchState;
+  searchState: SearchState;
   /** A FindMetadataResult structure for each found set of Metadata matching the search. */
   result?: FindMetadataResult[];
 }
 export interface FindMetadataResult {
   /** A reference to the recording containing the metadata. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** A reference to the metadata track containing the matching metadata. */
-  trackToken?: TrackReference;
+  trackToken: TrackReference;
   /** The point in time when the matching metadata occurs in the metadata track. */
-  time?: Date;
+  time: Date;
 }
 export interface RecordingInformation {
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /**
    * Information about the source of the recording. This gives a description of where the data in the recording comes from. Since a single
    * recording is intended to record related material, there is just one source. It is indicates the physical location or the
    * major data source for the recording. Currently the recordingconfiguration cannot describe each individual data source.
    */
-  source?: RecordingSourceInformation;
+  source: RecordingSourceInformation;
   earliestRecording?: Date;
   latestRecording?: Date;
-  content?: Description;
+  content: Description;
   /** Basic information about the track. Note that a track may represent a single contiguous time span or consist of multiple slices. */
   track?: TrackInformation[];
-  recordingStatus?: RecordingStatus;
+  recordingStatus: RecordingStatus;
 }
 /** A set of informative desciptions of a data source. The Search searvice allows a client to filter on recordings based on information in this structure. */
 export interface RecordingSourceInformation {
@@ -2721,15 +2718,15 @@ export interface RecordingSourceInformation {
    * Identifier for the source chosen by the client that creates the structure.
    * This identifier is opaque to the device. Clients may use any type of URI for this field. A device shall support at least 128 characters.
    */
-  sourceId?: AnyURI;
+  sourceId: AnyURI;
   /** Informative user readable name of the source, e.g. "Camera23". A device shall support at least 20 characters. */
-  name?: Name;
+  name: Name;
   /** Informative description of the physical location of the source, e.g. the coordinates on a map. */
-  location?: Description;
+  location: Description;
   /** Informative description of the source. */
-  description?: Description;
+  description: Description;
   /** URI provided by the service supplying data to be recorded. A device shall support at least 128 characters. */
-  address?: AnyURI;
+  address: AnyURI;
 }
 export interface RecordingEncryption {
   /**
@@ -2738,7 +2735,7 @@ export interface RecordingEncryption {
    */
   mode: string;
   /** Key ID of the associated key for encryption. */
-  KID?: string;
+  KID: string;
   /**
    * Key for encrypting content.
    * The device shall not include this parameter when reading.
@@ -2751,14 +2748,20 @@ export interface RecordingEncryption {
    */
   track?: string[];
 }
+export interface SegmentDurationOverride {
+  /** Current value of the segment duration. */
+  duration: string;
+  /** Time remaining until the override expires. */
+  expiration: string;
+}
 export interface RecordingTargetConfiguration {
   /** Token of a storage configuration. */
-  storage?: ReferenceToken;
+  storage: ReferenceToken;
   /**
    * Format of the recording.
    * See tt:TargetFormat for a list of definitions and capability trc:SupportedTargetFormats for the supported formats.
    */
-  format?: string;
+  format: string;
   /** Path prefix to be inserted in the object key. */
   prefix?: string;
   /** Path postfix to be inserted in the object key. */
@@ -2766,7 +2769,7 @@ export interface RecordingTargetConfiguration {
   /** Maximum duration of a span. */
   spanDuration?: string;
   /** Maximum duration of a segment. */
-  segmentDuration?: string;
+  segmentDuration: string;
   /**
    * Optional encryption configuration.
    * See capability trc:EncryptionEntryLimit for the number of supported entries.
@@ -2774,35 +2777,37 @@ export interface RecordingTargetConfiguration {
    * Each track shall only be contained in one encryption configuration.
    */
   encryption?: RecordingEncryption[];
+  /** Value of the active OverrideSegmentDuration parameters if one exists. (readonly) */
+  segmentDurationOverride?: SegmentDurationOverride;
 }
 export interface TrackInformation {
-  trackToken?: TrackReference;
+  trackToken: TrackReference;
   /**
    * Type of the track: "Video", "Audio" or "Metadata".
    * The track shall only be able to hold data of that type.
    */
-  trackType?: TrackType;
+  trackType: TrackType;
   /** Informative description of the contents of the track. */
-  description?: Description;
+  description: Description;
   /** The start date and time of the oldest recorded data in the track. */
-  dataFrom?: Date;
+  dataFrom: Date;
   /** The stop date and time of the newest recorded data in the track. */
-  dataTo?: Date;
+  dataTo: Date;
 }
 /** A set of media attributes valid for a recording at a point in time or for a time interval. */
 export interface MediaAttributes {
   /** A reference to the recording that has these attributes. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** A set of attributes for each track. */
   trackAttributes?: TrackAttributes[];
   /** The attributes are valid from this point in time in the recording. */
-  from?: Date;
+  from: Date;
   /** The attributes are valid until this point in time in the recording. Can be equal to 'From' to indicate that the attributes are only known to be valid for this particular point in time. */
-  until?: Date;
+  until: Date;
 }
 export interface TrackAttributes {
   /** The basic information about the track. Note that a track may represent a single contiguous time span or consist of multiple slices. */
-  trackInformation?: TrackInformation;
+  trackInformation: TrackInformation;
   /** If the track is a video track, exactly one of this structure shall be present and contain the video attributes. */
   videoAttributes?: VideoAttributes;
   /** If the track is an audio track, exactly one of this structure shall be present and contain the audio attributes. */
@@ -2817,37 +2822,37 @@ export interface VideoAttributes {
   /** Average bitrate in kbps. */
   bitrate?: number;
   /** The width of the video in pixels. */
-  width?: number;
+  width: number;
   /** The height of the video in pixels. */
-  height?: number;
+  height: number;
   /** Video encoding of the track.  Use value from tt:VideoEncoding for MPEG4. Otherwise use values from tt:VideoEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** Average framerate in frames per second. */
-  framerate?: number;
+  framerate: number;
 }
 export interface AudioAttributes {
   /** The bitrate in kbps. */
   bitrate?: number;
   /** Audio encoding of the track.  Use values from tt:AudioEncoding for G711 and AAC. Otherwise use values from tt:AudioEncodingMimeNames and  IANA Media Types. */
-  encoding?: string;
+  encoding: string;
   /** The sample rate in kHz. */
-  samplerate?: number;
+  samplerate: number;
 }
 export interface MetadataAttributes {
   /** List of all PTZ spaces active for recording. Note that events are only recorded on position changes and the actual point of recording may not necessarily contain an event of the specified type. */
-  ptzSpaces?: StringAttrList;
+  ptzSpaces: StringAttrList;
   /** Indicates that there can be PTZ data in the metadata track in the specified time interval. */
-  canContainPTZ?: boolean;
+  canContainPTZ: boolean;
   /** Indicates that there can be analytics data in the metadata track in the specified time interval. */
-  canContainAnalytics?: boolean;
+  canContainAnalytics: boolean;
   /** Indicates that there can be notifications in the metadata track in the specified time interval. */
-  canContainNotifications?: boolean;
+  canContainNotifications: boolean;
 }
 export interface RecordingConfiguration {
   /** Information about the source of the recording. */
-  source?: RecordingSourceInformation;
+  source: RecordingSourceInformation;
   /** Informative description of the source. */
-  content?: Description;
+  content: Description;
   /**
    * Sspecifies the maximum time that data in any track within the
    * recording shall be stored. The device shall delete any data older than the maximum retention
@@ -2856,7 +2861,7 @@ export interface RecordingConfiguration {
    * Whatever the value of MaximumRetentionTime, the device may automatically delete
    * recordings to free up storage space for new recordings.
    */
-  maximumRetentionTime?: string;
+  maximumRetentionTime: string;
   /** Optional external storage target configuration. */
   target?: RecordingTargetConfiguration;
 }
@@ -2865,17 +2870,17 @@ export interface TrackConfiguration {
    * Type of the track. It shall be equal to the strings “Video”,
    * “Audio” or “Metadata”. The track shall only be able to hold data of that type.
    */
-  trackType?: TrackType;
+  trackType: TrackType;
   /** Informative description of the track. */
-  description?: Description;
+  description: Description;
 }
 export interface GetRecordingsResponseItem {
   /** Token of the recording. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** Configuration of the recording. */
-  configuration?: RecordingConfiguration;
+  configuration: RecordingConfiguration;
   /** List of tracks. */
-  tracks?: GetTracksResponseList;
+  tracks: GetTracksResponseList;
 }
 export interface GetTracksResponseList {
   /** Configuration of a track. */
@@ -2883,24 +2888,24 @@ export interface GetTracksResponseList {
 }
 export interface GetTracksResponseItem {
   /** Token of the track. */
-  trackToken?: TrackReference;
+  trackToken: TrackReference;
   /** Configuration of the track. */
-  configuration?: TrackConfiguration;
+  configuration: TrackConfiguration;
 }
 export interface RecordingJobConfiguration {
   /**
    * This attribute adds an additional requirement for activating the recording job.
    * If this optional field is provided the job shall only record if the schedule exists and is active.
    */
-  scheduleToken?: unknown;
+  scheduleToken: unknown;
   /** Identifies the recording to which this job shall store the received data. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /**
    * The mode of the job. If it is idle, nothing shall happen. If it is active, the device shall try
    * to obtain data from the receivers. A client shall use GetRecordingJobState to determine if data transfer is really taking place.
    * The only valid values for Mode shall be “Idle” and “Active”.
    */
-  mode?: RecordingJobMode;
+  mode: RecordingJobMode;
   /**
    * This shall be a non-negative number. If there are multiple recording jobs that store data to
    * the same track, the device will only store the data for the recording job with the highest
@@ -2908,7 +2913,7 @@ export interface RecordingJobConfiguration {
    * of each track individually. If there are two recording jobs with the same priority, the device
    * shall record the data corresponding to the recording job that was activated the latest.
    */
-  priority?: number;
+  priority: number;
   /** Source of the recording. */
   source?: RecordingJobSource[];
   extension?: RecordingJobConfigurationExtension;
@@ -2917,7 +2922,7 @@ export interface RecordingJobConfiguration {
 }
 export interface Filter {
   /** Topic filter as defined in section 9.6.3 of the ONVIF Core Specification. */
-  topic?: string;
+  topic: string;
   /** Optional message source content filter as defined in section 9.4.4 of the ONVIF Core Specification. */
   source?: string;
 }
@@ -2956,18 +2961,18 @@ export interface RecordingJobTrack {
    * If the received RTSP stream contains multiple tracks of the same type, the
    * SourceTag differentiates between those Tracks. This field can be ignored in case of recording a local source.
    */
-  sourceTag?: string;
+  sourceTag: string;
   /**
    * The destination is the tracktoken of the track to which the device shall store the
    * received data.
    */
-  destination?: TrackReference;
+  destination: TrackReference;
 }
 export interface RecordingJobStateInformation {
   /** Identification of the recording that the recording job records to. */
-  recordingToken?: RecordingReference;
+  recordingToken: RecordingReference;
   /** Holds the aggregated state over the whole RecordingJobInformation structure. */
-  state?: RecordingJobState;
+  state: RecordingJobState;
   /** Identifies the data source of the recording job. */
   sources?: RecordingJobStateSource[];
   extension?: RecordingJobStateInformationExtension;
@@ -2975,20 +2980,20 @@ export interface RecordingJobStateInformation {
 export interface RecordingJobStateInformationExtension {}
 export interface RecordingJobStateSource {
   /** Identifies the data source of the recording job. */
-  sourceToken?: SourceReference;
+  sourceToken: SourceReference;
   /** Holds the aggregated state over all substructures of RecordingJobStateSource. */
-  state?: RecordingJobState;
+  state: RecordingJobState;
   /** List of track items. */
-  tracks?: RecordingJobStateTracks;
+  tracks: RecordingJobStateTracks;
 }
 export interface RecordingJobStateTracks {
   track?: RecordingJobStateTrack[];
 }
 export interface RecordingJobStateTrack {
   /** Identifies the track of the data source that provides the data. */
-  sourceTag?: string;
+  sourceTag: string;
   /** Indicates the destination track. */
-  destination?: TrackReference;
+  destination: TrackReference;
   /**
    * Optionally holds an implementation defined string value that describes the error.
    * The string should be in the English language.
@@ -2998,19 +3003,19 @@ export interface RecordingJobStateTrack {
    * Provides the job state of the track. The valid
    * values of state shall be “Idle”, “Active” and “Error”. If state equals “Error”, the Error field may be filled in with an implementation defined value.
    */
-  state?: RecordingJobState;
+  state: RecordingJobState;
 }
 export interface GetRecordingJobsResponseItem {
-  jobToken?: RecordingJobReference;
-  jobConfiguration?: RecordingJobConfiguration;
+  jobToken: RecordingJobReference;
+  jobConfiguration: RecordingJobConfiguration;
 }
 /** Configuration parameters for the replay service. */
 export interface ReplayConfiguration {
   /** The RTSP session timeout. */
-  sessionTimeout?: string;
+  sessionTimeout: string;
 }
 export interface AnalyticsEngine extends ConfigurationEntity {
-  analyticsEngineConfiguration?: AnalyticsDeviceEngineConfiguration;
+  analyticsEngineConfiguration: AnalyticsDeviceEngineConfiguration;
 }
 export interface AnalyticsDeviceEngineConfiguration {
   engineConfiguration?: EngineConfiguration[];
@@ -3018,8 +3023,8 @@ export interface AnalyticsDeviceEngineConfiguration {
 }
 export interface AnalyticsDeviceEngineConfigurationExtension {}
 export interface EngineConfiguration {
-  videoAnalyticsConfiguration?: VideoAnalyticsConfiguration;
-  analyticsEngineInputInfo?: AnalyticsEngineInputInfo;
+  videoAnalyticsConfiguration: VideoAnalyticsConfiguration;
+  analyticsEngineInputInfo: AnalyticsEngineInputInfo;
 }
 export interface AnalyticsEngineInputInfo {
   inputInfo?: Config;
@@ -3027,12 +3032,12 @@ export interface AnalyticsEngineInputInfo {
 }
 export interface AnalyticsEngineInputInfoExtension {}
 export interface AnalyticsEngineInput extends ConfigurationEntity {
-  sourceIdentification?: SourceIdentification;
-  videoInput?: VideoEncoderConfiguration;
-  metadataInput?: MetadataInput;
+  sourceIdentification: SourceIdentification;
+  videoInput: VideoEncoderConfiguration;
+  metadataInput: MetadataInput;
 }
 export interface SourceIdentification {
-  name?: string;
+  name: string;
   token?: ReferenceToken[];
   extension?: SourceIdentificationExtension;
 }
@@ -3044,25 +3049,25 @@ export interface MetadataInput {
 export interface MetadataInputExtension {}
 export interface AnalyticsEngineControl extends ConfigurationEntity {
   /** Token of the analytics engine (AnalyticsEngine) being controlled. */
-  engineToken?: ReferenceToken;
+  engineToken: ReferenceToken;
   /** Token of the analytics engine configuration (VideoAnalyticsConfiguration) in effect. */
-  engineConfigToken?: ReferenceToken;
+  engineConfigToken: ReferenceToken;
   /** Tokens of the input (AnalyticsEngineInput) configuration applied. */
   inputToken?: ReferenceToken[];
   /** Tokens of the receiver providing media input data. The order of ReceiverToken shall exactly match the order of InputToken. */
   receiverToken?: ReferenceToken[];
   multicast?: MulticastConfiguration;
-  subscription?: Config;
-  mode?: ModeOfOperation;
+  subscription: Config;
+  mode: ModeOfOperation;
 }
 export interface AnalyticsStateInformation {
   /** Token of the control object whose status is requested. */
-  analyticsEngineControlToken?: ReferenceToken;
-  state?: AnalyticsState;
+  analyticsEngineControlToken: ReferenceToken;
+  state: AnalyticsState;
 }
 export interface AnalyticsState {
   error?: string;
-  state?: string;
+  state: string;
 }
 /** Action Engine Event Payload data structure contains the information about the ONVIF command invocations. Since this event could be generated by other or proprietary actions, the command invocation specific fields are defined as optional and additional extension mechanism is provided for future or additional action definitions. */
 export interface ActionEngineEventPayload {
@@ -3077,9 +3082,9 @@ export interface ActionEngineEventPayload {
 export interface ActionEngineEventPayloadExtension {}
 export interface AudioClassCandidate {
   /** Indicates audio class label */
-  type?: AudioClassType;
+  type: AudioClassType;
   /** A likelihood/probability that the corresponding audio event belongs to this class. The sum of the likelihoods shall NOT exceed 1 */
-  likelihood?: number;
+  likelihood: number;
 }
 export interface AudioClassDescriptor {
   /** Array of audio class label and class probability */
@@ -3088,8 +3093,8 @@ export interface AudioClassDescriptor {
 }
 export interface AudioClassDescriptorExtension {}
 export interface ActiveConnection {
-  currentBitrate?: number;
-  currentFps?: number;
+  currentBitrate: number;
+  currentFps: number;
 }
 export interface ProfileStatus {
   activeConnections?: ActiveConnection[];
@@ -3105,19 +3110,19 @@ export interface OSDPosConfiguration {
    * LowerRight
    * Custom
    */
-  type?: string;
+  type: string;
   pos?: Vector;
   extension?: OSDPosConfigurationExtension;
 }
 export interface OSDPosConfigurationExtension {}
 /** The value range of "Transparent" could be defined by vendors only should follow this rule: the minimum value means non-transparent and the maximum value maens fully transparent. */
 export interface OSDColor {
-  transparent?: number;
-  color?: Color;
+  transparent: number;
+  color: Color;
 }
 export interface OSDTextConfiguration {
   /** This flag is applicable for Type Plain and defaults to true. When set to false the PlainText content will not be persistent across device reboots. */
-  isPersistentText?: boolean;
+  isPersistentText: boolean;
   /**
    * The following OSD Text Type are defined:
    * Plain - The Plain type means the OSD is shown as a text string which defined in the "PlainText" item.
@@ -3126,7 +3131,7 @@ export interface OSDTextConfiguration {
    * DateAndTime - The DateAndTime type means the OSD is shown as date and time, format of which should be present in the "DateFormat" and the "TimeFormat" item.
    *
    */
-  type?: string;
+  type: string;
   /**
    * List of supported OSD date formats. This element shall be present when the value of Type field has Date or DateAndTime. The following DateFormat are defined:
    * M/d/yyyy - e.g. 3/6/2013
@@ -3162,16 +3167,16 @@ export interface OSDTextConfiguration {
 export interface OSDTextConfigurationExtension {}
 export interface OSDImgConfiguration {
   /** The URI of the image which to be displayed. */
-  imgPath?: AnyURI;
+  imgPath: AnyURI;
   extension?: OSDImgConfigurationExtension;
 }
 export interface OSDImgConfigurationExtension {}
 export interface ColorspaceRange {
-  X?: FloatRange;
-  Y?: FloatRange;
-  Z?: FloatRange;
+  X: FloatRange;
+  Y: FloatRange;
+  Z: FloatRange;
   /** Acceptable values are the same as in tt:Color. */
-  colorspace?: AnyURI;
+  colorspace: AnyURI;
 }
 /** Describe the colors supported. Either list each color or define the range of color values. */
 export interface ColorOptions {}
@@ -3202,13 +3207,13 @@ export interface OSDTextOptions {
 export interface OSDTextOptionsExtension {}
 export interface OSDImgOptions {
   /** List of supported image MIME types, such as "image/png". */
-  formatsSupported?: StringAttrList;
+  formatsSupported: StringAttrList;
   /** The maximum size (in bytes) of the image that can be uploaded. */
-  maxSize?: number;
+  maxSize: number;
   /** The maximum width (in pixels) of the image that can be uploaded. */
-  maxWidth?: number;
+  maxWidth: number;
   /** The maximum height (in pixels) of the image that can be uploaded. */
-  maxHeight?: number;
+  maxHeight: number;
   /** List of available image URIs. */
   imagePath?: AnyURI[];
   extension?: OSDImgOptionsExtension;
@@ -3216,11 +3221,11 @@ export interface OSDImgOptions {
 export interface OSDImgOptionsExtension {}
 export interface OSDConfiguration extends DeviceEntity {
   /** Reference to the video source configuration. */
-  videoSourceConfigurationToken?: OSDReference;
+  videoSourceConfigurationToken: OSDReference;
   /** Type of OSD. */
-  type?: OSDType;
+  type: OSDType;
   /** Position configuration of OSD. */
-  position?: OSDPosConfiguration;
+  position: OSDPosConfiguration;
   /** Text configuration of OSD. It shall be present when the value of Type field is Text. */
   textString?: OSDTextConfiguration;
   /** Image configuration of OSD. It shall be present when the value of Type field is Image */
@@ -3230,15 +3235,15 @@ export interface OSDConfiguration extends DeviceEntity {
 export interface OSDConfigurationExtension {}
 export interface MaximumNumberOfOSDs {
   total: number;
-  image?: number;
-  plainText?: number;
-  date?: number;
-  time?: number;
-  dateAndTime?: number;
+  image: number;
+  plainText: number;
+  date: number;
+  time: number;
+  dateAndTime: number;
 }
 export interface OSDConfigurationOptions {
   /** The maximum number of OSD configurations supported for the specified video source configuration. If the configuration does not support OSDs, this value shall be zero and the Type and PositionOption elements are ignored. If a device limits the number of instances by OSDType, it shall indicate the supported number for each type via the related attribute. */
-  maximumNumberOfOSDs?: MaximumNumberOfOSDs;
+  maximumNumberOfOSDs: MaximumNumberOfOSDs;
   /** List supported type of OSD configuration. When a device indicates the supported number for each types in MaximumNumberOfOSDs, related type shall be presented. A device shall return Option element relating to listed type. */
   type?: OSDType[];
   /**
@@ -3258,9 +3263,9 @@ export interface OSDConfigurationOptions {
 export interface OSDConfigurationOptionsExtension {}
 export interface FileProgress {
   /** Exported file name */
-  fileName?: string;
+  fileName: string;
   /** Normalized percentage completion for uploading the exported file */
-  progress?: number;
+  progress: number;
 }
 export interface ArrayOfFileProgress {
   /** Exported file name and export progress information */
@@ -3270,7 +3275,7 @@ export interface ArrayOfFileProgress {
 export interface ArrayOfFileProgressExtension {}
 export interface StorageReferencePath {
   /** identifier of an existing Storage Configuration. */
-  storageToken?: ReferenceToken;
+  storageToken: ReferenceToken;
   /** gives the relative directory path on the storage */
   relativePath?: string;
   extension?: StorageReferencePathExtension;
@@ -3293,7 +3298,7 @@ export interface StringItems {
 }
 export interface Message {
   utcTime: Date;
-  propertyOperation?: PropertyOperation;
+  propertyOperation: PropertyOperation;
   /** Token value pairs that triggered this message. Typically only one item is present. */
   source?: ItemList;
   key?: ItemList;

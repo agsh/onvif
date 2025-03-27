@@ -29,87 +29,87 @@ export interface SourceCapabilities {
   /** Unique identifier of a video source. */
   videoSourceToken: ReferenceToken;
   /** Lifetime limit of pan moves for this video source.  Presence of this attribute indicates support of pan move. */
-  maximumPanMoves?: PositiveInteger;
+  maximumPanMoves: PositiveInteger;
   /** Lifetime limit of tilt moves for this video source.  Presence of this attribute indicates support of tilt move. */
-  maximumTiltMoves?: PositiveInteger;
+  maximumTiltMoves: PositiveInteger;
   /** Lifetime limit of zoom moves for this video source.  Presence of this attribute indicates support of zoom move. */
-  maximumZoomMoves?: PositiveInteger;
+  maximumZoomMoves: PositiveInteger;
   /** Lifetime limit of roll moves for this video source.  Presence of this attribute indicates support of roll move. */
-  maximumRollMoves?: PositiveInteger;
+  maximumRollMoves: PositiveInteger;
   /** Indicates "auto" as a valid enum for Direction in RollMove. */
-  autoLevel?: boolean;
+  autoLevel: boolean;
   /** Lifetime limit of focus moves for this video source.  Presence of this attribute indicates support of focus move. */
-  maximumFocusMoves?: PositiveInteger;
+  maximumFocusMoves: PositiveInteger;
   /** Indicates "auto" as a valid enum for Direction in FocusMove. */
-  autoFocus?: boolean;
+  autoFocus: boolean;
 }
 /** The capabilities of Provisioning Service on the device. */
 export interface Capabilities {
   /** Maximum time before stopping movement after a move operation. */
-  defaultTimeout?: string;
+  defaultTimeout: string;
   /** Capabilities per video source. */
   source?: SourceCapabilities[];
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the provisioning service on this device. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface PanMove {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
   /** "left" or "right". */
-  direction?: PanDirection;
+  direction: PanDirection;
   /** "Operation timeout, if less than default timeout. */
   timeout?: string;
 }
 export interface PanMoveResponse {}
 export interface TiltMove {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
   /** "up" or "down". */
-  direction?: TiltDirection;
+  direction: TiltDirection;
   /** "Operation timeout, if less than default timeout. */
   timeout?: string;
 }
 export interface TiltMoveResponse {}
 export interface ZoomMove {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
   /** "wide" or "telephoto". */
-  direction?: ZoomDirection;
+  direction: ZoomDirection;
   /** "Operation timeout, if less than default timeout. */
   timeout?: string;
 }
 export interface ZoomMoveResponse {}
 export interface RollMove {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
   /** "clockwise", "counterclockwise", or "auto". */
-  direction?: RollDirection;
+  direction: RollDirection;
   /** "Operation timeout, if less than default timeout. */
   timeout?: string;
 }
 export interface RollMoveResponse {}
 export interface FocusMove {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
   /** "near", "far", or "auto". */
-  direction?: FocusDirection;
+  direction: FocusDirection;
   /** "Operation timeout, if less than default timeout. */
   timeout?: string;
 }
 export interface FocusMoveResponse {}
 export interface Stop {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
 }
 export interface StopResponse {}
 export interface GetUsage {
   /** The video source associated with the provisioning. */
-  videoSource?: ReferenceToken;
+  videoSource: ReferenceToken;
 }
 export interface GetUsageResponse {
   /** The set of lifetime usage values for the provisioning associated with the video source. */
-  usage?: Usage;
+  usage: Usage;
 }

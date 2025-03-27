@@ -10,6 +10,7 @@ import { Media } from './media';
 import { PTZ } from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
+import { ReferenceToken } from './interfaces/common';
 
 /**
  * Cam constructor options
@@ -74,9 +75,9 @@ interface RequestError extends Error {
  * Information about active video source
  */
 export interface ActiveSource {
-  sourceToken: string;
-  profileToken: string;
-  videoSourceConfigurationToken: string;
+  sourceToken: ReferenceToken;
+  profileToken: ReferenceToken;
+  videoSourceConfigurationToken: ReferenceToken;
   encoding?: string;
   width?: number;
   height?: number;
@@ -84,7 +85,7 @@ export interface ActiveSource {
   bitrate?: number;
   ptz?: {
     name: string;
-    token: string;
+    token: ReferenceToken;
   };
 }
 

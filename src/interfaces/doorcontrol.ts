@@ -38,23 +38,23 @@ export interface ServiceCapabilities {
    */
   maxLimit: number;
   /** Indicates the maximum number of doors supported by the device. */
-  maxDoors?: number;
+  maxDoors: number;
   /**
    * Indicates that the client is allowed to supply the token when creating doors.
    * To enable the use of the command SetDoor, the value must be set to true.
    */
-  clientSuppliedTokenSupported?: boolean;
+  clientSuppliedTokenSupported: boolean;
   /**
    * Indicates that the client can perform CRUD operations (create, read, update and delete)
    * on doors. To enable the use of the commands GetDoors, GetDoorList, CreateDoor, ModifyDoor
    * and DeleteDoor, the value must be set to true.
    */
-  doorManagementSupported?: boolean;
+  doorManagementSupported: boolean;
 }
 /** Used as extension base. */
 export interface DoorInfoBase extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /** A user readable description. It shall be up to 1024 characters. */
   description?: Description;
 }
@@ -65,7 +65,7 @@ export interface DoorInfoBase extends DataEntity {
  */
 export interface DoorInfo extends DoorInfoBase {
   /** The capabilities of the Door. */
-  capabilities?: DoorCapabilities;
+  capabilities: DoorCapabilities;
 }
 /**
  * The door structure shall include all properties of the DoorInfo structure and also a timings
@@ -73,18 +73,18 @@ export interface DoorInfo extends DoorInfoBase {
  */
 export interface Door extends DoorInfoBase {
   /** The capabilities of the Door. */
-  capabilities?: DoorCapabilities;
+  capabilities: DoorCapabilities;
   /**
    * The type of door. Is of type text. Can be either one of the following reserved
    * ONVIF types: "pt:Door", "pt:ManTrap", "pt:Turnstile", "pt:RevolvingDoor",
    * "pt:Barrier", or a custom defined type.
    */
-  doorType?: Name;
+  doorType: Name;
   /**
    * A structure defining times such as how long the door is unlocked when
    * accessed, extended grant time, etc.
    */
-  timings?: Timings;
+  timings: Timings;
   extension?: DoorExtension;
 }
 export interface DoorExtension {}
@@ -98,12 +98,12 @@ export interface Timings {
    * ReleaseTime is the time from when the latch is unlocked until it is
    * relocked again (unless the door is physically opened).
    */
-  releaseTime?: string;
+  releaseTime: string;
   /**
    * The time from when the door is physically opened until the door is set in the
    * DoorOpenTooLong alarm state.
    */
-  openTime?: string;
+  openTime: string;
   /**
    * Some individuals need extra time to open the door before the latch relocks.
    * If supported, ExtendedReleaseTime shall be added to ReleaseTime if UseExtendedTime
@@ -142,72 +142,72 @@ export interface DoorCapabilities {
    * Indicates whether or not this Door instance supports AccessDoor command to
    * perform momentary access.
    */
-  access?: boolean;
+  access: boolean;
   /**
    * Indicates that this Door instance supports overriding configured timing in the
    * AccessDoor command.
    */
-  accessTimingOverride?: boolean;
+  accessTimingOverride: boolean;
   /**
    * Indicates that this Door instance supports LockDoor command to lock the
    * door.
    */
-  lock?: boolean;
+  lock: boolean;
   /**
    * Indicates that this Door instance supports UnlockDoor command to unlock the
    * door.
    */
-  unlock?: boolean;
+  unlock: boolean;
   /**
    * Indicates that this Door instance supports BlockDoor command to block the
    * door.
    */
-  block?: boolean;
+  block: boolean;
   /**
    * Indicates that this Door instance supports DoubleLockDoor command to lock
    * multiple locks on the door.
    */
-  doubleLock?: boolean;
+  doubleLock: boolean;
   /**
    * Indicates that this Door instance supports LockDown (and LockDownRelease)
    * commands to lock the door and put it in LockedDown mode.
    */
-  lockDown?: boolean;
+  lockDown: boolean;
   /**
    * Indicates that this Door instance supports LockOpen (and LockOpenRelease)
    * commands to unlock the door and put it in LockedOpen mode.
    */
-  lockOpen?: boolean;
+  lockOpen: boolean;
   /**
    * Indicates that this Door instance has a DoorMonitor and supports the
    * DoorPhysicalState event.
    */
-  doorMonitor?: boolean;
+  doorMonitor: boolean;
   /**
    * Indicates that this Door instance has a LockMonitor and supports the
    * LockPhysicalState event.
    */
-  lockMonitor?: boolean;
+  lockMonitor: boolean;
   /**
    * Indicates that this Door instance has a DoubleLockMonitor and supports the
    * DoubleLockPhysicalState event.
    */
-  doubleLockMonitor?: boolean;
+  doubleLockMonitor: boolean;
   /**
    * Indicates that this Door instance supports door alarm and the DoorAlarm
    * event.
    */
-  alarm?: boolean;
+  alarm: boolean;
   /**
    * Indicates that this Door instance has a Tamper detector and supports the
    * DoorTamper event.
    */
-  tamper?: boolean;
+  tamper: boolean;
   /**
    * Indicates that this Door instance supports door fault and the DoorFault
    * event.
    */
-  fault?: boolean;
+  fault: boolean;
 }
 /** The DoorState structure contains current aggregate runtime status of Door. */
 export interface DoorState {
@@ -250,7 +250,7 @@ export interface DoorState {
    * The logical operating mode of the door; it is of type DoorMode. An ONVIF
    * compatible device shall report current operating mode in this field.
    */
-  doorMode?: DoorMode;
+  doorMode: DoorMode;
 }
 /** Tampering information for a Door. */
 export interface DoorTamper {
@@ -262,7 +262,7 @@ export interface DoorTamper {
    */
   reason?: string;
   /** State of the tamper detector; it is of type DoorTamperState. */
-  state?: DoorTamperState;
+  state: DoorTamperState;
 }
 /**
  * Fault information for a Door.
@@ -277,7 +277,7 @@ export interface DoorFault {
    * be found in the Reason field, and/or the various DoorState fields and/or in extensions
    * to this structure.
    */
-  state?: DoorFaultState;
+  state: DoorFaultState;
 }
 /** Extension for the AccessDoor command. */
 export interface AccessDoorExtension {}
@@ -288,7 +288,7 @@ export interface GetServiceCapabilitiesResponse {
    * The capability response message contains the requested DoorControl
    * service capabilities using a hierarchical XML capability structure.
    */
-  capabilities?: ServiceCapabilities;
+  capabilities: ServiceCapabilities;
 }
 export interface GetDoorInfoList {
   /**
@@ -352,38 +352,38 @@ export interface GetDoorsResponse {
 }
 export interface CreateDoor {
   /** Door item to create */
-  door?: Door;
+  door: Door;
 }
 export interface CreateDoorResponse {
   /** Token of created Door item */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface SetDoor {
   /** The Door item to create or modify */
-  door?: Door;
+  door: Door;
 }
 export interface SetDoorResponse {}
 export interface ModifyDoor {
   /** The details of the door */
-  door?: Door;
+  door: Door;
 }
 export interface ModifyDoorResponse {}
 export interface DeleteDoor {
   /** The Token of the door to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteDoorResponse {}
 export interface GetDoorState {
   /** Token of the Door instance to get the state for. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface GetDoorStateResponse {
   /** The state of the door. */
-  doorState?: DoorState;
+  doorState: DoorState;
 }
 export interface AccessDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /**
    * Optional - Indicates that the configured extended time should be
    * used.
@@ -401,41 +401,41 @@ export interface AccessDoor {
 export interface AccessDoorResponse {}
 export interface LockDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface LockDoorResponse {}
 export interface UnlockDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface UnlockDoorResponse {}
 export interface BlockDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface BlockDoorResponse {}
 export interface LockDownDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface LockDownDoorResponse {}
 export interface LockDownReleaseDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface LockDownReleaseDoorResponse {}
 export interface LockOpenDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface LockOpenDoorResponse {}
 export interface LockOpenReleaseDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface LockOpenReleaseDoorResponse {}
 export interface DoubleLockDoor {
   /** Token of the Door instance to control. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DoubleLockDoorResponse {}

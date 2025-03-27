@@ -47,13 +47,13 @@ export interface ServiceCapabilities {
    * SetSecurityLevel, the
    * value must be set to true.
    */
-  clientSuppliedTokenSupported?: boolean;
+  clientSuppliedTokenSupported: boolean;
   /**
    * A list of supported authentication modes (including custom modes).
    * This field is optional, and when omitted, the client shall assume that the
    * device supports "pt:SingleCredential" only.
    */
-  supportedAuthenticationModes?: StringList;
+  supportedAuthenticationModes: StringList;
 }
 /**
  * The AuthenticationProfileInfo structure contains information of a specific authentication
@@ -61,7 +61,7 @@ export interface ServiceCapabilities {
  */
 export interface AuthenticationProfileInfo extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /**
    * User readable description for the access profile. It shall be up
    * to 1024 characters.
@@ -80,7 +80,7 @@ export interface AuthenticationProfile extends AuthenticationProfileInfo {
    * has a schedule covering the time of access (or if no authentication policies
    * are defined).
    */
-  defaultSecurityLevelToken?: ReferenceToken;
+  defaultSecurityLevelToken: ReferenceToken;
   /**
    * Each authentication policy associates a security level with a schedule (during
    * which the specified security level will be required at the access point).
@@ -97,7 +97,7 @@ export interface AuthenticationProfileExtension {}
  */
 export interface AuthenticationPolicy {
   /** Reference to the schedule used by the authentication policy. */
-  scheduleToken?: ReferenceToken;
+  scheduleToken: ReferenceToken;
   /**
    * A list of security level constraint structures defining the conditions
    * for what security level to use.
@@ -116,13 +116,13 @@ export interface SecurityLevelConstraint {
    * Corresponds to the Active field in the ScheduleState structure in
    * [ONVIF Schedule Service Specification].
    */
-  activeRegularSchedule?: boolean;
+  activeRegularSchedule: boolean;
   /**
    * Corresponds to the SpecialDay field in the ScheduleState structure in
    * [ONVIF Schedule Service Specification].
    * This field will be ignored if the device do not support special days.
    */
-  activeSpecialDaySchedule?: boolean;
+  activeSpecialDaySchedule: boolean;
   /**
    * Defines the mode of authentication. Authentication modes starting with the prefix
    * pt: are reserved to define ONVIF-specific authentication modes. For custom defined
@@ -133,7 +133,7 @@ export interface SecurityLevelConstraint {
    */
   authenticationMode?: Name;
   /** Reference to the security level used by the authentication policy. */
-  securityLevelToken?: ReferenceToken;
+  securityLevelToken: ReferenceToken;
   extension?: SecurityLevelConstraintExtension;
 }
 export interface SecurityLevelConstraintExtension {}
@@ -153,13 +153,13 @@ export interface RecognitionMethod {
    * ONVIF-specific types as defined in pt:RecognitionType. For custom defined
    * identifier types, free text can be used.
    */
-  recognitionType?: string;
+  recognitionType: string;
   /**
    * The order value defines when this recognition method will be requested in relation
    * to the other recognition methods in the same security level. A lower number indicates
    * that the recognition method will be requested before recognition methods with a higher number.
    */
-  order?: number;
+  order: number;
   extension?: RecognitionMethodExtension;
 }
 export interface RecognitionMethodExtension {}
@@ -173,7 +173,7 @@ export interface RecognitionGroupExtension {}
 /** The SecurityLevelInfo structure contains information of a specific security level instance. */
 export interface SecurityLevelInfo extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /**
    * A higher number indicates that the security level is considered more secure
    * than security levels with lower priorities. The priority is used when an
@@ -183,7 +183,7 @@ export interface SecurityLevelInfo extends DataEntity {
    * found covering the time of access, the associated security level is used and
    * processing stops. Two security levels cannot have the same priority.
    */
-  priority?: number;
+  priority: number;
   /**
    * User readable description for the access profile. It shall be up
    * to 1024 characters.
@@ -214,7 +214,7 @@ export interface GetServiceCapabilitiesResponse {
    * The capability response message contains the requested access rules
    * service capabilities using a hierarchical XML capability structure.
    */
-  capabilities?: ServiceCapabilities;
+  capabilities: ServiceCapabilities;
 }
 export interface GetAuthenticationProfileInfo {
   /** Tokens of AuthenticationProfileInfo items to get. */
@@ -278,25 +278,25 @@ export interface GetAuthenticationProfileListResponse {
 }
 export interface CreateAuthenticationProfile {
   /** The AuthenticationProfile to create. */
-  authenticationProfile?: AuthenticationProfile;
+  authenticationProfile: AuthenticationProfile;
 }
 export interface CreateAuthenticationProfileResponse {
   /** The Token of created AuthenticationProfile. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface SetAuthenticationProfile {
   /** The AuthenticationProfile to create or modify. */
-  authenticationProfile?: AuthenticationProfile;
+  authenticationProfile: AuthenticationProfile;
 }
 export interface SetAuthenticationProfileResponse {}
 export interface ModifyAuthenticationProfile {
   /** The AuthenticationProfile to modify. */
-  authenticationProfile?: AuthenticationProfile;
+  authenticationProfile: AuthenticationProfile;
 }
 export interface ModifyAuthenticationProfileResponse {}
 export interface DeleteAuthenticationProfile {
   /** The token of the AuthenticationProfile to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteAuthenticationProfileResponse {}
 export interface GetSecurityLevelInfo {
@@ -361,24 +361,24 @@ export interface GetSecurityLevelListResponse {
 }
 export interface CreateSecurityLevel {
   /** The SecurityLevel to create. */
-  securityLevel?: SecurityLevel;
+  securityLevel: SecurityLevel;
 }
 export interface CreateSecurityLevelResponse {
   /** The Token of created SecurityLevel. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface SetSecurityLevel {
   /** The SecurityLevel to create or modify. */
-  securityLevel?: SecurityLevel;
+  securityLevel: SecurityLevel;
 }
 export interface SetSecurityLevelResponse {}
 export interface ModifySecurityLevel {
   /** The SecurityLevel to modify. */
-  securityLevel?: SecurityLevel;
+  securityLevel: SecurityLevel;
 }
 export interface ModifySecurityLevelResponse {}
 export interface DeleteSecurityLevel {
   /** The token of the SecurityLevel to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteSecurityLevelResponse {}

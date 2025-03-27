@@ -307,13 +307,13 @@ export class Media {
    * Receive snapshot URI
    * @param profileToken
    */
-  async getSnapshotUri({ profileToken }: GetSnapshotUri = {}): Promise<{uri: AnyURI}> {
+  async getSnapshotUri({ profileToken = this.onvif.activeSource!.profileToken }: GetSnapshotUri): Promise<{uri: AnyURI}> {
     if (this.onvif.device.media2Support) {
       // Profile T request using Media2
       const [data] = await this.onvif.request({
         service : 'media2',
         body    : '<GetSnapshotUri xmlns="http://www.onvif.org/ver20/media/wsdl">'
-          + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+          + `<ProfileToken>${profileToken}</ProfileToken>`
           + '</GetSnapshotUri>',
       });
       return linerase(data).getSnapshotUriResponse;
@@ -321,7 +321,7 @@ export class Media {
     const [data] = await this.onvif.request({
       service : 'media',
       body    : '<GetSnapshotUri xmlns="http://www.onvif.org/ver10/media/wsdl">'
-        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
         + '</GetSnapshotUri>',
     });
     return linerase(data).getSnapshotUriResponse.mediaUri;
@@ -344,7 +344,7 @@ export class Media {
     return linerase(data[0].getOSDsResponse[0], { array : ['OSDs'] });
   }
 
-  async getOSDOptions({ configurationToken }: GetOSDOptions = {}): Promise<GetOSDOptionsResponse> {
+  async getOSDOptions({ configurationToken = this.onvif.activeSource!.videoSourceConfigurationToken }: GetOSDOptions): Promise<GetOSDOptionsResponse> {
     const mediaService = (this.onvif.device.media2Support ? 'media2' : 'media');
     const mediaNS = (this.onvif.device.media2Support
       ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl');
@@ -352,7 +352,7 @@ export class Media {
     const [data] = await this.onvif.request({
       service : mediaService,
       body    : `<GetOSDOptions xmlns="${mediaNS}" >`
-        + `<ConfigurationToken>${configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken}</ConfigurationToken>`
+        + `<ConfigurationToken>${configurationToken}</ConfigurationToken>`
         + '</GetOSDOptions>',
     });
     const result = linerase(data).getOSDOptionsResponse;

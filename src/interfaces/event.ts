@@ -28,7 +28,7 @@ export interface EventBrokerConfig {
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the event service is returned in the Capabilities element. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface SubscriptionPolicy {}
 export interface CreatePullPointSubscription {
@@ -41,35 +41,35 @@ export interface CreatePullPointSubscription {
 }
 export interface CreatePullPointSubscriptionResponse {
   /** Endpoint reference of the subscription to be used for pulling the messages. */
-  subscriptionReference?: unknown;
+  subscriptionReference: unknown;
   /** Current time of the server for synchronization purposes. */
-  urrentTime?: unknown;
+  urrentTime: unknown;
   /** Date time when the PullPoint will be shut down without further pull requests. */
-  erminationTime?: unknown;
+  erminationTime: unknown;
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
-  timeout?: string;
+  timeout: string;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
-  messageLimit?: number;
+  messageLimit: number;
 }
 export interface PullMessagesResponse {
   /** The date and time when the messages have been delivered by the web server to the client. */
-  currentTime?: Date;
+  currentTime: Date;
   /** Date time when the PullPoint will be shut down without further pull requests. */
-  terminationTime?: Date;
+  terminationTime: Date;
   /** List of messages. This list shall be empty in case of a timeout. */
   otificationMessage?: unknown[];
 }
 export interface PullMessagesFaultResponse {
   /** Maximum timeout supported by the device. */
-  maxTimeout?: string;
+  maxTimeout: string;
   /** Maximum message limit supported by the device. */
-  maxMessageLimit?: number;
+  maxMessageLimit: number;
 }
 export interface Seek {
   /** The date and time to match against stored messages. */
-  utcTime?: Date;
+  utcTime: Date;
   /** Reverse the pull direction of PullMessages. */
   reverse?: boolean;
 }
@@ -81,9 +81,9 @@ export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
   topicNamespaceLocation: AnyURI[];
   /** True when topicset is fixed for all times. */
-  ixedTopicSet?: unknown;
+  ixedTopicSet: unknown;
   /** Set of topics supported. */
-  topicSet?: unknown;
+  topicSet: unknown;
   /**
    * Defines the XPath expression syntax supported for matching topic expressions.
    * The following TopicExpressionDialects are mandatory for an ONVIF compliant device :
