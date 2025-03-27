@@ -35,12 +35,21 @@ export interface PTZInputVector {
 /**
  * Structure consists of the PTZ nodes name and its properties
  */
-export type GetNodesExtended = Record<ReferenceToken, PTZNode>
+export type GetNodesExtended = Record<ReferenceToken, PTZNode>;
 
 /**
  * Structure consists of the PTZ configurations name and its properties
  */
-export type GetConfigurationsExtended = Record<ReferenceToken, PTZConfiguration>
+export type GetConfigurationsExtended = Record<ReferenceToken, PTZConfiguration>;
+
+/**
+ * SetPreset interface which uses active source profile token by default
+ */
+export interface SetPresetExtended extends Omit<SetPreset, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+
+export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
 
 /**
  * PTZ methods
@@ -137,21 +146,16 @@ export class PTZ {
    * Operation to request all PTZ presets with token names as an object for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresetsExtended({ profileToken }: GetPresets) {
+  async getPresetsExtended({ profileToken }: GetPresets = { profileToken : this.onvif.activeSource!.profileToken }): Promise<GetPresetsExtended> {
     const [data] = await this.onvif.request({
       service : 'PTZ',
       body    : '<GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
         + '</GetPresets>',
     });
     this.#presets = {};
-    const result = linerase(data[0].getPresetsResponse[0].preset);
-    if (Array.isArray(result)) {
-      // eslint-disable-next-line no-return-assign
-      linerase(result).forEach((preset: any) => this.#presets[preset.token] = preset);
-    } else {
-      this.#presets[result.token] = result;
-    }
+    const result = linerase(data[0].getPresetsResponse, { array : ['preset'] }).preset;
+    result.forEach((preset: PTZPreset) => { this.#presets[preset.token] = preset; });
     return this.#presets;
   }
 
@@ -212,17 +216,20 @@ export class PTZ {
    * during the SetPreset operation. The device MAY internally save additional states such as imaging properties in the
    * PTZ Preset which then should be recalled in the GotoPreset operation.
    * @param options
+   * @param options.profileToken One of the device profile tokens, if omitted, uses profile token from the active source
+   * @param options.presetToken Preset token if we want to replace existing
+   * @returns Preset token
    */
-  async setPreset({ profileToken, presetName, presetToken }: SetPreset): Promise<SetPresetResponse> {
+  async setPreset({ profileToken = this.onvif.activeSource!.profileToken, presetName, presetToken }: SetPresetExtended): Promise<ReferenceToken> {
     const [data] = await this.onvif.request({
       service : 'PTZ',
       body    : '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken ?? this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
         + `<PresetName>${presetName}</PresetName>${
           presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
         }</SetPreset>`,
     });
-    return linerase(data[0].setPresetResponse);
+    return linerase(data[0].setPresetResponse).presetToken;
   }
 
   /**
