@@ -78,9 +78,9 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] setOSD
 - [ ] deleteOSD
 - [ ] getMediaServiceCapabilities
-- [ ] getPresets
+- [x] getPresets
 - [ ] gotoPreset
-- [ ] setPreset
+- [x] setPreset
 - [ ] removePreset
 - [ ] gotoHomePosition
 - [ ] setHomePosition

@@ -1,4 +1,5 @@
-import { Onvif } from '../src';
+import { GetPresetsExtended, Onvif } from '../src';
+import { ReferenceToken } from '../src/interfaces/common';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -100,8 +101,54 @@ describe('Configurations and configuration options', () => {
   });
 });
 
-// describe('Presets', () => {
-//   describe('getPresetsExtended', () => {
-//     it('should return a preset for all ');
-//   });
-// });
+describe('Presets', () => {
+  describe('setPreset', () => {
+    let presetToken: ReferenceToken;
+    it('should create a new preset for the empty presetToken', async () => {
+      presetToken = await cam.ptz.setPreset({
+        presetName : 'My_Token',
+      });
+      expect(typeof presetToken).toBe('string');
+    });
+
+    it('should edit already existing preset by token', async () => {
+      const result = await cam.ptz.setPreset({
+        presetName : 'My_Token_2',
+        presetToken,
+      });
+      expect(typeof result).toBe('string');
+      expect(result).toBe(presetToken);
+    });
+
+    it('should throw an error it there is no preset token to edit', () => {
+      expect(
+        cam.ptz.setPreset({
+          presetToken : 'Undefined_Token',
+        }),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('getPresetsExtended', () => {
+    let activeSourceResult: GetPresetsExtended;
+    it('should return a preset for the activeSource by default', async () => {
+      activeSourceResult = await cam.ptz.getPresetsExtended();
+      Object.values(activeSourceResult).forEach((configuration) => {
+        expect(configuration).toHaveProperty('token');
+        expect(configuration).toHaveProperty('name');
+        expect(configuration).toHaveProperty('PTZPosition');
+      });
+    });
+
+    it('should return presets for the selected profile', async () => {
+      const result = await cam.ptz.getPresetsExtended({ profileToken : cam.activeSource!.profileToken });
+      expect(result).toStrictEqual(activeSourceResult);
+    });
+
+    it('should return presets as an array for the selected profile', async () => {
+      const result = await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken });
+      expect(result).toBeInstanceOf(Array);
+      expect(result.length).toBe(Object.keys(activeSourceResult).length);
+    });
+  });
+});

@@ -135,13 +135,6 @@ describe('getServiceCapabilities', () => {
   });
 });
 
-// describe('systemReboot', () => {
-//   it('should return message', async () => {
-//     const result = await cam.device.systemReboot();
-//     expect(typeof result).toBe('string');
-//   });
-// });
-
 describe('NTP', () => {
   describe('getNTP', () => {
     it('should return NTP information', async () => {
@@ -272,3 +265,10 @@ describe('Network interfaces', () => {
     });
   });
 });
+
+// describe('systemReboot', () => {
+//   it('should return message', async () => {
+//     const result = await cam.device.systemReboot();
+//     expect(typeof result).toBe('string');
+//   });
+// });
