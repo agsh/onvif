@@ -31,7 +31,7 @@ export class Device {
   public media2Support = false;
   #scopes: Scope[] = [];
   get scopes() { return this.#scopes; }
-  #serviceCapabilities: DeviceServiceCapabilities = {};
+  #serviceCapabilities?: DeviceServiceCapabilities;
   get serviceCapabilities() { return this.#serviceCapabilities; }
   #NTP?: NTPInformation;
   get NTP() { return this.#NTP; }
@@ -195,9 +195,9 @@ export class Device {
     const capabilitiesResponse = linerase(data).getServiceCapabilitiesResponse;
     this.#serviceCapabilities = capabilitiesResponse.capabilities;
     if (capabilitiesResponse.capabilities?.misc?.auxiliaryCommands !== undefined) {
-      this.#serviceCapabilities.misc!.auxiliaryCommands = capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
+      this.#serviceCapabilities!.misc!.auxiliaryCommands = capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
     }
-    return this.#serviceCapabilities;
+    return this.#serviceCapabilities!;
   }
 
   /**

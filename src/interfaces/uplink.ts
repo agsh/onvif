@@ -7,16 +7,19 @@ export type AuthorizationModes = 'mTLS' | 'JWT';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
 export interface Configuration {
   /** Uniform resource locator by which the remote client can be reached. */
-  remoteAddress?: AnyURI;
+  remoteAddress: AnyURI;
   /** ID of the certificate to be used for client authentication. */
   certificateID?: string;
   /** Authorization level that will be assigned to the uplink connection. */
-  userLevel?: string;
+  userLevel: string;
   /** Current connection status (see tup:ConnectionStatus for possible values). */
   status?: string;
-  /** CertPathValidationPolicyID used to validate the uplink server certificate. If CertPathValidationPolicyID is not configured, uplink server certificate shall not be validated. */
+  /**
+   * CertPathValidationPolicyID used to validate the uplink server certificate. If not configured, server certificate validation
+   * behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.
+   */
   certPathValidationPolicyID?: string;
-  /** JWTConfiguration token referring to an Authorization server that provides JWT token to authorize with the uplink server. */
+  /** AuthorizationServer token referring to the server that provides JWT tokens to authorize with the uplink server. */
   authorizationServer?: ReferenceToken;
   /** Optional user readable error information (readonly). */
   error?: string;
@@ -24,7 +27,7 @@ export interface Configuration {
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the uplink service is returned in the Capabilities element. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface GetUplinks {}
 export interface GetUplinksResponse {
@@ -33,11 +36,11 @@ export interface GetUplinksResponse {
 }
 export interface SetUplink {
   /** Configuration to be added or modified. */
-  configuration?: Configuration;
+  configuration: Configuration;
 }
 export interface SetUplinkResponse {}
 export interface DeleteUplink {
   /** Uniform resource locator of the configuration to be deleted. */
-  remoteAddress?: AnyURI;
+  remoteAddress: AnyURI;
 }
 export interface DeleteUplinkResponse {}

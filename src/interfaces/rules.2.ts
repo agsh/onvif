@@ -2,7 +2,7 @@ import { IntRange, ReferenceToken } from './common';
 
 export interface MotionRegionConfigOptions {
   /** Indicates the support for PTZ preset based motion detection, if supported Preset token can be associated with a motion region. */
-  PTZPresetMotionSupport?: boolean;
+  PTZPresetMotionSupport: boolean;
   /**
    * The total number of Motion Region Detector rules that can be created on the device.
    * This element is deprecated. maxInstances in the GetSupportedRules shall be used instead.
@@ -39,14 +39,14 @@ export interface MotionRegionConfig {
    * Indicates if the Motion Region is Armed (detecting motion) or Disarmed (motion is
    * not being detected).
    */
-  armed?: boolean;
+  armed: boolean;
   /**
    * Indicates the sensitivity level of the motion detector for this region. The
    * sensitivity value is normalized where 0 represents the lower sensitivity where
    * significant motion is required to trigger an alarm and 1 represents the higher
    * sensitivity where very little motion is required to trigger an alarm.
    */
-  sensitivity?: number;
+  sensitivity: number;
   /**
    * Provides the points of a Polygon in the VideoSourceConfiguration's Bounds
    * element. If the device does not support Polygons, this structure must contain

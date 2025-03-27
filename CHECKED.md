@@ -85,9 +85,9 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] gotoHomePosition
 - [ ] setHomePosition
 - [ ] getStatus
-- [ ] getNodes
-- [ ] getConfigurations
-- [ ] getConfigurationOptions
+- [x] getNodes
+- [x] getConfigurations
+- [x] getConfigurationOptions
 - [ ] relativeMove
 - [ ] absoluteMove
 - [ ] continuousMove

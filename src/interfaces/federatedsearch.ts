@@ -11,7 +11,7 @@ export type mimeType = string;
  */
 export interface RegisterDatabase extends CapabilityType {
   serviceID: AnyURI;
-  recordingSearchInterfaceRegistration?: boolean;
+  recordingSearchInterfaceRegistration: boolean;
   extension?: RegisterDatabaseExtension;
 }
 export interface RegisterDatabaseExtension {}
@@ -31,7 +31,7 @@ export interface TermType {
   term?: TermType[];
 }
 export interface GetServiceCapabilitiesResponse {
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface GetServiceFeatures {
   /**
@@ -39,7 +39,7 @@ export interface GetServiceFeatures {
    * capabilities and may contain the ID for a particular service to
    * be addressed.
    */
-  inputCapabilities?: unknown;
+  inputCapabilities: unknown;
 }
 export interface GetServiceFeaturesResponse {
   /**
@@ -48,7 +48,7 @@ export interface GetServiceFeaturesResponse {
    * service is available or matches the given capabilities, then an
    * empty Output element is returned.
    */
-  outputCapabilities?: unknown;
+  outputCapabilities: unknown;
 }
 export interface Search {
   /**
@@ -57,7 +57,7 @@ export interface Search {
    * structure and content of the output query format and a
    * declaration part.
    */
-  inputQuery?: unknown;
+  inputQuery: unknown;
 }
 export interface SearchResponse {
   /**
@@ -65,14 +65,14 @@ export interface SearchResponse {
    * a requester. It may contain in addition messages such as error
    * and exception.
    */
-  outputQuery?: unknown;
+  outputQuery: unknown;
 }
 export interface GetSearchResults {
   /**
    * Allows to request the results of a previous query
    * issued.
    */
-  results?: unknown;
+  results: unknown;
 }
 export interface GetSearchResultsResponse {
   /**

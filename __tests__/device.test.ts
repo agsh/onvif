@@ -19,7 +19,6 @@ describe('Getters', () => {
   it('should returns private properties from the class', () => {
     expect(cam.device.services).toBeDefined();
     expect(cam.device.scopes).toBeDefined();
-    expect(cam.device.serviceCapabilities).toBeDefined();
   });
 });
 
@@ -128,6 +127,12 @@ describe('getServiceCapabilities', () => {
     const result = await cam.device.getServiceCapabilities();
     expect(Object.keys(result).sort()).toEqual(['misc', 'network', 'security', 'system']);
   });
+
+  it('should return a service capabilities object from the property', async () => {
+    await cam.device.getServiceCapabilities();
+    const result = cam.device.serviceCapabilities!;
+    expect(Object.keys(result).sort()).toEqual(['misc', 'network', 'security', 'system']);
+  });
 });
 
 // describe('systemReboot', () => {
@@ -169,6 +174,7 @@ describe('NTP', () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce([[{ setNTPResponse : ['whatever'] }], '<SetNTPResponse />']);
       expect(
+        // @ts-expect-error fromDCHP is required in the interface
         cam.device.setNTP({}),
       ).rejects.toThrow();
     });
@@ -210,6 +216,7 @@ describe('DNS', () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce([[{ setDNSResponse : ['whatever'] }], '<SetDNSResponse />']);
       expect(
+        // @ts-expect-error fromDCHP is required in the interface
         cam.device.setDNS({}),
       ).rejects.toThrow();
     });
@@ -259,6 +266,7 @@ describe('Network interfaces', () => {
     });
 
     it('should do nothing when there is no network interfaces in options', async () => {
+      // @ts-expect-error interfaceToken, networkInterface are required in the interface
       const result = await cam.device.setNetworkInterfaces({});
       expect(result.rebootNeeded).toBe(false);
     });

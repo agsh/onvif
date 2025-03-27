@@ -27,23 +27,23 @@ export interface ColorPalette {
    */
   type: string;
   /** User readable Color Palette name. */
-  name?: Name;
+  name: Name;
 }
 /** Type describing a NUC Table element. */
 export interface NUCTable {
   /** Unique identifier of this NUC Table. */
   token: ReferenceToken;
   /** Low Temperature limit for application of NUC Table, in Kelvin. */
-  lowTemperature?: number;
+  lowTemperature: number;
   /** High Temperature limit for application of NUC Table, in Kelvin. */
-  highTemperature?: number;
+  highTemperature: number;
   /** User reabable name for the Non-Uniformity Correction (NUC) Table. */
-  name?: Name;
+  name: Name;
 }
 /** Type describing the Cooler settings. */
 export interface Cooler {
   /** Indicates whether the Cooler is enabled (running) or not. */
-  enabled?: boolean;
+  enabled: boolean;
   /** Number of hours the Cooler has been running (unit: hours). Read-only. */
   runTime?: number;
 }
@@ -61,11 +61,11 @@ export interface CoolerOptions {
  */
 export interface RadiometryGlobalParameters {
   /** Reflected Ambient Temperature for the environment in which the thermal device and the object being measured is located. */
-  reflectedAmbientTemperature?: number;
+  reflectedAmbientTemperature: number;
   /** Emissivity of the surface of the object on which temperature is being measured. */
-  emissivity?: number;
+  emissivity: number;
   /** Distance from the thermal device to the measured object. */
-  distanceToObject?: number;
+  distanceToObject: number;
   /** Relative Humidity in the environment in which the measurement is located. */
   relativeHumidity?: number;
   /** Temperature of the atmosphere between the thermal device and the object being measured. */
@@ -80,11 +80,11 @@ export interface RadiometryGlobalParameters {
 /** Describes valid ranges for the different radiometry parameters required for accurate temperature calculation. */
 export interface RadiometryGlobalParameterOptions {
   /** Valid range of temperature values, in Kelvin. */
-  reflectedAmbientTemperature?: FloatRange;
+  reflectedAmbientTemperature: FloatRange;
   /** Valid range of emissivity values for the objects to measure. */
-  emissivity?: FloatRange;
+  emissivity: FloatRange;
   /** Valid range of distance between camera and object for a valid temperature reading, in meters. */
-  distanceToObject?: FloatRange;
+  distanceToObject: FloatRange;
   /** Valid range of relative humidity values, in percentage. */
   relativeHumidity?: FloatRange;
   /** Valid range of temperature values, in Kelvin. */
@@ -98,9 +98,9 @@ export interface RadiometryGlobalParameterOptions {
 }
 export interface Configuration {
   /** Current Color Palette in use by the Thermal Device. */
-  colorPalette?: ColorPalette;
+  colorPalette: ColorPalette;
   /** Polarity configuration of the Thermal Device. */
-  polarity?: Polarity;
+  polarity: Polarity;
   /** Current Non-Uniformity Correction (NUC) Table in use by the Thermal Device. */
   NUCTable?: NUCTable;
   /** Cooler settings of the Thermal Device. */
@@ -110,7 +110,7 @@ export interface Configurations {
   /** Reference token to the thermal VideoSource. */
   token: ReferenceToken;
   /** Current Thermal Settings for the VideoSource. */
-  configuration?: Configuration;
+  configuration: Configuration;
 }
 export interface RadiometryConfiguration {
   /**
@@ -137,23 +137,23 @@ export interface RadiometryConfigurationOptions {
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities of the thermal service are returned in the Capabilities element. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface GetConfigurationOptions {
   /** Reference token to the VideoSource for which the Thermal Configuration Options are requested. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
 }
 export interface GetConfigurationOptionsResponse {
   /** Valid ranges for the Thermal configuration parameters that are categorized as device specific. */
-  configurationOptions?: ConfigurationOptions;
+  configurationOptions: ConfigurationOptions;
 }
 export interface GetConfiguration {
   /** Reference token to the VideoSource for which the Thermal Settings are requested. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
 }
 export interface GetConfigurationResponse {
   /** Thermal Settings for the VideoSource that was requested. */
-  configuration?: Configuration;
+  configuration: Configuration;
 }
 export interface GetConfigurations {}
 export interface GetConfigurationsResponse {
@@ -162,29 +162,29 @@ export interface GetConfigurationsResponse {
 }
 export interface SetConfiguration {
   /** Reference token to the VideoSource for which the Thermal Settings are configured. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
   /** Thermal Settings to be configured. */
-  configuration?: Configuration;
+  configuration: Configuration;
 }
 export interface GetRadiometryConfigurationOptions {
   /** Reference token to the VideoSource for which the Thermal Radiometry Options are requested. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
 }
 export interface GetRadiometryConfigurationOptionsResponse {
   /** Valid ranges for the Thermal Radiometry parameters that are categorized as device specific. */
-  configurationOptions?: RadiometryConfigurationOptions;
+  configurationOptions: RadiometryConfigurationOptions;
 }
 export interface GetRadiometryConfiguration {
   /** Reference token to the VideoSource for which the Radiometry Configuration is requested. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
 }
 export interface GetRadiometryConfigurationResponse {
   /** Radiometry Configuration for the VideoSource that was requested. */
-  configuration?: RadiometryConfiguration;
+  configuration: RadiometryConfiguration;
 }
 export interface SetRadiometryConfiguration {
   /** Reference token to the VideoSource for which the Radiometry settings are configured. */
-  videoSourceToken?: ReferenceToken;
+  videoSourceToken: ReferenceToken;
   /** Radiometry settings to be configured. */
-  configuration?: RadiometryConfiguration;
+  configuration: RadiometryConfiguration;
 }

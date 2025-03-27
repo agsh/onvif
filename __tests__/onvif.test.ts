@@ -89,6 +89,7 @@ describe('Date and time', () => {
   describe('setSystemDateAndTime', () => {
     it('should throw an error when `dateTimeType` is missing or wrong', () => {
       expect(
+        // @ts-expect-error dateTimeType is required in the interface
         cam.setSystemDateAndTime({
           dateTime : new Date(),
         }),
@@ -97,6 +98,7 @@ describe('Date and time', () => {
 
     it('should throw an error when `UTCDateTime` and `dateTime` are missing or wrong in manual mode', () => {
       expect(
+        // @ts-expect-error UTCDateTime is required when dateTimeType is manual
         cam.setSystemDateAndTime({
           dateTimeType : 'Manual',
         }),
@@ -108,15 +110,17 @@ describe('Date and time', () => {
         .mockReturnValueOnce('whatever');
       expect(
         cam.setSystemDateAndTime({
-          dateTimeType : 'NTP',
+          dateTimeType    : 'NTP',
+          daylightSavings : false,
         }),
       ).rejects.toThrow();
     });
 
     it('should set date and time using SOAP Date and Time types', async () => {
       const result = await cam.setSystemDateAndTime({
-        dateTimeType : 'Manual',
-        UTCDateTime  : {
+        dateTimeType    : 'Manual',
+        daylightSavings : true,
+        UTCDateTime     : {
           date : {
             year  : 2021,
             month : 6,
@@ -137,8 +141,9 @@ describe('Date and time', () => {
 
     it('should set date and time using js Date object', async () => {
       const result = await cam.setSystemDateAndTime({
-        dateTimeType : 'Manual',
-        dateTime     : new Date(2021, 5, 15, 19, 14, 37),
+        dateTimeType    : 'Manual',
+        daylightSavings : true,
+        dateTime        : new Date(2021, 5, 15, 19, 14, 37),
       });
       expect(result.dateTime).toBeInstanceOf(Date);
       expect(result.dateTimeType).toBeDefined();
@@ -148,8 +153,9 @@ describe('Date and time', () => {
 
     it('should set date and time using device module', async () => {
       const result = await cam.device.setSystemDateAndTime({
-        dateTimeType : 'Manual',
-        dateTime     : new Date(2021, 5, 15, 19, 14, 37),
+        dateTimeType    : 'Manual',
+        daylightSavings : true,
+        dateTime        : new Date(2021, 5, 15, 19, 14, 37),
       });
       expect(result.dateTime).toBeInstanceOf(Date);
       expect(result.dateTimeType).toBeDefined();

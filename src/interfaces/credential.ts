@@ -40,17 +40,17 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating credentials.
    * To enable the use of the command SetCredential, the value must be set to true.
    */
-  clientSuppliedTokenSupported?: boolean;
+  clientSuppliedTokenSupported: boolean;
   /**
    * The default time period that the credential will temporary be suspended (e.g. by using
    * the wrong PIN a predetermined number of times).
    * The time period is defined as an [ISO 8601] duration string (e.g. “PT5M”).
    */
-  defaultCredentialSuspensionDuration?: string;
+  defaultCredentialSuspensionDuration: string;
   /** The maximum number of whitelisted credential identifiers supported by the device. */
-  maxWhitelistedItems?: number;
+  maxWhitelistedItems: number;
   /** The maximum number of blacklisted credential identifiers supported by the device. */
-  maxBlacklistedItems?: number;
+  maxBlacklistedItems: number;
   /**
    * A list of identifier types that the device supports. Is of type text.
    * Identifier types starting with the prefix pt: are reserved to define ONVIF-specific
@@ -81,7 +81,7 @@ export interface CredentialInfo extends DataEntity {
    * reference is a username or used ID in an external system, such as a directory
    * service.
    */
-  credentialHolderReference?: unknown;
+  credentialHolderReference: unknown;
   /**
    * The start date/time validity of the credential. If the
    * ValiditySupportsTimeValue capability is set to false, then only date is
@@ -134,16 +134,16 @@ export interface CredentialIdentifier {
    * Contains the details of the credential identifier type. Is of type
    * CredentialIdentifierType.
    */
-  type?: CredentialIdentifierType;
+  type: CredentialIdentifierType;
   /**
    * If set to true, this credential identifier is not considered for
    * authentication. For example if the access point requests Card plus PIN, and the credential
    * identifier of type PIN is exempted from authentication, then the access point will not prompt
    * for the PIN.
    */
-  exemptedFromAuthentication?: boolean;
+  exemptedFromAuthentication: boolean;
   /** The value of the identifier in hexadecimal representation. */
-  value?: unknown;
+  value: unknown;
 }
 /**
  * Specifies the name of credential identifier type and its format for the credential
@@ -154,17 +154,17 @@ export interface CredentialIdentifierType {
    * The name of the credential identifier type, such as pt:Card, pt:PIN,
    * etc.
    */
-  name?: Name;
+  name: Name;
   /**
    * Specifies the format of the credential value for the specified identifier
    * type name.
    */
-  formatType?: string;
+  formatType: string;
 }
 /** The association between a credential and an access profile. */
 export interface CredentialAccessProfile {
   /** The reference token of the associated access profile. */
-  accessProfileToken?: ReferenceToken;
+  accessProfileToken: ReferenceToken;
   /**
    * The start date/time of the validity for the association between the
    * credential and the access profile. If the ValiditySupportsTimeValue capability is set to
@@ -187,7 +187,7 @@ export interface CredentialState {
    * True if the credential is enabled or false if the credential is
    * disabled.
    */
-  enabled?: boolean;
+  enabled: boolean;
   /**
    * Predefined ONVIF reasons as mentioned in the section 5.4.2.7
    * of credential service specification document. For any other reason, free
@@ -205,7 +205,7 @@ export interface CredentialStateExtension {}
 /** A structure containing anti-passback related state information. */
 export interface AntipassbackState {
   /** Indicates if anti-passback is violated for the credential. */
-  antipassbackViolated?: boolean;
+  antipassbackViolated: boolean;
 }
 /** Contains information about a format type. */
 export interface CredentialIdentifierFormatTypeInfo {
@@ -214,14 +214,14 @@ export interface CredentialIdentifierFormatTypeInfo {
    * provided in [ISO 16484-5:2014-09 Annex P]. The BACnet type "CUSTOM" is not used in this
    * specification. Instead device manufacturers can define their own format types.
    */
-  formatType?: string;
+  formatType: string;
   /**
    * User readable description of the credential identifier format type. It
    * shall be up to 1024 characters. For custom types, it is recommended to describe how the
    * octet string is encoded (following the structure in column Authentication Factor Value
    * Encoding of [ISO 16484-5:2014-09 Annex P]).
    */
-  description?: Description;
+  description: Description;
   extension?: CredentialIdentifierFormatTypeInfoExtension;
 }
 export interface CredentialIdentifierFormatTypeInfoExtension {}
@@ -232,14 +232,14 @@ export interface CredentialData {
    * provided in [ISO 16484-5:2014-09 Annex P]. The BACnet type "CUSTOM" is not used in this
    * specification. Instead device manufacturers can define their own format types.
    */
-  credential?: Credential;
+  credential: Credential;
   /**
    * User readable description of the credential identifier format type. It
    * shall be up to 1024 characters. For custom types, it is recommended to describe how the
    * octet string is encoded (following the structure in column Authentication Factor Value
    * Encoding of [ISO 16484-5:2014-09 Annex P]).
    */
-  credentialState?: CredentialState;
+  credentialState: CredentialState;
   extension?: CredentialDataExtension;
 }
 export interface CredentialDataExtension {}
@@ -249,9 +249,9 @@ export interface CredentialDataExtension {}
  */
 export interface CredentialIdentifierItem {
   /** Contains the details of the credential identifier type. */
-  type?: CredentialIdentifierType;
+  type: CredentialIdentifierType;
   /** The value of the identifier in hexadecimal representation. */
-  value?: unknown;
+  value: unknown;
 }
 /** Contains information about a format type. */
 export interface FaultResponse {
@@ -260,14 +260,14 @@ export interface FaultResponse {
    * provided in [ISO 16484-5:2014-09 Annex P]. The BACnet type "CUSTOM" is not used in this
    * specification. Instead device manufacturers can define their own format types.
    */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /**
    * User readable description of the credential identifier format type. It
    * shall be up to 1024 characters. For custom types, it is recommended to describe how the
    * octet string is encoded (following the structure in column Authentication Factor Value
    * Encoding of [ISO 16484-5:2014-09 Annex P]).
    */
-  fault?: string;
+  fault: string;
   extension?: FaultResponseExtension;
 }
 export interface FaultResponseExtension {}
@@ -278,11 +278,11 @@ export interface GetServiceCapabilitiesResponse {
    * The capability response message contains the requested credential
    * service capabilities using a hierarchical XML capability structure.
    */
-  capabilities?: ServiceCapabilities;
+  capabilities: ServiceCapabilities;
 }
 export interface GetSupportedFormatTypes {
   /** Name of the credential identifier type */
-  credentialIdentifierTypeName?: string;
+  credentialIdentifierTypeName: string;
 }
 export interface GetSupportedFormatTypesResponse {
   /** Identifier format type */
@@ -350,59 +350,59 @@ export interface GetCredentialListResponse {
 }
 export interface CreateCredential {
   /** The credential to create. */
-  credential?: Credential;
+  credential: Credential;
   /** The state of the credential. */
-  state?: CredentialState;
+  state: CredentialState;
 }
 export interface CreateCredentialResponse {
   /** The token of the created credential */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface ModifyCredential {
   /** Details of the credential. */
-  credential?: Credential;
+  credential: Credential;
 }
 export interface ModifyCredentialResponse {}
 export interface SetCredential {
   /** Details of the credential. */
-  credentialData?: CredentialData;
+  credentialData: CredentialData;
 }
 export interface SetCredentialResponse {}
 export interface DeleteCredential {
   /** The token of the credential to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteCredentialResponse {}
 export interface GetCredentialState {
   /** Token of Credential */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface GetCredentialStateResponse {
   /** State of the credential. */
-  state?: CredentialState;
+  state: CredentialState;
 }
 export interface EnableCredential {
   /** The token of the credential */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** Reason for enabling the credential. */
   reason?: Name;
 }
 export interface EnableCredentialResponse {}
 export interface DisableCredential {
   /** Token of the Credential */
-  token?: ReferenceToken;
+  token: ReferenceToken;
   /** Reason for disabling the credential */
   reason?: Name;
 }
 export interface DisableCredentialResponse {}
 export interface ResetAntipassbackViolation {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
 }
 export interface ResetAntipassbackViolationResponse {}
 export interface GetCredentialIdentifiers {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
 }
 export interface GetCredentialIdentifiersResponse {
   /** Identifier of the credential */
@@ -410,21 +410,21 @@ export interface GetCredentialIdentifiersResponse {
 }
 export interface SetCredentialIdentifier {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
   /** Identifier of the credential */
-  credentialIdentifier?: CredentialIdentifier;
+  credentialIdentifier: CredentialIdentifier;
 }
 export interface SetCredentialIdentifierResponse {}
 export interface DeleteCredentialIdentifier {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
   /** Identifier type name of a credential */
-  credentialIdentifierTypeName?: Name;
+  credentialIdentifierTypeName: Name;
 }
 export interface DeleteCredentialIdentifierResponse {}
 export interface GetCredentialAccessProfiles {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
 }
 export interface GetCredentialAccessProfilesResponse {
   /** Access Profiles of the credential */
@@ -432,14 +432,14 @@ export interface GetCredentialAccessProfilesResponse {
 }
 export interface SetCredentialAccessProfiles {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
   /** Access Profiles of the credential */
   credentialAccessProfile: CredentialAccessProfile[];
 }
 export interface SetCredentialAccessProfilesResponse {}
 export interface DeleteCredentialAccessProfiles {
   /** Token of the Credential */
-  credentialToken?: ReferenceToken;
+  credentialToken: ReferenceToken;
   /** Tokens of Access Profiles */
   accessProfileToken: ReferenceToken[];
 }

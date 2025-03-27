@@ -26,7 +26,7 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating access profiles. To
    * enable the use of the command SetAccessProfile, the value must be set to true.
    */
-  clientSuppliedTokenSupported?: boolean;
+  clientSuppliedTokenSupported: boolean;
 }
 /**
  * The access policy is an association of an access point and a schedule. It defines when an access
@@ -36,12 +36,12 @@ export interface ServiceCapabilities {
  */
 export interface AccessPolicy {
   /** Reference to the schedule used by the access policy. */
-  scheduleToken?: ReferenceToken;
+  scheduleToken: ReferenceToken;
   /**
    * Reference to the entity used by the rule engine, the entity type may be specified by the
    * optional EntityType field explained below but is typically an access point.
    */
-  entity?: ReferenceToken;
+  entity: ReferenceToken;
   /**
    * Optional entity type; if missing, an access point type as defined by the ONVIF Access
    * Control Service Specification should be assumed. This can also be represented by the
@@ -59,7 +59,7 @@ export interface AccessPolicyExtension {}
  */
 export interface AccessProfileInfo extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
-  name?: Name;
+  name: Name;
   /**
    * User readable description for the access profile. It shall be up
    * to 1024 characters.
@@ -87,7 +87,7 @@ export interface GetServiceCapabilitiesResponse {
    * The capability response message contains the requested access rules
    * service capabilities using a hierarchical XML capability structure.
    */
-  capabilities?: ServiceCapabilities;
+  capabilities: ServiceCapabilities;
 }
 export interface GetAccessProfileInfo {
   /** Tokens of AccessProfileInfo items to get. */
@@ -151,24 +151,24 @@ export interface GetAccessProfileListResponse {
 }
 export interface CreateAccessProfile {
   /** The AccessProfile to create. */
-  accessProfile?: AccessProfile;
+  accessProfile: AccessProfile;
 }
 export interface CreateAccessProfileResponse {
   /** The Token of created AccessProfile. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface ModifyAccessProfile {
   /** The details of Access Profile */
-  accessProfile?: AccessProfile;
+  accessProfile: AccessProfile;
 }
 export interface ModifyAccessProfileResponse {}
 export interface SetAccessProfile {
   /** The AccessProfile item to create or modify */
-  accessProfile?: AccessProfile;
+  accessProfile: AccessProfile;
 }
 export interface SetAccessProfileResponse {}
 export interface DeleteAccessProfile {
   /** The token of the access profile to delete. */
-  token?: ReferenceToken;
+  token: ReferenceToken;
 }
 export interface DeleteAccessProfileResponse {}

@@ -13,11 +13,11 @@ import { AnyURI } from './basics';
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the analytics device service is returned in the Capabilities element. */
-  capabilities?: Capabilities;
+  capabilities: Capabilities;
 }
 export interface DeleteAnalyticsEngineControl {
   /** Token of the Analytics Engine Control configuration to be deleted. */
-  configurationToken?: ReferenceToken;
+  configurationToken: ReferenceToken;
 }
 export interface DeleteAnalyticsEngineControlResponse {}
 export interface CreateAnalyticsEngineInputs {
@@ -31,7 +31,7 @@ export interface CreateAnalyticsEngineInputsResponse {
 }
 export interface CreateAnalyticsEngineControl {
   /** Settings of the Analytics Engine Control configuration to be created. Mode shall be set to "idle". */
-  configuration?: AnalyticsEngineControl;
+  configuration: AnalyticsEngineControl;
 }
 export interface CreateAnalyticsEngineControlResponse {
   /** Configuration containing token generated. */
@@ -39,17 +39,17 @@ export interface CreateAnalyticsEngineControlResponse {
 }
 export interface SetAnalyticsEngineControl {
   /** Contains the modified Analytics Engine Control configuration. */
-  configuration?: AnalyticsEngineControl;
-  forcePersistence?: boolean;
+  configuration: AnalyticsEngineControl;
+  forcePersistence: boolean;
 }
 export interface SetAnalyticsEngineControlResponse {}
 export interface GetAnalyticsEngineControl {
   /** Token of the requested AnalyticsEngineControl configuration. */
-  configurationToken?: ReferenceToken;
+  configurationToken: ReferenceToken;
 }
 export interface GetAnalyticsEngineControlResponse {
   /** Configuration of the AnalyticsEngineControl. */
-  configuration?: AnalyticsEngineControl;
+  configuration: AnalyticsEngineControl;
 }
 export interface GetAnalyticsEngineControls {}
 export interface GetAnalyticsEngineControlsResponse {
@@ -58,11 +58,11 @@ export interface GetAnalyticsEngineControlsResponse {
 }
 export interface GetAnalyticsEngine {
   /** Token of the requested AnalyticsEngine configuration. */
-  configurationToken?: ReferenceToken;
+  configurationToken: ReferenceToken;
 }
 export interface GetAnalyticsEngineResponse {
   /** Configuration of the AnalyticsEngine. */
-  configuration?: AnalyticsEngine;
+  configuration: AnalyticsEngine;
 }
 export interface GetAnalyticsEngines {}
 export interface GetAnalyticsEnginesResponse {
@@ -71,23 +71,23 @@ export interface GetAnalyticsEnginesResponse {
 }
 export interface SetVideoAnalyticsConfiguration {
   /** Contains the modified video analytics configuration. The configuration shall exist in the device. */
-  configuration?: VideoAnalyticsConfiguration;
-  forcePersistence?: boolean;
+  configuration: VideoAnalyticsConfiguration;
+  forcePersistence: boolean;
 }
 export interface SetVideoAnalyticsConfigurationResponse {}
 export interface SetAnalyticsEngineInput {
   /** Contains the modified Analytics Engine Input configuration. The configuration shall exist in the device. */
-  configuration?: AnalyticsEngineInput;
-  forcePersistence?: boolean;
+  configuration: AnalyticsEngineInput;
+  forcePersistence: boolean;
 }
 export interface SetAnalyticsEngineInputResponse {}
 export interface GetAnalyticsEngineInput {
   /** Token of the requested AnalyticsEngineInput configuration. */
-  configurationToken?: ReferenceToken;
+  configurationToken: ReferenceToken;
 }
 export interface GetAnalyticsEngineInputResponse {
   /** Configuration of the AnalyticsEngineInput. */
-  configuration?: AnalyticsEngineInput;
+  configuration: AnalyticsEngineInput;
 }
 export interface GetAnalyticsEngineInputs {}
 export interface GetAnalyticsEngineInputsResponse {
@@ -96,21 +96,21 @@ export interface GetAnalyticsEngineInputsResponse {
 }
 export interface GetAnalyticsDeviceStreamUri {
   /** Configuration of the URI requested. */
-  streamSetup?: StreamSetup;
+  streamSetup: StreamSetup;
   /** Token of the AnalyticsEngineControl whose URI is requested. */
-  analyticsEngineControlToken?: ReferenceToken;
+  analyticsEngineControlToken: ReferenceToken;
 }
 export interface GetAnalyticsDeviceStreamUriResponse {
   /** Streaming URI. */
-  uri?: AnyURI;
+  uri: AnyURI;
 }
 export interface GetVideoAnalyticsConfiguration {
   /** Token of the VideoAnalyticsConfiguration requested. */
-  configurationToken?: ReferenceToken;
+  configurationToken: ReferenceToken;
 }
 export interface GetVideoAnalyticsConfigurationResponse {
   /** Settings of the VideoAnalyticsConfiguration. */
-  configuration?: VideoAnalyticsConfiguration;
+  configuration: VideoAnalyticsConfiguration;
 }
 export interface DeleteAnalyticsEngineInputs {
   /** LIst of tokens of Analytics Engine Input configurations to be deleted. */
@@ -119,9 +119,9 @@ export interface DeleteAnalyticsEngineInputs {
 export interface DeleteAnalyticsEngineInputsResponse {}
 export interface GetAnalyticsState {
   /** Token of the AnalyticsEngineControl whose state information is requested. */
-  analyticsEngineControlToken?: ReferenceToken;
+  analyticsEngineControlToken: ReferenceToken;
 }
 export interface GetAnalyticsStateResponse {
   /** Current status information. */
-  state?: AnalyticsStateInformation;
+  state: AnalyticsStateInformation;
 }
