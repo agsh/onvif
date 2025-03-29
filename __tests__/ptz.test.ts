@@ -120,7 +120,7 @@ describe('Presets', () => {
       expect(result).toBe(presetToken);
     });
 
-    it('should throw an error it there is no preset token to edit', () => {
+    it('should throw an error if there is no preset token to edit', () => {
       expect(
         cam.ptz.setPreset({
           presetToken : 'Undefined_Token',
@@ -209,5 +209,152 @@ describe('getStatus for the node in the selected profile', () => {
     expect(result).toHaveProperty('position');
     expect(result).toHaveProperty('moveStatus');
     expect(result).toHaveProperty('utcTime');
+  });
+});
+
+describe('Moves', () => {
+  describe('absoluteMove', () => {
+    it('should move', async () => {
+      const result = await cam.ptz.absoluteMove({
+        position : {
+          panTilt : {
+            x : 0,
+            y : 0,
+          },
+          zoom : {
+            x : 0,
+          },
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should move with simplified position vector first variant', async () => {
+      const result = await cam.ptz.absoluteMove({
+        position : {
+          x    : 0,
+          y    : 0,
+          zoom : 0,
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should move with simplified position vector second variant', async () => {
+      const result = await cam.ptz.absoluteMove({
+        position : {
+          pan  : 0,
+          tilt : 0,
+          zoom : 0,
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw an error if the position is not specified', () => {
+      expect(
+        cam.ptz.absoluteMove(
+          // @ts-expect-error position is required
+          {},
+        ),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('relativeMove', () => {
+    it('should move', async () => {
+      const result = await cam.ptz.relativeMove({
+        translation : {
+          panTilt : {
+            x : 0,
+            y : 0,
+          },
+          zoom : {
+            x : 0,
+          },
+        },
+        speed : {
+          panTilt : {
+            x : 0,
+            y : 0,
+          },
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should move with simplified position vector', async () => {
+      const result = await cam.ptz.relativeMove({
+        translation : {
+          x    : 1,
+          y    : 0.3,
+          zoom : 0.1,
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw an error if the translation is not specified', () => {
+      expect(
+        cam.ptz.relativeMove(
+          // @ts-expect-error translation is required
+          {},
+        ),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('continuousMove', () => {
+    it('should move', async () => {
+      const result = await cam.ptz.continuousMove({
+        velocity : {
+          panTilt : {
+            x : 0,
+            y : 0,
+          },
+          zoom : {
+            x : 0,
+          },
+        },
+        timeout : 'PT5S',
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should move with simplified position vector', async () => {
+      const result = await cam.ptz.continuousMove({
+        velocity : {
+          x    : 1,
+          y    : 0.3,
+          zoom : 0.1,
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw an error if the velocity is not specified', () => {
+      expect(
+        cam.ptz.continuousMove(
+          // @ts-expect-error velocity is required
+          {},
+        ),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('stop', () => {
+    it('should stop', async () => {
+      const result = await cam.ptz.stop({});
+      expect(result).toBeUndefined();
+    });
+
+    it('should stop with optional parameters', async () => {
+      const result = await cam.ptz.stop({
+        panTilt      : true,
+        zoom         : true,
+        profileToken : cam.activeSource!.profileToken,
+      });
+      expect(result).toBeUndefined();
+    });
   });
 });
