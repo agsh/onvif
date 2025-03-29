@@ -12,7 +12,7 @@ import {
   GetStatus,
   GotoHomePosition, GotoPreset,
   RelativeMove, RemovePreset,
-  SetHomePosition, SetPreset, SetPresetResponse,
+  SetHomePosition, SetPreset,
   Stop,
 } from './interfaces/ptz.2';
 
@@ -36,16 +36,44 @@ export interface PTZInputVector {
  * Structure consists of the PTZ nodes name and its properties
  */
 export type GetNodesExtended = Record<ReferenceToken, PTZNode>;
-
 /**
  * Structure consists of the PTZ configurations name and its properties
  */
 export type GetConfigurationsExtended = Record<ReferenceToken, PTZConfiguration>;
-
 /**
  * SetPreset interface which uses active source profile token by default
  */
 export interface SetPresetExtended extends Omit<SetPreset, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+/**
+ * RemovePreset interface which uses active source profile token by default
+ */
+export interface RemovePresetExtended extends Omit<RemovePreset, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+/**
+ * GotoPreset interface which uses active source profile token by default
+ */
+export interface GotoPresetExtended extends Omit<GotoPreset, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+/**
+ * GotoHomePosition interface which uses active source profile token by default
+ */
+export interface GotoHomePositionExtended extends Omit<GotoHomePosition, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface SetHomePositionExtended extends Omit<SetHomePosition, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface GetStatusExtended extends Omit<GetStatus, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 
@@ -163,8 +191,48 @@ export class PTZ {
    * Operation to request a list of all PTZ presets for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresets(options: GetPresets) {
-    return this.getPresetsExtended(options).then((result) => Object.values(result));
+  async getPresets({ profileToken }: GetPresets = { profileToken : this.onvif.activeSource!.profileToken }) {
+    return this.getPresetsExtended({ profileToken }).then((result) => Object.values(result));
+  }
+
+  /**
+   * The SetPreset command saves the current device position parameters so that the device can move to the saved preset
+   * position through the GotoPreset operation. In order to create a new preset, the SetPresetRequest contains no
+   * PresetToken. If creation is successful, the Response contains the PresetToken which uniquely identifies the Preset.
+   * An existing Preset can be overwritten by specifying the PresetToken of the corresponding Preset. In both cases
+   * (overwriting or creation) an optional PresetName can be specified. The operation fails if the PTZ device is moving
+   * during the SetPreset operation. The device MAY internally save additional states such as imaging properties in the
+   * PTZ Preset which then should be recalled in the GotoPreset operation.
+   * @param options
+   * @param options.profileToken One of the device profile tokens, if omitted, uses profile token from the active source
+   * @param options.presetToken Preset token if we want to replace existing
+   * @returns Preset token
+   */
+  async setPreset({ profileToken = this.onvif.activeSource!.profileToken, presetName, presetToken }: SetPresetExtended): Promise<ReferenceToken> {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<PresetName>${presetName}</PresetName>${
+          presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
+        }</SetPreset>`,
+    });
+    return linerase(data[0].setPresetResponse).presetToken;
+  }
+
+  /**
+   * Operation to remove a PTZ preset for the Node in the selected profile.
+   * The operation is supported if the PresetPosition capability exists for the Node in the selected profile.
+   * @param options
+   */
+  async removePreset({ profileToken = this.onvif.activeSource!.profileToken, presetToken }: RemovePresetExtended): Promise<void> {
+    await this.onvif.request({
+      service : 'PTZ',
+      body    : '<RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<PresetToken>${presetToken}</PresetToken>`
+        + '</RemovePreset>',
+    });
   }
 
   private static formatPTZSimpleVector({
@@ -196,54 +264,14 @@ export class PTZ {
    * there is support for at least on PTZ preset by the PTZNode.
    * @param options
    */
-  async gotoPreset({ profileToken, presetToken, speed }: GotoPreset): Promise<void> {
+  async gotoPreset({ profileToken = this.onvif.activeSource!.profileToken, presetToken, speed }: GotoPresetExtended): Promise<void> {
     await this.onvif.request({
       service : 'PTZ',
       body    : '<GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
         + `<PresetToken>${presetToken}</PresetToken>${
           speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
         }</GotoPreset>`,
-    });
-  }
-
-  /**
-   * The SetPreset command saves the current device position parameters so that the device can move to the saved preset
-   * position through the GotoPreset operation. In order to create a new preset, the SetPresetRequest contains no
-   * PresetToken. If creation is successful, the Response contains the PresetToken which uniquely identifies the Preset.
-   * An existing Preset can be overwritten by specifying the PresetToken of the corresponding Preset. In both cases
-   * (overwriting or creation) an optional PresetName can be specified. The operation fails if the PTZ device is moving
-   * during the SetPreset operation. The device MAY internally save additional states such as imaging properties in the
-   * PTZ Preset which then should be recalled in the GotoPreset operation.
-   * @param options
-   * @param options.profileToken One of the device profile tokens, if omitted, uses profile token from the active source
-   * @param options.presetToken Preset token if we want to replace existing
-   * @returns Preset token
-   */
-  async setPreset({ profileToken = this.onvif.activeSource!.profileToken, presetName, presetToken }: SetPresetExtended): Promise<ReferenceToken> {
-    const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<PresetName>${presetName}</PresetName>${
-          presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
-        }</SetPreset>`,
-    });
-    return linerase(data[0].setPresetResponse).presetToken;
-  }
-
-  /**
-   * Operation to remove a PTZ preset for the Node in the selected profile. The operation is supported if the
-   * PresetPosition capability exists for teh Node in the selected profile.
-   * @param options
-   */
-  async removePreset({ profileToken = this.onvif.activeSource!.profileToken, presetToken }: RemovePreset): Promise<void> {
-    await this.onvif.request({
-      service : 'PTZ',
-      body    : '<RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<PresetToken>${presetToken}</PresetToken>`
-        + '</RemovePreset>',
     });
   }
 
@@ -252,7 +280,7 @@ export class PTZ {
    * in the PTZNode is true.
    * @param options
    */
-  async gotoHomePosition({ profileToken = this.onvif.activeSource!.profileToken, speed }: GotoHomePosition): Promise<void> {
+  async gotoHomePosition({ profileToken = this.onvif.activeSource!.profileToken, speed }: GotoHomePositionExtended): Promise<void> {
     await this.onvif.request({
       service : 'PTZ',
       body    : '<GotoHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
@@ -268,7 +296,7 @@ export class PTZ {
    * to recall the Home Position with the GotoHomePosition command.
    * @param options
    */
-  async setHomePosition({ profileToken = this.onvif.activeSource!.profileToken }: SetHomePosition) {
+  async setHomePosition({ profileToken = this.onvif.activeSource!.profileToken }: SetHomePositionExtended) {
     await this.onvif.request({
       service : 'PTZ',
       body    : '<SetHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
@@ -281,7 +309,7 @@ export class PTZ {
    * Operation to request PTZ status for the Node in the selected profile.
    * @param options
    */
-  async getStatus({ profileToken = this.onvif.activeSource!.profileToken }: GetStatus): Promise<PTZStatus> {
+  async getStatus({ profileToken = this.onvif.activeSource!.profileToken }: GetStatusExtended): Promise<PTZStatus> {
     const [data] = await this.onvif.request({
       service : 'PTZ',
       body    : '<GetStatus xmlns="http://www.onvif.org/ver20/ptz/wsdl">'

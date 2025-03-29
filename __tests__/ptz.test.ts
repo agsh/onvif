@@ -145,10 +145,69 @@ describe('Presets', () => {
       expect(result).toStrictEqual(activeSourceResult);
     });
 
+    it('should return presets as a property', () => {
+      const result = cam.ptz.presets;
+      expect(result).toStrictEqual(activeSourceResult);
+    });
+
     it('should return presets as an array for the selected profile', async () => {
       const result = await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken });
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(Object.keys(activeSourceResult).length);
     });
+  });
+
+  describe('removePreset', () => {
+    it('should remove preset by token', async () => {
+      const presetToken = await cam.ptz.setPreset({});
+      let presets = await cam.ptz.getPresetsExtended();
+      expect(presets[presetToken]).toBeDefined();
+      const result = await cam.ptz.removePreset({ presetToken });
+      expect(result).toBeUndefined();
+      presets = await cam.ptz.getPresetsExtended();
+      expect(presets[presetToken]).toBeUndefined();
+    });
+  });
+
+  describe('gotoPreset', () => {
+    it('should go to preset by token', async () => {
+      const presetToken = (await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken }))[0].token;
+      const result = await cam.ptz.gotoPreset({
+        presetToken,
+        speed : {
+          panTilt : {
+            x : 0,
+            y : 0,
+          },
+          zoom : {
+            x : 0,
+          },
+        },
+      });
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('setHomePosition', () => {
+    it('should set home position', async () => {
+      const result = await cam.ptz.setHomePosition({});
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('gotoHomePosition', () => {
+    it('should set home position', async () => {
+      const result = await cam.ptz.gotoHomePosition({});
+      expect(result).toBeUndefined();
+    });
+  });
+});
+
+describe('getStatus for the node in the selected profile', () => {
+  it('should return status', async () => {
+    const result = await cam.ptz.getStatus({});
+    expect(result).toHaveProperty('position');
+    expect(result).toHaveProperty('moveStatus');
+    expect(result).toHaveProperty('utcTime');
   });
 });

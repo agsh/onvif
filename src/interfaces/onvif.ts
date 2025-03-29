@@ -1371,12 +1371,12 @@ export interface SupportInformation {
   string?: string;
 }
 export interface BinaryData {
-  contentType: unknown;
+  contentType?: unknown;
   /** base64 encoded binary data. */
   data: unknown;
 }
 export interface AttachmentData {
-  contentType: unknown;
+  contentType?: unknown;
   clude: unknown;
 }
 export interface BackupFile {
@@ -2604,7 +2604,7 @@ export interface ReceiverStateInformation {
   autoCreated: boolean;
 }
 export interface SourceReference {
-  type: AnyURI;
+  type?: AnyURI;
   token: ReferenceToken;
 }
 export interface DateTimeRange {
@@ -3117,12 +3117,12 @@ export interface OSDPosConfiguration {
 export interface OSDPosConfigurationExtension {}
 /** The value range of "Transparent" could be defined by vendors only should follow this rule: the minimum value means non-transparent and the maximum value maens fully transparent. */
 export interface OSDColor {
-  transparent: number;
+  transparent?: number;
   color: Color;
 }
 export interface OSDTextConfiguration {
   /** This flag is applicable for Type Plain and defaults to true. When set to false the PlainText content will not be persistent across device reboots. */
-  isPersistentText: boolean;
+  isPersistentText?: boolean;
   /**
    * The following OSD Text Type are defined:
    * Plain - The Plain type means the OSD is shown as a text string which defined in the "PlainText" item.

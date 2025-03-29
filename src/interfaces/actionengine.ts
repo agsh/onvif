@@ -42,7 +42,7 @@ export interface ActionTypeLimits {
   /** For the specific action type, the maximum number of actions that could be concurrently supported by the service provider */
   maximum: PositiveInteger;
   /** For the specific action type, the number of actions in use by the service provider */
-  inUse: number;
+  inUse?: number;
 }
 /** Action Configuration data type contains the configuration settings of action configuration parameters, service requester given action Name, and service provider supported action type value */
 export interface ActionConfiguration {
@@ -139,9 +139,9 @@ export interface EMailAttachmentConfiguration {
 export interface EMailAttachmentConfigurationExtension {}
 export interface EMailBodyTextConfiguration {
   /** Whether content of E-mail message contains event data */
-  includeEvent: boolean;
+  includeEvent?: boolean;
   /**/
-  type: string;
+  type?: string;
 }
 export interface MediaSource {
   /** MediaSource profile reference token */
@@ -156,9 +156,9 @@ export interface HttpHostConfigurations {
 export interface HttpHostConfigurationsExtension {}
 export interface HttpDestinationConfiguration {
   /** URI for POST Message destination */
-  uri: string;
+  uri?: string;
   /** HTTP/HTTPS protocol selection (default is http) */
-  protocol: HttpProtocolType;
+  protocol?: HttpProtocolType;
   /** Destination HTTP Server address configuration */
   hostAddress: HttpHostAddress;
   /** User Credentials configuration for destination HTTP Server */
@@ -169,7 +169,7 @@ export interface HttpDestinationConfiguration {
 export interface HttpDestinationConfigurationExtension {}
 export interface HttpAuthenticationConfiguration {
   /** HTTP Authentication Method */
-  method: HttpAuthenticationMethodType;
+  method?: HttpAuthenticationMethodType;
   /** User credentials */
   user?: UserCredentials;
   /**/
@@ -180,7 +180,7 @@ export interface HttpHostAddress {
   /** IPv4 or IPv6 */
   formatType: AddressFormatType;
   /** Port Number if different from 80 */
-  portNo: number;
+  portNo?: number;
   /** Destination HTTP Server IP Address */
   value: string;
 }
@@ -192,11 +192,11 @@ export interface PostContentConfiguration {
 }
 export interface PostBodyConfiguration {
   /**/
-  formData: string;
+  formData?: string;
   /** Whether include event into POST message */
-  includeEvent: boolean;
+  includeEvent?: boolean;
   /** Whether attach media into POST message */
-  includeMedia: boolean;
+  includeMedia?: boolean;
 }
 export interface FtpHostConfigurations {
   /** FTP Action destination configuration */
@@ -225,7 +225,7 @@ export interface FtpHostAddress {
   /** IPv4 or IPv6 */
   formatType: AddressFormatType;
   /** Port Number */
-  portNo: number;
+  portNo?: number;
   /** FTP Server IP Address */
   value: string;
 }
@@ -235,9 +235,9 @@ export interface FtpContent {
 }
 export interface FtpFileNameConfigurations {
   /** Name of file */
-  file_name: string;
+  file_name?: string;
   /** Suffix of file */
-  suffix: FileSuffixType;
+  suffix?: FileSuffixType;
 }
 export interface FtpContentConfiguration {
   /** Type of FTP Upload action */
