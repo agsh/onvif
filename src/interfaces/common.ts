@@ -26,7 +26,7 @@ export interface Vector2D {
    *  http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace
    *
    */
-  space: AnyURI;
+  space?: AnyURI;
 }
 export interface Vector1D {
   x: number;
@@ -38,7 +38,7 @@ export interface Vector1D {
    *  http://www.onvif.org/ver10/tptz/ZoomSpaces/ZoomGenericSpeedSpace
    *
    */
-  space: AnyURI;
+  space?: AnyURI;
 }
 export interface PTZVector {
   /** Pan and tilt position. The x component corresponds to pan and the y component to tilt. */
