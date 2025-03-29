@@ -76,7 +76,34 @@ export interface SetHomePositionExtended extends Omit<SetHomePosition, 'profileT
 export interface GetStatusExtended extends Omit<GetStatus, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
-
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface AbsoluteMoveExtended extends Omit<AbsoluteMove, 'profileToken' | 'position'> {
+  profileToken?: ReferenceToken;
+  position: PTZVector | PTZInputVector;
+}
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface RelativeMoveExtended extends Omit<RelativeMove, 'profileToken' | 'translation' | 'speed'> {
+  profileToken?: ReferenceToken;
+  translation: PTZVector | PTZInputVector;
+  speed?: PTZSpeed | PTZInputVector;
+}
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | 'velocity'> {
+  profileToken?: ReferenceToken;
+  velocity: PTZSpeed | PTZInputVector;
+}
+/**
+ * SetHomePosition interface which uses active source profile token by default
+ */
+export interface StopExtended extends Omit<Stop, 'profileToken'> {
+  profileToken?: ReferenceToken;
+}
 export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
 
 /**
@@ -331,7 +358,7 @@ export class PTZ {
     profileToken = this.onvif.activeSource!.profileToken,
     position,
     speed,
-  }: AbsoluteMove): Promise<void> {
+  }: AbsoluteMoveExtended): Promise<void> {
     if (!position) {
       throw new Error('\'position\' is required');
     }
@@ -358,7 +385,7 @@ export class PTZ {
     profileToken = this.onvif.activeSource!.profileToken,
     translation,
     speed,
-  }: RelativeMove): Promise<void> {
+  }: RelativeMoveExtended): Promise<void> {
     if (!translation) {
       throw new Error('\'translation\' is required');
     }
@@ -384,7 +411,7 @@ export class PTZ {
     profileToken = this.onvif.activeSource!.profileToken,
     velocity,
     timeout,
-  }: ContinuousMove): Promise<void> {
+  }: ContinuousMoveExtended): Promise<void> {
     if (!velocity) {
       throw new Error('\'velocity\' is required');
     }
@@ -403,7 +430,7 @@ export class PTZ {
    * argument for pan, tilt or zoom is set, the device will stop all ongoing pan, tilt and zoom movements.
    * @param options
    */
-  async stop(options?: Stop) {
+  async stop(options?: StopExtended) {
     const profileToken = options?.profileToken || this.onvif?.activeSource?.profileToken;
     const panTilt = options?.panTilt ?? true;
     const zoom = options?.zoom ?? true;
