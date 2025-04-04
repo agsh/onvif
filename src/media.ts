@@ -9,7 +9,6 @@ import {
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
 import {
-  ConfigurationSet,
   GetOSDOptions,
   GetOSDOptionsResponse,
   GetOSDs,
@@ -34,6 +33,9 @@ export interface GetStreamUriOptions {
     'UDP'| 'TCP' | 'HTTP'; // for Media1
 }
 
+/**
+ * Media service, common for media1 and media2 profiles
+ */
 export class Media {
   private onvif: Onvif;
   public profiles: Profile[] = [];
@@ -44,27 +46,23 @@ export class Media {
   }
 
   /**
-   * Receive profiles
+   * Receive profiles in Media ver10 format
    */
-  async getProfiles(): Promise<(Profile | MediaProfile)[]> {
+  async getProfiles(): Promise<(Profile)[]> {
     if (this.onvif.device.media2Support) {
       // Profile T request using Media2
       // The reply is in a different format to the old API so we convert the data from the new API to the old structure
       // for backwards compatibility with existing users of this library
-      const [data] = await this.onvif.request({
-        service : 'media2',
-        body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl"><Type>All</Type></GetProfiles>',
-      });
+      const profiles = await this.getProfilesV2();
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
-      this.profiles = data[0].getProfilesResponse[0].profiles.map((profile: Record<string, unknown>) => {
-        const tmp = linerase(profile) as MediaProfile;
-        const conf = tmp.configurations as ConfigurationSet;
+      this.profiles = profiles.map((media2Profile) => {
+        const configurationSet = media2Profile.configurations!;
         const newProfile: Profile = {
-          token : tmp.token,
-          name  : tmp.name,
-          fixed : tmp.fixed || false,
+          token : media2Profile.token,
+          name  : media2Profile.name,
+          fixed : media2Profile.fixed || false,
         };
         // Media2 Spec says there will be these some or all of these configuration entities
         // Video source configuration
@@ -76,21 +74,21 @@ export class Media {
         // Metadata configuration
         // Audio output configuration
         // Audio decoder configuration
-        if (conf.videoSource) { newProfile.videoSourceConfiguration = conf.videoSource; }
-        if (conf.audioSource) { newProfile.audioSourceConfiguration = conf.audioSource; }
-        if (conf.videoEncoder) {
-          newProfile.videoEncoderConfiguration = conf.videoEncoder as unknown as VideoEncoderConfiguration;
+        if (configurationSet.videoSource) { newProfile.videoSourceConfiguration = configurationSet.videoSource; }
+        if (configurationSet.audioSource) { newProfile.audioSourceConfiguration = configurationSet.audioSource; }
+        if (configurationSet.videoEncoder) {
+          newProfile.videoEncoderConfiguration = configurationSet.videoEncoder as unknown as VideoEncoderConfiguration;
         }
-        if (conf.audioEncoder) {
-          newProfile.audioEncoderConfiguration = conf.audioEncoder as AudioEncoderConfiguration;
+        if (configurationSet.audioEncoder) {
+          newProfile.audioEncoderConfiguration = configurationSet.audioEncoder as AudioEncoderConfiguration;
         }
-        if (conf.PTZ) { newProfile.PTZConfiguration = conf.PTZ; }
-        if (conf.analytics) { newProfile.videoAnalyticsConfiguration = conf.analytics; }
-        if (conf.metadata) { newProfile.metadataConfiguration = conf.metadata; }
-        if (conf.audioOutput || conf.audioDecoder) {
+        if (configurationSet.PTZ) { newProfile.PTZConfiguration = configurationSet.PTZ; }
+        if (configurationSet.analytics) { newProfile.videoAnalyticsConfiguration = configurationSet.analytics; }
+        if (configurationSet.metadata) { newProfile.metadataConfiguration = configurationSet.metadata; }
+        if (configurationSet.audioOutput || configurationSet.audioDecoder) {
           newProfile.extension = {
-            audioOutputConfiguration  : conf.audioOutput!,
-            audioDecoderConfiguration : conf.audioDecoder!,
+            audioOutputConfiguration  : configurationSet.audioOutput!,
+            audioDecoderConfiguration : configurationSet.audioDecoder!,
           };
         }
         // TODO - Add Audio
@@ -105,6 +103,26 @@ export class Media {
     });
     this.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
     return this.profiles;
+  }
+
+  /**
+   * Receive profiles in Media ver20 format
+   */
+  @v2
+  async getProfilesV2(): Promise<(MediaProfile)[]> {
+    const [data] = await this.onvif.request({
+      service : 'media2',
+      body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl"><Type>All</Type></GetProfiles>',
+    });
+    return linerase(data, { array : ['profiles'] }).getProfilesResponse.profiles;
+  }
+
+  // eslint-disable-next-line no-empty-function
+  async createProfile() {
+  }
+
+  // eslint-disable-next-line no-empty-function
+  async deleteProfile() {
   }
 
   async getVideoSources(): Promise<GetVideoSourcesResponse> {
@@ -358,4 +376,13 @@ export class Media {
     const result = linerase(data).getOSDOptionsResponse;
     return result;
   }
+}
+
+function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
+  return function v2(this: any, ...args: any[]) {
+    if (!this.onvif.device.media2Support) {
+      throw new Error('Media2 is not supported for this device');
+    }
+    return originalMethod.call(this, ...args);
+  };
 }

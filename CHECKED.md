@@ -1,15 +1,15 @@
 ## ONVIF methods
 That exists in the v0.x version. And implemented in the v1.x with the tests coverage
 
-- [ ] connect
-- [ ] _request
-- [ ] _requestPart2
+- [x] connect
+- [x] _request
+- [x] _requestPart2
 - [x] getSystemDateAndTime
 - [x] setSystemDateAndTime
 - [x] getCapabilities
 - [x] getServiceCapabilities
-- [ ] getActiveSources
-- [ ] getServices includeCapability wrapped into object
+- [x] getActiveSources
+- [x] getServices
 - [x] getDeviceInformation
 - [x] getHostname
 - [x] getScopes
@@ -79,20 +79,20 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] deleteOSD
 - [ ] getMediaServiceCapabilities
 - [x] getPresets
-- [ ] gotoPreset
+- [x] gotoPreset
 - [x] setPreset
-- [ ] removePreset
-- [ ] gotoHomePosition
-- [ ] setHomePosition
-- [ ] getStatus
+- [x] removePreset
+- [x] gotoHomePosition
+- [x] setHomePosition
+- [x] getStatus
 - [x] getNodes
 - [x] getConfigurations
 - [x] getConfigurationOptions
-- [ ] relativeMove
-- [ ] absoluteMove
-- [ ] continuousMove
-- [ ] stop
-- [ ] _panTiltZoomVectors
+- [x] relativeMove
+- [x] absoluteMove
+- [x] continuousMove
+- [x] stop
+- [x] _panTiltZoomVectors
 - [ ] ptzSendAuxiliaryCommand
 - [ ] getImagingSettings
 - [ ] setImagingSettings
@@ -118,3 +118,5 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] getRecordingJobConfiguration
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
+
+39/117 (34%)
