@@ -11,6 +11,7 @@ import { PTZ } from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
+import { Media2 } from './media2';
 
 /**
  * Cam constructor options
@@ -165,6 +166,7 @@ export class Onvif extends EventEmitter {
    */
   public readonly device: Device;
   public readonly media: Media;
+  public readonly media2: Media2;
   public readonly ptz: PTZ;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
@@ -209,6 +211,7 @@ export class Onvif extends EventEmitter {
 
     this.device = new Device(this);
     this.media = new Media(this);
+    this.media2 = new Media2(this);
     this.ptz = new PTZ(this);
 
     /** Bind event handling to the `event` event */
