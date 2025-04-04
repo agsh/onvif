@@ -13,11 +13,46 @@ beforeAll(async () => {
 
 describe('Profiles', () => {
   describe('getProfiles', () => {
-    it('should return media profiles', async () => {
+    it('should return media profiles ver20 as ver10', async () => {
       const result = await cam.media.getProfiles();
-      console.log(result);
-      // const result = await cam.media.getProfilesV2();
-      // console.log(result);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('token');
+      expect(result[0]).toHaveProperty('fixed');
+      expect(result[0]).toHaveProperty('name');
+      expect(result[0]).toHaveProperty('videoSourceConfiguration');
+      expect(result[0]).toHaveProperty('audioSourceConfiguration');
+      expect(result[0]).toHaveProperty('videoEncoderConfiguration');
+      expect(result[0]).toHaveProperty('audioEncoderConfiguration');
+      expect(result[0]).toHaveProperty('videoAnalyticsConfiguration');
+      expect(result[0]).toHaveProperty('PTZConfiguration');
+      expect(result[0]).toHaveProperty('metadataConfiguration');
+    });
+
+    it('should return media profiles ver10', async () => {
+      cam.device.media2Support = false;
+      const result = await cam.media.getProfiles();
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('token');
+      expect(result[0]).toHaveProperty('fixed');
+      expect(result[0]).toHaveProperty('name');
+      expect(result[0]).toHaveProperty('videoSourceConfiguration');
+      expect(result[0]).toHaveProperty('audioSourceConfiguration');
+      expect(result[0]).toHaveProperty('videoEncoderConfiguration');
+      expect(result[0]).toHaveProperty('audioEncoderConfiguration');
+      expect(result[0]).toHaveProperty('videoAnalyticsConfiguration');
+      expect(result[0]).toHaveProperty('PTZConfiguration');
+      expect(result[0]).toHaveProperty('metadataConfiguration');
+      cam.device.media2Support = true;
+    });
+  });
+  describe('getProfilesV2', () => {
+    it('should return media profiles ver20', async () => {
+      const result = await cam.media2.getProfiles();
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('token');
+      expect(result[0]).toHaveProperty('fixed');
+      expect(result[0]).toHaveProperty('name');
+      expect(result[0]).toHaveProperty('configurations');
     });
   });
 });

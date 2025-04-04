@@ -16,7 +16,7 @@ import {
   GetVideoEncoderConfigurations, GetVideoEncoderConfigurationsResponse as GetVideoEncoder2ConfigurationsResponse,
   GetVideoSourceConfigurationOptions,
   GetVideoSourceConfigurationOptionsResponse,
-  GetVideoSourceConfigurations, MediaProfile, SetVideoSourceConfigurationResponse,
+  GetVideoSourceConfigurations, SetVideoSourceConfigurationResponse,
 } from './interfaces/media.2';
 import {
   GetVideoSourceConfigurationsResponse,
@@ -34,7 +34,7 @@ export interface GetStreamUriOptions {
 }
 
 /**
- * Media service, common for media1 and media2 profiles
+ * Media service, ver10 profile
  */
 export class Media {
   private onvif: Onvif;
@@ -53,7 +53,7 @@ export class Media {
       // Profile T request using Media2
       // The reply is in a different format to the old API so we convert the data from the new API to the old structure
       // for backwards compatibility with existing users of this library
-      const profiles = await this.getProfilesV2();
+      const profiles = await this.onvif.media2.getProfiles();
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
@@ -106,20 +106,10 @@ export class Media {
   }
 
   /**
-   * Receive profiles in Media ver20 format
+   * Create an empty new deletable media profile
    */
-  @v2
-  async getProfilesV2(): Promise<(MediaProfile)[]> {
-    const [data] = await this.onvif.request({
-      service : 'media2',
-      body    : '<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl"><Type>All</Type></GetProfiles>',
-    });
-    return linerase(data, { array : ['profiles'] }).getProfilesResponse.profiles;
-  }
-
-  // eslint-disable-next-line no-empty-function
-  async createProfile() {
-  }
+  // async createProfile(options: CreateProfile): Promise<Profile> {
+  // }
 
   // eslint-disable-next-line no-empty-function
   async deleteProfile() {
@@ -376,13 +366,4 @@ export class Media {
     const result = linerase(data).getOSDOptionsResponse;
     return result;
   }
-}
-
-function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
-  return function v2(this: any, ...args: any[]) {
-    if (!this.onvif.device.media2Support) {
-      throw new Error('Media2 is not supported for this device');
-    }
-    return originalMethod.call(this, ...args);
-  };
 }
