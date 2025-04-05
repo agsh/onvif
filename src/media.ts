@@ -22,7 +22,7 @@ import {
   GetVideoSourceConfigurationsResponse,
   GetVideoSourcesResponse,
   GetVideoEncoderConfigurationsResponse,
-  GetSnapshotUri,
+  GetSnapshotUri, CreateProfile, DeleteProfile, GetProfile,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -47,6 +47,9 @@ export class Media {
 
   /**
    * Receive profiles in Media ver10 format
+   * Any endpoint can ask for the existing media profiles of a device using the GetProfiles command. Pre-configured or
+   * dynamically configured profiles can be retrieved using this command. This command lists all configured profiles in
+   * a device. The client does not need to know the media profile in order to use the command.
    */
   async getProfiles(): Promise<(Profile)[]> {
     if (this.onvif.device.media2Support) {
@@ -106,13 +109,43 @@ export class Media {
   }
 
   /**
-   * Create an empty new deletable media profile
+   * If the profile token is already known, a profile can be fetched through the GetProfile command.
    */
-  // async createProfile(options: CreateProfile): Promise<Profile> {
-  // }
+  async getProfile({ profileToken }: GetProfile): Promise<Profile> {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : `<GetProfile xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>${profileToken}</ProfileToken></GetProfile>`,
+    });
+    return linerase(data[0].getProfileResponse[0].profile);
+  }
 
-  // eslint-disable-next-line no-empty-function
-  async deleteProfile() {
+  /**
+   * This operation creates a new empty media profile. The media profile shall be created in the device and shall be
+   * persistent (remain after reboot). A created profile shall be deletable and a device shall set the “fixed” attribute
+   * to false in the returned Profile.
+   */
+  async createProfile({ name, token }: CreateProfile): Promise<Profile> {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<CreateProfile xmlns="http://www.onvif.org/ver10/media/wsdl">'
+        + `<Name>${name}</Name>${
+          token ? `<Token>${token}</Token>` : ''
+        }</CreateProfile>`,
+    });
+    return linerase(data).createProfileResponse.profile;
+  }
+
+  /**
+   * This operation deletes a profile. This change shall always be persistent. Deletion of a profile is only possible
+   * for non-fixed profiles
+   */
+  async deleteProfile({ profileToken }: DeleteProfile): Promise<void> {
+    await this.onvif.request({
+      service : 'media',
+      body    : '<DeleteProfile xmlns="http://www.onvif.org/ver10/media/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + '</DeleteProfile>',
+    });
   }
 
   async getVideoSources(): Promise<GetVideoSourcesResponse> {
