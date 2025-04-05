@@ -1,5 +1,5 @@
 import { parseStringPromise } from 'xml2js';
-import { guid, linerase, parseSOAPString } from '../src/utils';
+import { guid, linerase, parseSOAPString, struct } from '../src/utils';
 
 describe('Linerase function', () => {
   it('should handle tag', async () => {
@@ -119,5 +119,13 @@ describe('ParseSOAPString', () => {
         },
       },
     });
+  });
+});
+
+describe('struct', () => {
+  it('should return a new object with the keys', () => {
+    const list = [{ token : '1' }, { token : '2' }];
+    const result = struct(list, 'token');
+    expect(Object.keys(result)).toEqual(list.map((obj) => obj.token));
   });
 });
