@@ -1,4 +1,5 @@
 import { Onvif } from '../src';
+import { ReferenceToken } from '../src/interfaces/common';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -45,7 +46,8 @@ describe('Profiles', () => {
       cam.device.media2Support = true;
     });
   });
-  describe('getProfilesV2', () => {
+
+  describe('media2.getProfiles', () => {
     it('should return media profiles ver20', async () => {
       const result = await cam.media2.getProfiles();
       expect(result.length).toBeGreaterThan(0);
@@ -53,6 +55,37 @@ describe('Profiles', () => {
       expect(result[0]).toHaveProperty('fixed');
       expect(result[0]).toHaveProperty('name');
       expect(result[0]).toHaveProperty('configurations');
+    });
+  });
+
+  let newProfileToken: ReferenceToken;
+
+  describe('createProfile', () => {
+    it('should create a new blank profile and return it', async () => {
+      const profileCount = (await cam.media2.getProfiles()).length;
+      const result = await cam.media.createProfile({ name : 'test' });
+      expect(result).toHaveProperty('token');
+      newProfileToken = result.token;
+      expect(result).toHaveProperty('name');
+      const currentProfiles = await cam.media2.getProfiles();
+      expect(currentProfiles.length).toBe(profileCount + 1);
+    });
+  });
+
+  describe('getProfile', () => {
+    it('should return the profile by its token', async () => {
+      const result = await cam.media.getProfile({ profileToken : newProfileToken });
+      expect(result.fixed).toBe(false);
+    });
+  });
+
+  describe('deleteProfile', () => {
+    it('should delete non-fixed profile', async () => {
+      const profileCount = (await cam.media.getProfiles()).length;
+      const result = await cam.media.deleteProfile({ profileToken : newProfileToken });
+      expect(result).toBeUndefined();
+      const currentProfiles = await cam.media.getProfiles();
+      expect(currentProfiles.length).toBe(profileCount - 1);
     });
   });
 });
