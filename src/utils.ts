@@ -114,3 +114,13 @@ export async function parseSOAPString(rawXml: string): CamResponse {
   }
   return [result.envelope.body, xml];
 }
+
+/**
+ * Create a record from the list where the key is commonly used parameter
+ * For example, from the profiles array get an object where we can have rapid access to profile using its token
+ * @param list
+ * @param groupKey
+ */
+export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<string, T> {
+  return Object.fromEntries(list.map((item) => [item[groupKey], item]));
+}
