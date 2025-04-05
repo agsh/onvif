@@ -1,4 +1,5 @@
 const commonRules = {
+  'prefer-template'              : 1,
   'no-console'                   : 'warn',
   'quotes'                       : ['error', 'single'],
   'comma-dangle'                 : [ 'error', 'always-multiline' ],
