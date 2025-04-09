@@ -56,6 +56,12 @@ describe('Profiles', () => {
       expect(result[0]).toHaveProperty('name');
       expect(result[0]).toHaveProperty('configurations');
     });
+
+    it('should fail if media ver20 is not supported', async () => {
+      cam.device.media2Support = false;
+      expect(() => cam.media2.getProfiles()).toThrow();
+      cam.device.media2Support = true;
+    });
   });
 
   let newProfileToken: ReferenceToken;
@@ -65,6 +71,7 @@ describe('Profiles', () => {
       const profileCount = (await cam.media2.getProfiles()).length;
       const result = await cam.media.createProfile({ name : 'test' });
       expect(result).toHaveProperty('token');
+      expect(result.fixed).toBe(false);
       newProfileToken = result.token;
       expect(result).toHaveProperty('name');
       const currentProfiles = await cam.media2.getProfiles();
