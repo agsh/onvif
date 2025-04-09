@@ -430,6 +430,7 @@ export class Onvif extends EventEmitter {
     if (!options.body) {
       throw new Error('There is no \'body\' field in request options');
     }
+    this.emit('requestBody', options.body);
     options.headers = options.headers ?? {};
     return this.rawRequest({
       ...options,
@@ -601,12 +602,11 @@ export class Onvif extends EventEmitter {
    * @private
    */
   private async getActiveSources() {
-    this.media.videoSources.forEach((videoSource, idx) => {
+    this.media.videoSources.forEach(({ token: videoSrcToken }, idx) => {
       // let's choose first appropriate profile for our video source and make it default
-      const videoSrcToken = videoSource.token;
-      const appropriateProfiles = this.media.profiles.filter((profile) => (profile.videoSourceConfiguration
-        ? profile.videoSourceConfiguration.sourceToken === videoSrcToken
-        : false) && (profile.videoEncoderConfiguration !== undefined));
+      const appropriateProfiles = this.media.profiles.filter((profile) => (
+        profile.videoSourceConfiguration?.sourceToken === videoSrcToken
+      ) && (profile.videoEncoderConfiguration !== undefined));
       if (appropriateProfiles.length === 0) {
         if (idx === 0) {
           throw new Error('Unrecognized configuration');
@@ -622,7 +622,7 @@ export class Onvif extends EventEmitter {
       [this.defaultProfiles[idx]] = appropriateProfiles;
 
       this.activeSources[idx] = {
-        sourceToken                   : videoSource.token,
+        sourceToken                   : videoSrcToken,
         profileToken                  : this.defaultProfiles[idx].token,
         videoSourceConfigurationToken : this.defaultProfiles[idx].videoSourceConfiguration!.token,
       };
