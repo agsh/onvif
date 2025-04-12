@@ -1,6 +1,5 @@
 import { Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { Profile } from '../src/interfaces/onvif';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -67,9 +66,16 @@ describe('Profiles', () => {
   });
 
   describe('getProfile', () => {
-    it('should return the profile by its token', async () => {
+    it('should return the profile ver20 as ver10 by its token', async () => {
       const result = await cam.media.getProfile({ profileToken : newProfileToken });
       expect(result.fixed).toBe(false);
+    });
+
+    it('should return the profile ver10 by its token', async () => {
+      cam.device.media2Support = false;
+      const result = await cam.media.getProfile({ profileToken : newProfileToken });
+      expect(result.fixed).toBe(false);
+      cam.device.media2Support = true;
     });
   });
 
@@ -142,6 +148,13 @@ describe('Configurations', () => {
         // @ts-expect-error just
         expect(profile[methodName] ?? profile.extension[methodName]).toBeDefined();
       });
+    });
+  });
+
+  describe('Middle check', () => {
+    it('profile should have all configurations', async () => {
+      const profile = await cam.media.getProfile({ profileToken });
+      expect(Object.keys(profile).length).toBeGreaterThan(3);
     });
   });
 
