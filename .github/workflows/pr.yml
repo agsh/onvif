@@ -26,3 +26,4 @@ jobs:
       - run: npm test
       - name: Update Coverage Badge
         uses: we-cli/coverage-badge-action@main
+        if: matrix.node-version == '16.x'
