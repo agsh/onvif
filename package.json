@@ -6,18 +6,11 @@
   "main": "lib/onvif.js",
   "scripts": {
     "build": "tsc --build",
-    "watch": "tsc --build --watch",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src",
-    "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
-    "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
-    "lint-js": "eslint lib/*.js",
     "lint": "",
     "pretest": "npm run lint",
-    "test-js": "nyc mocha",
-    "test2": "jest --env=node --colors --coverage test",
-    "test": "./__tests__/happytime-onvif-server/start.sh & jest --env=node --runInBand --colors --coverageReporters=\"json-summary\" --coverage test && ./__tests__/happytime-onvif-server/stop.sh",
-    "mockserver": "node startServerMockup.js",
-    "fun": "tsx fun/test.ts"
+    "test-local": "jest --env=node --runInBand --colors --coverage test",
+    "test": "./__tests__/happytime-onvif-server/start.sh & jest --env=node --runInBand --colors --coverageReporters=\"json-summary\" --coverage test && ./__tests__/happytime-onvif-server/stop.sh"
   },
   "contributors": [
     {
@@ -29,11 +22,6 @@
       "name": "Chris Wiggins",
       "email": "chris@wiggins.nz",
       "url": "https://github.com/chriswiggins"
-    },
-    {
-      "name": "Jeff Galbraith",
-      "email": "jgalbraith@intelliviewtech.com",
-      "url": "http://intelliviewtech.com"
     },
     {
       "name": "Roger Hardiman",

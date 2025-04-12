@@ -74,6 +74,7 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [x] addConfiguration.media2
 - [x] removeConfiguration.media2
 - [x] deleteProfile.media1
+- [x] deleteProfile.media2
 - [ ] getStreamUri
 - [ ] getSnapshotUri
 - [ ] setSynchronizationPoint
@@ -124,4 +125,4 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-47/122 (38.5%)
+48/123 (39%)

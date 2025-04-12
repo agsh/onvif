@@ -3,9 +3,6 @@ logs
 coverage
 node_modules
 .idea/
-test.js
-cam_tests
-experiments
 docs
 build
 .nyc_output/
