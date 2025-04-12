@@ -45,14 +45,14 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] _eventPull
 - [ ] _restartEventRequest
 - [ ] parseEventXML
-- [ ] getVideoSources
+- [x] getVideoSources
 - [ ] getVideoSourceConfigurations
 - [ ] getVideoSourceConfigurationOptions new
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
 - [ ] getVideoEncoderConfigurations
 - [ ] setVideoEncoderConfiguration
-- [ ] getAudioSources
+- [x] getAudioSources
 - [ ] getAudioEncoderConfigurations
 - [ ] getAudioEncoderConfiguration
 - [ ] getAudioEncoderConfigurationOptions

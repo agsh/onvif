@@ -19,7 +19,7 @@ import {
 /**
  * Simplified structure of PTZ vector to use as an input argument for position and speed in movement commands.
  * */
-export interface PTZInputVector {
+interface PTZInputVector {
   /** Pan value */
   pan?: number;
   /** Synonym for pan value */
@@ -35,58 +35,58 @@ export interface PTZInputVector {
 /**
  * Structure consists of the PTZ nodes name and its properties
  */
-export type GetNodesExtended = Record<ReferenceToken, PTZNode>;
+type GetNodesExtended = Record<ReferenceToken, PTZNode>;
 /**
  * Structure consists of the PTZ configurations name and its properties
  */
-export type GetConfigurationsExtended = Record<ReferenceToken, PTZConfiguration>;
+type GetConfigurationsExtended = Record<ReferenceToken, PTZConfiguration>;
 /**
  * SetPreset interface which uses active source profile token by default
  */
-export interface SetPresetExtended extends Omit<SetPreset, 'profileToken'> {
+interface SetPresetExtended extends Omit<SetPreset, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * RemovePreset interface which uses active source profile token by default
  */
-export interface RemovePresetExtended extends Omit<RemovePreset, 'profileToken'> {
+interface RemovePresetExtended extends Omit<RemovePreset, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * GotoPreset interface which uses active source profile token by default
  */
-export interface GotoPresetExtended extends Omit<GotoPreset, 'profileToken'> {
+interface GotoPresetExtended extends Omit<GotoPreset, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * GotoHomePosition interface which uses active source profile token by default
  */
-export interface GotoHomePositionExtended extends Omit<GotoHomePosition, 'profileToken'> {
+interface GotoHomePositionExtended extends Omit<GotoHomePosition, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface SetHomePositionExtended extends Omit<SetHomePosition, 'profileToken'> {
+interface SetHomePositionExtended extends Omit<SetHomePosition, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface GetStatusExtended extends Omit<GetStatus, 'profileToken'> {
+interface GetStatusExtended extends Omit<GetStatus, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface AbsoluteMoveExtended extends Omit<AbsoluteMove, 'profileToken' | 'position'> {
+interface AbsoluteMoveExtended extends Omit<AbsoluteMove, 'profileToken' | 'position'> {
   profileToken?: ReferenceToken;
   position: PTZVector | PTZInputVector;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface RelativeMoveExtended extends Omit<RelativeMove, 'profileToken' | 'translation' | 'speed'> {
+interface RelativeMoveExtended extends Omit<RelativeMove, 'profileToken' | 'translation' | 'speed'> {
   profileToken?: ReferenceToken;
   translation: PTZVector | PTZInputVector;
   speed?: PTZSpeed | PTZInputVector;
@@ -94,16 +94,17 @@ export interface RelativeMoveExtended extends Omit<RelativeMove, 'profileToken' 
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | 'velocity'> {
+interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | 'velocity'> {
   profileToken?: ReferenceToken;
   velocity: PTZSpeed | PTZInputVector;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-export interface StopExtended extends Omit<Stop, 'profileToken'> {
+interface StopExtended extends Omit<Stop, 'profileToken'> {
   profileToken?: ReferenceToken;
 }
+
 export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
 
 /**

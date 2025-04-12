@@ -1,4 +1,5 @@
-import { GetPresetsExtended, Onvif } from '../src';
+import { Onvif } from '../src';
+import { GetPresetsExtended } from '../src/ptz';
 import { ReferenceToken } from '../src/interfaces/common';
 
 let cam: Onvif;

@@ -188,3 +188,27 @@ describe('Configurations', () => {
     });
   });
 });
+
+describe('Sources', () => {
+  describe('getVideoSources', () => {
+    it('should return the list of the video sources', async () => {
+      const result = await cam.media.getVideoSources();
+      result.forEach((videoSource) => {
+        expect(videoSource.framerate).toBeGreaterThanOrEqual(0);
+        expect(videoSource.token).toBeDefined();
+        expect(videoSource.imaging).toBeDefined();
+        expect(videoSource.resolution).toBeDefined();
+      });
+    });
+  });
+
+  describe('getAudioSources', () => {
+    it('should return the list of the audio sources', async () => {
+      const result = await cam.media.getAudioSources();
+      result.forEach((audioSource) => {
+        expect(audioSource.channels).toBeGreaterThanOrEqual(0);
+        expect(audioSource.token).toBeDefined();
+      });
+    });
+  });
+});

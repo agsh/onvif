@@ -2,7 +2,8 @@ import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
   AudioDecoderConfiguration,
-  AudioEncoderConfiguration, AudioOutputConfiguration, AudioSourceConfiguration, MediaUri, MetadataConfiguration,
+  AudioEncoderConfiguration, AudioOutputConfiguration,
+  AudioSource, AudioSourceConfiguration, MediaUri, MetadataConfiguration,
   Profile, PTZConfiguration, VideoAnalyticsConfiguration, VideoEncoder2Configuration,
   VideoEncoderConfiguration,
   VideoSource, VideoSourceConfiguration,
@@ -115,6 +116,7 @@ export class Media {
   private onvif: Onvif;
   public profiles: Profile[] = [];
   public videoSources: VideoSource[] = [];
+  public audioSources: AudioSource[] = [];
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -208,6 +210,9 @@ export class Media {
    * This operation adds a VideoSourceConfiguration to an existing media profile. If such a configuration exists in
    * the media profile, it will be replaced. The change shall be persistent. The device shall support addition of a
    * video source configuration to a profile through the AddVideoSourceConfiguration command.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addVideoSourceConfiguration(options: AddVideoSourceConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddVideoSourceConfiguration', ...options });
@@ -218,6 +223,9 @@ export class Media {
    * media profile, it will be replaced. The change shall be persistent. A device that supports audio streaming from
    * device to client shall support addition of audio source configuration to a profile through the AddAudioSource-
    * Configuration command.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addAudioSourceConfiguration(options: AddAudioSourceConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddAudioSourceConfiguration', ...options });
@@ -229,6 +237,9 @@ export class Media {
    * encoder configuration to a profile through the AddVideoEncoderConfiguration command.
    * A device shall support adding a compatible VideoEncoderConfiguration to a Profile containing a VideoSource-
    * Configuration and shall support streaming video data of such a Profile.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addVideoEncoderConfiguration(options: AddVideoEncoderConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddVideoEncoderConfiguration', ...options });
@@ -241,6 +252,9 @@ export class Media {
    * coderConfiguration command.
    * A device shall support adding a compatible AudioEncoderConfiguration to a Profile containing an AudioSource-
    * Configuration and shall support streaming audio data of such a Profile.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addAudioEncoderConfiguration(options: AddAudioEncoderConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddAudioEncoderConfiguration', ...options });
@@ -259,6 +273,9 @@ export class Media {
    * fore, a client should first add a video source configuration to a profile before adding a video analytics configu-
    * ration. The device can deny adding of a video analytics configuration before a video source configuration. In
    * this case, it should respond with a ConfigurationConflict Fault.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addVideoAnalyticsConfiguration(options: AddVideoAnalyticsConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddVideoAnalyticsConfiguration', ...options });
@@ -271,6 +288,9 @@ export class Media {
    * Adding a PTZConfiguration to a media profile means that streams using that media profile can contain PTZ
    * status (in the metadata), and that the media profile can be used for controlling PTZ movement, see document
    * PTZ Service Specification
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addPTZConfiguration(options: AddPTZConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddPTZConfiguration', ...options });
@@ -283,6 +303,9 @@ export class Media {
    * Adding a MetadataConfiguration to a Profile means that streams using that profile contain metadata. Metadata
    * can consist of events, PTZ status, and/or video analytics data. Metadata configurations are handled through
    * the commands defined in Section 5.10 and 5.9.4.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addMetadataConfiguration(options: AddMetadataConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddMetadataConfiguration', ...options });
@@ -293,6 +316,9 @@ export class Media {
    * media profile, it will be replaced. The change shall be persistent. An device that signals support for Audio
    * outputs via its Device IO AudioOutputs capability shall support the addition of an audio output configuration to
    * a profile through the AddAudioOutputConfiguration command.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addAudioOutputConfiguration(options: AddAudioOutputConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddAudioOutputConfiguration', ...options });
@@ -303,6 +329,9 @@ export class Media {
    * media profile, it shall be replaced. The change shall be persistent. An device that signals support for Audio
    * outputs via its Device IO AudioOutputs capability shall support the addition of an audio decoder configuration
    * to a profile through the AddAudioDecoderConfiguration command
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
    */
   addAudioDecoderConfiguration(options: AddAudioDecoderConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddAudioDecoderConfiguration', ...options });
@@ -327,6 +356,8 @@ export class Media {
    * RemoveVideoSourceConfiguration command.
    * Video source configurations should only be removed after removing a VideoEncoderConfiguration from the
    * media profile.
+   * @param options
+   * @param options.profileToken
    */
   removeVideoSourceConfiguration(options: RemoveVideoSourceConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoSourceConfiguration', ...options });
@@ -337,6 +368,8 @@ export class Media {
    * not contain an AudioSourceConfiguration, the operation has no effect. The removal shall be persistent. A device
    * that supports audio streaming from device to client shall support removal of an audio source configuration from
    * a profile through the RemoveAudioSourceConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeAudioSourceConfiguration(options: RemoveAudioSourceConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioSourceConfiguration', ...options });
@@ -347,6 +380,8 @@ export class Media {
    * not contain a VideoEncoderConfiguration, the operation has no effect. The removal shall be persistent. The
    * device shall support removal of a video encoder configuration from a profile through the
    * RemoveVideoEncoderConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeVideoEncoderConfiguration(options: RemoveVideoEncoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoEncoderConfiguration', ...options });
@@ -357,6 +392,8 @@ export class Media {
    * not contain an AudioEncoderConfiguration, the operation has no effect. The removal shall be persistent. A
    * device that supports audio streaming from device to client shall support removal of audio encoder configurations
    * from a profile through the RemoveAudioEncoderConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeAudioEncoderConfiguration(options: RemoveAudioEncoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioEncoderConfiguration', ...options });
@@ -367,6 +404,8 @@ export class Media {
    * not contain a VideoAnalyticsConfiguration, the operation has no effect. The removal shall be persistent. A
    * device that supports video analytics shall support removal of a video analytics configuration from a profile
    * through the RemoveVideoAnalyticsConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeVideoAnalyticsConfiguration(options: RemoveVideoAnalyticsConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoAnalyticsConfiguration', ...options });
@@ -377,6 +416,8 @@ export class Media {
    * a PTZConfiguration, the operation has no effect. The removal shall be persistent. A device that supports
    * PTZ control shall support removal of PTZ configurations from a profile through the RemovePTZConfiguration
    * command.
+   * @param options
+   * @param options.profileToken
    */
   removePTZConfiguration(options: RemovePTZConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemovePTZConfiguration', ...options });
@@ -387,6 +428,8 @@ export class Media {
    * contain a MetadataConfiguration, the operation has no effect. The removal shall be persistent. A device shall
    * support the removal of a metadata configuration from a profile through the RemoveMetadataConfiguration
    * command.
+   * @param options
+   * @param options.profileToken
    */
   removeMetadataConfiguration(options: RemoveMetadataConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveMetadataConfiguration', ...options });
@@ -397,6 +440,8 @@ export class Media {
    * not contain an AudioOutputConfiguration, the operation has no effect. The removal shall be persistent. An
    * device that signals support for Audio outputs via its Device IO AudioOutputs capability shall support the removal
    * of an audio output configuration from a profile through the RemoveAudioOutputConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeAudioOutputConfiguration(options: RemoveAudioOutputConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioOutputConfiguration', ...options });
@@ -407,9 +452,37 @@ export class Media {
    * not contain an AudioDecoderConfiguration, the operation has no effect. The removal shall be persistent. An
    * device that signals support for Audio outputs via its Device IO AudioOutputs capability shall support the removal
    * of an audio decoder configuration from a profile through the RemoveAudioDecoderConfiguration command.
+   * @param options
+   * @param options.profileToken
    */
   removeAudioDecoderConfiguration(options: RemoveAudioDecoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioDecoderConfiguration', ...options });
+  }
+
+  /**
+   * This operation lists all available video sources for the device. The device shall support the listing of available
+   * video sources through the GetVideoSources command
+   */
+  async getVideoSources(): Promise<VideoSource[]> {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+    });
+    this.videoSources = linerase(data, { array : ['videoSources'] }).getVideoSourcesResponse.videoSources;
+    return this.videoSources;
+  }
+
+  /**
+   * This operation lists all available audio sources of the device. A device that supports audio streaming from
+   * device to client shall support listing of available audio sources through the GetAudioSources command.
+   */
+  async getAudioSources(): Promise<AudioSource[]> {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<GetAudioSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+    });
+    this.audioSources = linerase(data, { array : ['audioSources'] }).getAudioSourcesResponse.audioSources;
+    return this.audioSources;
   }
 
   async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
@@ -418,16 +491,6 @@ export class Media {
       body    : '<GetAudioOutputConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
     return linerase(data, { array : ['configurations'] }).getAudioOutputConfigurationsResponse.configurations;
-  }
-
-  async getVideoSources(): Promise<GetVideoSourcesResponse> {
-    const [data] = await this.onvif.request({
-      service : 'media',
-      body    : '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    const videoSourcesResponse = linerase(data, { array : ['videoSources'] }).getVideoSourcesResponse;
-    this.videoSources = videoSourcesResponse.videoSources;
-    return videoSourcesResponse;
   }
 
   async getVideoSourceConfigurations({ configurationToken, profileToken }: GetVideoSourceConfigurations = {}):
@@ -530,8 +593,9 @@ export class Media {
 
   /**
    * If device supports Media 2.0 returns an array of VideoEncoder2Configuration. Otherwise VideoEncoderConfiguration
-   * @param configurationToken
-   * @param profileToken
+   * @param options
+   * @param options.configurationToken
+   * @param options.profileToken
    */
   async getVideoEncoderConfigurations({ configurationToken, profileToken }: GetVideoEncoderConfigurations = {}):
     Promise<GetVideoEncoderConfigurationsResponse | GetVideoEncoder2ConfigurationsResponse> {

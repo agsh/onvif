@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { createSocket, RemoteInfo } from 'dgram';
 import url from 'url';
 import os from 'os';
-import { guid, linerase, parseSOAPString } from './utils';
+import { guid, linerase, OnvifError, parseSOAPString } from './utils';
 import { Onvif } from './onvif';
 
 export interface DiscoveryOptions {
@@ -45,7 +45,7 @@ export class DiscoverySingleton extends EventEmitter {
   static device = 'device' as const;
   /**
    * Indicates any errors
-   * @param error Error instance or array of error instances from {@link Error}
+   * @param error Error instance or array of error instances from {@link OnvifError}
    * @event error
    * @example
    * ```typescript
@@ -70,6 +70,7 @@ export class DiscoverySingleton extends EventEmitter {
 
   /**
    * Discover NVT devices in the subnetwork
+   * @param options
    * @example
    * ```typescript
    * import { Discovery } from 'onvif';
@@ -125,7 +126,7 @@ export class DiscoverySingleton extends EventEmitter {
         }
         // TODO check for matching RelatesTo field and messageId
         if (!data[0].probeMatches) {
-          errors.push(new Error(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}\n${xml}`));
+          errors.push(new OnvifError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}\n${xml}`));
           this.emit('error', `Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, xml);
         } else {
           data = linerase(data);

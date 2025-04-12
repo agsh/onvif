@@ -4,13 +4,16 @@ const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const prefixMatch = /(?!xmlns)^.*:/;
 
-interface OnvifErrorOtpions {
+interface OnvifErrorOptions {
+  /**
+   * Raw error response from the server
+   */
   xml?: string;
 }
 
 export class OnvifError extends Error {
   public readonly xml?: string;
-  constructor(message: string, options?: OnvifErrorOtpions) {
+  constructor(message: string, options?: OnvifErrorOptions) {
     super(message);
     this.name = 'OnvifError';
     if (options) {
@@ -84,7 +87,7 @@ export function guid() {
   return (`${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`);
 }
 
-export type CamResponse = Promise<[Record<string, any>, string]>;
+export type OnvifResponse = Promise<[Record<string, any>, string]>;
 
 function camelCase(tag: string) {
   const str = tag.replace(prefixMatch, '');
@@ -98,7 +101,7 @@ function camelCase(tag: string) {
 /**
  * Parse SOAP response
  */
-export async function parseSOAPString(rawXml: string): CamResponse {
+export async function parseSOAPString(rawXml: string): OnvifResponse {
   /* Filter out xml name spaces */
   const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
