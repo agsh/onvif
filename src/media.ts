@@ -1,7 +1,7 @@
 import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
-  AudioEncoderConfiguration, MediaUri,
+  AudioEncoderConfiguration, AudioOutputConfiguration, MediaUri,
   Profile, VideoEncoder2Configuration,
   VideoEncoderConfiguration,
   VideoSource, VideoSourceConfiguration,
@@ -22,7 +22,17 @@ import {
   GetVideoSourceConfigurationsResponse,
   GetVideoSourcesResponse,
   GetVideoEncoderConfigurationsResponse,
-  GetSnapshotUri, CreateProfile, DeleteProfile, GetProfile,
+  GetSnapshotUri,
+  CreateProfile,
+  DeleteProfile,
+  GetProfile,
+  AddVideoSourceConfiguration,
+  GetAudioOutputConfigurations,
+  AddAudioOutputConfiguration,
+  AddAudioSourceConfiguration,
+  AddVideoEncoderConfiguration,
+  AddAudioEncoderConfiguration,
+  AddVideoAnalyticsConfiguration, AddPTZConfiguration, AddMetadataConfiguration, AddAudioDecoderConfiguration,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -31,6 +41,17 @@ export interface GetStreamUriOptions {
   protocol?:
     'RtspUnicast' | 'RtspMulticast' | 'RTSP' | 'RtspOverHttp' | // for Media2
     'UDP'| 'TCP' | 'HTTP'; // for Media1
+}
+
+interface AddConfiguration {
+  /**
+   * Configuration name
+   */
+  name: string;
+  /** Reference to the profile where the configuration should be added */
+  profileToken: ReferenceToken;
+  /** Contains a reference to the VideoSourceConfiguration to add */
+  configurationToken: ReferenceToken;
 }
 
 /**
@@ -146,6 +167,131 @@ export class Media {
         + `<ProfileToken>${profileToken}</ProfileToken>`
         + '</DeleteProfile>',
     });
+  }
+
+  /**
+   * Common function to add configuration
+   */
+  private async addConfiguration({ name, configurationToken, profileToken }: AddConfiguration) {
+    await this.onvif.request({
+      service : 'media',
+      body    : `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `<ConfigurationToken>${configurationToken}</ConfigurationToken>`
+        + `</${name}>`,
+    });
+  }
+
+  /**
+   * This operation adds a VideoSourceConfiguration to an existing media profile. If such a configuration exists in
+   * the media profile, it will be replaced. The change shall be persistent. The device shall support addition of a
+   * video source configuration to a profile through the AddVideoSourceConfiguration command.
+   */
+  addVideoSourceConfiguration(options: AddVideoSourceConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddVideoSourceConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds an AudioSourceConfiguration to an existing media profile. If a configuration exists in the
+   * media profile, it will be replaced. The change shall be persistent. A device that supports audio streaming from
+   * device to client shall support addition of audio source configuration to a profile through the AddAudioSource-
+   * Configuration command.
+   */
+  addAudioSourceConfiguration(options: AddAudioSourceConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddAudioSourceConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds a VideoEncoderConfiguration to an existing media profile. If a configuration exists in the
+   * media profile, it will be replaced. The change shall be persistent. A device shall support addition of a video
+   * encoder configuration to a profile through the AddVideoEncoderConfiguration command.
+   * A device shall support adding a compatible VideoEncoderConfiguration to a Profile containing a VideoSource-
+   * Configuration and shall support streaming video data of such a Profile.
+   */
+  addVideoEncoderConfiguration(options: AddVideoEncoderConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddVideoEncoderConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds an AudioEncoderConfiguration to an existing media profile. If a configuration exists in the
+   * media profile, it will be replaced. The change shall be persistent. A device that supports audio streaming from
+   * device to client shall support addition of audio encoder configurations to a profile through the AddAudioEn-
+   * coderConfiguration command.
+   * A device shall support adding a compatible AudioEncoderConfiguration to a Profile containing an AudioSource-
+   * Configuration and shall support streaming audio data of such a Profile.
+   */
+  addAudioEncoderConfiguration(options: AddAudioEncoderConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddAudioEncoderConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds a VideoAnalytics configuration to an existing media profile. If a configuration exists in
+   * the media profile, it will be replaced. The change shall be persistent. A device that supports video analytics
+   * shall support addition of video analytics configurations to a profile through the AddVideoAnalyticsConfiguration
+   * command.
+   * Adding a VideoAnalyticsConfiguration to a media profile means that streams using that media profile can con-
+   * tain video analytics data (in the metadata) as defined by the submitted configuration reference. Video analyt-
+   * ics data is specified in the document Video Analytics Specification and analytics configurations are managed
+   * through the commands defined in Section 5.9.
+   * A profile containing only a video analytics configuration but no video source configuration is incomplete. There-
+   * fore, a client should first add a video source configuration to a profile before adding a video analytics configu-
+   * ration. The device can deny adding of a video analytics configuration before a video source configuration. In
+   * this case, it should respond with a ConfigurationConflict Fault.
+   */
+  addVideoAnalyticsConfiguration(options: AddVideoAnalyticsConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddVideoAnalyticsConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds a PTZConfiguration to an existing media profile. If a configuration exists in the media
+   * profile, it will be replaced. The change shall be persistent. A device that supports PTZ control shall support
+   * addition of PTZ configurations to a profile through the AddPTZConfiguration command.
+   * Adding a PTZConfiguration to a media profile means that streams using that media profile can contain PTZ
+   * status (in the metadata), and that the media profile can be used for controlling PTZ movement, see document
+   * PTZ Service Specification
+   */
+  addPTZConfiguration(options: AddPTZConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddPTZConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds a Metadata configuration to an existing media profile. If a configuration exists in the media
+   * profile, it will be replaced. The change shall be persistent. A device shall support the addition of a metadata
+   * configuration to a profile though the AddMetadataConfiguration command.
+   * Adding a MetadataConfiguration to a Profile means that streams using that profile contain metadata. Metadata
+   * can consist of events, PTZ status, and/or video analytics data. Metadata configurations are handled through
+   * the commands defined in Section 5.10 and 5.9.4.
+   */
+  addMetadataConfiguration(options: AddMetadataConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddMetadataConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds an AudioOutputConfiguration to an existing media profile. If a configuration exists in the
+   * media profile, it will be replaced. The change shall be persistent. An device that signals support for Audio
+   * outputs via its Device IO AudioOutputs capability shall support the addition of an audio output configuration to
+   * a profile through the AddAudioOutputConfiguration command.
+   */
+  addAudioOutputConfiguration(options: AddAudioOutputConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddAudioOutputConfiguration', ...options });
+  }
+
+  /**
+   * This operation adds an AudioDecoderConfiguration to an existing media profile. If a configuration exists in the
+   * media profile, it shall be replaced. The change shall be persistent. An device that signals support for Audio
+   * outputs via its Device IO AudioOutputs capability shall support the addition of an audio decoder configuration
+   * to a profile through the AddAudioDecoderConfiguration command
+   */
+  addAudioDecoderConfiguration(options: AddAudioDecoderConfiguration): Promise<void> {
+    return this.addConfiguration({ name : 'AddAudioDecoderConfiguration', ...options });
+  }
+
+  async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body    : '<GetAudioOutputConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+    });
+    return linerase(data, { array : ['configurations'] }).getAudioOutputConfigurationsResponse.configurations;
   }
 
   async getVideoSources(): Promise<GetVideoSourcesResponse> {

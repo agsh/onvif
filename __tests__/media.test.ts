@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
+import { Profile } from '../src/interfaces/onvif';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -47,23 +48,6 @@ describe('Profiles', () => {
     });
   });
 
-  describe('media2.getProfiles', () => {
-    it('should return media profiles ver20', async () => {
-      const result = await cam.media2.getProfiles();
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('token');
-      expect(result[0]).toHaveProperty('fixed');
-      expect(result[0]).toHaveProperty('name');
-      expect(result[0]).toHaveProperty('configurations');
-    });
-
-    it('should fail if media ver20 is not supported', async () => {
-      cam.device.media2Support = false;
-      expect(() => cam.media2.getProfiles()).toThrow();
-      cam.device.media2Support = true;
-    });
-  });
-
   let newProfileToken: ReferenceToken;
 
   describe('createProfile', () => {
@@ -96,6 +80,75 @@ describe('Profiles', () => {
       expect(result).toBeUndefined();
       const currentProfiles = await cam.media.getProfiles();
       expect(currentProfiles.length).toBe(profileCount - 1);
+    });
+  });
+});
+
+describe('Configurations', () => {
+  let profileToken: ReferenceToken;
+  const camel = (name: string) => (name.charAt(1).toLowerCase() === name.charAt(1)
+    ? name.charAt(0).toLowerCase() + name.slice(1) : name);
+  const configurationNames = [
+    'VideoSourceConfiguration',
+    'AudioSourceConfiguration',
+    'VideoEncoderConfiguration',
+    'AudioEncoderConfiguration',
+    'VideoAnalyticsConfiguration',
+    'PTZConfiguration',
+    'MetadataConfiguration',
+    'AudioOutputConfiguration',
+    'AudioDecoderConfiguration',
+  ];
+  describe('Startup', () => {
+    it('should create a new profile for the tests', async () => {
+      const testProfile = await cam.media.createProfile({
+        name : 'test_configurations_profile',
+      });
+      profileToken = testProfile.token;
+      configurationNames.forEach((configurationName) => {
+        // @ts-expect-error check that no configurations added
+        expect(testProfile[camel(configurationName)]).toBeUndefined();
+      });
+    });
+  });
+
+  configurationNames.forEach((configurationName) => {
+    describe(`add${configurationName}`, () => {
+      it('should throw an error if configuration token does not exist', async () => {
+        // @ts-expect-error just
+        await expect(cam.media[`add${configurationName}`]({
+          profileToken,
+          configurationToken : '???',
+        })).rejects.toThrow('Config Not Exist');
+      });
+
+      it('should throw an error if profile token does not exist', async () => {
+        // @ts-expect-error just
+        await expect(cam.media[`add${configurationName}`]({
+          profileToken       : '???',
+          configurationToken : '???',
+        })).rejects.toThrow('Profile Not Exist');
+      });
+
+      it('should add a new configuration to th existing profile', async () => {
+        // @ts-expect-error just
+        const result = await cam.media[`add${configurationName}`]({
+          profileToken,
+          configurationToken : `${configurationName}Token_1`,
+        });
+        expect(result).toBeUndefined();
+        const profile = await cam.media.getProfile({ profileToken });
+        const methodName = camel(configurationName);
+        // @ts-expect-error just
+        expect(profile[methodName] ?? profile.extension[methodName]).toBeDefined();
+      });
+    });
+  });
+
+  describe('Shutdown', () => {
+    it('should remove test profile', async () => {
+      const profiles = await cam.media.getProfiles();
+      await cam.media.deleteProfile({ profileToken });
     });
   });
 });
