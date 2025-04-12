@@ -39,11 +39,14 @@ describe('Profiles', () => {
 
   describe('createProfile', () => {
     it('should create a new blank profile and return it', async () => {
-      const profileCount = (await cam.media2.getProfiles()).length;
+      let currentProfiles = await cam.media2.getProfiles();
+      console.log(currentProfiles.map((profile) => profile.name).join(', '));
+      const profileCount = currentProfiles.length;
       const result = await cam.media2.createProfile({ name : 'test2', configuration : [{ type : 'VideoEncoder' }] });
       expect(typeof result).toBe('string');
       newProfileToken = result;
-      const currentProfiles = await cam.media2.getProfiles();
+      currentProfiles = await cam.media2.getProfiles();
+      console.log(currentProfiles.map((profile) => profile.name).join(', '));
       expect(currentProfiles.length).toBe(profileCount + 1);
     });
   });
@@ -64,6 +67,35 @@ describe('Profiles', () => {
       const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
       expect(Object.values(profile.configurations!).map((configuration) => configuration.token))
         .toStrictEqual(Object.values(basicProfile.configurations!).map((configuration) => configuration.token));
+    });
+  });
+
+  describe('removeConfiguration', () => {
+    it('should remove one configuration from the profile', async () => {
+      let [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      const oldConfigurationsLength = Object.keys(profile.configurations!).length;
+      await cam.media2.removeConfiguration({
+        profileToken  : newProfileToken,
+        configuration : [{
+          type : 'VideoEncoder',
+        }],
+      });
+      [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      const newConfigurationLength = Object.keys(profile.configurations!).length;
+      expect(newConfigurationLength).toBe(oldConfigurationsLength - 1);
+    });
+
+    it('should remove all configuration from the profile', async () => {
+      await cam.media2.removeConfiguration({
+        profileToken  : newProfileToken,
+        configuration : [{
+          type : 'All',
+        }],
+      });
+      const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      console.log(profile.configurations);
+      const newConfigurationLength = Object.keys(profile.configurations!).length;
+      expect(newConfigurationLength).toBe(0);
     });
   });
 });

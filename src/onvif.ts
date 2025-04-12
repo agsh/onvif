@@ -590,7 +590,7 @@ export class Onvif extends EventEmitter {
       // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
       body,
     });
-    if (linerase(data).setSystemDateAndTimeResponse !== '') {
+    if (linerase(data).setSystemDateAndTimeResponse.length !== 0) {
       throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
     }
     // get new system time from device

@@ -205,19 +205,19 @@ export class Media {
       }>${
         configuration.name ? `<Name xmlns="http://www.onvif.org/ver10/schema">${configuration.name}</Name>` : ''
       }${configuration.useCount ? `<UseCount xmlns="http://www.onvif.org/ver10/schema">${configuration.useCount}</UseCount>` : ''
-      }${'encoding' in configuration && configuration.encoding
+      }${'encoding' in configuration
         ? `<Encoding xmlns="http://www.onvif.org/ver10/schema">${configuration.encoding}</Encoding>` : ''
-      }${'resolution' in configuration && configuration.resolution
+      }${'resolution' in configuration
         ? `<Resolution xmlns="http://www.onvif.org/ver10/schema">${
           configuration.resolution.width ? `<Width>${configuration.resolution.width}</Width>` : ''
         }${configuration.resolution.height ? `<Height>${configuration.resolution.height}</Height>` : ''
         }</Resolution>` : ''
       }${'quality' in configuration ? `<Quality xmlns="http://www.onvif.org/ver10/schema">${configuration.quality}</Quality>` : ''
-      }${'rateControl' in configuration && configuration.rateControl
+      }${'rateControl' in configuration && configuration.rateControl !== undefined
         ? `<RateControl ConstantBitRate="${configuration.rateControl.constantBitRate}" xmlns="http://www.onvif.org/ver10/schema"><FrameRateLimit>${
           configuration.rateControl.frameRateLimit}</FrameRateLimit><BitrateLimit>${configuration.rateControl.bitrateLimit
         }</BitrateLimit></RateControl>` : ''
-      }${'multicast' in configuration && configuration.multicast
+      }${'multicast' in configuration && configuration.multicast !== undefined
         ? `<Multicast xmlns="http://www.onvif.org/ver10/schema">${
           configuration.multicast.address
             ? `<Address>${

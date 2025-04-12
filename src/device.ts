@@ -178,7 +178,7 @@ export class Device {
         scopes.map((uri) => `<Scopes>${uri}</Scopes>`).join('')
       }</SetScopes>`,
     });
-    if (linerase(data).setScopesResponse !== '') {
+    if (linerase(data).setScopesResponse.length !== 0) {
       throw new Error('Wrong `SetScopes` response');
     }
     // get new scopes from device
