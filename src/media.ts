@@ -1,8 +1,9 @@
 import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
-  AudioEncoderConfiguration, AudioOutputConfiguration, MediaUri,
-  Profile, VideoEncoder2Configuration,
+  AudioDecoderConfiguration,
+  AudioEncoderConfiguration, AudioOutputConfiguration, AudioSourceConfiguration, MediaUri, MetadataConfiguration,
+  Profile, PTZConfiguration, VideoAnalyticsConfiguration, VideoEncoder2Configuration,
   VideoEncoderConfiguration,
   VideoSource, VideoSourceConfiguration,
 } from './interfaces/onvif';
@@ -32,7 +33,17 @@ import {
   AddAudioSourceConfiguration,
   AddVideoEncoderConfiguration,
   AddAudioEncoderConfiguration,
-  AddVideoAnalyticsConfiguration, AddPTZConfiguration, AddMetadataConfiguration, AddAudioDecoderConfiguration,
+  AddVideoAnalyticsConfiguration,
+  AddPTZConfiguration,
+  AddMetadataConfiguration,
+  AddAudioDecoderConfiguration,
+  RemoveVideoSourceConfiguration,
+  RemoveVideoEncoderConfiguration,
+  RemoveAudioSourceConfiguration,
+  RemoveAudioEncoderConfiguration,
+  RemoveVideoAnalyticsConfiguration,
+  RemovePTZConfiguration,
+  RemoveMetadataConfiguration, RemoveAudioOutputConfiguration, RemoveAudioDecoderConfiguration,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -44,14 +55,19 @@ export interface GetStreamUriOptions {
 }
 
 interface AddConfiguration {
-  /**
-   * Configuration name
-   */
+  /** Configuration name */
   name: string;
   /** Reference to the profile where the configuration should be added */
   profileToken: ReferenceToken;
-  /** Contains a reference to the VideoSourceConfiguration to add */
+  /** Contains a reference to the configuration to add */
   configurationToken: ReferenceToken;
+}
+
+interface RemoveConfiguration {
+  /** Configuration name */
+  name: string;
+  /** Contains a reference to the media profile from which the configuration shall be removed. */
+  profileToken: ReferenceToken;
 }
 
 /**
@@ -284,6 +300,110 @@ export class Media {
    */
   addAudioDecoderConfiguration(options: AddAudioDecoderConfiguration): Promise<void> {
     return this.addConfiguration({ name : 'AddAudioDecoderConfiguration', ...options });
+  }
+
+  /**
+   * Common function to remove configuration
+   */
+  private async removeConfiguration({ name, profileToken }: RemoveConfiguration) {
+    await this.onvif.request({
+      service : 'media',
+      body    : `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">`
+        + `<ProfileToken>${profileToken}</ProfileToken>`
+        + `</${name}>`,
+    });
+  }
+
+  /**
+   * This operation removes a VideoSourceConfiguration from an existing media profile. If the media profile does
+   * not contain a VideoSourceConfiguration, the operation has no effect. The removal shall be persistent. The
+   * device shall support removal of a video source configuration from a profile through the
+   * RemoveVideoSourceConfiguration command.
+   * Video source configurations should only be removed after removing a VideoEncoderConfiguration from the
+   * media profile.
+   */
+  removeVideoSourceConfiguration(options: RemoveVideoSourceConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveVideoSourceConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes an AudioSourceConfiguration from an existing media profile. If the media profile does
+   * not contain an AudioSourceConfiguration, the operation has no effect. The removal shall be persistent. A device
+   * that supports audio streaming from device to client shall support removal of an audio source configuration from
+   * a profile through the RemoveAudioSourceConfiguration command.
+   */
+  removeAudioSourceConfiguration(options: RemoveAudioSourceConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveAudioSourceConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes a VideoEncoderConfiguration from an existing media profile. If the media profile does
+   * not contain a VideoEncoderConfiguration, the operation has no effect. The removal shall be persistent. The
+   * device shall support removal of a video encoder configuration from a profile through the
+   * RemoveVideoEncoderConfiguration command.
+   */
+  removeVideoEncoderConfiguration(options: RemoveVideoEncoderConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveVideoEncoderConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes an AudioEncoderConfiguration from an existing media profile. If the media profile does
+   * not contain an AudioEncoderConfiguration, the operation has no effect. The removal shall be persistent. A
+   * device that supports audio streaming from device to client shall support removal of audio encoder configurations
+   * from a profile through the RemoveAudioEncoderConfiguration command.
+   */
+  removeAudioEncoderConfiguration(options: RemoveAudioEncoderConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveAudioEncoderConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes a VideoAnalyticsConfiguration from an existing media profile. If the media profile does
+   * not contain a VideoAnalyticsConfiguration, the operation has no effect. The removal shall be persistent. A
+   * device that supports video analytics shall support removal of a video analytics configuration from a profile
+   * through the RemoveVideoAnalyticsConfiguration command.
+   */
+  removeVideoAnalyticsConfiguration(options: RemoveVideoAnalyticsConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveVideoAnalyticsConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes a PTZConfiguration from an existing media profile. If the media profile does not contain
+   * a PTZConfiguration, the operation has no effect. The removal shall be persistent. A device that supports
+   * PTZ control shall support removal of PTZ configurations from a profile through the RemovePTZConfiguration
+   * command.
+   */
+  removePTZConfiguration(options: RemovePTZConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemovePTZConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes a MetadataConfiguration from an existing media profile. If the media profile does not
+   * contain a MetadataConfiguration, the operation has no effect. The removal shall be persistent. A device shall
+   * support the removal of a metadata configuration from a profile through the RemoveMetadataConfiguration
+   * command.
+   */
+  removeMetadataConfiguration(options: RemoveMetadataConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveMetadataConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes an AudioOutputConfiguration from an existing media profile. If the media profile does
+   * not contain an AudioOutputConfiguration, the operation has no effect. The removal shall be persistent. An
+   * device that signals support for Audio outputs via its Device IO AudioOutputs capability shall support the removal
+   * of an audio output configuration from a profile through the RemoveAudioOutputConfiguration command.
+   */
+  removeAudioOutputConfiguration(options: RemoveAudioOutputConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveAudioOutputConfiguration', ...options });
+  }
+
+  /**
+   * This operation removes an AudioDecoderConfiguration from an existing media profile. If the media profile does
+   * not contain an AudioDecoderConfiguration, the operation has no effect. The removal shall be persistent. An
+   * device that signals support for Audio outputs via its Device IO AudioOutputs capability shall support the removal
+   * of an audio decoder configuration from a profile through the RemoveAudioDecoderConfiguration command.
+   */
+  removeAudioDecoderConfiguration(options: RemoveAudioDecoderConfiguration): Promise<void> {
+    return this.removeConfiguration({ name : 'RemoveAudioDecoderConfiguration', ...options });
   }
 
   async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {

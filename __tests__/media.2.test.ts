@@ -41,13 +41,13 @@ describe('Profiles', () => {
   describe('createProfile', () => {
     it('should create a new blank profile and return it', async () => {
       let currentProfiles = await cam.media2.getProfiles();
-      console.log(currentProfiles.map((profile) => profile.name).join(', '));
+      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
       const profileCount = currentProfiles.length;
       const result = await cam.media2.createProfile({ name : 'test2', configuration : [{ type : 'VideoEncoder' }] });
       expect(typeof result).toBe('string');
       newProfileToken = result;
       currentProfiles = await cam.media2.getProfiles();
-      console.log(currentProfiles.map((profile) => profile.name).join(', '));
+      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
       expect(currentProfiles.length).toBe(profileCount + 1);
     });
   });
