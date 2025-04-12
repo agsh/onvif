@@ -68,13 +68,16 @@ describe('Profiles', () => {
 
   describe('createProfile', () => {
     it('should create a new blank profile and return it', async () => {
-      const profileCount = (await cam.media2.getProfiles()).length;
+      let currentProfiles = await cam.media2.getProfiles();
+      const profileCount = currentProfiles.length;
+      console.log(currentProfiles.map((profile) => profile.name).join(', '));
       const result = await cam.media.createProfile({ name : 'test1' });
       expect(result).toHaveProperty('token');
       expect(result.fixed).toBe(false);
       newProfileToken = result.token;
       expect(result).toHaveProperty('name');
-      const currentProfiles = await cam.media2.getProfiles();
+      currentProfiles = await cam.media2.getProfiles();
+      console.log(currentProfiles.map((profile) => profile.name).join(', '));
       expect(currentProfiles.length).toBe(profileCount + 1);
     });
   });
