@@ -54,14 +54,14 @@ describe('Profiles', () => {
     it('should create a new blank profile and return it', async () => {
       let currentProfiles = await cam.media2.getProfiles();
       const profileCount = currentProfiles.length;
-      console.log(currentProfiles.map((profile) => profile.name).join(', '));
+      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
       const result = await cam.media.createProfile({ name : 'test1' });
       expect(result).toHaveProperty('token');
       expect(result.fixed).toBe(false);
       newProfileToken = result.token;
       expect(result).toHaveProperty('name');
       currentProfiles = await cam.media2.getProfiles();
-      console.log(currentProfiles.map((profile) => profile.name).join(', '));
+      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
       expect(currentProfiles.length).toBe(profileCount + 1);
     });
   });
@@ -89,15 +89,15 @@ describe('Configurations', () => {
   const camel = (name: string) => (name.charAt(1).toLowerCase() === name.charAt(1)
     ? name.charAt(0).toLowerCase() + name.slice(1) : name);
   const configurationNames = [
-    'VideoSourceConfiguration',
-    'AudioSourceConfiguration',
     'VideoEncoderConfiguration',
     'AudioEncoderConfiguration',
+    'VideoSourceConfiguration',
+    'AudioSourceConfiguration',
     'VideoAnalyticsConfiguration',
     'PTZConfiguration',
     'MetadataConfiguration',
-    'AudioOutputConfiguration',
     'AudioDecoderConfiguration',
+    'AudioOutputConfiguration',
   ];
   describe('Startup', () => {
     it('should create a new profile for the tests', async () => {
@@ -130,7 +130,7 @@ describe('Configurations', () => {
         })).rejects.toThrow('Profile Not Exist');
       });
 
-      it('should add a new configuration to th existing profile', async () => {
+      it('should add a new configuration to the existing profile', async () => {
         // @ts-expect-error just
         const result = await cam.media[`add${configurationName}`]({
           profileToken,
@@ -141,6 +141,29 @@ describe('Configurations', () => {
         const methodName = camel(configurationName);
         // @ts-expect-error just
         expect(profile[methodName] ?? profile.extension[methodName]).toBeDefined();
+      });
+    });
+  });
+
+  configurationNames.forEach((configurationName) => {
+    describe(`remove${configurationName}`, () => {
+      it('should throw an error if profile token does not exist', async () => {
+        // @ts-expect-error just
+        await expect(cam.media[`remove${configurationName}`]({
+          profileToken : '???',
+        })).rejects.toThrow('Profile Not Exist');
+      });
+
+      it('should remove a configuration from the existing profile', async () => {
+        // @ts-expect-error just
+        const result = await cam.media[`remove${configurationName}`]({
+          profileToken,
+        });
+        expect(result).toBeUndefined();
+        const profile = await cam.media.getProfile({ profileToken });
+        const methodName = camel(configurationName);
+        // @ts-expect-error just
+        expect(profile[methodName] ?? profile.extension?.[methodName]).toBeUndefined();
       });
     });
   });
