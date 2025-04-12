@@ -6,16 +6,25 @@ const prefixMatch = /(?!xmlns)^.*:/;
 
 /**
  * Parse SOAP object to pretty JS-object
+ * @param xml xml2js object
+ * @param options
  */
 export function linerase(xml: any, options?: { array: string[]; name?: string } | number): any {
   if (typeof options !== 'object') {
     options = { array : [] };
   }
   if (Array.isArray(xml)) {
-    if (xml.length === 1 && !options.array.includes(options.name!)) {
+    /* trim empty nodes in xml
+      ex.:
+      <Node>
+      </Node>
+      becomes text node { node: ["\r\n"] }, this is not what we expected
+     */
+    xml = xml.filter((item) => !(typeof item === 'string' && item.trim() === ''));
+    if (xml.length === 1 && !options.array.includes(options.name!) /* do not simplify array if its key in array prop */) {
       [xml] = xml;
     } else {
-      return xml.map((item) => linerase(item, options));
+      return xml.map((item: any) => linerase(item, options));
     }
   }
   if (typeof xml === 'object') {
@@ -81,6 +90,7 @@ export async function parseSOAPString(rawXml: string): CamResponse {
   const result = await xml2js.parseStringPromise(xml, {
     tagNameProcessors  : [camelCase],
     attrNameProcessors : [camelCase],
+    normalize          : true,
   });
   if (!result || !result.envelope || !result.envelope.body) {
     throw new Error('Wrong ONVIF SOAP response');
