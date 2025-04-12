@@ -4,6 +4,21 @@ const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const prefixMatch = /(?!xmlns)^.*:/;
 
+interface OnvifErrorOtpions {
+  xml?: string;
+}
+
+export class OnvifError extends Error {
+  public readonly xml?: string;
+  constructor(message: string, options?: OnvifErrorOtpions) {
+    super(message);
+    this.name = 'OnvifError';
+    if (options) {
+      this.xml = options.xml;
+    }
+  }
+}
+
 /**
  * Parse SOAP object to pretty JS-object
  * @param xml xml2js object
@@ -93,7 +108,9 @@ export async function parseSOAPString(rawXml: string): CamResponse {
     normalize          : true,
   });
   if (!result || !result.envelope || !result.envelope.body) {
-    throw new Error('Wrong ONVIF SOAP response');
+    throw new OnvifError('Wrong ONVIF SOAP response, envelope and body expected', {
+      xml : rawXml,
+    });
   }
   if (result.envelope.body[0].fault) {
     const fault = result.envelope.body[0].fault[0];
@@ -119,8 +136,9 @@ export async function parseSOAPString(rawXml: string): CamResponse {
       detail = '';
     }
 
-    // console.error('Fault:', reason, detail);
-    throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
+    throw new OnvifError(`${reason}${detail}`, {
+      xml : rawXml,
+    });
   }
   return [result.envelope.body, xml];
 }
