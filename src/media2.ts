@@ -10,7 +10,7 @@ import {
   GetProfiles,
   CreateProfile,
   ConfigurationRef,
-  ConfigurationEnumeration, AddConfiguration, RemoveConfiguration,
+  ConfigurationEnumeration, AddConfiguration, RemoveConfiguration, DeleteProfile,
 } from './interfaces/media.2';
 import { linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -128,6 +128,22 @@ export class Media2 {
               .map((configurationRef) => `<Configuration><Type>${configurationRef.type}</Type></Configuration>`)
             : ''
         }</RemoveConfiguration>`,
+    });
+  }
+
+  /**
+   * This operation deletes a profile. The device shall support the deletion of a media profile through the DeletePro-
+   * file command.
+   * A device signaling support for MultiTrackStreaming shall support deleting of virtual profiles via the command.
+   * Note that deleting a profile of a virtual profile set may invalidate the virtual profile.
+   */
+  @v2
+  async deleteProfile({ token }: DeleteProfile): Promise<void> {
+    await this.onvif.request({
+      service : 'media2',
+      body    : '<DeleteProfile xmlns="http://www.onvif.org/ver20/media/wsdl">'
+        + `<Token>${token}</Token>`
+        + '</DeleteProfile>',
     });
   }
 }
