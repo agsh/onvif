@@ -7,11 +7,11 @@ import crypto from 'crypto';
 import { linerase, parseSOAPString } from './utils';
 import { Device } from './device';
 import { Media } from './media';
+import { Media2 } from './media2';
 import { PTZ } from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
-import { Media2 } from './media2';
 
 /**
  * Cam constructor options

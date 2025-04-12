@@ -95,6 +95,8 @@ export class Device {
   /**
    * This method has been replaced by the more generic {@link Device.getServices | GetServices} method.
    * For capabilities of individual services refer to the GetServiceCapabilities methods.
+   * @param options
+   * @param options.category
    */
   async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
     if (!options || !options.category) {

@@ -6,7 +6,7 @@
   "main": "lib/onvif.js",
   "scripts": {
     "build": "tsc --build",
-    "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src",
+    "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "",
     "pretest": "npm run lint",
     "test-local": "jest --env=node --runInBand --colors --coverage test",
@@ -70,8 +70,8 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.2.6",
     "tsx": "^4.15.8",
-    "typedoc": "^0.27.9",
-    "typedoc-plugin-missing-exports": "^3.1.0",
+    "typedoc": "^0.28.2",
+    "typedoc-plugin-missing-exports": "^4.0.0",
     "typescript": "^5.8.3"
   }
 }

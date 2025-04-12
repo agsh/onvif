@@ -34,6 +34,9 @@ interface RemoveConfigurationExtended extends RemoveConfiguration {
   configuration?: ConfigurationRefExtended[];
 }
 
+/**
+ * Media service, ver20 profile
+ */
 export class Media2 {
   private onvif: Onvif;
 
@@ -46,8 +49,9 @@ export class Media2 {
    * - If no Type is provided the returned profiles shall contain no configuration information.
    * - If a single Type with value 'All' is provided the returned profiles shall include all associated configurations.
    * - Otherwise the requested list of configurations shall for each profile include the configurations present as Type.
-   * @param token Optional token to retrieve exactly one profile.
-   * @param type If one or more types are passed only the corresponding configurations will be returned.
+   * @param options
+   * @param options.token Optional token to retrieve exactly one profile.
+   * @param options.type If one or more types are passed only the corresponding configurations will be returned.
    */
   @v2
   async getProfiles({ token, type }: GetProfiles = {}): Promise<(MediaProfile)[]> {
@@ -67,6 +71,9 @@ export class Media2 {
    * This operation creates a new media profile. A created profile created via this method may be deleted via the
    * DeleteProfile method. Optionally Configurations can be assigned to the profile on creation. For details regarding
    * profile assignment check also the method AddConfiguration.
+   * @param options
+   * @param options.name
+   * @param options.configuration
    */
   @v2
   async createProfile({ name, configuration }: CreateProfileExtended): Promise<ReferenceToken> {
@@ -91,6 +98,10 @@ export class Media2 {
    * VideoSourceConfiguration and shall support streaming video data of such a profile.
    *
    * Note that OSD elements must be added via the CreateOSD command.
+   * @param options
+   * @param options.profileToken
+   * @param options.name
+   * @param options.configuration
    */
   @v2
   async addConfiguration({ profileToken, name, configuration }: AddConfigurationExtended): Promise<void> {
@@ -116,6 +127,9 @@ export class Media2 {
    * configuration list shall be ignored. Presence of the "All" type shall result in an empty profile. Removing a
    * non-existing configuration shall be ignored and not result in an error. A device supporting the Media2 service
    * shall support this command
+   * @param options
+   * @param options.profileToken
+   * @param options.configuration
    */
   @v2
   async removeConfiguration({ profileToken, configuration }: RemoveConfigurationExtended): Promise<void> {
@@ -136,6 +150,8 @@ export class Media2 {
    * file command.
    * A device signaling support for MultiTrackStreaming shall support deleting of virtual profiles via the command.
    * Note that deleting a profile of a virtual profile set may invalidate the virtual profile.
+   * @param options
+   * @param options.token
    */
   @v2
   async deleteProfile({ token }: DeleteProfile): Promise<void> {
