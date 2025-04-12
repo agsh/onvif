@@ -10,7 +10,7 @@ import {
   GetProfiles,
   CreateProfile,
   ConfigurationRef,
-  ConfigurationEnumeration, CreateProfileResponse, AddConfiguration,
+  ConfigurationEnumeration, AddConfiguration, RemoveConfiguration,
 } from './interfaces/media.2';
 import { linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -27,6 +27,10 @@ interface CreateProfileExtended extends CreateProfile {
 }
 
 interface AddConfigurationExtended extends AddConfiguration {
+  configuration?: ConfigurationRefExtended[];
+}
+
+interface RemoveConfigurationExtended extends RemoveConfiguration {
   configuration?: ConfigurationRefExtended[];
 }
 
@@ -52,7 +56,7 @@ export class Media2 {
     }${
       type !== undefined ? `<Type>${type.join(' ')}</Type>` : '<Type>All</Type>'
     }</GetProfiles>`;
-    const [data, xml] = await this.onvif.request({
+    const [data] = await this.onvif.request({
       service : 'media2',
       body,
     });
@@ -91,19 +95,39 @@ export class Media2 {
   @v2
   async addConfiguration({ profileToken, name, configuration }: AddConfigurationExtended): Promise<void> {
     const body = '<AddConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">'
-    + `<ProfileToken>${profileToken}</ProfileToken>${
-      name !== undefined ? `<Name>${name}</Name>` : ''
-    }${
-      configuration
-        ? configuration.map((configurationRef) => (
-          `<Configuration><Type>${configurationRef.type}</Type>${
-            configurationRef.token ? `<Token>${configurationRef.token}</Token></Configuration>` : ''}`
-        )).join('')
-        : ''
-    }</AddConfiguration>`;
+      + `<ProfileToken>${profileToken}</ProfileToken>${
+        name !== undefined ? `<Name>${name}</Name>` : ''
+      }${
+        configuration
+          ? configuration.map((configurationRef) => (
+            `<Configuration><Type>${configurationRef.type}</Type>${
+              configurationRef.token ? `<Token>${configurationRef.token}</Token></Configuration>` : ''}`
+          )).join('')
+          : ''
+      }</AddConfiguration>`;
     await this.onvif.request({
       service : 'media2',
       body,
+    });
+  }
+
+  /**
+   * This operation removes one or more configurations from an existing media profile. Tokens appearing in the
+   * configuration list shall be ignored. Presence of the "All" type shall result in an empty profile. Removing a
+   * non-existing configuration shall be ignored and not result in an error. A device supporting the Media2 service
+   * shall support this command
+   */
+  @v2
+  async removeConfiguration({ profileToken, configuration }: RemoveConfigurationExtended): Promise<void> {
+    await this.onvif.request({
+      service : 'media2',
+      body    : '<RemoveConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">'
+        + `<ProfileToken>${profileToken}</ProfileToken>${
+          configuration?.length
+            ? configuration
+              .map((configurationRef) => `<Configuration><Type>${configurationRef.type}</Type></Configuration>`)
+            : ''
+        }</RemoveConfiguration>`,
     });
   }
 }

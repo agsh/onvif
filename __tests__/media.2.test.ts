@@ -66,4 +66,33 @@ describe('Profiles', () => {
         .toStrictEqual(Object.values(basicProfile.configurations!).map((configuration) => configuration.token));
     });
   });
+
+  describe('removeConfiguration', () => {
+    it('should remove one configuration from the profile', async () => {
+      let [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      const oldConfigurationsLength = Object.keys(profile.configurations!).length;
+      await cam.media2.removeConfiguration({
+        profileToken  : newProfileToken,
+        configuration : [{
+          type : 'VideoEncoder',
+        }],
+      });
+      [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      const newConfigurationLength = Object.keys(profile.configurations!).length;
+      expect(newConfigurationLength).toBe(oldConfigurationsLength - 1);
+    });
+
+    it('should remove all configuration from the profile', async () => {
+      await cam.media2.removeConfiguration({
+        profileToken  : newProfileToken,
+        configuration : [{
+          type : 'All',
+        }],
+      });
+      const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      console.log(profile.configurations);
+      const newConfigurationLength = Object.keys(profile.configurations!).length;
+      expect(newConfigurationLength).toBe(0);
+    });
+  });
 });
