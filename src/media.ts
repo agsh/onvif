@@ -17,7 +17,7 @@ import {
   GetVideoEncoderConfigurations, GetVideoEncoderConfigurationsResponse as GetVideoEncoder2ConfigurationsResponse,
   GetVideoSourceConfigurationOptions,
   GetVideoSourceConfigurationOptionsResponse,
-  GetVideoSourceConfigurations, SetVideoSourceConfigurationResponse,
+  GetVideoSourceConfigurations, MediaProfile, SetVideoSourceConfigurationResponse,
 } from './interfaces/media.2';
 import {
   GetVideoSourceConfigurationsResponse,
@@ -70,6 +70,44 @@ interface RemoveConfiguration {
   profileToken: ReferenceToken;
 }
 
+function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
+  const configurationSet = media2Profile.configurations!;
+  const newProfile: Profile = {
+    token : media2Profile.token,
+    name  : media2Profile.name,
+    fixed : media2Profile.fixed || false,
+  };
+  // Media2 Spec says there will be these some or all of these configuration entities
+  // Video source configuration
+  // Audio source configuration
+  // Video encoder configuration
+  // Audio encoder configuration
+  // PTZ configuration
+  // Video analytics configuration
+  // Metadata configuration
+  // Audio output configuration
+  // Audio decoder configuration
+  if (configurationSet.videoSource) { newProfile.videoSourceConfiguration = configurationSet.videoSource; }
+  if (configurationSet.audioSource) { newProfile.audioSourceConfiguration = configurationSet.audioSource; }
+  if (configurationSet.videoEncoder) {
+    newProfile.videoEncoderConfiguration = configurationSet.videoEncoder as unknown as VideoEncoderConfiguration;
+  }
+  if (configurationSet.audioEncoder) {
+    newProfile.audioEncoderConfiguration = configurationSet.audioEncoder as AudioEncoderConfiguration;
+  }
+  if (configurationSet.PTZ) { newProfile.PTZConfiguration = configurationSet.PTZ; }
+  if (configurationSet.analytics) { newProfile.videoAnalyticsConfiguration = configurationSet.analytics; }
+  if (configurationSet.metadata) { newProfile.metadataConfiguration = configurationSet.metadata; }
+  if (configurationSet.audioOutput || configurationSet.audioDecoder) {
+    newProfile.extension = {
+      audioOutputConfiguration  : configurationSet.audioOutput!,
+      audioDecoderConfiguration : configurationSet.audioDecoder!,
+    };
+  }
+  // TODO - Add Audio
+  return newProfile;
+}
+
 /**
  * Media service, ver10 profile
  */
@@ -97,43 +135,7 @@ export class Media {
 
       // Slight difference in Media1 and Media2 reply XML
       // Generate a reply that looks like a Media1 reply for existing library users
-      this.profiles = profiles.map((media2Profile) => {
-        const configurationSet = media2Profile.configurations!;
-        const newProfile: Profile = {
-          token : media2Profile.token,
-          name  : media2Profile.name,
-          fixed : media2Profile.fixed || false,
-        };
-        // Media2 Spec says there will be these some or all of these configuration entities
-        // Video source configuration
-        // Audio source configuration
-        // Video encoder configuration
-        // Audio encoder configuration
-        // PTZ configuration
-        // Video analytics configuration
-        // Metadata configuration
-        // Audio output configuration
-        // Audio decoder configuration
-        if (configurationSet.videoSource) { newProfile.videoSourceConfiguration = configurationSet.videoSource; }
-        if (configurationSet.audioSource) { newProfile.audioSourceConfiguration = configurationSet.audioSource; }
-        if (configurationSet.videoEncoder) {
-          newProfile.videoEncoderConfiguration = configurationSet.videoEncoder as unknown as VideoEncoderConfiguration;
-        }
-        if (configurationSet.audioEncoder) {
-          newProfile.audioEncoderConfiguration = configurationSet.audioEncoder as AudioEncoderConfiguration;
-        }
-        if (configurationSet.PTZ) { newProfile.PTZConfiguration = configurationSet.PTZ; }
-        if (configurationSet.analytics) { newProfile.videoAnalyticsConfiguration = configurationSet.analytics; }
-        if (configurationSet.metadata) { newProfile.metadataConfiguration = configurationSet.metadata; }
-        if (configurationSet.audioOutput || configurationSet.audioDecoder) {
-          newProfile.extension = {
-            audioOutputConfiguration  : configurationSet.audioOutput!,
-            audioDecoderConfiguration : configurationSet.audioDecoder!,
-          };
-        }
-        // TODO - Add Audio
-        return newProfile;
-      });
+      this.profiles = profiles.map(media2ProfileToMedia1Profile);
       return this.profiles;
     }
     // Original ONVIF Media support (used in Profile S)
@@ -149,6 +151,10 @@ export class Media {
    * If the profile token is already known, a profile can be fetched through the GetProfile command.
    */
   async getProfile({ profileToken }: GetProfile): Promise<Profile> {
+    if (this.onvif.device.media2Support) {
+      const [result] = await this.onvif.media2.getProfiles({ token : profileToken });
+      return media2ProfileToMedia1Profile(result);
+    }
     const [data] = await this.onvif.request({
       service : 'media',
       body    : `<GetProfile xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>${profileToken}</ProfileToken></GetProfile>`,
