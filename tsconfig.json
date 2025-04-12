@@ -21,6 +21,5 @@
   ],
   "include": [
     "src/**/*",
-    "soap-types1.ts"
   ]
 }

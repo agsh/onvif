@@ -60,10 +60,15 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] getAudioSourceConfigurations
 - [ ] getAudioOutputs
 - [ ] getAudioOutputConfigurations
-- [ ] addAudioEncoderConfiguration
-- [ ] addAudioSourceConfiguration
-- [ ] addVideoEncoderConfiguration
-- [ ] addVideoSourceConfiguration
+- [x] addAudioEncoderConfiguration
+- [x] addAudioSourceConfiguration
+- [x] addVideoEncoderConfiguration
+- [x] addVideoSourceConfiguration
+- [x] addVideoAnalyticsConfiguration
+- [x] addPTZConfiguration
+- [x] addMetadataConfiguration
+- [x] addAudioOutputConfiguration
+- [x] addAudioDecoderConfiguration
 - [ ] removeAudioEncoderConfiguration
 - [ ] removeAudioSourceConfiguration
 - [x] getProfiles.media1
@@ -125,4 +130,4 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-48/123 (39%)
+57/128 (44.5%)
