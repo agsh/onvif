@@ -1,3 +1,9 @@
+/**
+ * Media ver10 module
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ * @see https://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf
+ */
+
 import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
@@ -22,14 +28,12 @@ import {
 } from './interfaces/media.2';
 import {
   GetVideoSourceConfigurationsResponse,
-  GetVideoSourcesResponse,
   GetVideoEncoderConfigurationsResponse,
   GetSnapshotUri,
   CreateProfile,
   DeleteProfile,
   GetProfile,
   AddVideoSourceConfiguration,
-  GetAudioOutputConfigurations,
   AddAudioOutputConfiguration,
   AddAudioSourceConfiguration,
   AddVideoEncoderConfiguration,

@@ -89,7 +89,11 @@ export function guid() {
 
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
 
-function camelCase(tag: string) {
+/**
+ * @private
+ * @param tag
+ */
+export function camelCase(tag: string) {
   const str = tag.replace(prefixMatch, '');
   const secondLetter = str.charAt(1);
   if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
@@ -100,6 +104,7 @@ function camelCase(tag: string) {
 
 /**
  * Parse SOAP response
+ * @param rawXml
  */
 export async function parseSOAPString(rawXml: string): OnvifResponse {
   /* Filter out xml name spaces */

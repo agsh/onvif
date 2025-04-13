@@ -41,8 +41,9 @@
     "video",
     "PTZ",
     "camera",
-    "network camera",
-    "security camera",
+    "ip camera",
+    "CCTV",
+    "security",
     "RTSP"
   ],
   "license": "MIT",

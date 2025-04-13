@@ -1,8 +1,11 @@
-import { describe } from 'node:test';
-import { Onvif } from '../src';
+import { Onvif, ConfigurationRefExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { ConfigurationEnumeration, ConfigurationSet, MediaProfile } from '../src/interfaces/media.2';
-import { ConfigurationRefExtended } from '../src/media2';
+import {
+  ConfigurationEnumeration, GetAudioDecoderConfigurations,
+  GetAudioOutputConfigurations,
+  GetMetadataConfigurations, GetWebRTCConfigurations,
+  MediaProfile,
+} from '../src/interfaces/media.2';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -115,6 +118,38 @@ describe('Profiles', () => {
 
     it('should throw an error requested profile token does not exist', async () => {
       await expect(cam.media2.deleteProfile({ token : '???' })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+});
+
+describe('get<Entity>Configurations', () => {
+  const entityFields = {
+    'VideoEncoder' : ['encoding', 'resolution', 'quality'],
+    'AudioEncoder' : ['encoding', 'bitrate', 'sampleRate'],
+    'VideoSource'  : ['sourceToken', 'bounds'],
+    'AudioSource'  : ['sourceToken'],
+    'Analytics'    : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
+    'Metadata'     : ['multicast', 'sessionTimeout'],
+    'AudioOutput'  : ['outputToken', 'outputLevel'],
+    'AudioDecoder' : [],
+    'WebRTC'       : [],
+  };
+  Object.entries(entityFields).forEach(([entityName, properties]) => {
+    describe(entityName, () => {
+      it('should return a list of configurations from the profile', async () => {
+        // @ts-expect-error just
+        const result = await cam.media2[`get${entityName}Configurations`]({
+        });
+        expect(Array.isArray(result)).toBe(true);
+        result.forEach((configuration: any) => {
+          expect(configuration.name).toBeDefined();
+          expect(configuration.token).toBeDefined();
+          expect(configuration.useCount).toBeDefined();
+          properties.forEach((property) => {
+            expect(configuration).toHaveProperty(property);
+          });
+        });
+      });
     });
   });
 });
