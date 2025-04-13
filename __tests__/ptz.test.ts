@@ -81,13 +81,28 @@ describe('Configurations and configuration options', () => {
     });
   });
 
+  let PTZConfigurationToken: ReferenceToken;
   describe('getConfigurations', () => {
     it('should return a list of configurations', async () => {
       const result = await cam.ptz.getConfigurations();
       expect(result).toBeInstanceOf(Array);
+      PTZConfigurationToken = result[0].token;
       result.forEach((configuration) => {
         expect(configuration).toHaveProperty('nodeToken');
       });
+    });
+  });
+
+  describe('getConfiguration', () => {
+    it('should return a configuration for the token', async () => {
+      const result = await cam.ptz.getConfiguration({
+        PTZConfigurationToken,
+      });
+      expect(result).toHaveProperty('nodeToken');
+    });
+
+    it('throws an error with the wrong token', async () => {
+      await expect(cam.ptz.getConfiguration({ PTZConfigurationToken : '???' })).rejects.toThrow();
     });
   });
 
@@ -172,7 +187,7 @@ describe('Presets', () => {
 
   describe('gotoPreset', () => {
     it('should go to preset by token', async () => {
-      const presetToken = (await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken }))[0].token;
+      const presetToken = (await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken }))[0].token!;
       const result = await cam.ptz.gotoPreset({
         presetToken,
         speed : {
