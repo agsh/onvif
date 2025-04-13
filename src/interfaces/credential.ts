@@ -1,4 +1,5 @@
 import { PositiveInteger, DataEntity, Attribute } from './types';
+import { Duration } from './basics';
 import { Name, Description, Date } from './onvif';
 import { ReferenceToken } from './common';
 
@@ -40,17 +41,17 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating credentials.
    * To enable the use of the command SetCredential, the value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
   /**
    * The default time period that the credential will temporary be suspended (e.g. by using
    * the wrong PIN a predetermined number of times).
    * The time period is defined as an [ISO 8601] duration string (e.g. “PT5M”).
    */
-  defaultCredentialSuspensionDuration: string;
+  defaultCredentialSuspensionDuration?: Duration;
   /** The maximum number of whitelisted credential identifiers supported by the device. */
-  maxWhitelistedItems: number;
+  maxWhitelistedItems?: number;
   /** The maximum number of blacklisted credential identifiers supported by the device. */
-  maxBlacklistedItems: number;
+  maxBlacklistedItems?: number;
   /**
    * A list of identifier types that the device supports. Is of type text.
    * Identifier types starting with the prefix pt: are reserved to define ONVIF-specific

@@ -10,7 +10,7 @@ import {
   Transformation,
   Color,
 } from './common';
-import { FilterType, AnyURI } from './basics';
+import { Duration, FilterType, AnyURI } from './basics';
 
 /** User readable name. Length up to 64 characters. */
 export type Name = string;
@@ -160,8 +160,8 @@ export interface FloatRange {
 }
 /** Range of duration greater equal Min duration and less equal Max duration. */
 export interface DurationRange {
-  min: string;
-  max: string;
+  min: Duration;
+  max: Duration;
 }
 /** List of values. */
 export interface IntItems {
@@ -206,7 +206,7 @@ export interface Profile {
   /** Unique identifier of the profile. */
   token: ReferenceToken;
   /** A value of true signals that the profile cannot be deleted. Default is false. */
-  fixed: boolean;
+  fixed?: boolean;
   /** User readable name of the profile. */
   name: Name;
   /** Optional configuration of the Video input. */
@@ -245,7 +245,7 @@ export interface ConfigurationEntity {
 }
 export interface VideoSourceConfiguration extends ConfigurationEntity {
   /** Readonly parameter signalling Source configuration's view mode, for devices supporting different view modes as defined in tt:viewModes. */
-  viewMode: string;
+  viewMode?: string;
   /** Reference to the physical input. */
   sourceToken: ReferenceToken;
   /** Rectangle specifying the Video capturing area. The capturing area shall not be larger than the whole Video source area. */
@@ -287,13 +287,13 @@ export interface LensProjection {
 }
 export interface LensOffset {
   /** Optional horizontal offset of the lens center in normalized coordinates. */
-  x: number;
+  x?: number;
   /** Optional vertical offset of the lens center in normalized coordinates. */
-  y: number;
+  y?: number;
 }
 export interface LensDescription {
   /** Optional focal length of the optical system. */
-  focalLength: number;
+  focalLength?: number;
   /** Offset of the lens center to the imager center in normalized coordinates. */
   offset: LensOffset;
   /**
@@ -307,7 +307,7 @@ export interface LensDescription {
 }
 export interface VideoSourceConfigurationOptions {
   /** Maximum number of profiles. */
-  maximumNumberOfProfiles: number;
+  maximumNumberOfProfiles?: number;
   /**
    * Supported range for the capturing area.
    * Device that does not support cropped streaming shall express BoundsRange option as mentioned below
@@ -332,7 +332,7 @@ export interface RotateOptions {
    * Signals if a device requires a reboot after changing the rotation.
    * If a device can handle rotation changes without rebooting this value shall be set to false.
    */
-  reboot: boolean;
+  reboot?: boolean;
   /** Supported options of Rotate mode parameter. */
   mode?: RotateMode[];
   /** List of supported degree value for rotation. */
@@ -356,7 +356,7 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
    * and that the video encoder shall prioritize frame rate over all other adaptable
    * configuration values such as bitrate.  Default is false.
    */
-  guaranteedFrameRate: boolean;
+  guaranteedFrameRate?: boolean;
   /** Used video codec, either Jpeg, H.264 or Mpeg4 */
   encoding: VideoEncoding;
   /** Configured video resolution */
@@ -372,7 +372,7 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related video stream */
-  sessionTimeout: string;
+  sessionTimeout: Duration;
 }
 export interface VideoResolution {
   /** Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image. */
@@ -402,7 +402,7 @@ export interface H264Configuration {
 }
 export interface VideoEncoderConfigurationOptions {
   /** Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoderConfiguration element. */
-  guaranteedFrameRateSupported: boolean;
+  guaranteedFrameRateSupported?: boolean;
   /** Range of the quality values. A high value means higher quality. */
   qualityRange: IntRange;
   /** Optional JPEG encoder settings ranges (See also Extension element). */
@@ -469,19 +469,19 @@ export interface H264Options2 extends H264Options {
 }
 export interface VideoEncoder2Configuration extends ConfigurationEntity {
   /** Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
-  govLength: number;
+  govLength?: number;
   /** Distance between anchor frames of type I-Frame and P-Frame. '1' indicates no B-Frames, '2' indicates that every 2nd frame is encoded as B-Frame, '3' indicates a structure like IBBPBBP..., etc. */
-  anchorFrameDistance: number;
+  anchorFrameDistance?: number;
   /** The encoder profile as defined in tt:VideoEncodingProfiles. */
-  profile: string;
+  profile?: string;
   /**
    * A value of true indicates that frame rate is a fixed value rather than an upper limit,
    * and that the video encoder shall prioritize frame rate over all other adaptable
    * configuration values such as bitrate.  Default is false.
    */
-  guaranteedFrameRate: boolean;
+  guaranteedFrameRate?: boolean;
   /** Indicates if this stream will be signed according to the Media Signing Specification. */
-  signed: boolean;
+  signed?: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding: string;
   /** Configured video resolution */
@@ -501,7 +501,7 @@ export interface VideoResolution2 {
 }
 export interface VideoRateControl2 {
   /** Enforce constant bitrate. */
-  constantBitRate: boolean;
+  constantBitRate?: boolean;
   /** Desired frame rate in fps. The actual rate may be lower due to e.g. performance limitations. */
   frameRateLimit: number;
   /** the maximum output bitrate in kbps */
@@ -509,17 +509,17 @@ export interface VideoRateControl2 {
 }
 export interface VideoEncoder2ConfigurationOptions {
   /** Exactly two values, which define the Lower and Upper bounds for the supported group of Video frames length. These values typically correspond to the I-Frame distance. */
-  govLengthRange: IntList;
+  govLengthRange?: IntList;
   /** Signals support for B-Frames. Upper bound for the supported anchor frame distance (must be larger than one). */
-  maxAnchorFrameDistance: number;
+  maxAnchorFrameDistance?: number;
   /** List of supported target frame rates in fps (frames per second). The list shall be sorted with highest values first. */
-  frameRatesSupported: FloatList;
+  frameRatesSupported?: FloatList;
   /** List of supported encoder profiles as defined in tt::VideoEncodingProfiles. */
-  profilesSupported: StringAttrList;
+  profilesSupported?: StringAttrList;
   /** Signal whether enforcing constant bitrate is supported. */
-  constantBitRateSupported: boolean;
+  constantBitRateSupported?: boolean;
   /** Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoder2Configuration element. */
-  guaranteedFrameRateSupported: boolean;
+  guaranteedFrameRateSupported?: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding: string;
   /** Range of the quality values. A high value means higher quality. */
@@ -549,7 +549,7 @@ export interface AudioEncoderConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream */
-  sessionTimeout: string;
+  sessionTimeout: Duration;
 }
 export interface AudioEncoderConfigurationOptions {
   /** list of supported AudioEncoderConfigurations */
@@ -587,11 +587,11 @@ export interface VideoAnalyticsConfiguration extends ConfigurationEntity {
 }
 export interface MetadataConfiguration extends ConfigurationEntity {
   /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType. */
-  compressionType: string;
+  compressionType?: string;
   /** Optional parameter to configure if the metadata stream shall contain the Geo Location coordinates of each target. */
-  geoLocation: boolean;
+  geoLocation?: boolean;
   /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon. */
-  shapePolygon: boolean;
+  shapePolygon?: boolean;
   /** optional element to configure which PTZ related data is to include in the metadata stream */
   PTZStatus?: PTZFilter;
   /**
@@ -608,7 +608,7 @@ export interface MetadataConfiguration extends ConfigurationEntity {
   /** Defines the multicast settings that could be used for video streaming. */
   multicast: MulticastConfiguration;
   /** The rtsp session timeout for the related audio stream (when using Media2 Service, this value is deprecated and ignored) */
-  sessionTimeout: string;
+  sessionTimeout: Duration;
   /**
    * Indication which AnalyticsModules shall output metadata.
    * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
@@ -633,9 +633,9 @@ export interface EventSubscription {
 }
 export interface MetadataConfigurationOptions {
   /** True if the device is able to stream the Geo Located positions of each target. */
-  geoLocation: boolean;
+  geoLocation?: boolean;
   /** A device signalling support for content filtering shall support expressions with the provided expression size. */
-  maxContentFilterSize: number;
+  maxContentFilterSize?: number;
   PTZStatusFilterOptions: PTZStatusFilterOptions;
   extension?: MetadataConfigurationOptionsExtension;
 }
@@ -830,7 +830,7 @@ export interface MediaUri {
   /** Indicates if the Uri is invalid after a reboot of the device. The value shall be set to "false". */
   invalidAfterReboot: boolean;
   /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes */
-  timeout: string;
+  timeout: Duration;
 }
 export interface Scope {
   /** Indicates if the scope is fixed or configurable. */
@@ -1000,7 +1000,7 @@ export interface DynamicDNSInformation {
   /** DNS name. */
   name?: DNSName;
   /** Time to live. */
-  TTL?: string;
+  TTL?: Duration;
   extension?: DynamicDNSInformationExtension;
 }
 export interface DynamicDNSInformationExtension {}
@@ -1529,7 +1529,7 @@ export interface RelayOutputSettings {
    */
   mode: RelayMode;
   /** Time after which the relay returns to its idle state if it is in monostable mode. If the Mode field is set to bistable mode the value of the parameter can be ignored. */
-  delayTime: string;
+  delayTime: Duration;
   /**
    * 'open' or 'closed'
    *
@@ -1544,13 +1544,13 @@ export interface RelayOutput extends DeviceEntity {
 }
 export interface DigitalInput extends DeviceEntity {
   /** Indicate the Digital IdleState status. */
-  idleState: DigitalIdleState;
+  idleState?: DigitalIdleState;
 }
 export interface PTZNode extends DeviceEntity {
   /** Indication whether the HomePosition of a Node is fixed or it can be changed via the SetHomePosition command. */
-  fixedHomePosition: boolean;
+  fixedHomePosition?: boolean;
   /** Indication whether the Node supports the geo-referenced move command. */
-  geoMove: boolean;
+  geoMove?: boolean;
   /** A unique identifier that is used to reference PTZ Nodes. */
   name?: Name;
   /** A list of Coordinate Systems available for the PTZ Node. For each Coordinate System, the PTZ Node MUST specify its allowed range. */
@@ -1579,11 +1579,11 @@ export interface PTZPresetTourSupported {
 export interface PTZPresetTourSupportedExtension {}
 export interface PTZConfiguration extends ConfigurationEntity {
   /** The optional acceleration ramp used by the device when moving. */
-  moveRamp: number;
+  moveRamp?: number;
   /** The optional acceleration ramp used by the device when recalling presets. */
-  presetRamp: number;
+  presetRamp?: number;
   /** The optional acceleration ramp used by the device when executing PresetTours. */
-  presetTourRamp: number;
+  presetTourRamp?: number;
   /** A mandatory reference to the PTZ Node that the PTZ Configuration belongs to. */
   nodeToken: ReferenceToken;
   /** If the PTZ Node supports absolute Pan/Tilt movements, it shall specify one Absolute Pan/Tilt Position Space as default. */
@@ -1601,7 +1601,7 @@ export interface PTZConfiguration extends ConfigurationEntity {
   /** If the PTZ Node supports absolute or relative PTZ movements, it shall specify corresponding default Pan/Tilt and Zoom speeds. */
   defaultPTZSpeed?: PTZSpeed;
   /** If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops. */
-  defaultPTZTimeout?: string;
+  defaultPTZTimeout?: Duration;
   /** The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF. */
   panTiltLimits?: PanTiltLimits;
   /** The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF. */
@@ -1637,7 +1637,7 @@ export interface PTZConfigurationOptions {
    * smallest acceleration value corresponds to the minimal index, the
    * highest acceleration corresponds to the maximum index.
    */
-  PTZRamps: IntList;
+  PTZRamps?: IntList;
   /** A list of supported coordinate systems including their range limitations. */
   spaces: PTZSpaces;
   /** A timeout Range within which Timeouts are accepted by the PTZ Node. */
@@ -1747,7 +1747,7 @@ export interface PTZSpeed {
 }
 export interface PTZPreset {
   /**/
-  token: ReferenceToken;
+  token?: ReferenceToken;
   /** A list of preset position name. */
   name?: Name;
   /** A list of preset position. */
@@ -1755,7 +1755,7 @@ export interface PTZPreset {
 }
 export interface PresetTour {
   /** Unique identifier of this preset tour. */
-  token: ReferenceToken;
+  token?: ReferenceToken;
   /** Readable name of the preset tour. */
   name?: Name;
   /** Read only parameters to indicate the status of the preset tour. */
@@ -1775,7 +1775,7 @@ export interface PTZPresetTourSpot {
   /** Optional parameter to specify Pan/Tilt and Zoom speed on moving toward this tour spot. */
   speed?: PTZSpeed;
   /** Optional parameter to specify time duration of staying on this tour sport. */
-  stayTime?: string;
+  stayTime?: Duration;
   extension?: PTZPresetTourSpotExtension;
 }
 export interface PTZPresetTourSpotExtension {}
@@ -1791,11 +1791,11 @@ export interface PTZPresetTourStatus {
 export interface PTZPresetTourStatusExtension {}
 export interface PTZPresetTourStartingCondition {
   /** Execute presets in random order. If set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly. */
-  randomPresetOrder: boolean;
+  randomPresetOrder?: boolean;
   /** Optional parameter to specify how many times the preset tour is recurred. */
   recurringTime?: number;
   /** Optional parameter to specify how long time duration the preset tour is recurred. */
-  recurringDuration?: string;
+  recurringDuration?: Duration;
   /** Optional parameter to choose which direction the preset tour goes. Forward shall be chosen in case it is omitted. */
   direction?: PTZPresetTourDirection;
   extension?: PTZPresetTourStartingConditionExtension;
@@ -2098,7 +2098,7 @@ export interface IrCutFilterAutoAdjustment {
   /** Adjusts boundary exposure level for toggling Ir cut filter to on/off specified with unitless normalized value from +1.0 to -1.0. Zero is default and -1.0 is the darkest adjustment (Unitless). */
   boundaryOffset?: number;
   /** Delay time of toggling Ir cut filter to on/off after crossing of the boundary exposure levels. */
-  responseTime?: string;
+  responseTime?: Duration;
   extension?: IrCutFilterAutoAdjustmentExtension;
 }
 export interface IrCutFilterAutoAdjustmentExtension {}
@@ -2296,7 +2296,7 @@ export interface WhiteBalance20 {
 export interface WhiteBalance20Extension {}
 export interface FocusConfiguration20 {
   /** Zero or more modes as defined in enumeration tt:AFModes. */
-  AFMode: StringAttrList;
+  AFMode?: StringAttrList;
   /**
    * Mode of auto focus.
    *
@@ -2386,7 +2386,7 @@ export interface ItemList {
 export interface ItemListExtension {}
 export interface MessageDescription {
   /** Must be set to true when the described Message relates to a property. An alternative term of "property" is a "state" in contrast to a pure event, which contains relevant information for only a single point in time.Default is false. */
-  isProperty: boolean;
+  isProperty?: boolean;
   /**
    * Set of tokens producing this message. The list may only contain SimpleItemDescription items.
    * The set of tokens identify the component within the WS-Endpoint, which is responsible for the producing the message.
@@ -2454,9 +2454,9 @@ export interface ConfigDescription {
   /** The Name attribute (e.g. "tt::LineDetector") uniquely identifies the type of rule, not a type definition in a schema. */
   name: unknown;
   /** The fixed attribute signals that it is not allowed to add or remove this type of configuration. */
-  fixed: boolean;
+  fixed?: boolean;
   /** The maxInstances attribute signals the maximum number of instances per configuration. */
-  maxInstances: number;
+  maxInstances?: number;
   /**
    * List describing the configuration parameters. The names of the parameters must be unique. If possible SimpleItems
    * should be used to transport the information to ease parsing of dynamically defined messages by a client
@@ -2475,7 +2475,7 @@ export interface ConfigDescription {
 export interface ConfigDescriptionExtension {}
 export interface SupportedRules {
   /** Maximum number of concurrent instances. */
-  limit: number;
+  limit?: number;
   /** Lists the location of all schemas that are referenced in the rules. */
   ruleContentSchemaLocation?: AnyURI[];
   /** List of rules supported by the Video Analytics configuration.. */
@@ -2485,7 +2485,7 @@ export interface SupportedRules {
 export interface SupportedRulesExtension {}
 export interface SupportedAnalyticsModules {
   /** Maximum number of concurrent instances. */
-  limit: number;
+  limit?: number;
   /**
    * It optionally contains a list of URLs that provide the location of schema files.
    * These schema files describe the types and elements used in the analytics module descriptions.
@@ -2498,7 +2498,7 @@ export interface SupportedAnalyticsModules {
 }
 export interface SupportedAnalyticsModulesExtension {}
 export interface MotionExpression {
-  type: string;
+  type?: string;
   /** Motion Expression data structure contains motion expression which is based on Scene Descriptor schema with XPATH syntax. The Type argument could allow introduction of different dialects */
   expression: string;
 }
@@ -2750,9 +2750,9 @@ export interface RecordingEncryption {
 }
 export interface SegmentDurationOverride {
   /** Current value of the segment duration. */
-  duration: string;
+  duration: Duration;
   /** Time remaining until the override expires. */
-  expiration: string;
+  expiration: Duration;
 }
 export interface RecordingTargetConfiguration {
   /** Token of a storage configuration. */
@@ -2767,9 +2767,9 @@ export interface RecordingTargetConfiguration {
   /** Path postfix to be inserted in the object key. */
   postfix?: string;
   /** Maximum duration of a span. */
-  spanDuration?: string;
+  spanDuration?: Duration;
   /** Maximum duration of a segment. */
-  segmentDuration: string;
+  segmentDuration: Duration;
   /**
    * Optional encryption configuration.
    * See capability trc:EncryptionEntryLimit for the number of supported entries.
@@ -2840,7 +2840,7 @@ export interface AudioAttributes {
 }
 export interface MetadataAttributes {
   /** List of all PTZ spaces active for recording. Note that events are only recorded on position changes and the actual point of recording may not necessarily contain an event of the specified type. */
-  ptzSpaces: StringAttrList;
+  ptzSpaces?: StringAttrList;
   /** Indicates that there can be PTZ data in the metadata track in the specified time interval. */
   canContainPTZ: boolean;
   /** Indicates that there can be analytics data in the metadata track in the specified time interval. */
@@ -2861,7 +2861,7 @@ export interface RecordingConfiguration {
    * Whatever the value of MaximumRetentionTime, the device may automatically delete
    * recordings to free up storage space for new recordings.
    */
-  maximumRetentionTime: string;
+  maximumRetentionTime: Duration;
   /** Optional external storage target configuration. */
   target?: RecordingTargetConfiguration;
 }
@@ -2897,7 +2897,7 @@ export interface RecordingJobConfiguration {
    * This attribute adds an additional requirement for activating the recording job.
    * If this optional field is provided the job shall only record if the schedule exists and is active.
    */
-  scheduleToken: unknown;
+  scheduleToken?: unknown;
   /** Identifies the recording to which this job shall store the received data. */
   recordingToken: RecordingReference;
   /**
@@ -2929,9 +2929,9 @@ export interface Filter {
 export interface RecordingEventFilter {
   filter?: Filter[];
   /** Optional timespan to record before the actual event condition became active. */
-  before?: string;
+  before?: Duration;
   /** Optional timespan to record after the actual event condition becomes inactive. */
-  after?: string;
+  after?: Duration;
 }
 export interface RecordingJobConfigurationExtension {}
 export interface RecordingJobSource {
@@ -3012,7 +3012,7 @@ export interface GetRecordingJobsResponseItem {
 /** Configuration parameters for the replay service. */
 export interface ReplayConfiguration {
   /** The RTSP session timeout. */
-  sessionTimeout: string;
+  sessionTimeout: Duration;
 }
 export interface AnalyticsEngine extends ConfigurationEntity {
   analyticsEngineConfiguration: AnalyticsDeviceEngineConfiguration;
@@ -3207,13 +3207,13 @@ export interface OSDTextOptions {
 export interface OSDTextOptionsExtension {}
 export interface OSDImgOptions {
   /** List of supported image MIME types, such as "image/png". */
-  formatsSupported: StringAttrList;
+  formatsSupported?: StringAttrList;
   /** The maximum size (in bytes) of the image that can be uploaded. */
-  maxSize: number;
+  maxSize?: number;
   /** The maximum width (in pixels) of the image that can be uploaded. */
-  maxWidth: number;
+  maxWidth?: number;
   /** The maximum height (in pixels) of the image that can be uploaded. */
-  maxHeight: number;
+  maxHeight?: number;
   /** List of available image URIs. */
   imagePath?: AnyURI[];
   extension?: OSDImgOptionsExtension;
@@ -3235,11 +3235,11 @@ export interface OSDConfiguration extends DeviceEntity {
 export interface OSDConfigurationExtension {}
 export interface MaximumNumberOfOSDs {
   total: number;
-  image: number;
-  plainText: number;
-  date: number;
-  time: number;
-  dateAndTime: number;
+  image?: number;
+  plainText?: number;
+  date?: number;
+  time?: number;
+  dateAndTime?: number;
 }
 export interface OSDConfigurationOptions {
   /** The maximum number of OSD configurations supported for the specified video source configuration. If the configuration does not support OSDs, this value shall be zero and the Type and PositionOption elements are ignored. If a device limits the number of instances by OSDType, it shall indicate the supported number for each type via the related attribute. */
@@ -3298,7 +3298,7 @@ export interface StringItems {
 }
 export interface Message {
   utcTime: Date;
-  propertyOperation: PropertyOperation;
+  propertyOperation?: PropertyOperation;
   /** Token value pairs that triggered this message. Typically only one item is present. */
   source?: ItemList;
   key?: ItemList;

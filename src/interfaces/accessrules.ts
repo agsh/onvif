@@ -26,7 +26,7 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating access profiles. To
    * enable the use of the command SetAccessProfile, the value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
 }
 /**
  * The access policy is an association of an access point and a schedule. It defines when an access

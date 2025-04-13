@@ -4,7 +4,7 @@ import { ReferenceToken } from './common';
 
 export interface ConfigOptions {
   /** The RuleType the ConfigOptions applies to if the Name attribute is ambiguous. */
-  ruleType: unknown;
+  ruleType?: unknown;
   /**
    * The Name of the SimpleItemDescription/ElementItemDescription
    * the ConfigOptions applies to.
@@ -15,13 +15,13 @@ export interface ConfigOptions {
    * The Type defines the element contained in this structure.
    * This attribute is deprecated since its value must be identical to the embedded element.
    */
-  type: unknown;
+  type?: unknown;
   /** Optional name of the analytics module this constraint applies to. This option is only necessary in cases where different constraints for elements with the same Name exist. */
-  analyticsModule: unknown;
+  analyticsModule?: unknown;
   /** Minimal number of occurrences. Defaults to one. */
-  minOccurs: number;
+  minOccurs?: number;
   /** Maximum number of occurrences. Defaults to one. */
-  maxOccurs: number;
+  maxOccurs?: number;
 }
 export interface MetadataInfo {
   /** Reference to an AnalyticsModule Type. */

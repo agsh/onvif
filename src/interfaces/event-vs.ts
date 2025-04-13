@@ -1,4 +1,4 @@
-import { AnyURI, FilterType } from './basics';
+import { AnyURI, FilterType, Duration } from './basics';
 import { Capabilities, Date } from './onvif';
 
 export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
@@ -49,7 +49,7 @@ export interface CreatePullPointSubscriptionResponse {
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
-  timeout: string;
+  timeout: Duration;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
   messageLimit: number;
 }
@@ -63,7 +63,7 @@ export interface PullMessagesResponse {
 }
 export interface PullMessagesFaultResponse {
   /** Maximum timeout supported by the device. */
-  maxTimeout: string;
+  maxTimeout: Duration;
   /** Maximum message limit supported by the device. */
   maxMessageLimit: number;
 }

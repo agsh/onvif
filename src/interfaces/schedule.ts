@@ -69,7 +69,7 @@ export interface ServiceCapabilities {
    * Indicates that the client is allowed to supply the token when creating schedules and special day groups.
    * To enable the use of the commands SetSchedule and SetSpecialDayGroup, the value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
 }
 /**
  * The ScheduleInfo type represents the schedule as a physical object.

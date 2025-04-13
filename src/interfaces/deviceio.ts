@@ -19,6 +19,7 @@ import {
   RelayOutput,
   DigitalInput,
 } from './onvif';
+import { Duration } from './basics';
 
 /** The type of serial port.Generic can be signaled as a vendor specific serial port type. */
 export type SerialPortType =
@@ -255,7 +256,7 @@ export interface SendReceiveSerialCommand {
   /** The serial port data. */
   serialData?: SerialData;
   /** Indicates that the command should be responded back within the specified period of time. */
-  timeOut?: string;
+  timeOut?: Duration;
   /** This element may be put in the case that data length returned from the connected serial device is already determined as some fixed bytes length. It indicates the length of received data which can be regarded as available. */
   dataLength?: number;
   /** This element may be put in the case that the delimiter codes returned from the connected serial device is already known. It indicates the termination data sequence of the responded data. In case the string has more than one character a device shall interpret the whole string as a single delimiter. Furthermore a device shall return the delimiter character(s) to the client. */

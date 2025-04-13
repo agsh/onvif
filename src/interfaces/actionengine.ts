@@ -1,5 +1,5 @@
 import { ItemListDescription, ItemList } from './onvif';
-import { AnyURI } from './basics';
+import { AnyURI, Duration } from './basics';
 import { PositiveInteger } from './types';
 import { ReferenceToken } from './common';
 
@@ -27,9 +27,9 @@ export interface SupportedActionsExtension {}
 /** Action Engine Capabilities data structure contains the maximum number of supported actions and number of actions in use for generic as well as specific action types */
 export interface ActionEngineCapabilities {
   /** The maximum number of trigger configurations that the service provider can concurrently support */
-  maximumTriggers: PositiveInteger;
+  maximumTriggers?: PositiveInteger;
   /** The maximum number of actions that the service provider can concurrently support */
-  maximumActions: PositiveInteger;
+  maximumActions?: PositiveInteger;
   /** Limits for each action type */
   actionCapabilities?: ActionTypeLimits[];
   extension?: ActionEngineCapabilitiesExtension;
@@ -91,7 +91,7 @@ export interface EMailServerConfiguration {
 }
 export interface SMTPConfig {
   /**/
-  portNo: PositiveInteger;
+  portNo?: PositiveInteger;
   /** Destination SMTP Address configuration */
   hostAddress: HostAddress;
 }
@@ -245,9 +245,9 @@ export interface FtpContentConfiguration {
 }
 export interface FtpContentConfigurationUploadImages {
   /** Upload Image action; how long? */
-  howLong: string;
+  howLong: Duration;
   /** Upload Image action; sample interval? */
-  sampleInterval: string;
+  sampleInterval: Duration;
   /** Upload Image action; name of destination file */
   fileName: FtpFileNameConfigurations;
 }
@@ -273,11 +273,11 @@ export interface SMSMessage {
 }
 export interface TriggeredRecordingConfiguration {
   /** Length of recording time before the triggering event */
-  preRecordDuration: string;
+  preRecordDuration: Duration;
   /** Recording after alarm recording duration */
-  postRecordDuration: string;
+  postRecordDuration: Duration;
   /** Record duration */
-  recordDuration: string;
+  recordDuration: Duration;
   /** Recording frame rate */
   recordFrameRate?: PositiveInteger;
   /** Whether Audio recording on/off */

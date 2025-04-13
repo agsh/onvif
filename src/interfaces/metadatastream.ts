@@ -75,7 +75,7 @@ export interface BarcodeInfo {
   PPM?: number;
 }
 export interface LabelInfo {
-  likelihood: number;
+  likelihood?: number;
   authority: string;
   ID: unknown;
 }
@@ -125,9 +125,9 @@ export interface OtherType {
 }
 export interface OnvifObject extends ObjectId {
   /** Object ID of the parent object. eg: License plate object has Vehicle object as parent. */
-  parent: number;
+  parent?: number;
   /** Object UUID of the parent object. eg: License plate object has Vehicle object as parent. */
-  parentUUID: string;
+  parentUUID?: string;
   appearance?: Appearance;
   behaviour?: Behaviour;
   extension?: ObjectExtension;
@@ -136,9 +136,9 @@ export interface ObjectExtension {}
 export interface Frame {
   utcTime: Date;
   /** Default color space of Color definitions in frame. Valid values are "RGB" and "YCbCr". Defaults to "YCbCr". */
-  colorspace: string;
+  colorspace?: string;
   /** Optional name of the analytics module that generated this frame. */
-  source: string;
+  source?: string;
   PTZStatus?: PTZStatus;
   transformation?: Transformation;
   object?: unknown[];
@@ -165,9 +165,9 @@ export interface Rename {
   to: ObjectId;
 }
 export interface ObjectId {
-  objectId: number;
+  objectId?: number;
   /** Object unique identifier. */
-  UUID: string;
+  UUID?: string;
 }
 export interface Removed {}
 export interface Idle {}
