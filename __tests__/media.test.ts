@@ -1,4 +1,4 @@
-import { Onvif } from '../src';
+import { camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 
 let cam: Onvif;
@@ -92,8 +92,6 @@ describe('Profiles', () => {
 
 describe('Configurations', () => {
   let profileToken: ReferenceToken;
-  const camel = (name: string) => (name.charAt(1).toLowerCase() === name.charAt(1)
-    ? name.charAt(0).toLowerCase() + name.slice(1) : name);
   const configurationNames = [
     'VideoEncoderConfiguration',
     'AudioEncoderConfiguration',
@@ -113,7 +111,7 @@ describe('Configurations', () => {
       profileToken = testProfile.token;
       configurationNames.forEach((configurationName) => {
         // @ts-expect-error check that no configurations added
-        expect(testProfile[camel(configurationName)]).toBeUndefined();
+        expect(testProfile[camelCase(configurationName)]).toBeUndefined();
       });
     });
   });
@@ -144,7 +142,7 @@ describe('Configurations', () => {
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
-        const methodName = camel(configurationName);
+        const methodName = camelCase(configurationName);
         // @ts-expect-error just
         expect(profile[methodName] ?? profile.extension[methodName]).toBeDefined();
       });
@@ -174,7 +172,7 @@ describe('Configurations', () => {
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
-        const methodName = camel(configurationName);
+        const methodName = camelCase(configurationName);
         // @ts-expect-error just
         expect(profile[methodName] ?? profile.extension?.[methodName]).toBeUndefined();
       });

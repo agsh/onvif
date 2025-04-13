@@ -1,4 +1,5 @@
-# ONVIF
+# ts-onvif
+Temporary repo for NPM testing.
 
 [![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 [![Coverage Status](https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages-debug/badges/coverage.svg)](https://github.com/agsh/onvif/tree/v1)

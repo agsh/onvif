@@ -10,10 +10,32 @@ import {
   GetProfiles,
   CreateProfile,
   ConfigurationRef,
-  ConfigurationEnumeration, AddConfiguration, RemoveConfiguration, DeleteProfile,
+  ConfigurationEnumeration,
+  AddConfiguration,
+  RemoveConfiguration,
+  DeleteProfile,
+  GetConfiguration,
+  GetVideoSourceConfigurations,
+  GetAudioEncoderConfigurations,
+  GetVideoEncoderConfigurations,
+  GetAnalyticsConfigurations,
+  GetMetadataConfigurations,
+  GetAudioOutputConfigurations,
+  GetAudioDecoderConfigurations,
+  WebRTCConfiguration, GetWebRTCConfigurations,
 } from './interfaces/media.2';
 import { linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
+import {
+  AudioDecoderConfiguration,
+  AudioEncoder2Configuration,
+  AudioOutputConfiguration,
+  AudioSourceConfiguration,
+  MetadataConfiguration,
+  VideoAnalyticsConfiguration,
+  VideoEncoder2Configuration,
+  VideoSourceConfiguration,
+} from './interfaces/onvif';
 
 /**
  * Configurations as defined by tr2:ConfigurationEnumeration
@@ -33,6 +55,14 @@ interface AddConfigurationExtended extends AddConfiguration {
 interface RemoveConfigurationExtended extends RemoveConfiguration {
   configuration?: ConfigurationRefExtended[];
 }
+
+interface GetConfigurationExtended extends GetConfiguration {
+  entityName: ConfigurationEnumeration;
+}
+
+type ConfigurationEntityExtended = VideoSourceConfiguration & AudioSourceConfiguration
+  & VideoEncoder2Configuration & AudioEncoder2Configuration & VideoAnalyticsConfiguration
+  & MetadataConfiguration & AudioOutputConfiguration & WebRTCConfiguration;
 
 /**
  * Media service, ver20 profile
@@ -161,6 +191,181 @@ export class Media2 {
         + `<Token>${token}</Token>`
         + '</DeleteProfile>',
     });
+  }
+
+  /**
+   * Common function to get configurations
+   * @private
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  private async getConfigurations({ entityName, profileToken, configurationToken }: GetConfigurationExtended): Promise<ConfigurationEntityExtended[]> {
+    const body = `<Get${entityName}Configurations xmlns="http://www.onvif.org/ver20/media/wsdl">${
+      profileToken !== undefined ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
+    }${configurationToken !== undefined ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
+    }</Get${entityName}Configurations>`;
+    const [data] = await this.onvif.request({
+      service : 'media2',
+      body,
+    });
+    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationsResponse`].configurations;
+  }
+
+  /**
+   * The `getVideoSourceConfigurations` operation allows to retrieve the video source settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getVideoSourceConfigurations(options: GetVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
+    return this.getConfigurations({ entityName : 'VideoSource', ...options });
+  }
+
+  /**
+   * The `getVideoEncoderConfigurations` operation allows to retrieve the video encoder settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getVideoEncoderConfigurations(options: GetVideoEncoderConfigurations): Promise<VideoEncoder2Configuration[]> {
+    return this.getConfigurations({ entityName : 'VideoEncoder', ...options });
+  }
+
+  /**
+   * The `getAudioSourceConfigurations` operation allows to retrieve the audio source settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getAudioSourceConfigurations(options: GetVideoSourceConfigurations): Promise<AudioSourceConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioSource', ...options });
+  }
+
+  /**
+   * The `getAudioEncoderConfigurations` operation allows to retrieve the audio encoder settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getAudioEncoderConfigurations(options: GetAudioEncoderConfigurations): Promise<AudioEncoder2Configuration[]> {
+    return this.getConfigurations({ entityName : 'AudioEncoder', ...options });
+  }
+
+  /**
+   * The `getAnalyticsConfigurations` operation allows to retrieve the analytics settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getAnalyticsConfigurations(options: GetAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
+    return this.getConfigurations({ entityName : 'Analytics', ...options });
+  }
+
+  /**
+   * The `getMetadataConfigurations` operation allows to retrieve the metadata settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getMetadataConfigurations(options: GetMetadataConfigurations): Promise<MetadataConfiguration[]> {
+    return this.getConfigurations({ entityName : 'Metadata', ...options });
+  }
+
+  /**
+   * The `getAudioOutputConfigurations` operation allows to retrieve the audio output settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getAudioOutputConfigurations(options: GetAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioOutput', ...options });
+  }
+
+  /**
+   * The `getAudioDecoderConfigurations` operation allows to retrieve the audio decoder settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  async getAudioDecoderConfigurations(options: GetAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioDecoder', ...options });
+  }
+
+  /**
+   * The `getWebRTCConfigurations` operation allows to retrieve the WebRTC settings of one ore more
+   * configurations.
+   * - If a configuration token is provided the device shall respond with the requested configuration or provide
+   * an error if it does not exist.
+   * - In case only a profile token is provided the device shall respond with all configurations that are compatible
+   * to the provided media profile.
+   * - If no tokens are provided the device shall respond with all available configurations.
+   * @protected Specs not ready yet, this method is for the future development
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v2
+  private async getWebRTCConfigurations(options: GetWebRTCConfigurations): Promise<WebRTCConfiguration[]> {
+    // return this.getConfigurations({ entityName : 'WebRTC', ...options });
+    return [];
   }
 }
 

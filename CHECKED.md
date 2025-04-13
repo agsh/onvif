@@ -45,19 +45,34 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] _eventPull
 - [ ] _restartEventRequest
 - [ ] parseEventXML
-- [x] getVideoSources
-- [ ] getVideoSourceConfigurations
+- [x] getVideoSources.media1
+- [x] getAudioSources.media1
+
+- [ ] getVideoSourceConfigurations.media1
+- [x] getVideoSourceConfigurations.media2
+- [ ] getAudioSourceConfigurations.media1
+- [x] getAudioSourceConfigurations.media2
+- [ ] getVideoEncoderConfigurations.media1
+- [x] getVideoEncoderConfigurations.media2
+- [ ] getAudioEncoderConfigurations.media1
+- [x] getAudioEncoderConfigurations.media2
+- [ ] getPTZConfiguration
+- [ ] GetVideoAnalyticsConfigurations.media1
+- [x] getAnalyticsConfigurations.media2
+- [ ] getMetadataConfigurations.media1
+- [x] getMetadataConfigurations.media2
+- [ ] getAudioOutputConfigurations.media1
+- [x] getAudioOutputConfigurations.media2
+- [ ] getAudioDecoderConfigurations.media1
+- [x] getAudioDecoderConfigurations.media2
+ 
 - [ ] getVideoSourceConfigurationOptions new
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
-- [ ] getVideoEncoderConfigurations
 - [ ] setVideoEncoderConfiguration
-- [x] getAudioSources
-- [ ] getAudioEncoderConfigurations
 - [ ] getAudioEncoderConfiguration
 - [ ] getAudioEncoderConfigurationOptions
 - [ ] setAudioEncoderConfiguration
-- [ ] getAudioSourceConfigurations
 - [ ] getAudioOutputs
 - [ ] getAudioOutputConfigurations
 - [x] addAudioEncoderConfiguration
