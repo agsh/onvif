@@ -71,14 +71,14 @@ export interface PTZMoveStatus {
   zoom?: MoveStatus;
 }
 export interface Vector {
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
 }
 export interface Rectangle {
-  bottom: number;
-  top: number;
-  right: number;
-  left: number;
+  bottom?: number;
+  top?: number;
+  right?: number;
+  left?: number;
 }
 export interface Polygon {
   point?: Vector[];
@@ -109,19 +109,19 @@ export interface Color {
    * http://www.onvif.org/ver10/colorspace/HSV - HSV
    *
    */
-  colorspace: AnyURI;
+  colorspace?: AnyURI;
   /** Likelihood that the color is correct. */
-  likelihood: number;
+  likelihood?: number;
 }
 export interface ColorCovariance {
   XX: number;
   YY: number;
   ZZ: number;
-  XY: number;
-  XZ: number;
-  YZ: number;
+  XY?: number;
+  XZ?: number;
+  YZ?: number;
   /** Acceptable values are the same as in tt:Color. */
-  colorspace: AnyURI;
+  colorspace?: AnyURI;
 }
 export interface ColorCluster {
   color: Color;
@@ -140,55 +140,55 @@ export interface Transformation {
 export interface TransformationExtension {}
 export interface GeoLocation {
   /** East west location as angle. */
-  lon: number;
+  lon?: number;
   /** North south location as angle. */
-  lat: number;
+  lat?: number;
   /** Hight in meters above sea level. */
-  elevation: number;
+  elevation?: number;
 }
 export interface GeoOrientation {
   /** Rotation around the x axis. */
-  roll: number;
+  roll?: number;
   /** Rotation around the y axis. */
-  pitch: number;
+  pitch?: number;
   /** Rotation around the z axis. */
-  yaw: number;
+  yaw?: number;
 }
 export interface LocalLocation {
   /** East west location as angle. */
-  x: number;
+  x?: number;
   /** North south location as angle. */
-  y: number;
+  y?: number;
   /** Offset in meters from the sea level. */
-  z: number;
+  z?: number;
 }
 export interface LocalOrientation {
   /** Rotation around the y axis. */
-  pan: number;
+  pan?: number;
   /** Rotation around the z axis. */
-  tilt: number;
+  tilt?: number;
   /** Rotation around the x axis. */
-  roll: number;
+  roll?: number;
 }
 export interface SphericalCoordinate {
   /** Distance in meters to the object. */
-  distance: number;
+  distance?: number;
   /** Elevation angle in the range -90 to 90 degrees, where 0 is in level with the x-y plane. */
-  elevationAngle: number;
+  elevationAngle?: number;
   /** Azimuth angle in the range -180 to 180 degrees counter clockwise, where 0 is rightwards. */
-  azimuthAngle: number;
+  azimuthAngle?: number;
 }
 export interface LocationEntity {
   /** Entity type the entry refers to, use a value from the tt:Entity enumeration. */
-  entity: string;
+  entity?: string;
   /** Optional entity token. */
-  token: ReferenceToken;
+  token?: ReferenceToken;
   /** If this value is true the entity cannot be deleted. */
-  fixed: boolean;
+  fixed?: boolean;
   /** Optional reference to the XAddr of another devices DeviceManagement service. */
-  geoSource: AnyURI;
+  geoSource?: AnyURI;
   /** If set the geo location is obtained internally. */
-  autoGeo: boolean;
+  autoGeo?: boolean;
   /** Location on earth. */
   geoLocation?: GeoLocation;
   /** Orientation relative to earth. */

@@ -17,6 +17,7 @@ import {
   StorageReferencePath,
   ArrayOfFileProgress,
 } from './onvif';
+import { Duration } from './basics';
 import { ReferenceToken } from './common';
 
 export interface RecordingOptions {
@@ -25,19 +26,19 @@ export interface RecordingOptions {
 }
 export interface JobOptions {
   /** Number of spare jobs that can be created for the recording. */
-  spare: number;
+  spare?: number;
   /** A device that supports recording of a restricted set of Media/Media2 Service Profiles returns the list of profiles that can be recorded on the given Recording. */
-  compatibleSources: StringAttrList;
+  compatibleSources?: StringAttrList;
 }
 export interface TrackOptions {
   /** Total spare number of tracks that can be added to this recording. */
-  spareTotal: number;
+  spareTotal?: number;
   /** Number of spare Video tracks that can be added to this recording. */
-  spareVideo: number;
+  spareVideo?: number;
   /** Number of spare Aduio tracks that can be added to this recording. */
-  spareAudio: number;
+  spareAudio?: number;
   /** Number of spare Metadata tracks that can be added to this recording. */
-  spareMetadata: number;
+  spareMetadata?: number;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
@@ -226,9 +227,9 @@ export interface GetExportRecordedDataStateResponse {
 }
 export interface OverrideSegmentDuration {
   /** The new target duration for recorded segments. */
-  targetSegmentDuration: string;
+  targetSegmentDuration: Duration;
   /** The length of time during which the override request is to be in effect. */
-  expiration: string;
+  expiration: Duration;
   /** The recording configuration for which the override is requested. */
   recordingConfiguration: RecordingReference;
 }

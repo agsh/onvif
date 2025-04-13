@@ -1,4 +1,4 @@
-import { AnyURI } from './basics';
+import { AnyURI, Duration } from './basics';
 import {
   Capabilities,
   OnvifVersion,
@@ -90,115 +90,115 @@ export interface DeviceServiceCapabilities {
 }
 export interface NetworkCapabilities {
   /** Indicates support for IP filtering. */
-  IPFilter: boolean;
+  IPFilter?: boolean;
   /** Indicates support for zeroconf. */
-  zeroConfiguration: boolean;
+  zeroConfiguration?: boolean;
   /** Indicates support for IPv6. */
-  IPVersion6: boolean;
+  IPVersion6?: boolean;
   /** Indicates support for dynamic DNS configuration. */
-  dynDNS: boolean;
+  dynDNS?: boolean;
   /** Indicates support for IEEE 802.11 configuration. */
-  dot11Configuration: boolean;
+  dot11Configuration?: boolean;
   /** Indicates the maximum number of Dot1X configurations supported by the device */
-  dot1XConfigurations: number;
+  dot1XConfigurations?: number;
   /** Indicates support for retrieval of hostname from DHCP. */
-  hostnameFromDHCP: boolean;
+  hostnameFromDHCP?: boolean;
   /** Maximum number of NTP servers supported by the devices SetNTP command. */
-  NTP: number;
+  NTP?: number;
   /** Indicates support for Stateful IPv6 DHCP. */
-  DHCPv6: boolean;
+  DHCPv6?: boolean;
 }
 export interface SecurityCapabilities {
   /** Indicates support for TLS 1.0. */
-  'TLS1.0': boolean;
+  'TLS1.0'?: boolean;
   /** Indicates support for TLS 1.1. */
-  'TLS1.1': boolean;
+  'TLS1.1'?: boolean;
   /** Indicates support for TLS 1.2. */
-  'TLS1.2': boolean;
+  'TLS1.2'?: boolean;
   /** Indicates support for onboard key generation. */
-  onboardKeyGeneration: boolean;
+  onboardKeyGeneration?: boolean;
   /** Indicates support for access policy configuration. */
-  accessPolicyConfig: boolean;
+  accessPolicyConfig?: boolean;
   /** Indicates support for the ONVIF default access policy. */
-  defaultAccessPolicy: boolean;
+  defaultAccessPolicy?: boolean;
   /** Indicates support for IEEE 802.1X configuration. */
-  dot1X: boolean;
+  dot1X?: boolean;
   /** Indicates support for remote user configuration. Used when accessing another device. */
-  remoteUserHandling: boolean;
+  remoteUserHandling?: boolean;
   /** Indicates support for WS-Security X.509 token. */
-  'X.509Token': boolean;
+  'X.509Token'?: boolean;
   /** Indicates support for WS-Security SAML token. */
-  SAMLToken: boolean;
+  SAMLToken?: boolean;
   /** Indicates support for WS-Security Kerberos token. */
-  kerberosToken: boolean;
+  kerberosToken?: boolean;
   /** Indicates support for WS-Security Username token. */
-  usernameToken: boolean;
+  usernameToken?: boolean;
   /** Indicates support for WS over HTTP digest authenticated communication layer. */
-  httpDigest: boolean;
+  httpDigest?: boolean;
   /** Indicates support for WS-Security REL token. */
-  RELToken: boolean;
+  RELToken?: boolean;
   /** Indicates support for JWT-based authentication with WS-Security Binary Security token. */
-  jsonWebToken: boolean;
+  jsonWebToken?: boolean;
   /** EAP Methods supported by the device. The int values refer to the IANA EAP Registry. */
-  supportedEAPMethods: IntList;
+  supportedEAPMethods?: IntList;
   /** The maximum number of users that the device supports. */
-  maxUsers: number;
+  maxUsers?: number;
   /** Maximum number of characters supported for the username by CreateUsers. */
-  maxUserNameLength: number;
+  maxUserNameLength?: number;
   /** Maximum number of characters supported for the password by CreateUsers and SetUser. */
-  maxPasswordLength: number;
+  maxPasswordLength?: number;
   /** Indicates which security policies are supported. Options are: ModifyPassword, PasswordComplexity, AuthFailureWarnings */
-  securityPolicies: StringList;
+  securityPolicies?: StringList;
   /** Maximum number of passwords that the device can remember for each user */
-  maxPasswordHistory: number;
+  maxPasswordHistory?: number;
   /** Supported hashing algorithms as part of HTTP and RTSP Digest authentication.Example: MD5,SHA-256 */
-  hashingAlgorithms: StringList;
+  hashingAlgorithms?: StringList;
 }
 export interface SystemCapabilities {
   /** Indicates support for WS Discovery resolve requests. */
-  discoveryResolve: boolean;
+  discoveryResolve?: boolean;
   /** Indicates support for WS-Discovery Bye. */
-  discoveryBye: boolean;
+  discoveryBye?: boolean;
   /** Indicates support for remote discovery. */
-  remoteDiscovery: boolean;
+  remoteDiscovery?: boolean;
   /** Indicates support for system backup through MTOM. */
-  systemBackup: boolean;
+  systemBackup?: boolean;
   /** Indicates support for retrieval of system logging through MTOM. */
-  systemLogging: boolean;
+  systemLogging?: boolean;
   /** Indicates support for firmware upgrade through MTOM. */
-  firmwareUpgrade: boolean;
+  firmwareUpgrade?: boolean;
   /** Indicates support for firmware upgrade through HTTP. */
-  httpFirmwareUpgrade: boolean;
+  httpFirmwareUpgrade?: boolean;
   /** Indicates support for system backup through HTTP. */
-  httpSystemBackup: boolean;
+  httpSystemBackup?: boolean;
   /** Indicates support for retrieval of system logging through HTTP. */
-  httpSystemLogging: boolean;
+  httpSystemLogging?: boolean;
   /** Indicates support for retrieving support information through HTTP. */
-  httpSupportInformation: boolean;
+  httpSupportInformation?: boolean;
   /** Indicates support for storage configuration interfaces. */
-  storageConfiguration: boolean;
+  storageConfiguration?: boolean;
   /** Indicates maximum number of storage configurations supported. */
-  maxStorageConfigurations: number;
+  maxStorageConfigurations?: number;
   /** If present signals support for geo location. The value signals the supported number of entries. */
-  geoLocationEntries: number;
+  geoLocationEntries?: number;
   /** List of supported automatic GeoLocation adjustment supported by the device. Valid items are defined by tds:AutoGeoMode. */
-  autoGeo: StringAttrList;
+  autoGeo?: StringAttrList;
   /** Enumerates the supported StorageTypes, see tds:StorageType. */
-  storageTypesSupported: StringAttrList;
+  storageTypesSupported?: StringAttrList;
   /** Indicates no support for network discovery. */
-  discoveryNotSupported: boolean;
+  discoveryNotSupported?: boolean;
   /** Indicates no support for network configuration. */
-  networkConfigNotSupported: boolean;
+  networkConfigNotSupported?: boolean;
   /** Indicates no support for user configuration. */
-  userConfigNotSupported: boolean;
+  userConfigNotSupported?: boolean;
   /** List of supported Addons by the device. */
-  addons: StringAttrList;
+  addons?: StringAttrList;
   /** Indicates what type of device this is. See tt:HardwareTypes for available options. */
-  hardwareType: string;
+  hardwareType?: string;
 }
 export interface MiscCapabilities {
   /** Lists of commands supported by SendAuxiliaryCommand. */
-  auxiliaryCommands: StringAttrList;
+  auxiliaryCommands?: StringAttrList;
 }
 export interface Extension {}
 export interface UserCredential {
@@ -214,7 +214,7 @@ export interface StorageConfigurationData {
   /** tds:StorageType lists the acceptable values for type attribute */
   type: string;
   /** Optional region of the storage server */
-  region: string;
+  region?: string;
   /** Local path */
   localPath?: AnyURI;
   /** Storage server address */
@@ -514,7 +514,7 @@ export interface SetDynamicDNS {
   /** DNS name. */
   name?: DNSName;
   /** DNS record time to live. */
-  TTL?: string;
+  TTL?: Duration;
 }
 export interface SetDynamicDNSResponse {}
 export interface GetNetworkInterfaces {}
@@ -746,13 +746,13 @@ export interface GetSystemUrisResponse {
 export interface StartFirmwareUpgrade {}
 export interface StartFirmwareUpgradeResponse {
   uploadUri: AnyURI;
-  uploadDelay: string;
-  expectedDownTime: string;
+  uploadDelay: Duration;
+  expectedDownTime: Duration;
 }
 export interface StartSystemRestore {}
 export interface StartSystemRestoreResponse {
   uploadUri: AnyURI;
-  expectedDownTime: string;
+  expectedDownTime: Duration;
 }
 export interface SetHashingAlgorithm {
   /** Hashing algorithm(s) used in HTTP and RTSP Digest Authentication. */

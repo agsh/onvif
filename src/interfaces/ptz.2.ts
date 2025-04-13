@@ -12,6 +12,7 @@ import {
   PTZPresetTourOperation,
 } from './onvif';
 import { ReferenceToken, PTZStatus, PTZVector, GeoLocation } from './common';
+import { Duration } from './basics';
 
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
@@ -127,7 +128,7 @@ export interface ContinuousMove {
   /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
   velocity: PTZSpeed;
   /** An optional Timeout parameter. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface ContinuousMoveResponse {}
 export interface RelativeMove {

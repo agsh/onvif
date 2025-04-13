@@ -11,7 +11,7 @@ export type mimeType = string;
  */
 export interface RegisterDatabase extends CapabilityType {
   serviceID: AnyURI;
-  recordingSearchInterfaceRegistration: boolean;
+  recordingSearchInterfaceRegistration?: boolean;
   extension?: RegisterDatabaseExtension;
 }
 export interface RegisterDatabaseExtension {}

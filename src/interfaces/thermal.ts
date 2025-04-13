@@ -34,9 +34,9 @@ export interface NUCTable {
   /** Unique identifier of this NUC Table. */
   token: ReferenceToken;
   /** Low Temperature limit for application of NUC Table, in Kelvin. */
-  lowTemperature: number;
+  lowTemperature?: number;
   /** High Temperature limit for application of NUC Table, in Kelvin. */
-  highTemperature: number;
+  highTemperature?: number;
   /** User reabable name for the Non-Uniformity Correction (NUC) Table. */
   name: Name;
 }

@@ -31,17 +31,17 @@ import {
 
 export interface Capabilities {
   /** Indicates if GetSnapshotUri is supported. */
-  snapshotUri: boolean;
+  snapshotUri?: boolean;
   /** Indicates whether or not Rotation feature is supported. */
-  rotation: boolean;
+  rotation?: boolean;
   /** Indicates the support for changing video source mode. */
-  videoSourceMode: boolean;
+  videoSourceMode?: boolean;
   /** Indicates if OSD is supported. */
-  OSD: boolean;
+  OSD?: boolean;
   /** Indicates the support for temporary osd text configuration. */
-  temporaryOSDText: boolean;
+  temporaryOSDText?: boolean;
   /** Indicates the support for the Efficient XML Interchange (EXI) binary XML format. */
-  EXICompression: boolean;
+  EXICompression?: boolean;
   /** Media profile capabilities. */
   profileCapabilities: ProfileCapabilities;
   /** Streaming capabilities. */
@@ -49,25 +49,25 @@ export interface Capabilities {
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles supported. */
-  maximumNumberOfProfiles: number;
+  maximumNumberOfProfiles?: number;
 }
 export interface StreamingCapabilities {
   /** Indicates support for RTP multicast. */
-  RTPMulticast: boolean;
+  RTPMulticast?: boolean;
   /** Indicates support for RTP over TCP. */
-  RTP_TCP: boolean;
+  RTP_TCP?: boolean;
   /** Indicates support for RTP/RTSP/TCP. */
-  RTP_RTSP_TCP: boolean;
+  RTP_RTSP_TCP?: boolean;
   /** Indicates support for non aggregate RTSP control. */
-  nonAggregateControl: boolean;
+  nonAggregateControl?: boolean;
   /** Indicates the device does not support live media streaming via RTSP. */
-  noRTSPStreaming: boolean;
+  noRTSPStreaming?: boolean;
 }
 export interface VideoSourceMode {
   /** Indicate token for video source mode. */
   token: ReferenceToken;
   /** Indication of whether this mode is active. If active this value is true. In case of non-indication, it means as false. The value of true shall be had by only one video source mode. */
-  enabled: boolean;
+  enabled?: boolean;
   /** Max frame rate in frames per second for this video source mode. */
   maxFramerate: number;
   /** Max horizontal and vertical resolution for this video source mode. */

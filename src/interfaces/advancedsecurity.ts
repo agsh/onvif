@@ -1,4 +1,4 @@
-import { NCName, AnyURI } from './basics';
+import { NCName, AnyURI, Duration } from './basics';
 import { PositiveInteger } from './types';
 import { DeviceEntity, StringList, Date } from './onvif';
 import { ReferenceToken } from './common';
@@ -207,9 +207,9 @@ export interface PassphraseAttribute {
 /** The capabilities of the 802.1X implementation on a device. */
 export interface Dot1XCapabilities {
   /** The maximum number of 802.1X configurations that may be defined simultaneously. */
-  maximumNumberOfDot1XConfigurations: PositiveInteger;
+  maximumNumberOfDot1XConfigurations?: PositiveInteger;
   /** The authentication methods supported by the 802.1X implementation. */
-  dot1XMethods: Dot1XMethods;
+  dot1XMethods?: Dot1XMethods;
 }
 /** The configuration parameters required for a particular authentication method. */
 export interface Dot1XStage {
@@ -260,45 +260,45 @@ export interface CertPathValidationPolicy {
 /** The capabilities of a keystore implementation on a device. */
 export interface KeystoreCapabilities {
   /** Indicates the maximum number of keys that the device can store simultaneously. */
-  maximumNumberOfKeys: PositiveInteger;
+  maximumNumberOfKeys?: PositiveInteger;
   /** Indicates the maximum number of certificates that the device can store simultaneously. */
-  maximumNumberOfCertificates: PositiveInteger;
+  maximumNumberOfCertificates?: PositiveInteger;
   /** Indicates the maximum number of certification paths that the device can store simultaneously. */
-  maximumNumberOfCertificationPaths: PositiveInteger;
+  maximumNumberOfCertificationPaths?: PositiveInteger;
   /** Indicates support for modifying an existing certification path or certification path validation policy. */
-  setCertPath: boolean;
+  setCertPath?: boolean;
   /** Indication that the device supports on-board RSA key pair generation. */
-  RSAKeyPairGeneration: boolean;
+  RSAKeyPairGeneration?: boolean;
   /** Indication that the device supports on-board ECC key pair generation. */
-  ECCKeyPairGeneration: boolean;
+  ECCKeyPairGeneration?: boolean;
   /** Indicates which RSA key lengths are supported by the device. */
-  RSAKeyLengths: RSAKeyLengths;
+  RSAKeyLengths?: RSAKeyLengths;
   /** Indicates which elliptic curves are supported by the device. */
-  ellipticCurves: EllipticCurves;
+  ellipticCurves?: EllipticCurves;
   /** Indicates support for creating PKCS#10 requests for keypairs and uploading the certificate obtained from a CA. */
-  PKCS10: boolean;
+  PKCS10?: boolean;
   /** Indicates support for creating self-signed certificates. */
-  selfSignedCertificateCreation: boolean;
+  selfSignedCertificateCreation?: boolean;
   /** Indicates which X.509 versions are supported by the device. */
-  X509Versions: X509Versions;
+  X509Versions?: X509Versions;
   /** Indicates the maximum number of passphrases that the device is able to store simultaneously. */
-  maximumNumberOfPassphrases: number;
+  maximumNumberOfPassphrases?: number;
   /** Indicates support for uploading a key pair in a PKCS#8 data structure. */
-  PKCS8: boolean;
+  PKCS8?: boolean;
   /** Indicates support for uploading a certificate along with a private key in a PKCS#12 data structure. */
-  PKCS12: boolean;
+  PKCS12?: boolean;
   /** Indicates which password-based encryption algorithms are supported by the device. */
-  passwordBasedEncryptionAlgorithms: PasswordBasedEncryptionAlgorithms;
+  passwordBasedEncryptionAlgorithms?: PasswordBasedEncryptionAlgorithms;
   /** Indicates which password-based MAC algorithms are supported by the device. */
-  passwordBasedMACAlgorithms: PasswordBasedMACAlgorithms;
+  passwordBasedMACAlgorithms?: PasswordBasedMACAlgorithms;
   /** Indicates the maximum number of CRLs that the device is able to store simultaneously. */
-  maximumNumberOfCRLs: number;
+  maximumNumberOfCRLs?: number;
   /** Indicates the maximum number of certification path validation policies that the device is able to store simultaneously. */
-  maximumNumberOfCertificationPathValidationPolicies: number;
+  maximumNumberOfCertificationPathValidationPolicies?: number;
   /** Indicates whether a device supports checking for the TLS WWW client auth extended key usage extension while validating certification paths. */
-  enforceTLSWebClientAuthExtKeyUsage: boolean;
+  enforceTLSWebClientAuthExtKeyUsage?: boolean;
   /** Indicates the device requires that each certificate with private key has its own unique key. */
-  noPrivateKeySharing: boolean;
+  noPrivateKeySharing?: boolean;
   /** The signature algorithms supported by the keystore implementation. */
   signatureAlgorithms?: AlgorithmIdentifier[];
   anyElement?: anyElement;
@@ -306,23 +306,23 @@ export interface KeystoreCapabilities {
 /** The capabilities of a TLS server implementation on a device. */
 export interface TLSServerCapabilities {
   /** Indicates which TLS versions are supported by the device. */
-  TLSServerSupported: TLSVersions;
+  TLSServerSupported?: TLSVersions;
   /** Indicates whether the device supports enabling and disabling specific TLS versions. */
-  enabledVersionsSupported: boolean;
+  enabledVersionsSupported?: boolean;
   /** Indicates the maximum number of certification paths that may be assigned to the TLS server simultaneously. */
-  maximumNumberOfTLSCertificationPaths: PositiveInteger;
+  maximumNumberOfTLSCertificationPaths?: PositiveInteger;
   /** Indicates whether the device supports TLS client authentication. */
-  TLSClientAuthSupported: boolean;
+  TLSClientAuthSupported?: boolean;
   /** Indicates whether the device supports TLS client authorization using common name to local user mapping. */
-  cnMapsToUserSupported: boolean;
+  cnMapsToUserSupported?: boolean;
   /** Indicates the maximum number of certification path validation policies that may be assigned to the TLS server simultaneously. */
-  maximumNumberOfTLSCertificationPathValidationPolicies: number;
+  maximumNumberOfTLSCertificationPathValidationPolicies?: number;
 }
 export interface AuthorizationServerConfigurationData {
   /** The type of configuration, tas:AuthorizationServerConfigurationType lists the acceptable values */
   type: string;
   /** How to authenticate with the server, tas:ClientAuthenticationMethod lists the acceptable values */
-  clientAuth: string;
+  clientAuth?: string;
   /** Authorization server address */
   serverUri: AnyURI;
   /** Client identifier issued by the authorization server */
@@ -343,18 +343,18 @@ export interface AuthorizationServerConfiguration extends DeviceEntity {
 }
 export interface AuthorizationServerConfigurationCapabilities {
   /** Indicates maximum number of authorization server configurations supported. */
-  maxConfigurations: number;
+  maxConfigurations?: number;
   /** Enumerates the supported authorization server configuration types, see tas:AuthorizationServerConfigurationType. */
-  configurationTypesSupported: StringList;
+  configurationTypesSupported?: StringList;
   /** Enumerates the supported client authentication methods, see tas:ClientAuthenticationMethod. */
-  clientAuthenticationMethodsSupported: StringList;
+  clientAuthenticationMethodsSupported?: StringList;
 }
 /** The capabilities for signing media on a device. */
 export interface MediaSigningCapabilities {
   /** Indicates whether the device supports signing of media according to the Media Signing Specification. */
-  mediaSigningSupported: boolean;
+  mediaSigningSupported?: boolean;
   /** Indicates whether the device supports signing of media using another key than the factory provisioned one. */
-  userMediaSigningKeySupported: boolean;
+  userMediaSigningKeySupported?: boolean;
 }
 /** The capabilities of a Security Configuration Service implementation on a device. */
 export interface Capabilities {
@@ -402,7 +402,7 @@ export interface CreateRSAKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime: string;
+  estimatedCreationTime: Duration;
 }
 export interface CreateECCKeyPair {
   /** The name of the elliptic curve to be used for generating the ECC keypair. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field. */
@@ -414,7 +414,7 @@ export interface CreateECCKeyPairResponse {
   /** The key ID of the key pair being generated. */
   keyID: KeyID;
   /** Best-effort estimate of how long the key generation will take. */
-  estimatedCreationTime: string;
+  estimatedCreationTime: Duration;
 }
 export interface UploadKeyPairInPKCS8 {
   /** The key pair to be uploaded in a PKCS#8 data structure. */

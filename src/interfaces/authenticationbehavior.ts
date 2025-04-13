@@ -47,13 +47,13 @@ export interface ServiceCapabilities {
    * SetSecurityLevel, the
    * value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
   /**
    * A list of supported authentication modes (including custom modes).
    * This field is optional, and when omitted, the client shall assume that the
    * device supports "pt:SingleCredential" only.
    */
-  supportedAuthenticationModes: StringList;
+  supportedAuthenticationModes?: StringList;
 }
 /**
  * The AuthenticationProfileInfo structure contains information of a specific authentication

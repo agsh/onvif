@@ -49,25 +49,25 @@ export type TransportProtocol =
 export type MaskType = 'Color' | 'Pixelated' | 'Blurred';
 export interface Capabilities2 {
   /** Indicates if GetSnapshotUri is supported. */
-  snapshotUri: boolean;
+  snapshotUri?: boolean;
   /** Indicates whether or not Rotation feature is supported. */
-  rotation: boolean;
+  rotation?: boolean;
   /** Indicates the support for changing video source mode. */
-  videoSourceMode: boolean;
+  videoSourceMode?: boolean;
   /** Indicates if OSD is supported. */
-  OSD: boolean;
+  OSD?: boolean;
   /** Indicates the support for temporary osd text configuration. */
-  temporaryOSDText: boolean;
+  temporaryOSDText?: boolean;
   /** Indicates if Masking is supported. */
-  mask: boolean;
+  mask?: boolean;
   /**
    * Indicates that privacy masks are only supported at the video source level and not the video source configuration level.
    * If this is true any addition, deletion or change of a privacy mask done for one video source configuration will automatically be
    * applied by the device to a corresponding privacy mask for all other video source configuration associated with the same video source.
    */
-  sourceMask: boolean;
+  sourceMask?: boolean;
   /** Indicates number of supported WebRTC configurations. */
-  webRTC: number;
+  webRTC?: number;
   /** Media profile capabilities. */
   profileCapabilities: ProfileCapabilities;
   /** Streaming capabilities. */
@@ -77,29 +77,29 @@ export interface Capabilities2 {
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles supported. */
-  maximumNumberOfProfiles: number;
+  maximumNumberOfProfiles?: number;
   /** The configurations supported by the device as defined by tr2:ConfigurationEnumeration. The enumeration value "All" shall not be included in this list. */
-  configurationsSupported: StringAttrList;
+  configurationsSupported?: StringAttrList;
 }
 export interface StreamingCapabilities {
   /** Indicates support for live media streaming via RTSP. */
-  RTSPStreaming: boolean;
+  RTSPStreaming?: boolean;
   /** Indicates support for RTP multicast. */
-  RTPMulticast: boolean;
+  RTPMulticast?: boolean;
   /** Indicates support for RTP/RTSP/TCP. */
-  RTP_RTSP_TCP: boolean;
+  RTP_RTSP_TCP?: boolean;
   /** Indicates support for non aggregate RTSP control. */
-  nonAggregateControl: boolean;
+  nonAggregateControl?: boolean;
   /** If streaming over WebSocket is supported, this shall return the RTSP WebSocket URI as described in Streaming Specification Section 5.1.1.5. */
-  RTSPWebSocketUri: AnyURI;
+  RTSPWebSocketUri?: AnyURI;
   /** Indicates support for non-RTSP controlled multicast streaming. */
-  autoStartMulticast: boolean;
+  autoStartMulticast?: boolean;
   /** Indicates support for live media streaming via RTSPS and SRTP. */
-  secureRTSPStreaming: boolean;
+  secureRTSPStreaming?: boolean;
 }
 export interface MediaSigningCapabilities {
   /** Indicates whether the device supports signing of media according to the Media Signing Specification. */
-  mediaSigningSupported: boolean;
+  mediaSigningSupported?: boolean;
 }
 export interface ConfigurationRef {
   /** Type of the configuration as defined by tr2:ConfigurationEnumeration. */
@@ -141,7 +141,7 @@ export interface MediaProfile {
   /** Unique identifier of the profile. */
   token: ReferenceToken;
   /** A value of true signals that the profile cannot be deleted. Default is false. */
-  fixed: boolean;
+  fixed?: boolean;
   /** User readable name of the profile. */
   name: Name;
   /** The configurations assigned to the profile. */
@@ -174,7 +174,7 @@ export interface VideoSourceMode {
   /** Indicate token for video source mode. */
   token: ReferenceToken;
   /** Indication of whether this mode is active. If active this value is true. In case of non-indication, it means as false. The value of true shall be had by only one video source mode. */
-  enabled: boolean;
+  enabled?: boolean;
   /** Max frame rate in frames per second for this video source mode. */
   maxFramerate: number;
   /** Max horizontal and vertical resolution for this video source mode. */
@@ -188,7 +188,7 @@ export interface VideoSourceMode {
 }
 export interface Mask {
   /** Token of the mask. */
-  token: ReferenceToken;
+  token?: ReferenceToken;
   /** Token of the VideoSourceConfiguration the Mask is associated with. */
   configurationToken: ReferenceToken;
   /** Geometric representation of the mask area. */
@@ -209,9 +209,9 @@ export interface Mask {
 }
 export interface MaskOptions {
   /** Information whether the polygon must have four points and a rectangular shape. */
-  rectangleOnly: boolean;
+  rectangleOnly?: boolean;
   /** Indicates the device capability of change in color of privacy mask for one video source configuration will automatically be applied to all the privacy masks associated with the same video source configuration. */
-  singleColorOnly: boolean;
+  singleColorOnly?: boolean;
   /** Maximum supported number of masks per VideoSourceConfiguration. */
   maxMasks: number;
   /** Maximum supported number of points per mask. */

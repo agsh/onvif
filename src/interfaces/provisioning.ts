@@ -1,5 +1,6 @@
 import { PositiveInteger } from './types';
 import { ReferenceToken } from './common';
+import { Duration } from './basics';
 
 /** The direction for PanMove to move the device. */
 export type PanDirection = 'Left' | 'Right';
@@ -29,24 +30,24 @@ export interface SourceCapabilities {
   /** Unique identifier of a video source. */
   videoSourceToken: ReferenceToken;
   /** Lifetime limit of pan moves for this video source.  Presence of this attribute indicates support of pan move. */
-  maximumPanMoves: PositiveInteger;
+  maximumPanMoves?: PositiveInteger;
   /** Lifetime limit of tilt moves for this video source.  Presence of this attribute indicates support of tilt move. */
-  maximumTiltMoves: PositiveInteger;
+  maximumTiltMoves?: PositiveInteger;
   /** Lifetime limit of zoom moves for this video source.  Presence of this attribute indicates support of zoom move. */
-  maximumZoomMoves: PositiveInteger;
+  maximumZoomMoves?: PositiveInteger;
   /** Lifetime limit of roll moves for this video source.  Presence of this attribute indicates support of roll move. */
-  maximumRollMoves: PositiveInteger;
+  maximumRollMoves?: PositiveInteger;
   /** Indicates "auto" as a valid enum for Direction in RollMove. */
-  autoLevel: boolean;
+  autoLevel?: boolean;
   /** Lifetime limit of focus moves for this video source.  Presence of this attribute indicates support of focus move. */
-  maximumFocusMoves: PositiveInteger;
+  maximumFocusMoves?: PositiveInteger;
   /** Indicates "auto" as a valid enum for Direction in FocusMove. */
-  autoFocus: boolean;
+  autoFocus?: boolean;
 }
 /** The capabilities of Provisioning Service on the device. */
 export interface Capabilities {
   /** Maximum time before stopping movement after a move operation. */
-  defaultTimeout: string;
+  defaultTimeout: Duration;
   /** Capabilities per video source. */
   source?: SourceCapabilities[];
 }
@@ -61,7 +62,7 @@ export interface PanMove {
   /** "left" or "right". */
   direction: PanDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface PanMoveResponse {}
 export interface TiltMove {
@@ -70,7 +71,7 @@ export interface TiltMove {
   /** "up" or "down". */
   direction: TiltDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface TiltMoveResponse {}
 export interface ZoomMove {
@@ -79,7 +80,7 @@ export interface ZoomMove {
   /** "wide" or "telephoto". */
   direction: ZoomDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface ZoomMoveResponse {}
 export interface RollMove {
@@ -88,7 +89,7 @@ export interface RollMove {
   /** "clockwise", "counterclockwise", or "auto". */
   direction: RollDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface RollMoveResponse {}
 export interface FocusMove {
@@ -97,7 +98,7 @@ export interface FocusMove {
   /** "near", "far", or "auto". */
   direction: FocusDirection;
   /** "Operation timeout, if less than default timeout. */
-  timeout?: string;
+  timeout?: Duration;
 }
 export interface FocusMoveResponse {}
 export interface Stop {

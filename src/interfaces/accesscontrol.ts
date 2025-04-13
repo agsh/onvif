@@ -53,28 +53,28 @@ export interface ServiceCapabilities {
    */
   maxLimit: number;
   /** Indicates the maximum number of access points supported by the device. */
-  maxAccessPoints: number;
+  maxAccessPoints?: number;
   /** Indicates the maximum number of areas supported by the device. */
-  maxAreas: number;
+  maxAreas?: number;
   /**
    * Indicates that the client is allowed to supply the token when creating access
    * points and areas.
    * To enable the use of the commands SetAccessPoint and SetArea, the value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
   /**
    * Indicates that the client can perform CRUD operations (create, read, update and delete)
    * on access points. To enable the use of the commands GetAccessPoints, GetAccessPointList,
    * CreateAccessPoint, ModifyAccessPoint, DeleteAccessPoint, SetAccessPointAuthenticationProfile
    * and DeleteAccessPointAuthenticationProfile, the value must be set to true.
    */
-  accessPointManagementSupported: boolean;
+  accessPointManagementSupported?: boolean;
   /**
    * Indicates that the client can perform CRUD operations (create, read, update and delete)
    * on areas. To enable the use of the commands GetAreas, GetAreaList, CreateArea, ModifyArea
    * and DeleteArea, the value must be set to true.
    */
-  areaManagementSupported: boolean;
+  areaManagementSupported?: boolean;
 }
 /** Used as extension base for AccessPointInfo. */
 export interface AccessPointInfoBase extends DataEntity {
@@ -143,25 +143,25 @@ export interface AccessPointCapabilities {
    */
   disableAccessPoint: boolean;
   /** Indicates whether or not this AccessPoint instance supports generation of duress events. */
-  duress: boolean;
+  duress?: boolean;
   /**
    * Indicates whether or not this AccessPoint has a REX switch or other input that
    * allows anonymous access.
    */
-  anonymousAccess: boolean;
+  anonymousAccess?: boolean;
   /**
    * Indicates whether or not this AccessPoint instance supports generation of
    * AccessTaken and AccessNotTaken events. If AnonymousAccess and AccessTaken are both true, it
    * indicates that the Anonymous versions of AccessTaken and AccessNotTaken are supported.
    */
-  accessTaken: boolean;
+  accessTaken?: boolean;
   /**
    * Indicates whether or not this AccessPoint instance supports the
    * ExternalAuthorization operation and the generation of Request events. If AnonymousAccess and
    * ExternalAuthorization are both true, it indicates that the Anonymous version is supported as
    * well.
    */
-  externalAuthorization: boolean;
+  externalAuthorization?: boolean;
   /**
    * A list of recognition types that the device supports. This field is only relevant for devices
    * that are not aware of security levels (see [ONVIF Authentication Behavior Service Specification]).
@@ -171,7 +171,7 @@ export interface AccessPointCapabilities {
    * types as defined in pt:RecognitionType. For custom defined identifier types, free text
    * can be used.
    */
-  supportedRecognitionTypes: StringList;
+  supportedRecognitionTypes?: StringList;
   /**
    * Indicates whether or not this access point supports the AccessControl/Request/Identifier
    * event to request external authorization.
@@ -180,13 +180,13 @@ export interface AccessPointCapabilities {
    * knowledge of credential tokens. When IdentifierAccess is set to true then the device
    * must support the identifier events.
    */
-  identifierAccess: boolean;
+  identifierAccess?: boolean;
   /**
    * List of supported feedback types. Feedback types starting with the prefix pt:
    * are reserved to define ONVIF-specific types as defined in tac:FeedbackType.
    * For custom defined feedback types, free text can be used.
    */
-  supportedFeedbackTypes: StringList;
+  supportedFeedbackTypes?: StringList;
   /**
    * A list of security level tokens that this access point supports.
    * See [Authentication Behavior Service Specification].

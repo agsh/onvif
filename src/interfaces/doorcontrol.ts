@@ -1,5 +1,6 @@
 import { DataEntity } from './types';
 import { Name, Description } from './onvif';
+import { Duration } from './basics';
 import { ReferenceToken } from './common';
 
 /** The physical state of a Door. */
@@ -38,18 +39,18 @@ export interface ServiceCapabilities {
    */
   maxLimit: number;
   /** Indicates the maximum number of doors supported by the device. */
-  maxDoors: number;
+  maxDoors?: number;
   /**
    * Indicates that the client is allowed to supply the token when creating doors.
    * To enable the use of the command SetDoor, the value must be set to true.
    */
-  clientSuppliedTokenSupported: boolean;
+  clientSuppliedTokenSupported?: boolean;
   /**
    * Indicates that the client can perform CRUD operations (create, read, update and delete)
    * on doors. To enable the use of the commands GetDoors, GetDoorList, CreateDoor, ModifyDoor
    * and DeleteDoor, the value must be set to true.
    */
-  doorManagementSupported: boolean;
+  doorManagementSupported?: boolean;
 }
 /** Used as extension base. */
 export interface DoorInfoBase extends DataEntity {
@@ -98,36 +99,36 @@ export interface Timings {
    * ReleaseTime is the time from when the latch is unlocked until it is
    * relocked again (unless the door is physically opened).
    */
-  releaseTime: string;
+  releaseTime: Duration;
   /**
    * The time from when the door is physically opened until the door is set in the
    * DoorOpenTooLong alarm state.
    */
-  openTime: string;
+  openTime: Duration;
   /**
    * Some individuals need extra time to open the door before the latch relocks.
    * If supported, ExtendedReleaseTime shall be added to ReleaseTime if UseExtendedTime
    * is set to true in the AccessDoor command.
    */
-  extendedReleaseTime?: string;
+  extendedReleaseTime?: Duration;
   /**
    * If the door is physically opened after access is granted,
    * then DelayTimeBeforeRelock is the time from when the door is physically
    * opened until the latch goes back to locked state.
    */
-  delayTimeBeforeRelock?: string;
+  delayTimeBeforeRelock?: Duration;
   /**
    * Some individuals need extra time to pass through the door. If supported,
    * ExtendedOpenTime shall be added to OpenTime if UseExtendedTime is set to true
    * in the AccessDoor command.
    */
-  extendedOpenTime?: string;
+  extendedOpenTime?: Duration;
   /**
    * Before a DoorOpenTooLong alarm state is generated, a signal will sound to indicate
    * that the door must be closed. PreAlarmTime defines how long before DoorOpenTooLong
    * the warning signal shall sound.
    */
-  preAlarmTime?: string;
+  preAlarmTime?: Duration;
   extension?: TimingsExtension;
 }
 export interface TimingsExtension {}
@@ -142,72 +143,72 @@ export interface DoorCapabilities {
    * Indicates whether or not this Door instance supports AccessDoor command to
    * perform momentary access.
    */
-  access: boolean;
+  access?: boolean;
   /**
    * Indicates that this Door instance supports overriding configured timing in the
    * AccessDoor command.
    */
-  accessTimingOverride: boolean;
+  accessTimingOverride?: boolean;
   /**
    * Indicates that this Door instance supports LockDoor command to lock the
    * door.
    */
-  lock: boolean;
+  lock?: boolean;
   /**
    * Indicates that this Door instance supports UnlockDoor command to unlock the
    * door.
    */
-  unlock: boolean;
+  unlock?: boolean;
   /**
    * Indicates that this Door instance supports BlockDoor command to block the
    * door.
    */
-  block: boolean;
+  block?: boolean;
   /**
    * Indicates that this Door instance supports DoubleLockDoor command to lock
    * multiple locks on the door.
    */
-  doubleLock: boolean;
+  doubleLock?: boolean;
   /**
    * Indicates that this Door instance supports LockDown (and LockDownRelease)
    * commands to lock the door and put it in LockedDown mode.
    */
-  lockDown: boolean;
+  lockDown?: boolean;
   /**
    * Indicates that this Door instance supports LockOpen (and LockOpenRelease)
    * commands to unlock the door and put it in LockedOpen mode.
    */
-  lockOpen: boolean;
+  lockOpen?: boolean;
   /**
    * Indicates that this Door instance has a DoorMonitor and supports the
    * DoorPhysicalState event.
    */
-  doorMonitor: boolean;
+  doorMonitor?: boolean;
   /**
    * Indicates that this Door instance has a LockMonitor and supports the
    * LockPhysicalState event.
    */
-  lockMonitor: boolean;
+  lockMonitor?: boolean;
   /**
    * Indicates that this Door instance has a DoubleLockMonitor and supports the
    * DoubleLockPhysicalState event.
    */
-  doubleLockMonitor: boolean;
+  doubleLockMonitor?: boolean;
   /**
    * Indicates that this Door instance supports door alarm and the DoorAlarm
    * event.
    */
-  alarm: boolean;
+  alarm?: boolean;
   /**
    * Indicates that this Door instance has a Tamper detector and supports the
    * DoorTamper event.
    */
-  tamper: boolean;
+  tamper?: boolean;
   /**
    * Indicates that this Door instance supports door fault and the DoorFault
    * event.
    */
-  fault: boolean;
+  fault?: boolean;
 }
 /** The DoorState structure contains current aggregate runtime status of Door. */
 export interface DoorState {
@@ -390,11 +391,11 @@ export interface AccessDoor {
    */
   useExtendedTime?: boolean;
   /** Optional - overrides ReleaseTime if specified. */
-  accessTime?: string;
+  accessTime?: Duration;
   /** Optional - overrides OpenTime if specified. */
-  openTooLongTime?: string;
+  openTooLongTime?: Duration;
   /** Optional - overrides PreAlarmTime if specified. */
-  preAlarmTime?: string;
+  preAlarmTime?: Duration;
   /** Future extension. */
   extension?: AccessDoorExtension;
 }
