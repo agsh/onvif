@@ -1,3 +1,10 @@
+/**
+ * PTZ ver20 module
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ * @see https://www.onvif.org/onvif/ver20/ptz/wsdl/ptz.wsdl
+ * @see https://www.onvif.org/specs/srv/ptz/ONVIF-PTZ-Service-Spec-v1712.pdf
+ */
+
 import { Onvif } from './onvif';
 import { linerase } from './utils';
 import { PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
@@ -8,7 +15,7 @@ import {
 } from './interfaces/onvif';
 import {
   AbsoluteMove,
-  ContinuousMove, GetConfigurationOptions, GetPresets,
+  ContinuousMove, GetConfiguration, GetConfigurationOptions, GetPresets,
   GetStatus,
   GotoHomePosition, GotoPreset,
   RelativeMove, RemovePreset,
@@ -179,6 +186,33 @@ export class PTZ {
   }
 
   /**
+   * Get a specific PTZconfiguration from the device, identified by its reference token or name.
+   *
+   * The default Position/Translation/Velocity Spaces are introduced to allow NVCs sending move requests without
+   * the need to specify a certain coordinate system. The default Speeds are introduced to control the speed of move
+   * requests (absolute, relative, preset), where no explicit speed has been set.
+   *
+   * The allowed pan and tilt range for Pan/Tilt Limits is defined by a two-dimensional space range that is mapped
+   * to a specific Absolute Pan/Tilt Position Space. At least one Pan/Tilt Position Space is required by the PTZNode
+   * to support Pan/Tilt limits. The limits apply to all supported absolute, relative and continuous Pan/Tilt movements.
+   * The limits shall be checked within the coordinate system for which the limits have been specified. That means that
+   * even if movements are specified in a different coordinate system, the requested movements shall be transformed
+   * to the coordinate system of the limits where the limits can be checked. When a relative or continuous movements
+   * is specified, which would leave the specified limits, the PTZ unit has to move along the specified limits.
+   * The Zoom Limits have to be interpreted accordingly.
+   * @param options
+   */
+  async getConfiguration(options: GetConfiguration): Promise<PTZConfiguration> {
+    const [data] = await this.onvif.request({
+      service : 'PTZ',
+      body    : '<GetConfiguration xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
+        + `<PTZConfigurationToken>${options.PTZConfigurationToken}</PTZConfigurationToken>`
+        + '</GetConfiguration>',
+    });
+    return linerase(data).getConfigurationResponse.PTZConfiguration;
+  }
+
+  /**
    * List supported coordinate systems including their range limitations.
    * Therefore, the options MAY differ depending on whether the PTZ Configuration is assigned to a Profile containing
    * a Video Source Configuration. In that case, the options may additionally contain coordinate systems referring to
@@ -211,7 +245,7 @@ export class PTZ {
     });
     this.#presets = {};
     const result = linerase(data[0].getPresetsResponse, { array : ['preset'] }).preset;
-    result.forEach((preset: PTZPreset) => { this.#presets[preset.token] = preset; });
+    result.forEach((preset: PTZPreset) => { this.#presets[preset.token!] = preset; });
     return this.#presets;
   }
 
