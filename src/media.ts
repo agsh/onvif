@@ -54,7 +54,13 @@ import {
   GetCompatibleAudioEncoderConfigurations,
   GetCompatibleVideoAnalyticsConfigurations,
   GetCompatibleMetadataConfigurations,
-  GetCompatibleAudioOutputConfigurations, GetCompatibleAudioDecoderConfigurations,
+  GetCompatibleAudioOutputConfigurations,
+  GetCompatibleAudioDecoderConfigurations,
+  GetVideoSourceConfiguration,
+  GetVideoEncoderConfiguration,
+  GetAudioEncoderConfiguration,
+  GetAudioSourceConfiguration,
+  GetVideoAnalyticsConfiguration, GetMetadataConfiguration, GetAudioOutputConfiguration, GetAudioDecoderConfiguration,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -88,6 +94,13 @@ interface GetCompatibleConfigurations {
   entityName: string;
   /** Contains the token of an existing media profile the configurations shall be compatible with */
   profileToken: ReferenceToken;
+}
+
+interface GetConfiguration {
+  /** Configuration name */
+  entityName: string;
+  /** Token of the requested configuration. */
+  configurationToken: ReferenceToken;
 }
 
 function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
@@ -702,6 +715,7 @@ export class Media {
   async getCompatibleAudioEncoderConfigurations(options: GetCompatibleAudioEncoderConfigurations): Promise<AudioEncoderConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioEncoder', ...options });
   }
+
   /**
    * This operation requests all video analytic configurations of the device that are compatible with a certain media
    * profile. Each of the returned configurations shall be a valid input parameter for the
@@ -757,6 +771,122 @@ export class Media {
   @v1
   async getCompatibleAudioDecoderConfigurations(options: GetCompatibleAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioDecoder', ...options });
+  }
+
+  /**
+   * Common method to get configuration
+   * @private
+   * @param options
+   * @param options.entityName
+   * @param options.configurationToken
+   */
+  private async getConfiguration({ entityName, configurationToken }: GetConfiguration): Promise<ConfigurationExtended> {
+    const body = `<Get${entityName}Configuration xmlns="http://www.onvif.org/ver10/media/wsdl">`
+    + `<ConfigurationToken>${configurationToken}</ConfigurationToken>`
+    + `</Get${entityName}Configuration>`;
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body,
+    });
+    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationResponse`].configuration;
+  }
+
+  /**
+   * If the video source configuration token is already known, the video source configuration can be fetched through
+   * the GetVideoSourceConfiguration command. The device shall support retrieval of specific video source configurations
+   * through the GetVideoSourceConfiguration command
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getVideoSourceConfiguration(options: GetVideoSourceConfiguration): Promise<VideoSourceConfiguration> {
+    return this.getConfiguration({ entityName : 'VideoSource', ...options });
+  }
+
+  /**
+   * If the video encoder configuration token is already known, the encoder configuration can be fetched through the
+   * GetVideoEncoderConfiguration command. The device shall support the retrieval of a specific video encoder
+   * configuration through the GetVideoEncoderConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getVideoEncoderConfiguration(options: GetVideoEncoderConfiguration): Promise<VideoEncoderConfiguration> {
+    return this.getConfiguration({ entityName : 'VideoEncoder', ...options });
+  }
+
+  /**
+   * The GetAudioSourceConfiguration command fetches the audio source configurations if the audio source configuration
+   * token is already known. A device that supports audio streaming from device to client shall support
+   * the retrieval of a specific audio source configuration through the GetAudioSourceConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getAudioSourceConfiguration(options: GetAudioSourceConfiguration): Promise<AudioSourceConfiguration> {
+    return this.getConfiguration({ entityName : 'AudioSource', ...options });
+  }
+
+  /**
+   * The GetAudioEncoderConfiguration command fetches the encoder configuration if the audio encoder configuration
+   * token is known. A device that supports audio streaming from device to client shall support the listing of
+   * a specific audio encoder configuration through the GetAudioEncoderConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getAudioEncoderConfiguration(options: GetAudioEncoderConfiguration): Promise<AudioEncoderConfiguration> {
+    return this.getConfiguration({ entityName : 'AudioEncoder', ...options });
+  }
+
+  /**
+   * The GetVideoAnalyticsConfiguration command fetches the video analytics configuration if the video analytics
+   * token is known. A device that supports video analytics shall support the listing of a specific video analytics
+   * configuration through the GetVideoAnalyticsConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getVideoAnalyticsConfiguration(options: GetVideoAnalyticsConfiguration): Promise<VideoAnalyticsConfiguration> {
+    return this.getConfiguration({ entityName : 'VideoAnalytics', ...options });
+  }
+
+  /**
+   * The GetMetadataConfiguration command fetches the metadata configuration if the metadata token is known.
+   * A device or another device that supports metadata streaming shall support the listing of a specific metadata
+   * configuration through the GetMetadataConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
+    return this.getConfiguration({ entityName : 'Metadata', ...options });
+  }
+
+  /**
+   * If the audio output configuration token is already known, the output configuration can be fetched through the
+   * GetAudioOutputConfiguration command. An device that signals support for Audio outputs via its Device IO
+   * AudioOutputs capability shall support the retrieval of a specific audio output configuration through the
+   * GetAudioOutputConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getAudioOutputConfiguration(options: GetAudioOutputConfiguration): Promise<AudioOutputConfiguration> {
+    return this.getConfiguration({ entityName : 'AudioOutput', ...options });
+  }
+
+  /**
+   * If the audio decoder configuration token is already known, the decoder configuration can be fetched through
+   * the GetAudioDecoderConfiguration command. An device that signals support for Audio outputs via its Device
+   * IO AudioOutputs capability shall support the retrieval of a specific audio decoder configuration through the
+   * GetAudioDecoderConfiguration command.
+   * @param options
+   * @param options.configurationToken
+   */
+  @v1
+  async getAudioDecoderConfiguration(options: GetAudioDecoderConfiguration): Promise<AudioDecoderConfiguration> {
+    return this.getConfiguration({ entityName : 'AudioDecoder', ...options });
   }
 
   async getVideoSourceConfigurationOptions({ configurationToken, profileToken }: GetVideoSourceConfigurationOptions = {}):
@@ -968,8 +1098,9 @@ export class Media {
 function v1(originalMethod: any, context: ClassMethodDecoratorContext) {
   return function v1(this: any, ...args: any[]) {
     if (this.onvif.device.media2Support) {
-      this.onvif.emit('warn', `Media2 profile has support for this device, you can try to use \`${String(context.name)}\` `
-      + 'from `Media2 class`');
+      this.onvif.emit('warn', `Media2 profile has support for this device, you can try to use similar to \`${
+        String(context.name)
+      }' method from \`Media2 class\``);
     }
     return originalMethod.call(this, ...args);
   };

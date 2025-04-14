@@ -230,15 +230,20 @@ describe('Configurations', () => {
   describe('Get configurations', () => {
     Object
       .entries(configurationEntityFields)
-      .flatMap(([configurationName, properties]) => [[configurationName, properties], [`Compatible${configurationName}`, properties]])
+      .flatMap(([configurationName, properties]) => [
+        [`${configurationName}Configurations`, properties],
+        [`${configurationName}Configuration`, properties],
+        [`Compatible${configurationName}Configurations`, properties],
+      ])
       .forEach(([configurationName, properties]) => {
         describe(`${configurationName}`, () => {
           it('should return the full list of configurations', async () => {
             // @ts-expect-error just
-            const result = await cam.media[`get${configurationName}Configurations`]({
-              profileToken : 'ProfileToken_1',
+            let result = await cam.media[`get${configurationName}`]({
+              profileToken       : 'ProfileToken_1',
+              configurationToken : `${configurationName}Token_1`,
             });
-            expect(Array.isArray(result)).toBeTruthy();
+            if (!Array.isArray(result)) { result = [result]; }
             expect(result.length).toBeGreaterThan(0);
             result.forEach((configuration: any) => {
               (properties as string[]).forEach((property) => {

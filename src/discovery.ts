@@ -1,3 +1,8 @@
+/**
+ * Discovery module
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ */
+
 import { EventEmitter } from 'events';
 import { createSocket, RemoteInfo } from 'dgram';
 import url from 'url';

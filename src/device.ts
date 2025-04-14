@@ -1,3 +1,8 @@
+/**
+ * Device module
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ */
+
 import url from 'url';
 import {
   Onvif, OnvifServices, SetSystemDateAndTimeExtended,
