@@ -197,6 +197,7 @@ export class Media2 {
    * Common function to get configurations
    * @private
    * @param options
+   * @param options.entityName
    * @param options.profileToken
    * @param options.configurationToken
    */
@@ -372,7 +373,7 @@ export class Media2 {
 function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
   return function v2(this: any, ...args: any[]) {
     if (!this.onvif.device.media2Support) {
-      throw new Error('Media2 is not supported for this device');
+      throw new Error('Media2 profile is not supported for this device');
     }
     return originalMethod.call(this, ...args);
   };

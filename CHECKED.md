@@ -47,33 +47,32 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] parseEventXML
 - [x] getVideoSources.media1
 - [x] getAudioSources.media1
+- [x] getAudioOutputs.media1
 
-- [ ] getVideoSourceConfigurations.media1
+- [x] getVideoSourceConfigurations.media1
 - [x] getVideoSourceConfigurations.media2
-- [ ] getAudioSourceConfigurations.media1
+- [x] getAudioSourceConfigurations.media1
 - [x] getAudioSourceConfigurations.media2
-- [ ] getVideoEncoderConfigurations.media1
+- [x] getVideoEncoderConfigurations.media1
 - [x] getVideoEncoderConfigurations.media2
-- [ ] getAudioEncoderConfigurations.media1
+- [x] getAudioEncoderConfigurations.media1
 - [x] getAudioEncoderConfigurations.media2
-- [ ] getPTZConfiguration
-- [ ] GetVideoAnalyticsConfigurations.media1
+- [x] getVideoAnalyticsConfigurations.media1
 - [x] getAnalyticsConfigurations.media2
-- [ ] getMetadataConfigurations.media1
+- [x] getMetadataConfigurations.media1
 - [x] getMetadataConfigurations.media2
-- [ ] getAudioOutputConfigurations.media1
+- [x] getAudioOutputConfigurations.media1
 - [x] getAudioOutputConfigurations.media2
-- [ ] getAudioDecoderConfigurations.media1
+- [x] getAudioDecoderConfigurations.media1
 - [x] getAudioDecoderConfigurations.media2
  
-- [ ] getVideoSourceConfigurationOptions new
+- [ ] getVideoSourceConfigurationOptions
 - [ ] getVideoEncoderConfiguration
 - [ ] getVideoEncoderConfigurationOptions
 - [ ] setVideoEncoderConfiguration
 - [ ] getAudioEncoderConfiguration
 - [ ] getAudioEncoderConfigurationOptions
 - [ ] setAudioEncoderConfiguration
-- [ ] getAudioOutputs
 - [ ] getAudioOutputConfigurations
 - [x] addAudioEncoderConfiguration
 - [x] addAudioSourceConfiguration
@@ -152,4 +151,4 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-66/135 (48.9%)
+85/147 (57.8%)

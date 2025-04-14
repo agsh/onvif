@@ -1,6 +1,16 @@
 import { camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 
+const configurationEntityFields = {
+  'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
+  'AudioEncoder'   : ['encoding', 'bitrate', 'sampleRate'],
+  'VideoSource'    : ['sourceToken', 'bounds'],
+  'AudioSource'    : ['sourceToken'],
+  'VideoAnalytics' : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
+  'Metadata'       : ['multicast', 'sessionTimeout'],
+  'AudioOutput'    : ['outputToken', 'outputLevel'],
+  'AudioDecoder'   : [],
+};
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
@@ -90,19 +100,10 @@ describe('Profiles', () => {
   });
 });
 
-describe('Configurations', () => {
+describe('Add/remove configurations to the profile', () => {
   let profileToken: ReferenceToken;
-  const configurationNames = [
-    'VideoEncoderConfiguration',
-    'AudioEncoderConfiguration',
-    'VideoSourceConfiguration',
-    'AudioSourceConfiguration',
-    'VideoAnalyticsConfiguration',
-    'PTZConfiguration',
-    'MetadataConfiguration',
-    'AudioDecoderConfiguration',
-    'AudioOutputConfiguration',
-  ];
+  const configurationNames = Object.keys(configurationEntityFields);
+
   describe('Startup', () => {
     it('should create a new profile for the tests', async () => {
       const testProfile = await cam.media.createProfile({
@@ -120,7 +121,7 @@ describe('Configurations', () => {
     describe(`add${configurationName}`, () => {
       it('should throw an error if configuration token does not exist', async () => {
         // @ts-expect-error just
-        await expect(cam.media[`add${configurationName}`]({
+        await expect(cam.media[`add${configurationName}Configuration`]({
           profileToken,
           configurationToken : '???',
         })).rejects.toThrow('Config Not Exist');
@@ -128,7 +129,7 @@ describe('Configurations', () => {
 
       it('should throw an error if profile token does not exist', async () => {
         // @ts-expect-error just
-        await expect(cam.media[`add${configurationName}`]({
+        await expect(cam.media[`add${configurationName}Configuration`]({
           profileToken       : '???',
           configurationToken : '???',
         })).rejects.toThrow('Profile Not Exist');
@@ -136,15 +137,15 @@ describe('Configurations', () => {
 
       it('should add a new configuration to the existing profile', async () => {
         // @ts-expect-error just
-        const result = await cam.media[`add${configurationName}`]({
+        const result = await cam.media[`add${configurationName}Configuration`]({
           profileToken,
-          configurationToken : `${configurationName}Token_1`,
+          configurationToken : `${configurationName}ConfigurationToken_1`,
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
-        const methodName = camelCase(configurationName);
+        const methodName = camelCase(`${configurationName}Configuration`);
         // @ts-expect-error just
-        expect(profile[methodName] ?? profile.extension[methodName]).toBeDefined();
+        expect(profile[methodName] ?? profile.extension?.[methodName]).toBeDefined();
       });
     });
   });
@@ -160,19 +161,19 @@ describe('Configurations', () => {
     describe(`remove${configurationName}`, () => {
       it('should throw an error if profile token does not exist', async () => {
         // @ts-expect-error just
-        await expect(cam.media[`remove${configurationName}`]({
+        await expect(cam.media[`remove${configurationName}Configuration`]({
           profileToken : '???',
         })).rejects.toThrow('Profile Not Exist');
       });
 
       it('should remove a configuration from the existing profile', async () => {
         // @ts-expect-error just
-        const result = await cam.media[`remove${configurationName}`]({
+        const result = await cam.media[`remove${configurationName}Configuration`]({
           profileToken,
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
-        const methodName = camelCase(configurationName);
+        const methodName = camelCase(`${configurationName}Configuration`);
         // @ts-expect-error just
         expect(profile[methodName] ?? profile.extension?.[methodName]).toBeUndefined();
       });
@@ -181,7 +182,6 @@ describe('Configurations', () => {
 
   describe('Shutdown', () => {
     it('should remove test profile', async () => {
-      const profiles = await cam.media.getProfiles();
       await cam.media.deleteProfile({ profileToken });
     });
   });
@@ -206,6 +206,41 @@ describe('Sources', () => {
       result.forEach((audioSource) => {
         expect(audioSource.channels).toBeGreaterThanOrEqual(0);
         expect(audioSource.token).toBeDefined();
+      });
+    });
+  });
+
+  describe('getAudioOutputs', () => {
+    it('should return the list of the audio outputs', async () => {
+      const result = await cam.media.getAudioOutputs();
+      result.forEach((audioOutput) => {
+        expect(audioOutput.token).toBeDefined();
+      });
+    });
+  });
+});
+
+describe('Configurations', () => {
+  // describe('Preparation', () => {
+  //   it('should create a profile with the full list of the configurations', async () => {
+  //
+  //   });
+  // });
+
+  describe('Get configurations', () => {
+    Object.entries(configurationEntityFields).forEach(([configurationName, properties]) => {
+      describe(configurationName, () => {
+        it('should return the full list of configurations', async () => {
+          // @ts-expect-error just
+          const result = await cam.media[`get${configurationName}Configurations`]();
+          expect(Array.isArray(result)).toBeTruthy();
+          expect(result.length).toBeGreaterThan(0);
+          result.forEach((configuration: any) => {
+            properties.forEach((property) => {
+              expect(configuration).toHaveProperty(property);
+            });
+          });
+        });
       });
     });
   });
