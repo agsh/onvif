@@ -228,20 +228,25 @@ describe('Configurations', () => {
   // });
 
   describe('Get configurations', () => {
-    Object.entries(configurationEntityFields).forEach(([configurationName, properties]) => {
-      describe(configurationName, () => {
-        it('should return the full list of configurations', async () => {
-          // @ts-expect-error just
-          const result = await cam.media[`get${configurationName}Configurations`]();
-          expect(Array.isArray(result)).toBeTruthy();
-          expect(result.length).toBeGreaterThan(0);
-          result.forEach((configuration: any) => {
-            properties.forEach((property) => {
-              expect(configuration).toHaveProperty(property);
+    Object
+      .entries(configurationEntityFields)
+      .flatMap(([configurationName, properties]) => [[configurationName, properties], [`Compatible${configurationName}`, properties]])
+      .forEach(([configurationName, properties]) => {
+        describe(`${configurationName}`, () => {
+          it('should return the full list of configurations', async () => {
+            // @ts-expect-error just
+            const result = await cam.media[`get${configurationName}Configurations`]({
+              profileToken : 'ProfileToken_1',
+            });
+            expect(Array.isArray(result)).toBeTruthy();
+            expect(result.length).toBeGreaterThan(0);
+            result.forEach((configuration: any) => {
+              (properties as string[]).forEach((property) => {
+                expect(configuration).toHaveProperty(property);
+              });
             });
           });
         });
       });
-    });
   });
 });
