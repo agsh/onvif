@@ -1,5 +1,6 @@
 ## ONVIF methods
-That exists in the v0.x version. And implemented in the v1.x with the tests coverage
+Which exist in version v0.x. And are implemented in v1.x with test coverage
+Plus new methods have been added in v1.x.
 
 - [x] connect
 - [x] _request
@@ -67,22 +68,32 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [x] getAudioDecoderConfigurations.media2
 
 - [x] getCompatibleVideoSourceConfigurations.media1
-- [ ] getCompatibleAudioSourceConfigurations.media1
+- [x] getCompatibleAudioSourceConfigurations.media1
 - [x] getCompatibleVideoEncoderConfigurations.media1
-- [ ] getCompatibleAudioEncoderConfigurations.media1
-- [ ] getCompatibleVideoAnalyticsConfigurations.media1
-- [ ] getCompatibleMetadataConfigurations.media1
-- [ ] getCompatibleAudioOutputConfigurations.media1
-- [ ] getCompatibleAudioDecoderConfigurations.media1
+- [x] getCompatibleAudioEncoderConfigurations.media1
+- [x] getCompatibleVideoAnalyticsConfigurations.media1
+- [x] getCompatibleMetadataConfigurations.media1
+- [x] getCompatibleAudioOutputConfigurations.media1
+- [x] getCompatibleAudioDecoderConfigurations.media1
+
+- [x] getVideoSourceConfiguration.media1
+- [x] getAudioSourceConfiguration.media1
+- [x] getVideoEncoderConfiguration.media1
+- [x] getAudioEncoderConfiguration.media1
+- [x] getVideoAnalyticsConfiguration.media1
+- [x] getMetadataConfiguration.media1
+- [x] getAudioOutputConfiguration.media1
+- [x] getAudioDecoderConfiguration.media1
+
+- [x] getVideoSourceConfigurationOptions.media1
+- [x] getAudioSourceConfigurationOptions.media1
+- [x] getVideoEncoderConfigurationOptions.media1
+- [x] getAudioEncoderConfigurationOptions.media1
+- [x] getVideoAnalyticsConfigurationOptions.media1
+- [x] getMetadataConfigurationOptions.media1
+- [x] getAudioOutputConfigurationOptions.media1
+- [x] getAudioDecoderConfigurationOptions.media1
  
-- [ ] getVideoSourceConfigurationOptions
-- [ ] getVideoEncoderConfiguration
-- [ ] getVideoEncoderConfigurationOptions
-- [ ] setVideoEncoderConfiguration
-- [ ] getAudioEncoderConfiguration
-- [ ] getAudioEncoderConfigurationOptions
-- [ ] setAudioEncoderConfiguration
-- [ ] getAudioOutputConfigurations
 - [x] addAudioEncoderConfiguration
 - [x] addAudioSourceConfiguration
 - [x] addVideoEncoderConfiguration
@@ -160,4 +171,4 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-85/147 (57.8%)
+109/163 (66.9%)
