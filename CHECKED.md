@@ -65,6 +65,15 @@ That exists in the v0.x version. And implemented in the v1.x with the tests cove
 - [x] getAudioOutputConfigurations.media2
 - [x] getAudioDecoderConfigurations.media1
 - [x] getAudioDecoderConfigurations.media2
+
+- [x] getCompatibleVideoSourceConfigurations.media1
+- [ ] getCompatibleAudioSourceConfigurations.media1
+- [x] getCompatibleVideoEncoderConfigurations.media1
+- [ ] getCompatibleAudioEncoderConfigurations.media1
+- [ ] getCompatibleVideoAnalyticsConfigurations.media1
+- [ ] getCompatibleMetadataConfigurations.media1
+- [ ] getCompatibleAudioOutputConfigurations.media1
+- [ ] getCompatibleAudioDecoderConfigurations.media1
  
 - [ ] getVideoSourceConfigurationOptions
 - [ ] getVideoEncoderConfiguration

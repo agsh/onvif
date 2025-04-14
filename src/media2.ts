@@ -360,8 +360,6 @@ export class Media2 {
    * - If no tokens are provided the device shall respond with all available configurations.
    * @protected Specs not ready yet, this method is for the future development
    * @param options
-   * @param options.profileToken
-   * @param options.configurationToken
    */
   @v2
   private async getWebRTCConfigurations(options: GetWebRTCConfigurations): Promise<WebRTCConfiguration[]> {

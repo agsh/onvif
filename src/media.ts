@@ -45,7 +45,16 @@ import {
   RemoveAudioEncoderConfiguration,
   RemoveVideoAnalyticsConfiguration,
   RemovePTZConfiguration,
-  RemoveMetadataConfiguration, RemoveAudioOutputConfiguration, RemoveAudioDecoderConfiguration,
+  RemoveMetadataConfiguration,
+  RemoveAudioOutputConfiguration,
+  RemoveAudioDecoderConfiguration,
+  GetCompatibleVideoSourceConfigurations,
+  GetCompatibleVideoEncoderConfigurations,
+  GetCompatibleAudioSourceConfigurations,
+  GetCompatibleAudioEncoderConfigurations,
+  GetCompatibleVideoAnalyticsConfigurations,
+  GetCompatibleMetadataConfigurations,
+  GetCompatibleAudioOutputConfigurations, GetCompatibleAudioDecoderConfigurations,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -73,6 +82,13 @@ interface RemoveConfiguration {
 }
 
 type ConfigurationExtended = VideoSourceConfiguration & VideoEncoderConfiguration & AudioEncoderConfiguration;
+
+interface GetCompatibleConfigurations {
+  /** Configuration name */
+  entityName: string;
+  /** Contains the token of an existing media profile the configurations shall be compatible with */
+  profileToken: ReferenceToken;
+}
 
 function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
   const configurationSet = media2Profile.configurations!;
@@ -155,6 +171,8 @@ export class Media {
 
   /**
    * If the profile token is already known, a profile can be fetched through the GetProfile command.
+   * @param options
+   * @param options.profileToken
    */
   async getProfile({ profileToken }: GetProfile): Promise<Profile> {
     if (this.onvif.device.media2Support) {
@@ -172,6 +190,9 @@ export class Media {
    * This operation creates a new empty media profile. The media profile shall be created in the device and shall be
    * persistent (remain after reboot). A created profile shall be deletable and a device shall set the “fixed” attribute
    * to false in the returned Profile.
+   * @param options
+   * @param options.name
+   * @param options.token
    */
   async createProfile({ name, token }: CreateProfile): Promise<Profile> {
     const [data] = await this.onvif.request({
@@ -187,6 +208,8 @@ export class Media {
   /**
    * This operation deletes a profile. This change shall always be persistent. Deletion of a profile is only possible
    * for non-fixed profiles
+   * @param options
+   * @param options.profileToken
    */
   async deleteProfile({ profileToken }: DeleteProfile): Promise<void> {
     await this.onvif.request({
@@ -504,11 +527,10 @@ export class Media {
   }
 
   /**
-   * Common function to get configurations
+   * Common method to get configurations
    * @private
    * @param options
-   * @param options.profileToken
-   * @param options.configurationToken
+   * @param options.entityName
    */
   private async getConfigurations({ entityName }: { entityName: string }): Promise<ConfigurationExtended[]> {
     const body = `<Get${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>`;
@@ -604,6 +626,137 @@ export class Media {
   @v1
   async getAudioDecoderConfigurations(): Promise<AudioDecoderConfiguration[]> {
     return this.getConfigurations({ entityName : 'AudioDecoder' });
+  }
+
+  /**
+   * Common method to get compatible configurations
+   * @private
+   * @param options
+   * @param options.entityName
+   * @param options.profileToken
+   */
+  private async getCompatibleConfigurations({ entityName, profileToken }: GetCompatibleConfigurations): Promise<ConfigurationExtended[]> {
+    const body = `<GetCompatible${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl">`
+      + `<ProfileToken>${profileToken}</ProfileToken>`
+      + `</GetCompatible${entityName}Configurations>`;
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body,
+    });
+    return linerase(data, { array : ['configurations'] })[`getCompatible${entityName}ConfigurationsResponse`].configurations;
+  }
+
+  /**
+   * This operation requests all the video source configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the AddVideoSourceConfiguration
+   * command on the media profile. The result will vary depending on the capabilities, configurations and settings in
+   * the device.
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleVideoSourceConfigurations(options: GetCompatibleVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'VideoSource', ...options });
+  }
+
+  /**
+   * This operation lists all the video encoder configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the AddVideoEncoderConfig-
+   * uration command on the media profile. The result will vary depending on the capabilities, configurations and
+   * settings in the device. The device shall support the listing of compatible (with a specific profile) video encoder
+   * configurations through the GetCompatibleVideoEncoderConfigurations command
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleVideoEncoderConfigurations(options: GetCompatibleVideoEncoderConfigurations): Promise<VideoEncoderConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'VideoEncoder', ...options });
+  }
+
+  /**
+   * This operation requests all audio source configurations of a device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the AddAudioSourceConfigu-
+   * ration command on the media profile. The result varies depending on the capabilities, configurations and set-
+   * tings in the device. A device that supports audio streaming from device to client shall support listing of compat-
+   * ible (with a specific profile) audio source configurations through the GetCompatibleAudioSourceConfigurations
+   * command
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleAudioSourceConfigurations(options: GetCompatibleAudioSourceConfigurations): Promise<AudioSourceConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'AudioSource', ...options });
+  }
+
+  /**
+   * This operation requests all audio encoder configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the AddAudioEncoderConfigura-
+   * tion command on the media profile. The result varies depending on the capabilities, configurations and settings
+   * in the device. A device that supports audio streaming from device to client shall support listing of compatible
+   * (with a specific profile) audio encoder configurations through the GetCompatibleAudioEncoderConfigurations
+   * command
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleAudioEncoderConfigurations(options: GetCompatibleAudioEncoderConfigurations): Promise<AudioEncoderConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'AudioEncoder', ...options });
+  }
+  /**
+   * This operation requests all video analytic configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the
+   * AddVideoAnalyticsConfiguration command on the media profile. The result varies depending on the capabilities,
+   * configurations and settings in the device. A device that supports video analytics shall support the listing of
+   * compatible (with a specific profile) video analytics configuration through the
+   * GetCompatibleVideoAnalyticsConfigurations command.
+  * @param options
+  * @param options.profileToken
+  */
+  @v1
+  async getCompatibleVideoAnalyticsConfigurations(options: GetCompatibleVideoAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'VideoAnalytics', ...options });
+  }
+
+  /**
+   * This operation requests all the metadata configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the AddMetadataConfiguration
+   * command on the media profile. The result varies depending on the capabilities, configurations and settings in
+   * the device. A device or other device that supports metadata streaming shall support the listing of compatible
+   * (with a specific profile) metadata configuration through the GetCompatibleMetadataConfigurations command.
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleMetadataConfigurations(options: GetCompatibleMetadataConfigurations): Promise<MetadataConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'Metadata', ...options });
+  }
+
+  /**
+   * This command lists all audio output configurations of a device that are compatible with a certain media profile.
+   * Each returned configuration shall be a valid input for the AddAudioOutputConfiguration command. An device
+   * that signals support for Audio outputs via its Device IO AudioOutputs capability shall support the listing of
+   * compatible (with a specific profile) AudioOutputConfigurations through the
+   * GetCompatibleAudioOutputConfigurations command
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleAudioOutputConfigurations(options: GetCompatibleAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'AudioOutput', ...options });
+  }
+
+  /**
+   * This operation lists all the audio decoder configurations of the device that are compatible with a certain media
+   * profile. Each of the returned configurations shall be a valid input parameter for the
+   * AddAudioDecoderConfiguration command on the media profile. An device that signals support for Audio outputs via its
+   * Device IO AudioOutputs capability shall support the listing of compatible (with a specific profile) audio decoder
+   * configurations through the GetCompatibleAudioDecoderConfigurations command
+   * @param options
+   * @param options.profileToken
+   */
+  @v1
+  async getCompatibleAudioDecoderConfigurations(options: GetCompatibleAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
+    return this.getCompatibleConfigurations({ entityName : 'AudioDecoder', ...options });
   }
 
   async getVideoSourceConfigurationOptions({ configurationToken, profileToken }: GetVideoSourceConfigurationOptions = {}):
