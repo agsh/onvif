@@ -8,7 +8,7 @@ import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
   AudioDecoderConfiguration,
-  AudioEncoderConfiguration, AudioOutputConfiguration,
+  AudioEncoderConfiguration, AudioOutput, AudioOutputConfiguration,
   AudioSource, AudioSourceConfiguration, MediaUri, MetadataConfiguration,
   Profile, PTZConfiguration, VideoAnalyticsConfiguration, VideoEncoder2Configuration,
   VideoEncoderConfiguration,
@@ -21,14 +21,11 @@ import {
   GetOSDOptionsResponse,
   GetOSDs,
   GetOSDsResponse,
-  GetVideoEncoderConfigurations, GetVideoEncoderConfigurationsResponse as GetVideoEncoder2ConfigurationsResponse,
   GetVideoSourceConfigurationOptions,
   GetVideoSourceConfigurationOptionsResponse,
-  GetVideoSourceConfigurations, MediaProfile, SetVideoSourceConfigurationResponse,
+  MediaProfile, SetVideoSourceConfigurationResponse,
 } from './interfaces/media.2';
 import {
-  GetVideoSourceConfigurationsResponse,
-  GetVideoEncoderConfigurationsResponse,
   GetSnapshotUri,
   CreateProfile,
   DeleteProfile,
@@ -74,6 +71,8 @@ interface RemoveConfiguration {
   /** Contains a reference to the media profile from which the configuration shall be removed. */
   profileToken: ReferenceToken;
 }
+
+type ConfigurationExtended = VideoSourceConfiguration & VideoEncoderConfiguration & AudioEncoderConfiguration;
 
 function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
   const configurationSet = media2Profile.configurations!;
@@ -121,6 +120,7 @@ export class Media {
   public profiles: Profile[] = [];
   public videoSources: VideoSource[] = [];
   public audioSources: AudioSource[] = [];
+  private audioOutputs: AudioOutput[] = [];
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -489,27 +489,121 @@ export class Media {
     return this.audioSources;
   }
 
-  async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
+  /**
+   * This command lists all available audio outputs of a device. An device that signals support for Audio outputs
+   * via its Device IO AudioOutputs capability shall support listing of available audio outputs through the GetAu-
+   * dioOutputs command.
+   */
+  async getAudioOutputs(): Promise<AudioOutput[]> {
     const [data] = await this.onvif.request({
       service : 'media',
-      body    : '<GetAudioOutputConfigurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
+      body    : '<GetAudioOutputs xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
-    return linerase(data, { array : ['configurations'] }).getAudioOutputConfigurationsResponse.configurations;
+    this.audioOutputs = linerase(data, { array : ['audioOutputs'] }).getAudioOutputsResponse.audioOutputs;
+    return this.audioOutputs;
   }
 
-  async getVideoSourceConfigurations({ configurationToken, profileToken }: GetVideoSourceConfigurations = {}):
-    Promise<GetVideoSourceConfigurationsResponse> {
-    const body = `<GetVideoSourceConfigurations xmlns="${
-      this.onvif.device.media2Support ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl'
-    }">${
-      configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
-    }${
-      profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
-    }</GetVideoSourceConfigurations>`;
-    const service = (this.onvif.device.media2Support ? 'media2' : 'media');
+  /**
+   * Common function to get configurations
+   * @private
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  private async getConfigurations({ entityName }: { entityName: string }): Promise<ConfigurationExtended[]> {
+    const body = `<Get${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>`;
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body,
+    });
+    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationsResponse`].configurations;
+  }
 
-    const [data] = await this.onvif.request({ service, body });
-    return linerase(data, { array : ['configurations'] }).getVideoSourceConfigurationsResponse;
+  /**
+   * This operation lists all existing video source configurations for a device. This command lists all video source
+   * configurations in a device. The client need not know anything about the video source configurations in order
+   * to use the command. The device shall support the listing of available video source configurations through the
+   * GetVideoSourceConfigurations command.
+   */
+  @v1
+  async getVideoSourceConfigurations(): Promise<VideoSourceConfiguration[]> {
+    return this.getConfigurations({ entityName : 'VideoSource' });
+  }
+
+  /**
+   * This operation lists all existing video encoder configurations of a device. This command lists all configured
+   * video encoder configurations in a device. The client does not need to know anything apriori about the video
+   * encoder configurations in order to use the command. The device shall support the listing of available video
+   * encoder configurations through the GetVideoEncoderConfigurations command
+   */
+  @v1
+  async getVideoEncoderConfigurations(): Promise<VideoEncoderConfiguration[]> {
+    return this.getConfigurations({ entityName : 'VideoEncoder' });
+  }
+
+  /**
+   * This operation lists all existing audio source configurations of a device. This command lists all audio source
+   * configurations in a device. The client does not need to know anything apriori about the audio source configurations
+   * in order to use the command. A device that supports audio streaming from device to client shall support
+   * listing of available audio source configurations through the GetAudioSourceConfigurations command
+   */
+  @v1
+  async getAudioSourceConfigurations(): Promise<AudioSourceConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioSource' });
+  }
+
+  /**
+   * This operation lists all existing device audio encoder configurations. The client does not need to know anything
+   * apriori about the audio encoder configurations in order to use the command. A device that supports audio
+   * streaming from device to client shall support the listing of available audio encoder configurations through the
+   * GetAudioEncoderConfigurations command
+   */
+  @v1
+  async getAudioEncoderConfigurations(): Promise<AudioEncoderConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioEncoder' });
+  }
+
+  /**
+   * This operation lists all video analytics configurations of a device. This command lists all configured video an-
+   * alytics in a device. The client does not need to know anything apriori about the video analytics in order to
+   * use the command. A device that supports video analytics shall support the listing of available video analytics
+   * configuration through the GetVideoAnalyticsConfigurations command.
+   */
+  @v1
+  async getVideoAnalyticsConfigurations(): Promise<VideoAnalyticsConfiguration[]> {
+    return this.getConfigurations({ entityName : 'VideoAnalytics' });
+  }
+
+  /**
+   * This operation lists all existing metadata configurations. The client does not need to know anything apriori about
+   * the metadata in order to use the command. A device or another device that supports metadata streaming shall
+   * support the listing of existing metadata configurations through the GetMetadataConfigurations command.
+   */
+  @v1
+  async getMetadataConfigurations(): Promise<MetadataConfiguration[]> {
+    return this.getConfigurations({ entityName : 'Metadata' });
+  }
+
+  /**
+   * This command lists all existing AudioOutputConfigurations of a device. The client does not need to know any-
+   * thing apriori about the audio configurations to use this command. A device that signals support for Audio out-
+   * puts via its Device IO AudioOutputs capability shall support the listing of AudioOutputConfigurations through
+   * this command
+   */
+  @v1
+  async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioOutput' });
+  }
+
+  /**
+   * This command lists all existing AudioDecoderConfigurations of a device.
+   * The client does not need to know anything apriori about the audio decoder configurations in order to use this
+   * command. An device that signals support for Audio outputs via its Device IO AudioOutputs capability shall
+   * support the listing of AudioOutputConfigurations through this command.
+   */
+  @v1
+  async getAudioDecoderConfigurations(): Promise<AudioDecoderConfiguration[]> {
+    return this.getConfigurations({ entityName : 'AudioDecoder' });
   }
 
   async getVideoSourceConfigurationOptions({ configurationToken, profileToken }: GetVideoSourceConfigurationOptions = {}):
@@ -593,29 +687,6 @@ export class Media {
       + '</SetVideoEncoderConfiguration>';
     const [data] = await this.onvif.request({ service, body });
     return data;
-  }
-
-  /**
-   * If device supports Media 2.0 returns an array of VideoEncoder2Configuration. Otherwise VideoEncoderConfiguration
-   * @param options
-   * @param options.configurationToken
-   * @param options.profileToken
-   */
-  async getVideoEncoderConfigurations({ configurationToken, profileToken }: GetVideoEncoderConfigurations = {}):
-    Promise<GetVideoEncoderConfigurationsResponse | GetVideoEncoder2ConfigurationsResponse> {
-    const body = `<GetVideoEncoderConfigurations xmlns="${
-      this.onvif.device.media2Support ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl'
-    }">${
-      configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
-    }${
-      profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
-    }</GetVideoEncoderConfigurations>`;
-    const service = (this.onvif.device.media2Support ? 'media2' : 'media');
-
-    const [data] = await this.onvif.request({ service, body });
-
-    const { getVideoEncoderConfigurationsResponse } = linerase(data, { array : ['configurations'] });
-    return getVideoEncoderConfigurationsResponse;
   }
 
   /**
@@ -739,4 +810,14 @@ export class Media {
     const result = linerase(data).getOSDOptionsResponse;
     return result;
   }
+}
+
+function v1(originalMethod: any, context: ClassMethodDecoratorContext) {
+  return function v1(this: any, ...args: any[]) {
+    if (this.onvif.device.media2Support) {
+      this.onvif.emit('warn', `Media2 profile has support for this device, you can try to use \`${String(context.name)}\` `
+      + 'from `Media2 class`');
+    }
+    return originalMethod.call(this, ...args);
+  };
 }

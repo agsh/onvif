@@ -1,11 +1,21 @@
 import { Onvif, ConfigurationRefExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import {
-  ConfigurationEnumeration, GetAudioDecoderConfigurations,
-  GetAudioOutputConfigurations,
-  GetMetadataConfigurations, GetWebRTCConfigurations,
+  ConfigurationEnumeration,
   MediaProfile,
 } from '../src/interfaces/media.2';
+
+const configurationEntityFields = {
+  'VideoEncoder' : ['encoding', 'resolution', 'quality'],
+  'AudioEncoder' : ['encoding', 'bitrate', 'sampleRate'],
+  'VideoSource'  : ['sourceToken', 'bounds'],
+  'AudioSource'  : ['sourceToken'],
+  'Analytics'    : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
+  'Metadata'     : ['multicast', 'sessionTimeout'],
+  'AudioOutput'  : ['outputToken', 'outputLevel'],
+  'AudioDecoder' : [],
+  'WebRTC'       : [],
+};
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -123,18 +133,7 @@ describe('Profiles', () => {
 });
 
 describe('get<Entity>Configurations', () => {
-  const entityFields = {
-    'VideoEncoder' : ['encoding', 'resolution', 'quality'],
-    'AudioEncoder' : ['encoding', 'bitrate', 'sampleRate'],
-    'VideoSource'  : ['sourceToken', 'bounds'],
-    'AudioSource'  : ['sourceToken'],
-    'Analytics'    : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
-    'Metadata'     : ['multicast', 'sessionTimeout'],
-    'AudioOutput'  : ['outputToken', 'outputLevel'],
-    'AudioDecoder' : [],
-    'WebRTC'       : [],
-  };
-  Object.entries(entityFields).forEach(([entityName, properties]) => {
+  Object.entries(configurationEntityFields).forEach(([entityName, properties]) => {
     describe(entityName, () => {
       it('should return a list of configurations from the profile', async () => {
         // @ts-expect-error just
