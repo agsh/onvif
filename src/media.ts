@@ -7,12 +7,25 @@
 import { Onvif } from './onvif';
 import { linerase } from './utils';
 import {
-  AudioDecoderConfiguration,
-  AudioEncoderConfiguration, AudioOutput, AudioOutputConfiguration,
-  AudioSource, AudioSourceConfiguration, MediaUri, MetadataConfiguration,
-  Profile, PTZConfiguration, VideoAnalyticsConfiguration, VideoEncoder2Configuration,
+  AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
+  AudioEncoderConfiguration,
+  AudioEncoderConfigurationOptions,
+  AudioOutput,
+  AudioOutputConfiguration, AudioOutputConfigurationOptions,
+  AudioSource,
+  AudioSourceConfiguration,
+  AudioSourceConfigurationOptions,
+  MediaUri,
+  MetadataConfiguration,
+  MetadataConfigurationOptions,
+  Profile,
+  VideoAnalyticsConfiguration,
+  VideoEncoder2Configuration,
   VideoEncoderConfiguration,
-  VideoSource, VideoSourceConfiguration,
+  VideoEncoderConfigurationOptions,
+  VideoSource,
+  VideoSourceConfiguration,
+  VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import { AnyURI } from './interfaces/basics';
@@ -60,7 +73,14 @@ import {
   GetVideoEncoderConfiguration,
   GetAudioEncoderConfiguration,
   GetAudioSourceConfiguration,
-  GetVideoAnalyticsConfiguration, GetMetadataConfiguration, GetAudioOutputConfiguration, GetAudioDecoderConfiguration,
+  GetVideoAnalyticsConfiguration,
+  GetMetadataConfiguration,
+  GetAudioOutputConfiguration,
+  GetAudioDecoderConfiguration,
+  GetVideoEncoderConfigurationOptions,
+  GetAudioSourceConfigurationOptions,
+  GetAudioEncoderConfigurationOptions,
+  GetMetadataConfigurationOptions, GetAudioOutputConfigurationOptions, GetAudioDecoderConfigurationOptions,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -102,6 +122,19 @@ interface GetConfiguration {
   /** Token of the requested configuration. */
   configurationToken: ReferenceToken;
 }
+
+interface GetConfigurationOptions {
+  /** Configuration name */
+  entityName: string;
+  /** Token of the requested configuration. */
+  configurationToken?: ReferenceToken;
+  /** Contains the token of an existing media profile the configurations shall be compatible with. */
+  profileToken?: ReferenceToken;
+}
+
+type ConfigurationOptionsExtended = VideoSourceConfigurationOptions & VideoEncoderConfigurationOptions
+  & AudioSourceConfigurationOptions & AudioEncoderConfigurationOptions & MetadataConfigurationOptions
+  & AudioOutputConfigurationOptions;
 
 function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
   const configurationSet = media2Profile.configurations!;
@@ -551,7 +584,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationsResponse`].configurations;
+    return linerase(data, { array : ['configurations', 'analyticsModule', 'rule'] })[`get${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -561,7 +594,7 @@ export class Media {
    * GetVideoSourceConfigurations command.
    */
   @v1
-  async getVideoSourceConfigurations(): Promise<VideoSourceConfiguration[]> {
+  getVideoSourceConfigurations(): Promise<VideoSourceConfiguration[]> {
     return this.getConfigurations({ entityName : 'VideoSource' });
   }
 
@@ -572,7 +605,7 @@ export class Media {
    * encoder configurations through the GetVideoEncoderConfigurations command
    */
   @v1
-  async getVideoEncoderConfigurations(): Promise<VideoEncoderConfiguration[]> {
+  getVideoEncoderConfigurations(): Promise<VideoEncoderConfiguration[]> {
     return this.getConfigurations({ entityName : 'VideoEncoder' });
   }
 
@@ -583,7 +616,7 @@ export class Media {
    * listing of available audio source configurations through the GetAudioSourceConfigurations command
    */
   @v1
-  async getAudioSourceConfigurations(): Promise<AudioSourceConfiguration[]> {
+  getAudioSourceConfigurations(): Promise<AudioSourceConfiguration[]> {
     return this.getConfigurations({ entityName : 'AudioSource' });
   }
 
@@ -594,7 +627,7 @@ export class Media {
    * GetAudioEncoderConfigurations command
    */
   @v1
-  async getAudioEncoderConfigurations(): Promise<AudioEncoderConfiguration[]> {
+  getAudioEncoderConfigurations(): Promise<AudioEncoderConfiguration[]> {
     return this.getConfigurations({ entityName : 'AudioEncoder' });
   }
 
@@ -605,7 +638,7 @@ export class Media {
    * configuration through the GetVideoAnalyticsConfigurations command.
    */
   @v1
-  async getVideoAnalyticsConfigurations(): Promise<VideoAnalyticsConfiguration[]> {
+  getVideoAnalyticsConfigurations(): Promise<VideoAnalyticsConfiguration[]> {
     return this.getConfigurations({ entityName : 'VideoAnalytics' });
   }
 
@@ -615,7 +648,7 @@ export class Media {
    * support the listing of existing metadata configurations through the GetMetadataConfigurations command.
    */
   @v1
-  async getMetadataConfigurations(): Promise<MetadataConfiguration[]> {
+  getMetadataConfigurations(): Promise<MetadataConfiguration[]> {
     return this.getConfigurations({ entityName : 'Metadata' });
   }
 
@@ -626,7 +659,7 @@ export class Media {
    * this command
    */
   @v1
-  async getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
+  getAudioOutputConfigurations(): Promise<AudioOutputConfiguration[]> {
     return this.getConfigurations({ entityName : 'AudioOutput' });
   }
 
@@ -637,7 +670,7 @@ export class Media {
    * support the listing of AudioOutputConfigurations through this command.
    */
   @v1
-  async getAudioDecoderConfigurations(): Promise<AudioDecoderConfiguration[]> {
+  getAudioDecoderConfigurations(): Promise<AudioDecoderConfiguration[]> {
     return this.getConfigurations({ entityName : 'AudioDecoder' });
   }
 
@@ -656,7 +689,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data, { array : ['configurations'] })[`getCompatible${entityName}ConfigurationsResponse`].configurations;
+    return linerase(data, { array : ['configurations', 'analyticsModule', 'rule'] })[`getCompatible${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -668,7 +701,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleVideoSourceConfigurations(options: GetCompatibleVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
+  getCompatibleVideoSourceConfigurations(options: GetCompatibleVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'VideoSource', ...options });
   }
 
@@ -682,7 +715,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleVideoEncoderConfigurations(options: GetCompatibleVideoEncoderConfigurations): Promise<VideoEncoderConfiguration[]> {
+  getCompatibleVideoEncoderConfigurations(options: GetCompatibleVideoEncoderConfigurations): Promise<VideoEncoderConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'VideoEncoder', ...options });
   }
 
@@ -697,7 +730,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleAudioSourceConfigurations(options: GetCompatibleAudioSourceConfigurations): Promise<AudioSourceConfiguration[]> {
+  getCompatibleAudioSourceConfigurations(options: GetCompatibleAudioSourceConfigurations): Promise<AudioSourceConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioSource', ...options });
   }
 
@@ -712,7 +745,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleAudioEncoderConfigurations(options: GetCompatibleAudioEncoderConfigurations): Promise<AudioEncoderConfiguration[]> {
+  getCompatibleAudioEncoderConfigurations(options: GetCompatibleAudioEncoderConfigurations): Promise<AudioEncoderConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioEncoder', ...options });
   }
 
@@ -727,7 +760,7 @@ export class Media {
   * @param options.profileToken
   */
   @v1
-  async getCompatibleVideoAnalyticsConfigurations(options: GetCompatibleVideoAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
+  getCompatibleVideoAnalyticsConfigurations(options: GetCompatibleVideoAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'VideoAnalytics', ...options });
   }
 
@@ -741,7 +774,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleMetadataConfigurations(options: GetCompatibleMetadataConfigurations): Promise<MetadataConfiguration[]> {
+  getCompatibleMetadataConfigurations(options: GetCompatibleMetadataConfigurations): Promise<MetadataConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'Metadata', ...options });
   }
 
@@ -755,7 +788,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleAudioOutputConfigurations(options: GetCompatibleAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
+  getCompatibleAudioOutputConfigurations(options: GetCompatibleAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioOutput', ...options });
   }
 
@@ -769,7 +802,7 @@ export class Media {
    * @param options.profileToken
    */
   @v1
-  async getCompatibleAudioDecoderConfigurations(options: GetCompatibleAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
+  getCompatibleAudioDecoderConfigurations(options: GetCompatibleAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
     return this.getCompatibleConfigurations({ entityName : 'AudioDecoder', ...options });
   }
 
@@ -788,7 +821,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationResponse`].configuration;
+    return linerase(data, { array : ['analyticsModule', 'rule'] })[`get${entityName}ConfigurationResponse`].configuration;
   }
 
   /**
@@ -799,7 +832,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getVideoSourceConfiguration(options: GetVideoSourceConfiguration): Promise<VideoSourceConfiguration> {
+  getVideoSourceConfiguration(options: GetVideoSourceConfiguration): Promise<VideoSourceConfiguration> {
     return this.getConfiguration({ entityName : 'VideoSource', ...options });
   }
 
@@ -811,7 +844,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getVideoEncoderConfiguration(options: GetVideoEncoderConfiguration): Promise<VideoEncoderConfiguration> {
+  getVideoEncoderConfiguration(options: GetVideoEncoderConfiguration): Promise<VideoEncoderConfiguration> {
     return this.getConfiguration({ entityName : 'VideoEncoder', ...options });
   }
 
@@ -823,7 +856,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getAudioSourceConfiguration(options: GetAudioSourceConfiguration): Promise<AudioSourceConfiguration> {
+  getAudioSourceConfiguration(options: GetAudioSourceConfiguration): Promise<AudioSourceConfiguration> {
     return this.getConfiguration({ entityName : 'AudioSource', ...options });
   }
 
@@ -835,7 +868,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getAudioEncoderConfiguration(options: GetAudioEncoderConfiguration): Promise<AudioEncoderConfiguration> {
+  getAudioEncoderConfiguration(options: GetAudioEncoderConfiguration): Promise<AudioEncoderConfiguration> {
     return this.getConfiguration({ entityName : 'AudioEncoder', ...options });
   }
 
@@ -847,7 +880,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getVideoAnalyticsConfiguration(options: GetVideoAnalyticsConfiguration): Promise<VideoAnalyticsConfiguration> {
+  getVideoAnalyticsConfiguration(options: GetVideoAnalyticsConfiguration): Promise<VideoAnalyticsConfiguration> {
     return this.getConfiguration({ entityName : 'VideoAnalytics', ...options });
   }
 
@@ -859,7 +892,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
+  getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
     return this.getConfiguration({ entityName : 'Metadata', ...options });
   }
 
@@ -872,7 +905,7 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getAudioOutputConfiguration(options: GetAudioOutputConfiguration): Promise<AudioOutputConfiguration> {
+  getAudioOutputConfiguration(options: GetAudioOutputConfiguration): Promise<AudioOutputConfiguration> {
     return this.getConfiguration({ entityName : 'AudioOutput', ...options });
   }
 
@@ -885,23 +918,174 @@ export class Media {
    * @param options.configurationToken
    */
   @v1
-  async getAudioDecoderConfiguration(options: GetAudioDecoderConfiguration): Promise<AudioDecoderConfiguration> {
+  getAudioDecoderConfiguration(options: GetAudioDecoderConfiguration): Promise<AudioDecoderConfiguration> {
     return this.getConfiguration({ entityName : 'AudioDecoder', ...options });
   }
 
-  async getVideoSourceConfigurationOptions({ configurationToken, profileToken }: GetVideoSourceConfigurationOptions = {}):
-    Promise<GetVideoSourceConfigurationOptionsResponse> {
-    const body = `<GetVideoSourceConfigurationOptions xmlns="${
-      this.onvif.device.media2Support ? 'http://www.onvif.org/ver20/media/wsdl' : 'http://www.onvif.org/ver10/media/wsdl'
-    }">${
+  /**
+   * Common method to get configuration options
+   * @param options
+   * @param options.entityName
+   * @param options.configurationToken
+   * @param options.profileToken
+   * @private
+   */
+  private async getConfigurationOptions({ entityName, configurationToken, profileToken }: GetConfigurationOptions):
+    Promise<ConfigurationOptionsExtended> {
+    const body = `<Get${entityName}ConfigurationOptions xmlns="http://www.onvif.org/ver10/media/wsdl">${
       configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
     }${
       profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
-    }</GetVideoSourceConfigurationOptions>`;
-    const service = (this.onvif.device.media2Support ? 'media2' : 'media');
+    }</Get${entityName}ConfigurationOptions>`;
+    const [data] = await this.onvif.request({
+      service : 'media',
+      body,
+    });
+    return linerase(data[0][`get${entityName}ConfigurationOptionsResponse`][0].options, {
+      array : [
+        'videoSourceTokensAvailable',
+        'resolutionsAvailable',
+        'mpeg4ProfilesSupported',
+        'H264ProfilesSupported',
+        'inputTokensAvailable',
+        'options',
+        'compressionType',
+        'outputTokensAvailable',
+        'sendPrimacyOptions',
+      ],
+    });
+  }
 
-    const [data] = await this.onvif.request({ service, body });
-    return linerase(data, { array : ['videoSourceTokensAvailable'] }).getVideoSourceConfigurationOptionsResponse;
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and video source configuration shall be a valid input for the
+   * SetVideoSourceConfiguration command. The device shall support the GetVideoSourceConfigurationOptions
+   * command.
+   * If a video source configuration token is provided, the device shall return the options compatible with that con-
+   * figuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and a video source configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getVideoSourceConfigurationOptions(options: GetVideoSourceConfigurationOptions = {}): Promise<VideoSourceConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'VideoSource', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and video encoder configuration shall be a valid input for
+   * the SetVideoEncoderConfiguration command. The device shall support the GetVideoEncoderConfigurationOptions command.
+   * If a video encoder configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and a video encoder configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getVideoEncoderConfigurationOptions(options: GetVideoEncoderConfigurationOptions = {}): Promise<VideoEncoderConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'VideoEncoder', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and audio source configuration shall be a valid input for the
+   * SetAudioSourceConfiguration command. A device that supports audio streaming from device to client shall
+   * support the GetAudioSourceConfigurationOptions command.
+   * If an audio source configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and an audio source configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getAudioSourceConfigurationOptions(options: GetAudioSourceConfigurationOptions = {}): Promise<AudioSourceConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'AudioSource', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and audio encoder configuration shall be a valid input for the
+   * SetAudioEncoderConfiguration command. A device that supports audio streaming from device to client shall
+   * support the GetAudioEncoderConfigurationOptions command.
+   * If an audio encoder configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and an audio encoder configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getAudioEncoderConfigurationOptions(options: GetAudioEncoderConfigurationOptions = {}): Promise<AudioEncoderConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'AudioEncoder', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and metadata configuration shall be a valid input for the Set-
+   * MetadataConfiguration command. A device that supports metadata streaming shall support the GetMetadata-
+   * ConfigurationOptions command.
+   * If a metadata configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and a metadata configuration token are specified, the device shall return
+   * the options compatible with both that media profile and that configuration. If no tokens are specified, the options
+   * shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getMetadataConfigurationOptions(options: GetMetadataConfigurationOptions = {}): Promise<MetadataConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'Metadata', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and audio output configuration shall be a valid input for the
+   * SetAudioOutputConfiguration command. A device that supports audio streaming from client to device shall
+   * support the GetAudioOutputConfigurationOptions command.
+   * If an audio output configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and an audio output configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getAudioOutputConfigurationOptions(options: GetAudioOutputConfigurationOptions = {}): Promise<AudioOutputConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'AudioOutput', ...options });
+  }
+
+  /**
+   * This operation returns the available parameters and their valid ranges to the client. Any combination of the
+   * parameters obtained using a given media profile and audio decoder configuration shall be a valid input for the
+   * SetAudioDecoderConfiguration command. A device that supports audio streaming from client to device shall
+   * support the GetAudioDecoderConfigurationOptions command.
+   * If an audio decoder configuration token is provided, the device shall return the options compatible with that
+   * configuration. If a media profile token is specified, the device shall return the options compatible with that media
+   * profile. If both a media profile token and an audio decoder configuration token are specified, the device shall
+   * return the options compatible with both that media profile and that configuration. If no tokens are specified, the
+   * options shall be considered generic for the device.
+   * @param options
+   * @param options.profileToken
+   * @param options.configurationToken
+   */
+  @v1
+  getAudioDecoderConfigurationOptions(options: GetAudioDecoderConfigurationOptions = {}): Promise<AudioDecoderConfigurationOptions> {
+    return this.getConfigurationOptions({ entityName : 'AudioDecoder', ...options });
   }
 
   /** Common setVideoSourceConfiguration for media and media2 profiles. It depends on media2support flag */

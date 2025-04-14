@@ -1,3 +1,9 @@
+/**
+ * Onvif module
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ * @see https://www.onvif.org/wp-content/uploads/2022/07/ONVIF_Device_Feature_Discovery_Specification_21.12.pdf
+ */
+
 import { EventEmitter } from 'events';
 import { SecureContextOptions } from 'tls';
 import https, { Agent, RequestOptions } from 'https';
