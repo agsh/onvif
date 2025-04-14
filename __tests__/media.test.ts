@@ -1,3 +1,4 @@
+import * as util from 'node:util';
 import { camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 
@@ -102,7 +103,7 @@ describe('Profiles', () => {
 
 describe('Add/remove configurations to the profile', () => {
   let profileToken: ReferenceToken;
-  const configurationNames = Object.keys(configurationEntityFields);
+  const configurationNames = ['PTZ', ...Object.keys(configurationEntityFields)];
 
   describe('Startup', () => {
     it('should create a new profile for the tests', async () => {
@@ -254,4 +255,45 @@ describe('Configurations', () => {
         });
       });
   });
+
+  describe('Get configuration options', () => {
+    const configurationEntityOptionsFields = {
+      'VideoSource'  : ['boundsRange', 'videoSourceTokensAvailable'],
+      'VideoEncoder' : ['qualityRange', 'JPEG', 'MPEG4', 'H264'],
+      'AudioSource'  : ['inputTokensAvailable'],
+      'AudioEncoder' : ['options'],
+      'Metadata'     : ['geoLocation', 'PTZStatusFilterOptions'],
+      'AudioOutput'  : ['outputTokensAvailable', 'sendPrimacyOptions', 'outputLevelRange'],
+      'AudioDecoder' : ['G711DecOptions'],
+    };
+    Object.entries(configurationEntityOptionsFields).forEach(([configurationName, properties]) => {
+      describe(`${configurationName}`, () => {
+        it('should return the configuration options supported for the concrete profile and configuration', async () => {
+          // @ts-expect-error just
+          const result = await cam.media[`get${configurationName}ConfigurationOptions`]({
+            profileToken       : 'ProfileToken_1',
+            configurationToken : `${configurationName}ConfigurationToken_1`,
+          });
+          properties.forEach((property) => {
+            expect(result).toHaveProperty(property);
+          });
+        });
+
+        it('should return all configuration options', async () => {
+          // @ts-expect-error just
+          const result = await cam.media[`get${configurationName}ConfigurationOptions`]();
+          console.log(util.inspect(result, { colors : true, depth : 100 }));
+          properties.forEach((property) => {
+            expect(result).toHaveProperty(property);
+          });
+        });
+      });
+    });
+  });
+  // it('1', async () => {
+  //   const result = await cam.media.getVideoSourceConfigurationOptions();
+  //   console.log(util.inspect(result, { colors : true, depth : 100 }));
+  //   const result2 = await cam.media.getVideoSourceConfigurationOptions2();
+  //   console.log(util.inspect(result2, { colors : true, depth : 100 }));
+  // });
 });
