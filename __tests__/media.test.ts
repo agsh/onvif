@@ -1,6 +1,6 @@
-import * as util from 'node:util';
 import { camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
+import { Profile } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
@@ -112,8 +112,7 @@ describe('Add/remove configurations to the profile', () => {
       });
       profileToken = testProfile.token;
       configurationNames.forEach((configurationName) => {
-        // @ts-expect-error check that no configurations added
-        expect(testProfile[camelCase(configurationName)]).toBeUndefined();
+        expect(testProfile[camelCase(configurationName) as keyof Profile]).toBeUndefined();
       });
     });
   });
@@ -222,12 +221,6 @@ describe('Sources', () => {
 });
 
 describe('Configurations', () => {
-  // describe('Preparation', () => {
-  //   it('should create a profile with the full list of the configurations', async () => {
-  //
-  //   });
-  // });
-
   describe('Get configurations', () => {
     Object
       .entries(configurationEntityFields)
@@ -282,7 +275,7 @@ describe('Configurations', () => {
         it('should return all configuration options', async () => {
           // @ts-expect-error just
           const result = await cam.media[`get${configurationName}ConfigurationOptions`]();
-          console.log(util.inspect(result, { colors : true, depth : 100 }));
+          // console.log(util.inspect(result, { colors : true, depth : 100 }));
           properties.forEach((property) => {
             expect(result).toHaveProperty(property);
           });
@@ -290,10 +283,67 @@ describe('Configurations', () => {
       });
     });
   });
-  // it('1', async () => {
-  //   const result = await cam.media.getVideoSourceConfigurationOptions();
-  //   console.log(util.inspect(result, { colors : true, depth : 100 }));
-  //   const result2 = await cam.media.getVideoSourceConfigurationOptions2();
-  //   console.log(util.inspect(result2, { colors : true, depth : 100 }));
-  // });
+
+  describe('Set configurations', () => {
+    let profileToken: ReferenceToken;
+    let profile: Profile;
+    describe('Create profile', () => {
+      it('should be empty', async () => {
+        profileToken = (await cam.media.createProfile({
+          name : 'profile',
+        })).token;
+      });
+
+      Object.keys(configurationEntityFields).forEach((configurationName) => {
+        it(`should add a "${configurationName}" configuration to the existing profile`, async () => {
+          // @ts-expect-error just
+          const result = await cam.media[`add${configurationName}Configuration`]({
+            profileToken,
+            configurationToken : `${configurationName}ConfigurationToken_1`,
+          });
+          expect(result).toBeUndefined();
+          const profile = await cam.media.getProfile({ profileToken });
+          const methodName = camelCase(`${configurationName}Configuration`);
+          // @ts-expect-error just
+          expect(profile[methodName] ?? profile.extension?.[methodName]).toBeDefined();
+        });
+      });
+
+      it('should have all configurations', async () => {
+        profile = await cam.media.getProfile({ profileToken });
+        // TODO finish
+        // console.log(util.inspect(profile, { colors : true, depth : 100 }));
+      });
+    });
+
+    describe('Set', () => {
+      const configurationEntitiesProps: Record<string, [string, any]> = {
+        'VideoSource' : ['bounds', { x : 1, y : 1, width : 10, height : 10 }],
+      };
+      Object.entries(configurationEntitiesProps).forEach(([entityName, [key, value]]) => {
+        it(`${entityName}Configuration`, async () => {
+          const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof typeof profile];
+          const updatedConfiguration = JSON.parse(JSON.stringify(configuration));
+          updatedConfiguration[key] = value;
+          await (cam.media as any)[`set${entityName}Configuration`]({
+            forcePersistence : true,
+            configuration    : updatedConfiguration,
+          });
+          const receivedConfiguration = await (cam.media as any)[`get${entityName}Configuration`]({
+            configurationToken : configuration.token,
+          });
+          expect(receivedConfiguration).toEqual(updatedConfiguration);
+          // restore
+          await (cam.media as any)[`set${entityName}Configuration`]({
+            forcePersistence : true,
+            configuration,
+          });
+          const restoredConfiguration = await (cam.media as any)[`get${entityName}Configuration`]({
+            configurationToken : configuration.token,
+          });
+          expect(restoredConfiguration).toEqual(configuration);
+        });
+      });
+    });
+  });
 });

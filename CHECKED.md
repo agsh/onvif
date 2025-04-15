@@ -93,6 +93,15 @@ Plus new methods have been added in v1.x.
 - [x] getMetadataConfigurationOptions.media1
 - [x] getAudioOutputConfigurationOptions.media1
 - [x] getAudioDecoderConfigurationOptions.media1
+
+- [x] setVideoSourceConfiguration.media1
+- [ ] setAudioSourceConfiguration.media1
+- [ ] setVideoEncoderConfiguration.media1
+- [ ] setAudioEncoderConfiguration.media1
+- [ ] setVideoAnalyticsConfiguration.media1
+- [ ] setMetadataConfiguration.media1
+- [ ] setAudioOutputConfiguration.media1
+- [ ] setAudioDecoderConfiguration.media1
  
 - [x] addAudioEncoderConfiguration
 - [x] addAudioSourceConfiguration
@@ -171,4 +180,4 @@ Plus new methods have been added in v1.x.
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-109/163 (66.9%)
+110/171 (64.3%)

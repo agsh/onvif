@@ -160,3 +160,14 @@ export async function parseSOAPString(rawXml: string): OnvifResponse {
 export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<string, T> {
   return Object.fromEntries(list.map((item) => [item[groupKey], item]));
 }
+
+const builder = new xml2js.Builder({
+  headless   : true,
+  renderOpts : {
+    pretty : false,
+  },
+});
+
+export function build(object: any) {
+  return builder.buildObject(object);
+}
