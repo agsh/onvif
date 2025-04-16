@@ -322,6 +322,12 @@ describe('Configurations', () => {
         'VideoEncoder' : {
           quality        : 4,
           sessionTimeout : 'PT13666S',
+          encoding       : 'MPEG4',
+          H264           : undefined,
+          MPEG4          : {
+            govLength    : 4,
+            mpeg4Profile : 'SP',
+          },
         },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
