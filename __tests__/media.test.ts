@@ -317,14 +317,23 @@ describe('Configurations', () => {
     });
 
     describe('Set', () => {
-      const configurationEntitiesProps: Record<string, [string, any]> = {
-        'VideoSource' : ['bounds', { x : 1, y : 1, width : 10, height : 10 }],
+      const configurationEntitiesProps: Record<string, Record<string, any>> = {
+        'VideoSource'  : { bounds : { x : 1, y : 1, width : 10, height : 10 } },
+        'VideoEncoder' : {
+          quality        : 4,
+          sessionTimeout : 'PT13666S',
+        },
       };
-      Object.entries(configurationEntitiesProps).forEach(([entityName, [key, value]]) => {
+      Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
-          const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof typeof profile];
-          const updatedConfiguration = JSON.parse(JSON.stringify(configuration));
-          updatedConfiguration[key] = value;
+          // const configuration = await (cam.media as any)[`get${entityName}Configuration`]({
+          //   configurationToken : (profile as any)[camelCase(`${entityName}Configuration`)].token,
+          // });
+          const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof Profile];
+          const updatedConfiguration = {
+            ...JSON.parse(JSON.stringify(configuration)),
+            ...props,
+          };
           await (cam.media as any)[`set${entityName}Configuration`]({
             forcePersistence : true,
             configuration    : updatedConfiguration,
@@ -343,6 +352,12 @@ describe('Configurations', () => {
           });
           expect(restoredConfiguration).toEqual(configuration);
         });
+      });
+    });
+
+    describe('Finalize', () => {
+      it('Remove testing profile', async () => {
+        await cam.media.deleteProfile({ profileToken });
       });
     });
   });

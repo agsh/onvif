@@ -5,7 +5,7 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase, build } from './utils';
+import { linerase, build, schemaMulticastConfiguration } from './utils';
 import {
   AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
   AudioEncoderConfiguration,
@@ -83,7 +83,7 @@ import {
   GetMetadataConfigurationOptions,
   GetAudioOutputConfigurationOptions,
   GetAudioDecoderConfigurationOptions,
-  SetVideoSourceConfiguration,
+  SetVideoSourceConfiguration, SetVideoEncoderConfiguration,
 } from './interfaces/media';
 
 export interface GetStreamUriOptions {
@@ -139,44 +139,6 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions & VideoEncod
   & AudioSourceConfigurationOptions & AudioEncoderConfigurationOptions & MetadataConfigurationOptions
   & AudioOutputConfigurationOptions;
 
-function media2ProfileToMedia1Profile(media2Profile: MediaProfile) {
-  const configurationSet = media2Profile.configurations!;
-  const newProfile: Profile = {
-    token : media2Profile.token,
-    name  : media2Profile.name,
-    fixed : media2Profile.fixed || false,
-  };
-  // Media2 Spec says there will be these some or all of these configuration entities
-  // Video source configuration
-  // Audio source configuration
-  // Video encoder configuration
-  // Audio encoder configuration
-  // PTZ configuration
-  // Video analytics configuration
-  // Metadata configuration
-  // Audio output configuration
-  // Audio decoder configuration
-  if (configurationSet.videoSource) { newProfile.videoSourceConfiguration = configurationSet.videoSource; }
-  if (configurationSet.audioSource) { newProfile.audioSourceConfiguration = configurationSet.audioSource; }
-  if (configurationSet.videoEncoder) {
-    newProfile.videoEncoderConfiguration = configurationSet.videoEncoder as unknown as VideoEncoderConfiguration;
-  }
-  if (configurationSet.audioEncoder) {
-    newProfile.audioEncoderConfiguration = configurationSet.audioEncoder as AudioEncoderConfiguration;
-  }
-  if (configurationSet.PTZ) { newProfile.PTZConfiguration = configurationSet.PTZ; }
-  if (configurationSet.analytics) { newProfile.videoAnalyticsConfiguration = configurationSet.analytics; }
-  if (configurationSet.metadata) { newProfile.metadataConfiguration = configurationSet.metadata; }
-  if (configurationSet.audioOutput || configurationSet.audioDecoder) {
-    newProfile.extension = {
-      audioOutputConfiguration  : configurationSet.audioOutput!,
-      audioDecoderConfiguration : configurationSet.audioDecoder!,
-    };
-  }
-  // TODO - Add Audio
-  return newProfile;
-}
-
 /**
  * Media service, ver10 profile
  */
@@ -197,18 +159,8 @@ export class Media {
    * dynamically configured profiles can be retrieved using this command. This command lists all configured profiles in
    * a device. The client does not need to know the media profile in order to use the command.
    */
-  async getProfiles(): Promise<(Profile)[]> {
-    if (this.onvif.device.media2Support) {
-      // Profile T request using Media2
-      // The reply is in a different format to the old API so we convert the data from the new API to the old structure
-      // for backwards compatibility with existing users of this library
-      const profiles = await this.onvif.media2.getProfiles();
-
-      // Slight difference in Media1 and Media2 reply XML
-      // Generate a reply that looks like a Media1 reply for existing library users
-      this.profiles = profiles.map(media2ProfileToMedia1Profile);
-      return this.profiles;
-    }
+  @v1
+  async getProfiles(): Promise<Profile[]> {
     // Original ONVIF Media support (used in Profile S)
     const [data] = await this.onvif.request({
       service : 'media',
@@ -223,11 +175,8 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   async getProfile({ profileToken }: GetProfile): Promise<Profile> {
-    if (this.onvif.device.media2Support) {
-      const [result] = await this.onvif.media2.getProfiles({ token : profileToken });
-      return media2ProfileToMedia1Profile(result);
-    }
     const [data] = await this.onvif.request({
       service : 'media',
       body    : `<GetProfile xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>${profileToken}</ProfileToken></GetProfile>`,
@@ -243,6 +192,7 @@ export class Media {
    * @param options.name
    * @param options.token
    */
+  @v1
   async createProfile({ name, token }: CreateProfile): Promise<Profile> {
     const [data] = await this.onvif.request({
       service : 'media',
@@ -435,6 +385,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeVideoSourceConfiguration(options: RemoveVideoSourceConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoSourceConfiguration', ...options });
   }
@@ -447,6 +398,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeAudioSourceConfiguration(options: RemoveAudioSourceConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioSourceConfiguration', ...options });
   }
@@ -459,6 +411,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeVideoEncoderConfiguration(options: RemoveVideoEncoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoEncoderConfiguration', ...options });
   }
@@ -471,6 +424,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeAudioEncoderConfiguration(options: RemoveAudioEncoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioEncoderConfiguration', ...options });
   }
@@ -483,6 +437,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeVideoAnalyticsConfiguration(options: RemoveVideoAnalyticsConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveVideoAnalyticsConfiguration', ...options });
   }
@@ -495,6 +450,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removePTZConfiguration(options: RemovePTZConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemovePTZConfiguration', ...options });
   }
@@ -507,6 +463,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeMetadataConfiguration(options: RemoveMetadataConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveMetadataConfiguration', ...options });
   }
@@ -519,6 +476,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeAudioOutputConfiguration(options: RemoveAudioOutputConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioOutputConfiguration', ...options });
   }
@@ -531,6 +489,7 @@ export class Media {
    * @param options
    * @param options.profileToken
    */
+  @v1
   removeAudioDecoderConfiguration(options: RemoveAudioDecoderConfiguration): Promise<void> {
     return this.removeConfiguration({ name : 'RemoveAudioDecoderConfiguration', ...options });
   }
@@ -539,6 +498,7 @@ export class Media {
    * This operation lists all available video sources for the device. The device shall support the listing of available
    * video sources through the GetVideoSources command
    */
+  @v1
   async getVideoSources(): Promise<VideoSource[]> {
     const [data] = await this.onvif.request({
       service : 'media',
@@ -552,6 +512,7 @@ export class Media {
    * This operation lists all available audio sources of the device. A device that supports audio streaming from
    * device to client shall support listing of available audio sources through the GetAudioSources command.
    */
+  @v1
   async getAudioSources(): Promise<AudioSource[]> {
     const [data] = await this.onvif.request({
       service : 'media',
@@ -566,6 +527,7 @@ export class Media {
    * via its Device IO AudioOutputs capability shall support listing of available audio outputs through the GetAu-
    * dioOutputs command.
    */
+  @v1
   async getAudioOutputs(): Promise<AudioOutput[]> {
     const [data] = await this.onvif.request({
       service : 'media',
@@ -1097,7 +1059,7 @@ export class Media {
    * according to the new settings. The changes are not guaranteed to take effect unless the client requests a
    * new stream URI and restarts any affected stream. Client methods for changing a running stream are out of
    * scope for this specification. The device shall support the modification of video source parameters through the
-   * SetVideoSourceConfiguration command
+   * SetVideoSourceConfiguration command.
    * @param options
    * @param options.configuration
    * @param options.forcePersistence
@@ -1108,13 +1070,14 @@ export class Media {
         $ : {
           xmlns : 'http://www.onvif.org/ver10/media/wsdl',
         },
-        ForcePersistence : true,
+        ForcePersistence : forcePersistence,
         Configuration    : {
           $ : {
             token    : configuration.token,
             ViewMode : configuration.viewMode,
           },
           Name        : configuration.name,
+          UseCount    : configuration.useCount,
           SourceToken : configuration.sourceToken,
           Bounds      : {
             $ : {
@@ -1136,7 +1099,8 @@ export class Media {
                   Degree : configuration.extension.rotate.degree,
                 },
               },
-            }),
+            }
+          ),
         },
       },
     });
@@ -1146,73 +1110,82 @@ export class Media {
     });
   }
 
-  /** Common setVideoSourceConfiguration for media and media2 profiles. It depends on media2support flag */
-  // async setVideoSourceConfiguration(configuration: VideoSourceConfiguration | VideoEncoder2Configuration, forcePersistence: boolean = true):
-  //   Promise<SetVideoSourceConfigurationResponse> {
-  //   const service = this.onvif.device.media2Support ? 'media2' : 'media';
-  //   const xmlns = this.onvif.device.media2Support
-  //     ? 'http://www.onvif.org/ver20/media/wsdl'
-  //     : 'http://www.onvif.org/ver10/media/wsdl';
-  //   const body = `<SetVideoEncoderConfiguration xmlns="${xmlns}">`
-  //     + `<Configuration token="${configuration.token}"${
-  //       'govLength' in configuration ? ` GovLength="${configuration.govLength}"` : ''
-  //     }${'profile' in configuration ? ` Profile="${configuration.profile}"` : ''
-  //     }${'anchorFrameDistance' in configuration ? ` AnchorFrameDistance="${configuration.anchorFrameDistance}"` : ''
-  //     }${'guaranteedFrameRate' in configuration ? ` GuaranteedFrameRate="${configuration.guaranteedFrameRate}"` : ''
-  //     }${'viewMode' in configuration ? ` GuaranteedFrameRate="${configuration.viewMode}"` : ''
-  //     }>${
-  //       configuration.name ? `<Name xmlns="http://www.onvif.org/ver10/schema">${configuration.name}</Name>` : ''
-  //     }${configuration.useCount ? `<UseCount xmlns="http://www.onvif.org/ver10/schema">${configuration.useCount}</UseCount>` : ''
-  //     }${'encoding' in configuration
-  //       ? `<Encoding xmlns="http://www.onvif.org/ver10/schema">${configuration.encoding}</Encoding>` : ''
-  //     }${'resolution' in configuration
-  //       ? `<Resolution xmlns="http://www.onvif.org/ver10/schema">${
-  //         configuration.resolution.width ? `<Width>${configuration.resolution.width}</Width>` : ''
-  //       }${configuration.resolution.height ? `<Height>${configuration.resolution.height}</Height>` : ''
-  //       }</Resolution>` : ''
-  //     }${'quality' in configuration ? `<Quality xmlns="http://www.onvif.org/ver10/schema">${configuration.quality}</Quality>` : ''
-  //     }${'rateControl' in configuration && configuration.rateControl !== undefined
-  //       ? `<RateControl ConstantBitRate="${configuration.rateControl.constantBitRate}" xmlns="http://www.onvif.org/ver10/schema"><FrameRateLimit>${
-  //         configuration.rateControl.frameRateLimit}</FrameRateLimit><BitrateLimit>${configuration.rateControl.bitrateLimit
-  //       }</BitrateLimit></RateControl>` : ''
-  //     }${'multicast' in configuration && configuration.multicast !== undefined
-  //       ? `<Multicast xmlns="http://www.onvif.org/ver10/schema">${
-  //         configuration.multicast.address
-  //           ? `<Address>${
-  //             configuration.multicast.address.type ? `<Type>${configuration.multicast.address.type}</Type>` : ''
-  //           }${configuration.multicast.address.IPv4Address ? `<IPv4Address>${configuration.multicast.address.IPv4Address}</IPv4Address>` : ''
-  //           }${configuration.multicast.address.IPv6Address ? `<IPv6Address>${configuration.multicast.address.IPv6Address}</IPv6Address>` : ''
-  //           }</Address>` : ''
-  //       }${configuration.multicast.port !== undefined ? `<Port>${configuration.multicast.port}</Port>` : ''
-  //       }${configuration.multicast.TTL !== undefined ? `<TTL>${configuration.multicast.TTL}</TTL>` : ''
-  //       }${configuration.multicast.autoStart !== undefined ? `<AutoStart>${configuration.multicast.autoStart}</AutoStart>` : ''
-  //       }</Multicast>` : ''
-  //     }${'quality' in configuration ? `<Quality>${configuration.quality}</Quality>` : ''
-  //     }${'sourceToken' in configuration ? `<SourceToken xmlns="http://www.onvif.org/ver10/schema">${configuration.sourceToken}</SourceToken>` : ''
-  //     }${'bounds' in configuration
-  //       ? `<Bounds xmlns="http://www.onvif.org/ver10/schema" x="${
-  //       configuration.bounds!.x
-  //       }" y="${
-  //       configuration.bounds!.y
-  //       }" width="${
-  //       configuration.bounds!.width
-  //       }" height="${
-  //       configuration.bounds!.height
-  //       }">` : ''
-  //     }${'extension' in configuration && configuration.extension
-  //       ? `<Extention xmlns="http://www.onvif.org/ver10/schema">${
-  //         'rotate' in configuration.extension && configuration.extension.rotate ? `<Rotate xmlns="http://www.onvif.org/ver10/schema"><Mode>${
-  //           configuration.extension.rotate.mode}</Mode>${
-  //           configuration.extension.rotate.degree ? `<Degree>${configuration.extension.rotate.degree}</Degree>` : ''
-  //         }</Rotate>` : ''
-  //       }</Extention>` : ''
-  //     }</Configuration>${
-  //       (!this.onvif.device.media2Support ? `<ForcePersistence>${forcePersistence}</ForcePersistence>` : '')
-  //     }`
-  //     + '</SetVideoEncoderConfiguration>';
-  //   const [data] = await this.onvif.request({ service, body });
-  //   return data;
-  // }
+  /**
+   * This operation modifies a video encoder configuration. The ForcePersistence flag indicates if the changes shall
+   * remain after reboot of the device. Changes in the Multicast settings shall always be persistent. Running streams
+   * using this configuration may be immediately updated according to the new settings, but the changes are not
+   * guaranteed to take effect unless the client requests a new stream URI and restarts any affected stream. If the
+   * new settings invalidate any parameters already negotiated using RTSP, for example by changing codec type,
+   * the device must not apply these settings to existing streams. Instead it must either continue to stream using
+   * the old settings or stop sending data on the affected streams.
+   * Client methods for changing a running stream are out of scope for this specification. The device shall support
+   * the modification of video encoder parameters through the SetVideoEncoderConfiguration command.
+   * A device shall accept any combination of parameters that it returned in the
+   * GetVideoEncoderConfigurationOptionsResponse. If necessary the device may adapt parameter values for Quality and
+   * RateControl elements without returning an error. A device shall adapt an out of range BitrateLimit instead of
+   * returning a fault.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setVideoEncoderConfiguration({ configuration, forcePersistence = true }: SetVideoEncoderConfiguration): Promise<void> {
+    const body = build({
+      SetVideoEncoderConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token               : configuration.token,
+            GuaranteedFrameRate : configuration.guaranteedFrameRate,
+          },
+          Name       : configuration.name,
+          UseCount   : configuration.useCount,
+          Encoding   : configuration.encoding,
+          Resolution : {
+            Width  : configuration.resolution.width,
+            Height : configuration.resolution.height,
+          },
+          Quality : configuration.quality,
+          ...(
+            configuration.rateControl
+            && {
+              RateControl : {
+                FrameRateLimit   : configuration.rateControl.frameRateLimit,
+                EncodingInterval : configuration.rateControl.encodingInterval,
+                BitrateLimit     : configuration.rateControl.bitrateLimit,
+              },
+            }
+          ),
+          ...(
+            configuration.MPEG4
+            && {
+              MPEG4 : {
+                GovLength    : configuration.MPEG4.govLength,
+                Mpeg4Profile : configuration.MPEG4.mpeg4Profile,
+              },
+            }
+          ),
+          ...(
+            configuration.H264
+            && {
+              H264 : {
+                GovLength   : configuration.H264.govLength,
+                H264Profile : configuration.H264.H264Profile,
+              },
+            }
+          ),
+          Multicast      : schemaMulticastConfiguration(configuration.multicast),
+          SessionTimeout : configuration.sessionTimeout,
+        },
+      },
+    });
+    await this.onvif.request({
+      service : 'media',
+      body,
+    });
+  }
 
   /**
    * This method requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
