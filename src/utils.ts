@@ -173,15 +173,17 @@ export function build(object: any) {
   return builder.buildObject(object);
 }
 
-export function schemaMulticastConfiguration(multicast: MulticastConfiguration) {
-  return {
-    Address : {
-      Type : multicast.address.type,
-      ...(multicast.address.IPv4Address && { IPv4Address : multicast.address.IPv4Address }),
-      ...(multicast.address.IPv6Address && { IPv4Address : multicast.address.IPv6Address }),
-    },
-    Port      : multicast.port,
-    TTL       : multicast.TTL,
-    AutoStart : multicast.autoStart,
-  };
-}
+export const toOnvifXMLSchemaObject = {
+  multicastConfiguration(multicast: MulticastConfiguration) {
+    return {
+      Address : {
+        Type : multicast.address.type,
+        ...(multicast.address.IPv4Address && { IPv4Address : multicast.address.IPv4Address }),
+        ...(multicast.address.IPv6Address && { IPv4Address : multicast.address.IPv6Address }),
+      },
+      Port      : multicast.port,
+      TTL       : multicast.TTL,
+      AutoStart : multicast.autoStart,
+    };
+  },
+};
