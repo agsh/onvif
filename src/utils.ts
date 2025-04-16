@@ -1,4 +1,5 @@
 import xml2js from 'xml2js';
+import { MulticastConfiguration } from './interfaces/onvif';
 
 const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
@@ -170,4 +171,17 @@ const builder = new xml2js.Builder({
 
 export function build(object: any) {
   return builder.buildObject(object);
+}
+
+export function schemaMulticastConfiguration(multicast: MulticastConfiguration) {
+  return {
+    Address : {
+      Type : multicast.address.type,
+      ...(multicast.address.IPv4Address && { IPv4Address : multicast.address.IPv4Address }),
+      ...(multicast.address.IPv6Address && { IPv4Address : multicast.address.IPv6Address }),
+    },
+    Port      : multicast.port,
+    TTL       : multicast.TTL,
+    AutoStart : multicast.autoStart,
+  };
 }
