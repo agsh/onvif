@@ -5,7 +5,7 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase, build, schemaMulticastConfiguration } from './utils';
+import { linerase, build, toOnvifXMLSchemaObject } from './utils';
 import {
   AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
   AudioEncoderConfiguration,
@@ -1176,7 +1176,7 @@ export class Media {
               },
             }
           ),
-          Multicast      : schemaMulticastConfiguration(configuration.multicast),
+          Multicast      : toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
           SessionTimeout : configuration.sessionTimeout,
         },
       },
