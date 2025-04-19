@@ -64,14 +64,12 @@ describe('Profiles', () => {
     it('should create a new blank profile and return it', async () => {
       let currentProfiles = await cam.media2.getProfiles();
       const profileCount = currentProfiles.length;
-      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
-      const result = await cam.media.createProfile({ name : 'test1' });
+      const result = await cam.media.createProfile({ name : 'test1', token : 'token' });
       expect(result).toHaveProperty('token');
       expect(result.fixed).toBe(false);
       newProfileToken = result.token;
       expect(result).toHaveProperty('name');
       currentProfiles = await cam.media2.getProfiles();
-      // console.log(currentProfiles.map((profile) => profile.name).join(', '));
       expect(currentProfiles.length).toBe(profileCount + 1);
     });
   });
@@ -159,6 +157,11 @@ describe('Add/remove configurations to the profile', () => {
 
   configurationNames.forEach((configurationName) => {
     describe(`remove${configurationName}`, () => {
+      it('should throw an error if profile token does not exist', async () => {
+        // @ts-expect-error just
+        await expect(cam.media[`remove${configurationName}Configuration`]({})).rejects.toThrow();
+      });
+
       it('should throw an error if profile token does not exist', async () => {
         // @ts-expect-error just
         await expect(cam.media[`remove${configurationName}Configuration`]({
@@ -284,6 +287,18 @@ describe('Configurations', () => {
     });
   });
 
+  describe('getGuaranteedNumberOfVideoEncoderInstances', () => {
+    it('should response', async () => {
+      const result = await cam.media.getGuaranteedNumberOfVideoEncoderInstances({
+        configurationToken : 'VideoSourceConfigurationToken_1',
+      });
+      expect(typeof result.totalNumber).toBe('number');
+      expect(typeof result.JPEG).toBe('number');
+      expect(typeof result.H264).toBe('number');
+      expect(typeof result.MPEG4).toBe('number');
+    });
+  });
+
   describe('Set configurations', () => {
     let profileToken: ReferenceToken;
     let profile: Profile;
@@ -328,6 +343,13 @@ describe('Configurations', () => {
             govLength    : 4,
             mpeg4Profile : 'SP',
           },
+        },
+        'AudioSource'  : { sourceToken : 'AudioSourceToken_1' },
+        'AudioEncoder' : {
+          encoding       : 'G726',
+          bitrate        : 128,
+          sampleRate     : 16,
+          sessionTimeout : 'PT13666S',
         },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
