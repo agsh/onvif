@@ -20,7 +20,6 @@ import {
   MetadataConfigurationOptions,
   Profile,
   VideoAnalyticsConfiguration,
-  VideoEncoder2Configuration,
   VideoEncoderConfiguration,
   VideoEncoderConfigurationOptions,
   VideoSource,
@@ -35,8 +34,6 @@ import {
   GetOSDs,
   GetOSDsResponse,
   GetVideoSourceConfigurationOptions,
-  GetVideoSourceConfigurationOptionsResponse,
-  MediaProfile, SetVideoSourceConfigurationResponse,
 } from './interfaces/media.2';
 import {
   GetSnapshotUri,
@@ -88,8 +85,19 @@ import {
   SetAudioSourceConfiguration,
   GetGuaranteedNumberOfVideoEncoderInstances,
   GetGuaranteedNumberOfVideoEncoderInstancesResponse,
-  SetAudioEncoderConfiguration,
+  SetAudioEncoderConfiguration, SetVideoAnalyticsConfiguration,
 } from './interfaces/media';
+
+const ConfigurationArraysAndExtensions = {
+  array : [
+    'configurations',
+    'analyticsModule',
+    'rule',
+    'simpleItem',
+    'elementItem',
+  ],
+  rawXML : ['elementItem'],
+};
 
 export interface GetStreamUriOptions {
   profileToken?: ReferenceToken;
@@ -170,7 +178,7 @@ export class Media {
       service : 'media',
       body    : '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
     });
-    this.profiles = data[0].getProfilesResponse[0].profiles.map(linerase);
+    this.profiles = linerase(data, ConfigurationArraysAndExtensions).getProfilesResponse.profiles;
     return this.profiles;
   }
 
@@ -184,7 +192,7 @@ export class Media {
       service : 'media',
       body    : `<GetProfile xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>${profileToken}</ProfileToken></GetProfile>`,
     });
-    return linerase(data[0].getProfileResponse[0].profile);
+    return linerase(data, ConfigurationArraysAndExtensions).getProfileResponse.profile;
   }
 
   /**
@@ -539,7 +547,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data, { array : ['configurations', 'analyticsModule', 'rule'] })[`get${entityName}ConfigurationsResponse`].configurations;
+    return linerase(data, ConfigurationArraysAndExtensions)[`get${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -760,7 +768,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data, { array : ['analyticsModule', 'rule'] })[`get${entityName}ConfigurationResponse`].configuration;
+    return linerase(data, ConfigurationArraysAndExtensions)[`get${entityName}ConfigurationResponse`].configuration;
   }
 
   /**
@@ -872,7 +880,7 @@ export class Media {
       service : 'media',
       body,
     });
-    return linerase(data[0][`get${entityName}ConfigurationOptionsResponse`][0].options, {
+    return linerase(data[`trt:Get${entityName}ConfigurationOptionsResponse`][0]['trt:Options'], {
       array : [
         'videoSourceTokensAvailable',
         'resolutionsAvailable',
@@ -1224,6 +1232,52 @@ export class Media {
           SampleRate     : configuration.sampleRate,
           Multicast      : toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
           SessionTimeout : configuration.sessionTimeout,
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * A video analytics configuration is modified using this command. The ForcePersistence flag indicates if the
+   * changes shall remain after reboot of the device or not. Running streams using this configuration shall be im-
+   * mediately updated according to the new settings. Otherwise inconsistencies can occur between the scene
+   * description processed by the rule engine and the notifications produced by analytics engine and rule engine
+   * which reference the very same video analytics configuration token. A device that supports video analytics shall
+   * support the configuration of video analytics parameters through the SetVideoAnalyticsConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setVideoAnalyticsConfiguration({ configuration, forcePersistence }: SetVideoAnalyticsConfiguration): Promise<void> {
+    const body = build({
+      SetVideoAnalyticsConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token : configuration.token,
+          },
+          Name                         : configuration.name,
+          UseCount                     : configuration.useCount,
+          AnalyticsEngineConfiguration : {
+            ...(configuration.analyticsEngineConfiguration.analyticsModule
+              && {
+                AnalyticsModule : configuration.analyticsEngineConfiguration.analyticsModule.map(toOnvifXMLSchemaObject.config),
+              }),
+            ...(configuration.analyticsEngineConfiguration.extension
+              && { Extension : configuration.analyticsEngineConfiguration.extension }),
+          },
+          RuleEngineConfiguration : {
+            ...(configuration.ruleEngineConfiguration.rule
+              && {
+                Rule : configuration.ruleEngineConfiguration.rule.map(toOnvifXMLSchemaObject.config),
+              }),
+            ...(configuration.ruleEngineConfiguration.extension
+              && { Extension : configuration.ruleEngineConfiguration.extension }),
+          },
         },
       },
     });

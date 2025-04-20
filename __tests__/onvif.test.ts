@@ -70,7 +70,7 @@ describe('Date and time', () => {
       jest.spyOn(cam as any, 'rawRequest')
         .mockImplementationOnce(async (options) => {
           const [data, xml] = await (cam as any).rawRequest(options);
-          delete data[0].getSystemDateAndTimeResponse[0].systemDateAndTime[0].UTCDateTime;
+          delete data['tds:GetSystemDateAndTimeResponse'][0]['tds:SystemDateAndTime'][0]['tt:UTCDateTime'];
           return [data, xml];
         });
       const result = await cam.getSystemDateAndTime();

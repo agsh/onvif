@@ -35,7 +35,7 @@ describe('getCapabilities', () => {
     jest.spyOn(cam as any, 'request')
       .mockImplementationOnce(async (options) => {
         const [data, xml] = await (cam as any).request(options);
-        delete data[0].getCapabilitiesResponse[0].capabilities[0].extension[0].recording;
+        delete data['tds:GetCapabilitiesResponse'][0]['tds:Capabilities'][0]['tt:Extension'][0]['tt:Recording'];
         return [data, xml];
       });
     delete cam.uri.recording;
