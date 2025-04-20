@@ -45,4 +45,5 @@ export interface Attribute {
   name: string;
   /** Value of attribute */
   value?: string;
+  [key: string]: unknown;
 }

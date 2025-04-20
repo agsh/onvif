@@ -24,6 +24,7 @@ export interface Usage {
   roll?: PositiveInteger;
   /** The quantity of focus movement events over the life of the device. */
   focus?: PositiveInteger;
+  [key: string]: unknown;
 }
 /** The provisioning capabilities of a video source on the device. */
 export interface SourceCapabilities {
@@ -43,6 +44,7 @@ export interface SourceCapabilities {
   maximumFocusMoves?: PositiveInteger;
   /** Indicates "auto" as a valid enum for Direction in FocusMove. */
   autoFocus?: boolean;
+  [key: string]: unknown;
 }
 /** The capabilities of Provisioning Service on the device. */
 export interface Capabilities {
@@ -50,6 +52,7 @@ export interface Capabilities {
   defaultTimeout: Duration;
   /** Capabilities per video source. */
   source?: SourceCapabilities[];
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

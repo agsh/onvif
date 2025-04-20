@@ -234,5 +234,6 @@ export interface MoveAndStartTracking {
   speed?: PTZSpeed;
   /** Object ID of the object to track. */
   objectID?: number;
+  [key: string]: unknown;
 }
 export interface MoveAndStartTrackingResponse {}

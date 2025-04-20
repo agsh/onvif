@@ -77,6 +77,7 @@ export interface Service {
   capabilities?: Capabilities;
   /** The version of the service (not the ONVIF core spec version). */
   version: OnvifVersion;
+  [key: string]: unknown;
 }
 export interface DeviceServiceCapabilities {
   /** Network capabilities. */
@@ -200,7 +201,9 @@ export interface MiscCapabilities {
   /** Lists of commands supported by SendAuxiliaryCommand. */
   auxiliaryCommands?: StringAttrList;
 }
-export interface Extension {}
+export interface Extension {
+  [key: string]: unknown;
+}
 export interface UserCredential {
   /** User name */
   userName: string;
@@ -209,6 +212,7 @@ export interface UserCredential {
   extension?: Extension;
   /** optional access token */
   token?: string;
+  [key: string]: unknown;
 }
 export interface StorageConfigurationData {
   /** tds:StorageType lists the acceptable values for type attribute */
@@ -224,6 +228,7 @@ export interface StorageConfigurationData {
   extension?: Extension;
   /** The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service. */
   certPathValidationPolicyID?: string;
+  [key: string]: unknown;
 }
 export interface StorageConfiguration extends DeviceEntity {
   data: StorageConfigurationData;
@@ -364,6 +369,7 @@ export interface SetDPAddressesResponse {}
 export interface GetEndpointReference {}
 export interface GetEndpointReferenceResponse {
   GUID: string;
+  [key: string]: unknown;
 }
 export interface GetRemoteUser {}
 export interface GetRemoteUserResponse {
@@ -720,7 +726,9 @@ export interface SendAuxiliaryCommand {
 export interface SendAuxiliaryCommandResponse {
   auxiliaryCommandResponse?: AuxiliaryData;
 }
-export interface GetDot11Capabilities {}
+export interface GetDot11Capabilities {
+  [key: string]: unknown;
+}
 export interface GetDot11CapabilitiesResponse {
   capabilities: Dot11Capabilities;
 }

@@ -74,12 +74,14 @@ export interface Capabilities2 {
   streamingCapabilities: StreamingCapabilities;
   /** Media signing capabilities. */
   mediaSigningCapabilities: MediaSigningCapabilities;
+  [key: string]: unknown;
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles supported. */
   maximumNumberOfProfiles?: number;
   /** The configurations supported by the device as defined by tr2:ConfigurationEnumeration. The enumeration value "All" shall not be included in this list. */
   configurationsSupported?: StringAttrList;
+  [key: string]: unknown;
 }
 export interface StreamingCapabilities {
   /** Indicates support for live media streaming via RTSP. */
@@ -96,10 +98,12 @@ export interface StreamingCapabilities {
   autoStartMulticast?: boolean;
   /** Indicates support for live media streaming via RTSPS and SRTP. */
   secureRTSPStreaming?: boolean;
+  [key: string]: unknown;
 }
 export interface MediaSigningCapabilities {
   /** Indicates whether the device supports signing of media according to the Media Signing Specification. */
   mediaSigningSupported?: boolean;
+  [key: string]: unknown;
 }
 export interface ConfigurationRef {
   /** Type of the configuration as defined by tr2:ConfigurationEnumeration. */
@@ -135,6 +139,7 @@ export interface ConfigurationSet {
   audioDecoder?: AudioDecoderConfiguration;
   /** Optional configuration of the Receiver. */
   receiver?: ReceiverConfiguration;
+  [key: string]: unknown;
 }
 /** A media profile consists of a set of media configurations. */
 export interface MediaProfile {
@@ -165,6 +170,7 @@ export interface EncoderInstanceInfo {
   codec?: EncoderInstance[];
   /** The minimum guaranteed total number of encoder instances (applications) per VideoSourceConfiguration. The device is able to deliver the Total number of streams */
   total: number;
+  [key: string]: unknown;
 }
 export interface StartStopMulticastStreaming {
   /** Contains the token of the Profile that is used to define the multicast stream. */
@@ -185,6 +191,7 @@ export interface VideoSourceMode {
   reboot: boolean;
   /** Informative description of this video source mode. This field should be described in English. */
   description?: Description;
+  [key: string]: unknown;
 }
 export interface Mask {
   /** Token of the mask. */
@@ -206,6 +213,7 @@ export interface Mask {
   color?: Color;
   /** If set the mask will cover the image, otherwise it will be fully transparent. */
   enabled: boolean;
+  [key: string]: unknown;
 }
 export interface MaskOptions {
   /** Information whether the polygon must have four points and a rectangular shape. */
@@ -220,6 +228,7 @@ export interface MaskOptions {
   types?: string[];
   /** Colors supported. */
   color: ColorOptions;
+  [key: string]: unknown;
 }
 export interface WebRTCConfiguration {
   /** The signaling server URI. */
@@ -236,6 +245,7 @@ export interface WebRTCConfiguration {
   connected?: boolean;
   /** Optional user readable error information (readonly). */
   error?: string;
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

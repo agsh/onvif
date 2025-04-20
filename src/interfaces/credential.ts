@@ -68,6 +68,7 @@ export interface ServiceCapabilitiesExtension {
    * exemption types shall all share "pt:&lt;Name&gt;" syntax.
    */
   supportedExemptionType?: Name[];
+  [key: string]: unknown;
 }
 /**
  * The CredentialInfo type represents the credential as a logical object. The structure contains
@@ -124,7 +125,9 @@ export interface Credential extends CredentialInfo {
   attribute?: Attribute[];
   extension?: CredentialExtension;
 }
-export interface CredentialExtension {}
+export interface CredentialExtension {
+  [key: string]: unknown;
+}
 /**
  * A credential identifier is a card number, unique card information, PIN or
  * biometric information such as fingerprint, iris, vein, face recognition, that can be validated
@@ -145,6 +148,7 @@ export interface CredentialIdentifier {
   exemptedFromAuthentication: boolean;
   /** The value of the identifier in hexadecimal representation. */
   value: unknown;
+  [key: string]: unknown;
 }
 /**
  * Specifies the name of credential identifier type and its format for the credential
@@ -161,6 +165,7 @@ export interface CredentialIdentifierType {
    * type name.
    */
   formatType: string;
+  [key: string]: unknown;
 }
 /** The association between a credential and an access profile. */
 export interface CredentialAccessProfile {
@@ -202,11 +207,14 @@ export interface CredentialState {
   antipassbackState?: AntipassbackState;
   extension?: CredentialStateExtension;
 }
-export interface CredentialStateExtension {}
+export interface CredentialStateExtension {
+  [key: string]: unknown;
+}
 /** A structure containing anti-passback related state information. */
 export interface AntipassbackState {
   /** Indicates if anti-passback is violated for the credential. */
   antipassbackViolated: boolean;
+  [key: string]: unknown;
 }
 /** Contains information about a format type. */
 export interface CredentialIdentifierFormatTypeInfo {
@@ -225,7 +233,9 @@ export interface CredentialIdentifierFormatTypeInfo {
   description: Description;
   extension?: CredentialIdentifierFormatTypeInfoExtension;
 }
-export interface CredentialIdentifierFormatTypeInfoExtension {}
+export interface CredentialIdentifierFormatTypeInfoExtension {
+  [key: string]: unknown;
+}
 /** Contains information about a format type. */
 export interface CredentialData {
   /**
@@ -243,7 +253,9 @@ export interface CredentialData {
   credentialState: CredentialState;
   extension?: CredentialDataExtension;
 }
-export interface CredentialDataExtension {}
+export interface CredentialDataExtension {
+  [key: string]: unknown;
+}
 /**
  * A credential identifier is a card number, unique card information, PIN or biometric information
  * such as fingerprint, iris, vein, face recognition, that can be validated in an access point.
@@ -253,6 +265,7 @@ export interface CredentialIdentifierItem {
   type: CredentialIdentifierType;
   /** The value of the identifier in hexadecimal representation. */
   value: unknown;
+  [key: string]: unknown;
 }
 /** Contains information about a format type. */
 export interface FaultResponse {
@@ -271,7 +284,9 @@ export interface FaultResponse {
   fault: string;
   extension?: FaultResponseExtension;
 }
-export interface FaultResponseExtension {}
+export interface FaultResponseExtension {
+  [key: string]: unknown;
+}
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
@@ -462,6 +477,7 @@ export interface GetWhitelist {
   formatType?: string;
   /** Get only whitelisted credential identifiers with the specified identifier value. */
   value?: unknown;
+  [key: string]: unknown;
 }
 export interface GetWhitelistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
@@ -472,11 +488,13 @@ export interface GetWhitelistResponse {
 export interface AddToWhitelist {
   /** The credential identifiers to be added to the whitelist. */
   identifier?: CredentialIdentifierItem[];
+  [key: string]: unknown;
 }
 export interface AddToWhitelistResponse {}
 export interface RemoveFromWhitelist {
   /** The credential identifiers to be removed from the whitelist. */
   identifier?: CredentialIdentifierItem[];
+  [key: string]: unknown;
 }
 export interface RemoveFromWhitelistResponse {}
 export interface DeleteWhitelist {}
@@ -498,6 +516,7 @@ export interface GetBlacklist {
   formatType?: string;
   /** Get only blacklisted credential identifiers with the specified identifier value. */
   value?: unknown;
+  [key: string]: unknown;
 }
 export interface GetBlacklistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
@@ -508,11 +527,13 @@ export interface GetBlacklistResponse {
 export interface AddToBlacklist {
   /** The credential identifiers to be added to the blacklist. */
   identifier?: CredentialIdentifierItem[];
+  [key: string]: unknown;
 }
 export interface AddToBlacklistResponse {}
 export interface RemoveFromBlacklist {
   /** The credential identifiers to be removed from the blacklist. */
   identifier?: CredentialIdentifierItem[];
+  [key: string]: unknown;
 }
 export interface RemoveFromBlacklistResponse {}
 export interface DeleteBlacklist {}

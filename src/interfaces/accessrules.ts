@@ -27,6 +27,7 @@ export interface ServiceCapabilities {
    * enable the use of the command SetAccessProfile, the value must be set to true.
    */
   clientSuppliedTokenSupported?: boolean;
+  [key: string]: unknown;
 }
 /**
  * The access policy is an association of an access point and a schedule. It defines when an access
@@ -52,7 +53,9 @@ export interface AccessPolicy {
   entityType?: unknown;
   extension?: AccessPolicyExtension;
 }
-export interface AccessPolicyExtension {}
+export interface AccessPolicyExtension {
+  [key: string]: unknown;
+}
 /**
  * The AccessProfileInfo structure contains basic information about an access profile. The device
  * shall provide the following fields for each access profile instance.
@@ -79,7 +82,9 @@ export interface AccessProfile extends AccessProfileInfo {
   accessPolicy?: AccessPolicy[];
   extension?: AccessProfileExtension;
 }
-export interface AccessProfileExtension {}
+export interface AccessProfileExtension {
+  [key: string]: unknown;
+}
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

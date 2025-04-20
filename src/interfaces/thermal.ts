@@ -28,6 +28,7 @@ export interface ColorPalette {
   type: string;
   /** User readable Color Palette name. */
   name: Name;
+  [key: string]: unknown;
 }
 /** Type describing a NUC Table element. */
 export interface NUCTable {
@@ -39,6 +40,7 @@ export interface NUCTable {
   highTemperature?: number;
   /** User reabable name for the Non-Uniformity Correction (NUC) Table. */
   name: Name;
+  [key: string]: unknown;
 }
 /** Type describing the Cooler settings. */
 export interface Cooler {
@@ -46,6 +48,7 @@ export interface Cooler {
   enabled: boolean;
   /** Number of hours the Cooler has been running (unit: hours). Read-only. */
   runTime?: number;
+  [key: string]: unknown;
 }
 /**
  * Describes valid ranges for the thermal device cooler settings.
@@ -54,6 +57,7 @@ export interface Cooler {
 export interface CoolerOptions {
   /** Indicates the Device allows cooler status to be changed from running (Enabled) to stopped (Disabled), and viceversa. */
   enabled?: boolean;
+  [key: string]: unknown;
 }
 /**
  * Holds default values that will be used in measurement modules when local parameters are not specified for the module (these are still required for valid temperature calculations).
@@ -76,6 +80,7 @@ export interface RadiometryGlobalParameters {
   extOpticsTemperature?: number;
   /** Transmittance value for the optics elements between the thermal device and the object being measured. */
   extOpticsTransmittance?: number;
+  [key: string]: unknown;
 }
 /** Describes valid ranges for the different radiometry parameters required for accurate temperature calculation. */
 export interface RadiometryGlobalParameterOptions {
@@ -95,6 +100,7 @@ export interface RadiometryGlobalParameterOptions {
   extOpticsTemperature?: FloatRange;
   /** Valid range of external optics transmittance. */
   extOpticsTransmittance?: FloatRange;
+  [key: string]: unknown;
 }
 export interface Configuration {
   /** Current Color Palette in use by the Thermal Device. */
@@ -105,12 +111,14 @@ export interface Configuration {
   NUCTable?: NUCTable;
   /** Cooler settings of the Thermal Device. */
   cooler?: Cooler;
+  [key: string]: unknown;
 }
 export interface Configurations {
   /** Reference token to the thermal VideoSource. */
   token: ReferenceToken;
   /** Current Thermal Settings for the VideoSource. */
   configuration: Configuration;
+  [key: string]: unknown;
 }
 export interface RadiometryConfiguration {
   /**
@@ -118,6 +126,7 @@ export interface RadiometryConfiguration {
    * and Global Parameters are supported by the device.
    */
   radiometryGlobalParameters?: RadiometryGlobalParameters;
+  [key: string]: unknown;
 }
 export interface ConfigurationOptions {
   /** List of Color Palettes available for the requested Thermal VideoSource. */
@@ -126,6 +135,7 @@ export interface ConfigurationOptions {
   NUCTable?: NUCTable[];
   /** Specifies Cooler Options for cooled thermal devices. */
   coolerOptions?: CoolerOptions;
+  [key: string]: unknown;
 }
 export interface RadiometryConfigurationOptions {
   /**
@@ -133,6 +143,7 @@ export interface RadiometryConfigurationOptions {
    * for temperature measurement modules (spots and boxes).
    */
   radiometryGlobalParameterOptions?: RadiometryGlobalParameterOptions;
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

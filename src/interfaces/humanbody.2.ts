@@ -25,18 +25,21 @@ export interface BodyMetric {
   height?: number;
   /** Describle the Shape of the body, acceptable values are defined in bd:BodyShape. */
   bodyShape?: string;
+  [key: string]: unknown;
 }
 export interface Scarf {
   /** Describe the Color of the Scarf, acceptable values are defined in ColorDescriptor. */
   color?: ColorDescriptor;
   /** Describe if the body wears the Scarf. */
   wear?: boolean;
+  [key: string]: unknown;
 }
 export interface Gloves {
   /** Describe the Color of Gloves, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   /** Describe if the body wears Gloves. */
   wear?: boolean;
+  [key: string]: unknown;
 }
 export interface Tops {
   /** Describe the Category of the Tops, acceptable values are defined in bd:TopsCategory. */
@@ -47,6 +50,7 @@ export interface Tops {
   grain?: string;
   /** Describe the Style of the Tops, acceptable values are defined in bd:TopsStyle. */
   style?: string;
+  [key: string]: unknown;
 }
 export interface Bottoms {
   /** Describe the Category of the Bottoms, acceptable values are defined in bd:BottomsCategory. */
@@ -57,12 +61,14 @@ export interface Bottoms {
   grain?: string;
   /** Describe the Style of the Bottoms, acceptable values are defined in bd:BottomsStyle. */
   style?: string;
+  [key: string]: unknown;
 }
 export interface Shoes {
   /** Describe the Category of the Shoes, acceptable values are defined in bd:ShoesCategory. */
   category?: string;
   /** Describe the Color of the Shoes, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
+  [key: string]: unknown;
 }
 export interface Clothing {
   /** Describe the Scarf of the body,acceptable values are defined in bd:Scarf. */
@@ -75,30 +81,35 @@ export interface Clothing {
   bottoms?: Bottoms;
   /** Describe the Shoes of the body,acceptable values are defined in bd:Shoes. */
   shoes?: Shoes;
+  [key: string]: unknown;
 }
 export interface Bag {
   /** Describe the Category of the Bag, acceptable values are defined in bd:KnapsackCategory. */
   category?: string;
   /** Describe the Colour of the Bag, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
+  [key: string]: unknown;
 }
 export interface Umbrella {
   /** Describe the Color of the Bag, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   /** Describe if the body Opens the Umbrella. */
   open?: boolean;
+  [key: string]: unknown;
 }
 export interface Box {
   /** Describe the Color of the Box, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   /** Describe if the body Lugs the Box. */
   lug?: boolean;
+  [key: string]: unknown;
 }
 export interface Cart {
   /** Describe the Category of the Cart, acceptable values are defined in bd:CartCategory. */
   category?: string;
   /** Describe the Color of the Cart, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
+  [key: string]: unknown;
 }
 export interface Belonging {
   /** Describe the Bag of the body,acceptable values are defined in bd:Bag */
@@ -113,6 +124,7 @@ export interface Belonging {
   cart?: Cart;
   /** Describe if the body carries the Weapon. */
   weapon?: boolean;
+  [key: string]: unknown;
 }
 export interface Behaviour {
   /** Acceptable values are defined in bd:Smoking. */
@@ -121,6 +133,7 @@ export interface Behaviour {
   usingMobile?: string;
   /** Describe the activity of the body, Acceptable values are defined in bd:HumanActivity. */
   activity?: string;
+  [key: string]: unknown;
 }
 export interface HumanBody {
   /** Describe the body metric of the body. */
@@ -131,4 +144,5 @@ export interface HumanBody {
   belonging?: Belonging;
   /** Describe the Behaviour of the body. */
   behaviour?: Behaviour;
+  [key: string]: unknown;
 }

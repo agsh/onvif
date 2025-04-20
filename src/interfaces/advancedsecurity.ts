@@ -73,6 +73,7 @@ export interface DNAttributeTypeAndValue {
   type: DNAttributeType;
   /** The value of the attribute. */
   value: DNAttributeValue;
+  [key: string]: unknown;
 }
 /** A multi-valued RDN */
 export interface MultiValuedRDN {
@@ -82,6 +83,7 @@ export interface MultiValuedRDN {
 export interface anyAttribute {
   /** Domain Component as specified in RFC3739 */
   domainComponent?: DNAttributeValue[];
+  [key: string]: unknown;
 }
 export interface DistinguishedName {
   /**
@@ -146,7 +148,9 @@ export interface DistinguishedName {
   /** Required extension point. It is recommended to not use this element, and instead use GenericAttribute and the numeric Distinguished Name Attribute Type. */
   anyAttribute?: anyAttribute;
 }
-export interface anyParameters {}
+export interface anyParameters {
+  [key: string]: unknown;
+}
 /** An identifier of an algorithm. */
 export interface AlgorithmIdentifier {
   /** The OID of the algorithm in dot-decimal form. */
@@ -161,6 +165,7 @@ export interface BasicRequestAttribute {
   OID: DotDecimalOID;
   /** The value of the attribute as a base64-encoded DER representation of an ASN.1 value. */
   value: Base64DERencodedASN1Value;
+  [key: string]: unknown;
 }
 /** A CSR attribute as specified in PKCS#10. */
 export interface CSRAttribute {}
@@ -172,6 +177,7 @@ export interface X509v3Extension {
   critical: boolean;
   /** The value of the extension field as a base64-encoded DER representation of an ASN.1 value. */
   extnValue: Base64DERencodedASN1Value;
+  [key: string]: unknown;
 }
 /** An X.509 cerficiate as specified in RFC 5280. */
 export interface X509Certificate {
@@ -183,13 +189,16 @@ export interface X509Certificate {
   alias?: string;
   /** The base64-encoded DER representation of the X.509 certificate. */
   certificateContent: Base64DERencodedASN1Value;
+  [key: string]: unknown;
 }
 /** A sequence of certificate IDs. */
 export interface CertificateIDs {
   /** A certificate ID. */
   certificateID?: CertificateID[];
 }
-export interface anyElement {}
+export interface anyElement {
+  [key: string]: unknown;
+}
 /** An X.509 certification path as defined in RFC 5280. */
 export interface CertificationPath {
   /** A certificate in the certification path. */
@@ -203,6 +212,7 @@ export interface PassphraseAttribute {
   passphraseID: PassphraseID;
   /** The alias of the passphrase. */
   alias?: string;
+  [key: string]: unknown;
 }
 /** The capabilities of the 802.1X implementation on a device. */
 export interface Dot1XCapabilities {
@@ -210,6 +220,7 @@ export interface Dot1XCapabilities {
   maximumNumberOfDot1XConfigurations?: PositiveInteger;
   /** The authentication methods supported by the 802.1X implementation. */
   dot1XMethods?: Dot1XMethods;
+  [key: string]: unknown;
 }
 /** The configuration parameters required for a particular authentication method. */
 export interface Dot1XStage {
@@ -225,7 +236,9 @@ export interface Dot1XStage {
   inner?: Dot1XStage;
   extension?: Dot1XStageExtension;
 }
-export interface Dot1XStageExtension {}
+export interface Dot1XStageExtension {
+  [key: string]: unknown;
+}
 export interface Dot1XConfiguration {
   /** The unique identifier of the IEEE 802.1X configuration. */
   dot1XID?: Dot1XID;
@@ -233,11 +246,13 @@ export interface Dot1XConfiguration {
   alias?: string;
   /** The outer level authentication method used in this 802.1X configuration. */
   outer: Dot1XStage;
+  [key: string]: unknown;
 }
 export interface CRL {
   CRLID: CRLID;
   alias: string;
   CRLContent: Base64DERencodedASN1Value;
+  [key: string]: unknown;
 }
 export interface CertPathValidationParameters {
   /** True if and only if the TLS server shall not authenticate client certificates that do not contain the TLS WWW client authentication key usage extension as specified in RFC 5280, Sect. 4.2.1.12. */
@@ -249,6 +264,7 @@ export interface CertPathValidationParameters {
 export interface TrustAnchor {
   /** The certificate ID of the certificate to be used as trust anchor. */
   certificateID: CertificateID;
+  [key: string]: unknown;
 }
 export interface CertPathValidationPolicy {
   certPathValidationPolicyID: CertPathValidationPolicyID;
@@ -317,6 +333,7 @@ export interface TLSServerCapabilities {
   cnMapsToUserSupported?: boolean;
   /** Indicates the maximum number of certification path validation policies that may be assigned to the TLS server simultaneously. */
   maximumNumberOfTLSCertificationPathValidationPolicies?: number;
+  [key: string]: unknown;
 }
 export interface AuthorizationServerConfigurationData {
   /** The type of configuration, tas:AuthorizationServerConfigurationType lists the acceptable values */
@@ -337,9 +354,11 @@ export interface AuthorizationServerConfigurationData {
   certificateID?: CertificateID;
   /** The unique identifier of the certification path validation policy to be used for validating the server certificate. */
   certPathValidationPolicyID?: CertPathValidationPolicyID;
+  [key: string]: unknown;
 }
 export interface AuthorizationServerConfiguration extends DeviceEntity {
   data: AuthorizationServerConfigurationData;
+  [key: string]: unknown;
 }
 export interface AuthorizationServerConfigurationCapabilities {
   /** Indicates maximum number of authorization server configurations supported. */
@@ -368,6 +387,14 @@ export interface Capabilities {
   authorizationServer?: AuthorizationServerConfigurationCapabilities;
   /** The capabilities of the media signing implementation. */
   mediaSigning?: MediaSigningCapabilities;
+  [key: string]: unknown;
+}
+export interface CustomClaim {
+  /** Custom claim name. */
+  name: string;
+  /** List of supported custom claim values. A JWT must contain at least one of these. */
+  supportedValues: StringList;
+  [key: string]: unknown;
 }
 export interface JWTConfiguration {
   /** List of supported aud claims. A JWT must contain at least one of these. */
@@ -378,6 +405,8 @@ export interface JWTConfiguration {
   keyID?: KeyID[];
   /** If present, the device will validate the certification path of the Open ID Connect servers. The OIDC server iso considered to be valid if its certificate is validated by the provided certification path validation policy. */
   validationPolicy?: CertPathValidationPolicyID;
+  /** A list of optional custom claims to be used for JWT validation. */
+  customClaims?: CustomClaim[];
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

@@ -22,6 +22,7 @@ export interface RadiometryModuleConfigOptions {
   maxScreenBoxes: number;
   /** Specifies valid ranges for the different radiometry parameters used for temperature calculation. */
   radiometryParameterOptions?: RadiometryParameterOptions;
+  [key: string]: unknown;
 }
 /** Describes valid ranges for the different radiometry parameters used for accurate temperature calculation. */
 export interface RadiometryParameterOptions {
@@ -41,6 +42,7 @@ export interface RadiometryParameterOptions {
   extOpticsTemperature?: FloatRange;
   /** Valid range of external optics transmittance. */
   extOpticsTransmittance?: FloatRange;
+  [key: string]: unknown;
 }
 export interface RadiometrySpotModuleConfig {
   /** Unique identifier for this Spot Temperature Measurement Analytics Module. */
@@ -59,6 +61,7 @@ export interface RadiometrySpotModuleConfig {
   absoluteCoords?: PTZVector;
   /** Not present parameter means the Device shall use its value from Global Parameters in Thermal Service. */
   radiometryParameters?: RadiometryParameters;
+  [key: string]: unknown;
 }
 export interface RadiometryBoxModuleConfig {
   /** Unique identifier for this Box Temperature Measurement Analytics Module. */
@@ -77,12 +80,14 @@ export interface RadiometryBoxModuleConfig {
   absoluteCoords?: PTZVector;
   /** Not present parameter means the Device shall use its value from Global Parameters in Thermal Service. */
   radiometryParameters?: RadiometryParameters;
+  [key: string]: unknown;
 }
 export interface SpotTemperatureReading {
   itemID?: ReferenceToken;
   spotTemperature: number;
   /** Not present means Global Parameters from Thermal Service are being used. */
   radiometryParameters?: RadiometryParameters;
+  [key: string]: unknown;
 }
 export interface BoxTemperatureReading {
   itemID: ReferenceToken;
@@ -92,6 +97,7 @@ export interface BoxTemperatureReading {
   medianTemperature?: number;
   /** Not present means Global Parameters from Thermal Service are being used. */
   radiometryParameters?: RadiometryParameters;
+  [key: string]: unknown;
 }
 export interface RadiometryParameters {
   reflectedAmbientTemperature?: number;
@@ -102,6 +108,7 @@ export interface RadiometryParameters {
   atmosphericTransmittance?: number;
   extOpticsTemperature?: number;
   extOpticsTransmittance?: number;
+  [key: string]: unknown;
 }
 export interface RadiometryRuleConfigOptions {
   /** Specifies valid ranges for thresholds and reference parameters used for triggering radiometric rules. */
@@ -110,6 +117,7 @@ export interface RadiometryRuleConfigOptions {
   temperatureConditionOptions?: TemperatureCondition[];
   /** Specifies temperature measurement types provided by radiometry analytics modules in the device. */
   temperatureTypeOptions?: TemperatureType[];
+  [key: string]: unknown;
 }
 /** Describes valid ranges for radiometric rule condition thresholds and reference parameters. */
 export interface RadiometryRuleOptions {
@@ -119,6 +127,7 @@ export interface RadiometryRuleOptions {
   thresholdTime?: FloatRange;
   /** Valid range of temperature hysteresis values, in Kelvin. */
   hysteresisTemperature?: FloatRange;
+  [key: string]: unknown;
 }
 export interface RadiometryTemperatureRuleConfig {
   /** Reference Token to the Temperature Measurement Analytics Module providing the Temperature on which rule is defined. */
@@ -139,4 +148,5 @@ export interface RadiometryTemperatureRuleConfig {
   thresholdTime: Duration;
   /** Indicates the width in Kelvin of the temerature hysteresis band to be considered by the rule. */
   hysteresisTemperature: number;
+  [key: string]: unknown;
 }

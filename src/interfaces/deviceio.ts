@@ -42,7 +42,9 @@ export interface RelayOutputOptions {
   discrete?: boolean;
   extension?: RelayOutputOptionsExtension;
 }
-export interface RelayOutputOptionsExtension {}
+export interface RelayOutputOptionsExtension {
+  [key: string]: unknown;
+}
 export interface Get {}
 export interface GetResponse {
   /** List tokens of a physical IO of a device. */
@@ -51,11 +53,14 @@ export interface GetResponse {
 export interface DigitalInputConfigurationOptions {
   /** Configuration Options for a digital input. */
   idleState?: DigitalIdleState[];
+  [key: string]: unknown;
 }
 /** The serial port data. */
 export interface SerialData {}
 /** Lists all available serial ports of a device */
-export interface SerialPort extends DeviceEntity {}
+export interface SerialPort extends DeviceEntity {
+  [key: string]: unknown;
+}
 /** The parameters for configuring the serial port. */
 export interface SerialPortConfiguration {
   token: ReferenceToken;
@@ -68,6 +73,7 @@ export interface SerialPortConfiguration {
   characterLength: number;
   /** The number of stop bits used to terminate each character. */
   stopBit: number;
+  [key: string]: unknown;
 }
 /** The configuration options that relates to serial port. */
 export interface SerialPortConfigurationOptions {
@@ -80,6 +86,7 @@ export interface SerialPortConfigurationOptions {
   characterLengthList: IntItems;
   /** The list of configurable number of stop bits used to terminate each character. */
   stopBitList: FloatItems;
+  [key: string]: unknown;
 }
 /** The list of configurable parity for the data error detection. */
 export interface ParityBitList {
@@ -112,34 +119,42 @@ export interface GetVideoOutputsResponse {
 export interface GetAudioSourceConfiguration {
   /** Token of the requested AudioSource. */
   audioSourceToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetAudioSourceConfigurationResponse {
   /** Current configuration of the Audio input. */
   audioSourceConfiguration: AudioSourceConfiguration;
+  [key: string]: unknown;
 }
 export interface GetAudioOutputConfiguration {
   /** Token of the physical Audio output. */
   audioOutputToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetAudioOutputConfigurationResponse {
   /** Current configuration of the Audio output. */
   audioOutputConfiguration: AudioOutputConfiguration;
+  [key: string]: unknown;
 }
 export interface GetVideoSourceConfiguration {
   /** Token of the requested VideoSource. */
   videoSourceToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetVideoSourceConfigurationResponse {
   /** Current configuration of the Video input. */
   videoSourceConfiguration: VideoSourceConfiguration;
+  [key: string]: unknown;
 }
 export interface GetVideoOutputConfiguration {
   /** Token of the requested VideoOutput. */
   videoOutputToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetVideoOutputConfigurationResponse {
   /** Current configuration of the Video output. */
   videoOutputConfiguration: VideoOutputConfiguration;
+  [key: string]: unknown;
 }
 export interface SetAudioSourceConfiguration {
   configuration: AudioSourceConfiguration;
@@ -149,8 +164,11 @@ export interface SetAudioSourceConfiguration {
    * after reboot.
    */
   forcePersistence: boolean;
+  [key: string]: unknown;
 }
-export interface SetAudioSourceConfigurationResponse {}
+export interface SetAudioSourceConfigurationResponse {
+  [key: string]: unknown;
+}
 export interface SetAudioOutputConfiguration {
   configuration: AudioOutputConfiguration;
   /**
@@ -159,8 +177,11 @@ export interface SetAudioOutputConfiguration {
    * after reboot.
    */
   forcePersistence: boolean;
+  [key: string]: unknown;
 }
-export interface SetAudioOutputConfigurationResponse {}
+export interface SetAudioOutputConfigurationResponse {
+  [key: string]: unknown;
+}
 export interface SetVideoSourceConfiguration {
   configuration: VideoSourceConfiguration;
   /**
@@ -169,8 +190,11 @@ export interface SetVideoSourceConfiguration {
    * after reboot.
    */
   forcePersistence: boolean;
+  [key: string]: unknown;
 }
-export interface SetVideoSourceConfigurationResponse {}
+export interface SetVideoSourceConfigurationResponse {
+  [key: string]: unknown;
+}
 export interface SetVideoOutputConfiguration {
   configuration: VideoOutputConfiguration;
   /**
@@ -179,37 +203,48 @@ export interface SetVideoOutputConfiguration {
    * after reboot.
    */
   forcePersistence: boolean;
+  [key: string]: unknown;
 }
-export interface SetVideoOutputConfigurationResponse {}
+export interface SetVideoOutputConfigurationResponse {
+  [key: string]: unknown;
+}
 export interface GetVideoSourceConfigurationOptions {
   /** Token of the Video input whose options are requested.. */
   videoSourceToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetVideoSourceConfigurationOptionsResponse {
   videoSourceConfigurationOptions: VideoSourceConfigurationOptions;
+  [key: string]: unknown;
 }
 export interface GetVideoOutputConfigurationOptions {
   /** Token of the Video Output whose options are requested.. */
   videoOutputToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetVideoOutputConfigurationOptionsResponse {
   videoOutputConfigurationOptions: VideoOutputConfigurationOptions;
+  [key: string]: unknown;
 }
 export interface GetAudioSourceConfigurationOptions {
   /** Token of the physical Audio input whose options are requested.. */
   audioSourceToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetAudioSourceConfigurationOptionsResponse {
   /** Returns the AudioSourceToken available. */
   audioSourceOptions: AudioSourceConfigurationOptions;
+  [key: string]: unknown;
 }
 export interface GetAudioOutputConfigurationOptions {
   /** Token of the physical Audio Output whose options are requested.. */
   audioOutputToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetAudioOutputConfigurationOptionsResponse {
   /** Available settings and ranges for the requested Audio output. */
   audioOutputOptions: AudioOutputConfigurationOptions;
+  [key: string]: unknown;
 }
 export interface SetRelayOutputSettings {
   relayOutput: RelayOutput;

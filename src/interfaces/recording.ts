@@ -23,6 +23,7 @@ import { ReferenceToken } from './common';
 export interface RecordingOptions {
   job: JobOptions;
   track: TrackOptions;
+  [key: string]: unknown;
 }
 export interface JobOptions {
   /** Number of spare jobs that can be created for the recording. */
@@ -197,7 +198,10 @@ export interface ExportRecordedData {
   /** Indicates the target storage and relative directory path. */
   storageDestination: StorageReferencePath;
 }
-export interface Extension {}
+export interface Extension {
+  /** Extensibility point. */
+  [key: string]: unknown;
+}
 export interface ExportRecordedDataResponse {
   /** Unique operation token for client to associate the relevant events. */
   operationToken: ReferenceToken;
@@ -214,6 +218,7 @@ export interface StopExportRecordedDataResponse {
   progress: number;
   /**/
   fileProgressStatus: ArrayOfFileProgress;
+  [key: string]: unknown;
 }
 export interface GetExportRecordedDataState {
   /** Unique ExportRecordedData operation token */
@@ -224,6 +229,7 @@ export interface GetExportRecordedDataStateResponse {
   progress: number;
   /**/
   fileProgressStatus: ArrayOfFileProgress;
+  [key: string]: unknown;
 }
 export interface OverrideSegmentDuration {
   /** The new target duration for recorded segments. */

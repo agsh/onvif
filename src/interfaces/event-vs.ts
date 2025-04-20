@@ -24,13 +24,16 @@ export interface EventBrokerConfig {
   certPathValidationPolicyID?: string;
   /** Concrete Topic Expression to select specific metadata topics to publish. */
   metadataFilter?: FilterType;
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the event service is returned in the Capabilities element. */
   capabilities: Capabilities;
 }
-export interface SubscriptionPolicy {}
+export interface SubscriptionPolicy {
+  [key: string]: unknown;
+}
 export interface CreatePullPointSubscription {
   /** Optional XPATH expression to select specific topics. */
   filter?: FilterType;

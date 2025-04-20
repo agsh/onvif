@@ -14,7 +14,9 @@ export interface RegisterDatabase extends CapabilityType {
   recordingSearchInterfaceRegistration?: boolean;
   extension?: RegisterDatabaseExtension;
 }
-export interface RegisterDatabaseExtension {}
+export interface RegisterDatabaseExtension {
+  [key: string]: unknown;
+}
 export interface CapabilityType {
   supportedQFProfile?: TermType;
   supportedMetadata?: AnyURI[];
@@ -81,4 +83,6 @@ export interface GetSearchResultsResponse {
    */
   resultItem?: unknown[];
 }
-export interface RegisterDatabaseResponse {}
+export interface RegisterDatabaseResponse {
+  [key: string]: unknown;
+}

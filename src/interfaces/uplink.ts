@@ -3,7 +3,7 @@ import { AnyURI } from './basics';
 import { ReferenceToken } from './common';
 
 export type Protocols = 'https' | 'wss';
-export type AuthorizationModes = 'mTLS' | 'JWT';
+export type AuthorizationModes = 'mTLS' | 'AccessToken';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
 export interface Configuration {
   /** Uniform resource locator by which the remote client can be reached. */
@@ -23,6 +23,7 @@ export interface Configuration {
   authorizationServer?: ReferenceToken;
   /** Optional user readable error information (readonly). */
   error?: string;
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
