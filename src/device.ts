@@ -112,7 +112,7 @@ export class Device {
         options.category!.map((category) => `<Category>${category}</Category>`).join('')
       }</GetCapabilities>`,
     });
-    this.onvif.capabilities = linerase(data[0].getCapabilitiesResponse[0].capabilities[0]) as Capabilities;
+    this.onvif.capabilities = linerase(data).getCapabilitiesResponse.capabilities as Capabilities;
     ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
@@ -226,7 +226,7 @@ export class Device {
       service : 'device',
       body    : '<GetNTP xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     });
-    this.#NTP = linerase(data[0].getNTPResponse[0].NTPInformation[0]);
+    this.#NTP = linerase(data).getNTPResponse.NTPInformation;
     if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) { this.#NTP.NTPManual = [this.#NTP.NTPManual]; }
     if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) { this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP]; }
     return this.#NTP!;
@@ -254,7 +254,7 @@ export class Device {
       service : 'device',
       body,
     });
-    if (data[0].setNTPResponse[0] !== '') {
+    if (data['tds:SetNTPResponse'][0] !== '') {
       throw new Error('Wrong `SetNTP` response');
     }
     return this.getNTP();
@@ -269,7 +269,7 @@ export class Device {
       service : 'device',
       body    : '<GetDNS xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     });
-    this.#DNS = linerase(data[0].getDNSResponse[0].DNSInformation);
+    this.#DNS = linerase(data).getDNSResponse.DNSInformation;
     if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
     if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
     return this.#DNS!;
@@ -294,7 +294,8 @@ export class Device {
       service : 'device',
       body,
     });
-    if (data[0].setDNSResponse[0] !== '') {
+    const a = linerase(data);
+    if (linerase(data).setDNSResponse.length !== 0) {
       throw new Error('Wrong `SetDNS` response');
     }
     return this.getDNS();
@@ -309,7 +310,7 @@ export class Device {
       service : 'device',
       body    : '<GetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
     });
-    const { networkInterfaces } = linerase(data[0].getNetworkInterfacesResponse, { array : ['networkInterfaces', 'manual'] });
+    const { networkInterfaces } = linerase(data, { array : ['networkInterfaces', 'manual'] }).getNetworkInterfacesResponse;
     this.#networkInterfaces = Array.isArray(networkInterfaces) ? networkInterfaces : [];
     return this.#networkInterfaces;
   }
@@ -357,7 +358,7 @@ export class Device {
       service : 'device',
       body,
     });
-    const result = linerase(data[0].setNetworkInterfacesResponse);
+    const result = linerase(data).setNetworkInterfacesResponse;
     if (Array.isArray(networkInterface.IPv6?.manual) && networkInterface.IPv6.manual.length > 0) {
       this.onvif.hostname = networkInterface.IPv6.manual[0].address!;
     }

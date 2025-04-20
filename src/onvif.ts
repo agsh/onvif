@@ -317,7 +317,7 @@ export class Onvif extends EventEmitter {
         const wwwAuthenticate = response.headers['www-authenticate'];
         const { statusCode } = response;
         if (statusCode === 401 && wwwAuthenticate !== undefined) {
-          // Re-request with digest auth header
+          // Re-request with the digest auth header
           response.destroy();
           try {
             options.headers!.Authorization = this.digestAuth(wwwAuthenticate, requestOptions.path!);

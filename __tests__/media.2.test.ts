@@ -4,6 +4,7 @@ import {
   ConfigurationEnumeration,
   MediaProfile,
 } from '../src/interfaces/media.2';
+import { ConfigurationEntity } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder' : ['encoding', 'resolution', 'quality'],
@@ -68,9 +69,9 @@ describe('Profiles', () => {
   describe('addConfiguration', () => {
     it('should add a configuration to the profile', async () => {
       const newConfiguration: ConfigurationRefExtended[] = Object.entries(basicProfile.configurations!)
-        .map(([name, configuration]): ConfigurationRefExtended => ({
+        .map(([name, configuration]: [string, any]) => ({
           type  : name as ConfigurationEnumeration,
-          token : configuration.token,
+          token : configuration.token as ReferenceToken,
         }));
       const result = await cam.media2.addConfiguration({
         profileToken  : newProfileToken,
@@ -79,8 +80,8 @@ describe('Profiles', () => {
       });
       expect(result).toBeUndefined();
       const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
-      expect(Object.values(profile.configurations!).map((configuration) => configuration.token))
-        .toStrictEqual(Object.values(basicProfile.configurations!).map((configuration) => configuration.token));
+      expect(Object.values(profile.configurations!).map((configuration) => (configuration as ConfigurationEntity).token))
+        .toStrictEqual(Object.values(basicProfile.configurations!).map((configuration) => (configuration as ConfigurationEntity).token));
     });
 
     it('should throw an error requested profile token does not exist', async () => {

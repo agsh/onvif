@@ -146,8 +146,8 @@ export class PTZ {
       body    : '<GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />',
     });
     this.#nodes = {};
-    data[0].getNodesResponse.forEach((ptzNode: any) => {
-      const node: PTZNode = linerase(ptzNode.PTZNode[0]);
+    linerase(data, { array : ['getNodesResponse'] }).getNodesResponse.forEach((ptzNode: any) => {
+      const node: PTZNode = ptzNode.PTZNode;
       this.#nodes[node.token] = node;
     });
     return this.#nodes;
@@ -171,7 +171,7 @@ export class PTZ {
         + '</GetConfigurations>',
     });
     this.#configurations = {};
-    data[0].getConfigurationsResponse[0].PTZConfiguration.forEach((configuration: any) => {
+    linerase(data, { array : ['PTZConfiguration'] }).getConfigurationsResponse.PTZConfiguration.forEach((configuration: any) => {
       const result = linerase(configuration);
       this.#configurations[result.token] = result;
     });
@@ -244,7 +244,7 @@ export class PTZ {
         + '</GetPresets>',
     });
     this.#presets = {};
-    const result = linerase(data[0].getPresetsResponse, { array : ['preset'] }).preset;
+    const result = linerase(data, { array : ['preset'] }).getPresetsResponse.preset;
     result.forEach((preset: PTZPreset) => { this.#presets[preset.token!] = preset; });
     return this.#presets;
   }
@@ -279,7 +279,7 @@ export class PTZ {
           presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
         }</SetPreset>`,
     });
-    return linerase(data[0].setPresetResponse).presetToken;
+    return linerase(data).setPresetResponse.presetToken;
   }
 
   /**

@@ -104,7 +104,7 @@ const SOAPResponse = `
 describe('ParseSOAPString', () => {
   it('should parse a SOAP response', async () => {
     const [result, xml] = await parseSOAPString(SOAPResponse);
-    expect(xml).not.toMatch('xmlns');
+    expect(xml).toMatch('xmlns');
     const prettyResult = linerase(result);
     expect(prettyResult).toEqual({
       'getSystemDateAndTimeResponse' : {
@@ -119,6 +119,16 @@ describe('ParseSOAPString', () => {
         },
       },
     });
+  });
+
+  it('should throw an error when it is not a SOAP message', async () => {
+    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects
+      .toThrow('Wrong ONVIF SOAP response, not a SOAP message');
+  });
+
+  it('should throw an error with the wrong SOAP message', async () => {
+    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi a="1"></hi>')).rejects
+      .toThrow('Wrong ONVIF SOAP response, envelope and body are expected');
   });
 });
 
