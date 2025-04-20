@@ -70,6 +70,7 @@ export interface ServiceCapabilities {
    * To enable the use of the commands SetSchedule and SetSpecialDayGroup, the value must be set to true.
    */
   clientSuppliedTokenSupported?: boolean;
+  [key: string]: unknown;
 }
 /**
  * The ScheduleInfo type represents the schedule as a physical object.
@@ -106,7 +107,9 @@ export interface Schedule extends ScheduleInfo {
   specialDays?: SpecialDaysSchedule[];
   extension?: ScheduleExtension;
 }
-export interface ScheduleExtension {}
+export interface ScheduleExtension {
+  [key: string]: unknown;
+}
 /** A override schedule that defines alternate time periods for a group of special days. */
 export interface SpecialDaysSchedule {
   /** Indicates the list of special days in a schedule. */
@@ -123,7 +126,9 @@ export interface SpecialDaysSchedule {
   timeRange?: TimePeriod[];
   extension?: SpecialDaysScheduleExtension;
 }
-export interface SpecialDaysScheduleExtension {}
+export interface SpecialDaysScheduleExtension {
+  [key: string]: unknown;
+}
 /** The ScheduleState contains state information for a schedule. */
 export interface ScheduleState {
   /**
@@ -143,7 +148,9 @@ export interface ScheduleState {
   specialDay?: boolean;
   extension?: ScheduleStateExtension;
 }
-export interface ScheduleStateExtension {}
+export interface ScheduleStateExtension {
+  [key: string]: unknown;
+}
 /**
  * A time period defines a start and end time. For full day access, the
  * start time ="00:00:00" with no defined end time. For a time period with no
@@ -162,7 +169,9 @@ export interface TimePeriod {
   until?: Time;
   extension?: TimePeriodExtension;
 }
-export interface TimePeriodExtension {}
+export interface TimePeriodExtension {
+  [key: string]: unknown;
+}
 /** The SpecialDayGroupInfo structure contains the basic information about the special days list. */
 export interface SpecialDayGroupInfo extends DataEntity {
   /** User readable name. It shall be up to 64 characters. */
@@ -187,7 +196,9 @@ export interface SpecialDayGroup extends SpecialDayGroupInfo {
   days?: string;
   extension?: SpecialDayGroupExtension;
 }
-export interface SpecialDayGroupExtension {}
+export interface SpecialDayGroupExtension {
+  [key: string]: unknown;
+}
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

@@ -46,10 +46,12 @@ export interface Capabilities {
   profileCapabilities: ProfileCapabilities;
   /** Streaming capabilities. */
   streamingCapabilities: StreamingCapabilities;
+  [key: string]: unknown;
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles supported. */
   maximumNumberOfProfiles?: number;
+  [key: string]: unknown;
 }
 export interface StreamingCapabilities {
   /** Indicates support for RTP multicast. */
@@ -62,6 +64,7 @@ export interface StreamingCapabilities {
   nonAggregateControl?: boolean;
   /** Indicates the device does not support live media streaming via RTSP. */
   noRTSPStreaming?: boolean;
+  [key: string]: unknown;
 }
 export interface VideoSourceMode {
   /** Indicate token for video source mode. */
@@ -80,7 +83,9 @@ export interface VideoSourceMode {
   description?: Description;
   extension?: VideoSourceModeExtension;
 }
-export interface VideoSourceModeExtension {}
+export interface VideoSourceModeExtension {
+  [key: string]: unknown;
+}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the media service is returned in the Capabilities element. */
@@ -630,34 +635,46 @@ export interface GetOSDsResponse {
 export interface GetOSD {
   /** The GetOSD command fetches the OSD configuration if the OSD token is known. */
   OSDToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetOSDResponse {
   /** The requested OSD configuration. */
   OSD: OSDConfiguration;
+  [key: string]: unknown;
 }
 export interface SetOSD {
   /** Contains the modified OSD configuration. */
   OSD: OSDConfiguration;
+  [key: string]: unknown;
 }
-export interface SetOSDResponse {}
+export interface SetOSDResponse {
+  [key: string]: unknown;
+}
 export interface GetOSDOptions {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
   configurationToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface GetOSDOptionsResponse {
   /**/
   OSDOptions: OSDConfigurationOptions;
+  [key: string]: unknown;
 }
 export interface CreateOSD {
   /** Contain the initial OSD configuration for create. */
   OSD: OSDConfiguration;
+  [key: string]: unknown;
 }
 export interface CreateOSDResponse {
   /** Returns Token of the newly created OSD */
   OSDToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface DeleteOSD {
   /** This element contains a reference to the OSD configuration that should be deleted. */
   OSDToken: ReferenceToken;
+  [key: string]: unknown;
 }
-export interface DeleteOSDResponse {}
+export interface DeleteOSDResponse {
+  [key: string]: unknown;
+}

@@ -33,6 +33,7 @@ export interface MotionRegionConfigOptions {
    * that motion was detected in.
    */
   ruleNotification?: boolean;
+  [key: string]: unknown;
 }
 export interface MotionRegionConfig {
   /**
@@ -55,4 +56,5 @@ export interface MotionRegionConfig {
   ygon?: unknown;
   /** Preset position associated with the motion region defined by Polygon. */
   presetToken?: ReferenceToken;
+  [key: string]: unknown;
 }

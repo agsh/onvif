@@ -22,12 +22,15 @@ export interface ConfigOptions {
   minOccurs?: number;
   /** Maximum number of occurrences. Defaults to one. */
   maxOccurs?: number;
+  /** XML tree containing the element value as defined in the Type attribute. */
+  [key: string]: unknown;
 }
 export interface MetadataInfo {
   /** Reference to an AnalyticsModule Type. */
   type: unknown;
   /** Sample frame content starting with the tt:Frame node. */
   sampleFrame: Frame;
+  [key: string]: unknown;
 }
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

@@ -63,6 +63,7 @@ export interface PTZStatus {
   utcTime: Date;
   /** States the current field of view of the video stream. */
   fieldOfView?: FieldOfView;
+  [key: string]: unknown;
 }
 export interface PTZMoveStatus {
   /**/
@@ -71,14 +72,14 @@ export interface PTZMoveStatus {
   zoom?: MoveStatus;
 }
 export interface Vector {
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
 }
 export interface Rectangle {
-  bottom?: number;
-  top?: number;
-  right?: number;
-  left?: number;
+  bottom: number;
+  top: number;
+  right: number;
+  left: number;
 }
 export interface Polygon {
   point?: Vector[];
@@ -127,17 +128,21 @@ export interface ColorCluster {
   color: Color;
   weight?: number;
   covariance?: ColorCovariance;
+  [key: string]: unknown;
 }
 export interface ColorDescriptor {
   colorCluster?: ColorCluster[];
   extension?: unknown;
+  [key: string]: unknown;
 }
 export interface Transformation {
   translate?: Vector;
   scale?: Vector;
   extension?: TransformationExtension;
 }
-export interface TransformationExtension {}
+export interface TransformationExtension {
+  [key: string]: unknown;
+}
 export interface GeoLocation {
   /** East west location as angle. */
   lon?: number;
@@ -145,6 +150,7 @@ export interface GeoLocation {
   lat?: number;
   /** Hight in meters above sea level. */
   elevation?: number;
+  [key: string]: unknown;
 }
 export interface GeoOrientation {
   /** Rotation around the x axis. */
@@ -153,6 +159,7 @@ export interface GeoOrientation {
   pitch?: number;
   /** Rotation around the z axis. */
   yaw?: number;
+  [key: string]: unknown;
 }
 export interface LocalLocation {
   /** East west location as angle. */
@@ -161,6 +168,7 @@ export interface LocalLocation {
   y?: number;
   /** Offset in meters from the sea level. */
   z?: number;
+  [key: string]: unknown;
 }
 export interface LocalOrientation {
   /** Rotation around the y axis. */
@@ -169,6 +177,7 @@ export interface LocalOrientation {
   tilt?: number;
   /** Rotation around the x axis. */
   roll?: number;
+  [key: string]: unknown;
 }
 export interface SphericalCoordinate {
   /** Distance in meters to the object. */
@@ -177,6 +186,7 @@ export interface SphericalCoordinate {
   elevationAngle?: number;
   /** Azimuth angle in the range -180 to 180 degrees counter clockwise, where 0 is rightwards. */
   azimuthAngle?: number;
+  [key: string]: unknown;
 }
 export interface LocationEntity {
   /** Entity type the entry refers to, use a value from the tt:Entity enumeration. */

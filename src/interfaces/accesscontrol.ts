@@ -75,6 +75,7 @@ export interface ServiceCapabilities {
    * and DeleteArea, the value must be set to true.
    */
   areaManagementSupported?: boolean;
+  [key: string]: unknown;
 }
 /** Used as extension base for AccessPointInfo. */
 export interface AccessPointInfoBase extends DataEntity {
@@ -116,6 +117,7 @@ export interface AccessPointInfoBase extends DataEntity {
 export interface AccessPointInfo extends AccessPointInfoBase {
   /** The capabilities for the AccessPoint. */
   capabilities: AccessPointCapabilities;
+  [key: string]: unknown;
 }
 /**
  * The AccessPoint structure shall include all properties of the AccessPointInfo structure,
@@ -129,7 +131,9 @@ export interface AccessPoint extends AccessPointInfo {
   authenticationProfileToken?: ReferenceToken;
   extension?: AccessPointExtension;
 }
-export interface AccessPointExtension {}
+export interface AccessPointExtension {
+  [key: string]: unknown;
+}
 /**
  * The AccessPoint capabilities reflect optional functionality of a particular physical entity.
  * Different AccessPoint instances may have different set of capabilities. This information may
@@ -197,8 +201,11 @@ export interface AccessPointCapabilities {
    */
   supportedSecurityLevels?: ReferenceToken[];
   extension?: SupportedSecurityLevelsExtension;
+  [key: string]: unknown;
 }
-export interface SupportedSecurityLevelsExtension {}
+export interface SupportedSecurityLevelsExtension {
+  [key: string]: unknown;
+}
 /** Basic information about an Area. Used as extension base. */
 export interface AreaInfoBase extends DataEntity {
   /** User readable name. It shall be up to 64 characters. */
@@ -221,7 +228,9 @@ export interface AreaInfo extends AreaInfoBase {}
 export interface Area extends AreaInfo {
   extension?: AreaExtension;
 }
-export interface AreaExtension {}
+export interface AreaExtension {
+  [key: string]: unknown;
+}
 /**
  * The AccessPointState contains state information for an AccessPoint.
  * An ONVIF compliant device shall provide the following fields for each AccessPoint instance:
@@ -232,6 +241,7 @@ export interface AccessPointState {
    * shall be True, if the DisableAccessPoint capabilities is not supported.
    */
   enabled: boolean;
+  [key: string]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
@@ -471,5 +481,8 @@ export interface Feedback {
    * If not supported by the access point it shall be ignored.
    */
   textMessage?: string;
+  [key: string]: unknown;
 }
-export interface FeedbackResponse {}
+export interface FeedbackResponse {
+  [key: string]: unknown;
+}
