@@ -29,6 +29,23 @@ interface LineraseOptions {
   name?: string;
 }
 
+const rawXMLHandler = {
+  set(obj: any, prop: string, value: any) {
+    throw new OnvifError(`Setting up the simple key '${prop}' is prohibited. Please use '__any__' key of the parent and 'xmj2js' syntax`);
+    obj[prop] = value; // TODO setter in __any__ field
+  },
+  get(obj: any, prop: string) {
+    console.log('get', prop);
+    // if (prop === '__any__') {
+    //   return obj.__any__;
+    // }
+    if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+      return new Proxy(obj[prop], rawXMLHandler);
+    }
+    return obj[prop];
+  },
+};
+
 /**
  * Parse SOAP object to pretty JS-object
  * @param xml xml2js object
@@ -46,9 +63,19 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
       becomes text node { node: ["\r\n"] }, this is not what we expected
      */
     xml = xml.filter((item) => !(typeof item === 'string' && item.trim() === ''));
-    // if we have
+    // if we have xs:any
     if (options.rawXML.includes(options.name!)) {
-      return xml;
+      return xml.map((item: any) => {
+        const rawXMLObject = linerase(item, options);
+        Object.defineProperty(rawXMLObject, '__any__', {
+          value        : item,
+          writable     : true,
+          enumerable   : true, // false,
+          configurable : true,
+        });
+        return rawXMLObject;
+        return new Proxy(rawXMLObject, rawXMLHandler);
+      });
     }
     if (xml.length === 1 && !options.array.includes(options.name!) /* do not simplify array if its key in array prop */) {
       [xml] = xml;
@@ -225,18 +252,17 @@ export const toOnvifXMLSchemaObject = {
       },
       Parameters : {
         ...(config.parameters.simpleItem
-      && {
-        SimpleItem : config.parameters.simpleItem.map((simpleItem) => ({
-          $ : { Name : simpleItem.name, Value : simpleItem.value },
-        })),
-      }
+          && {
+            SimpleItem : config.parameters.simpleItem.map((simpleItem) => ({
+              $ : { Name : simpleItem.name, Value : simpleItem.value },
+            })),
+          }
         ),
         ...(config.parameters.elementItem
-      && {
-        ElementItem : config.parameters.elementItem.map((elementItem) => ({
-          $ : { Name : elementItem.name },
-        })),
-      }
+          && {
+            // don't forget that we have proxy getter here to the `__any__` field
+            ElementItem : config.parameters.elementItem.map((elementItem) => elementItem.__any__),
+          }
         ),
         ...(config.parameters.extension && { Extension : config.parameters.extension }),
       },

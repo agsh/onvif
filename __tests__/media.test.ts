@@ -352,56 +352,65 @@ describe('Configurations', () => {
           sampleRate     : 16,
           sessionTimeout : 'PT13666S',
         },
-        // 'VideoAnalytics' : {
-        //   name                         : 'VAName',
-        //   analyticsEngineConfiguration : {
-        //     analyticsModule : [
-        //       {
-        //         'name'       : 'WhyCellMotionEngine',
-        //         'type'       : 'tt:CellMotionEngine',
-        //         'parameters' : {
-        //           'simpleItem' : [
-        //             {
-        //               'name'  : 'Sensitivity',
-        //               'value' : 6,
-        //             },
-        //           ],
-        //           'elementItem' : [
-        //             {
-        //               'name'       : 'Layout',
-        //               'cellLayout' : {
-        //                 'columns'        : 22,
-        //                 'rows'           : 18,
-        //                 'transformation' : {
-        //                   'translate' : {
-        //                     'x' : -1,
-        //                     'y' : -1,
-        //                   },
-        //                   'scale' : {
-        //                     'x' : 0.090909,
-        //                     'y' : 0.111111,
-        //                   },
-        //                 },
-        //               },
-        //             },
-        //           ],
-        //         },
-        //       },
-        //       {
-        //         'name'       : 'WhyMotionRegionDetector',
-        //         'type'       : 'tt:MotionRegionDetector',
-        //         'parameters' : {
-        //           'simpleItem' : [
-        //             {
-        //               'name'  : 'Sensitivity',
-        //               'value' : 6,
-        //             },
-        //           ],
-        //         },
-        //       },
-        //     ],
-        //   },
-        // },
+        'VideoAnalytics' : {
+          name                         : 'VAName',
+          analyticsEngineConfiguration : {
+            analyticsModule : [
+              {
+                'name'       : 'WhyCellMotionEngine',
+                'type'       : 'tt:CellMotionEngine',
+                'parameters' : {
+                  'simpleItem' : [
+                    {
+                      'name'  : 'Sensitivity',
+                      'value' : 6,
+                    },
+                  ],
+                  'elementItem' : [
+                    {
+                      name       : 'Layout',
+                      cellLayout : {
+                        columns        : 13, // this field must equals that field.
+                        // In the workflow you can't change this value now 😈
+                        rows           : 18,
+                        transformation : {
+                          translate : { x : -1, y : -1 },
+                          scale     : { x : 0.090909, y : 0.111111 },
+                        },
+                      },
+                      __any__ : {
+                        '$'             : { Name : 'Layout' },
+                        'tt:CellLayout' : [
+                          {
+                            '$'                 : { Columns : '13', Rows : '18' }, // yep, it must be '13' 😈
+                            'tt:Transformation' : [
+                              {
+                                'tt:Translate' : [{ '$' : { x : '-1.000000', y : '-1.000000' } }],
+                                'tt:Scale'     : [{ '$' : { x : '0.090909', y : '0.111111' } }],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                'name'       : 'WhyMotionRegionDetector',
+                'type'       : 'tt:MotionRegionDetector',
+                'parameters' : {
+                  'simpleItem' : [
+                    {
+                      'name'  : 'Sensitivity',
+                      'value' : 6,
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
@@ -435,99 +444,6 @@ describe('Configurations', () => {
       it('Remove testing profile', async () => {
         await cam.media.deleteProfile({ profileToken });
       });
-    });
-
-    it('get videoanalytics', async () => {
-      const a = await cam.media.getVideoAnalyticsConfiguration({
-        configurationToken : 'VideoAnalyticsConfigurationToken_1',
-      });
-      console.log(build(
-        {
-          elementItem : {
-            '$'        : { name : 'Layout' },
-            cellLayout : [
-              {
-                '$'            : { columns : '22', rows : '18' },
-                transformation : [
-                  {
-                    translate : [{ '$' : { x : '-1.000000', y : '-1.000000' } }],
-                    scale     : [{ '$' : { x : '0.090909', y : '0.111111' } }],
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      ));
-      const result = await cam.media.getVideoAnalyticsConfiguration({
-        configurationToken : 'VideoAnalyticsConfigurationToken_1',
-      });
-      console.log(util.inspect(result, { colors : true, depth : 100 }));
-      console.log(1);
-      // await cam.media.setVideoAnalyticsConfiguration({
-      //   forcePersistence : true,
-      //   configuration    : {
-      //     token                        : 'VideoAnalyticsConfigurationToken_1',
-      //     name                         : 'VideoAnalyticsConfigurationName_1',
-      //     useCount                     : 4,
-      //     analyticsEngineConfiguration : {
-      //       analyticsModule : [
-      //         {
-      //           name       : 'MyCellMotionEngine',
-      //           type       : 'tt:CellMotionEngine',
-      //           parameters : {
-      //             simpleItem  : [{ name : 'Sensitivity', value : 6 }],
-      //             elementItem : [
-      //               {
-      //                 name       : 'Layout',
-      //                 cellLayout : {
-      //                   columns        : 22,
-      //                   rows           : 18,
-      //                   transformation : {
-      //                     translate : { x : -1, y : -1 },
-      //                     scale     : { x : 0.090909, y : 0.111111 },
-      //                   },
-      //                 },
-      //               },
-      //             ],
-      //           },
-      //         },
-      //         {
-      //           name       : 'MyMotionRegionDetector',
-      //           type       : 'tt:MotionRegionDetector',
-      //           parameters : { simpleItem : [{ name : 'Sensitivity', value : 6 }] },
-      //         },
-      //       ],
-      //     },
-      //     ruleEngineConfiguration : {
-      //       rule : [
-      //         {
-      //           name       : 'MyCellMotionDetector',
-      //           type       : 'tt:CellMotionDetector',
-      //           parameters : {
-      //             simpleItem : [
-      //               { name : 'MinCount', value : 5 },
-      //               { name : 'AlarmOnDelay', value : 1000 },
-      //               { name : 'AlarmOffDelay', value : 1000 },
-      //               { name : 'ActiveCells', value : 'zwA=' },
-      //             ],
-      //           },
-      //         },
-      //         {
-      //           name       : 'TamperingDetection',
-      //           type       : 'tt:TamperingDetection',
-      //           parameters : {
-      //             simpleItem : [
-      //               { name : 'Mode', value : 'SignalLoss' },
-      //               { name : 'Threshold', value : 50 },
-      //               { name : 'Duration', value : 'PT10S' },
-      //             ],
-      //           },
-      //         },
-      //       ],
-      //     },
-      //   },
-      // });
     });
   });
 });
