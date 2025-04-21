@@ -54,6 +54,7 @@ export interface ServiceCapabilities {
    * device supports "pt:SingleCredential" only.
    */
   supportedAuthenticationModes?: StringList;
+  [key: string]: unknown;
 }
 /**
  * The AuthenticationProfileInfo structure contains information of a specific authentication
@@ -88,7 +89,9 @@ export interface AuthenticationProfile extends AuthenticationProfileInfo {
   authenticationPolicy?: AuthenticationPolicy[];
   extension?: AuthenticationProfileExtension;
 }
-export interface AuthenticationProfileExtension {}
+export interface AuthenticationProfileExtension {
+  [key: string]: unknown;
+}
 /**
  * The authentication policy is an association of a security level and a schedule. It defines when
  * a certain security level is required to grant access to a credential holder. Each security
@@ -106,7 +109,9 @@ export interface AuthenticationPolicy {
   securityLevelConstraint: SecurityLevelConstraint[];
   extension?: AuthenticationPolicyExtension;
 }
-export interface AuthenticationPolicyExtension {}
+export interface AuthenticationPolicyExtension {
+  [key: string]: unknown;
+}
 /**
  * This structure defines what security level should be active depending on the state of the
  * schedule.
@@ -136,7 +141,9 @@ export interface SecurityLevelConstraint {
   securityLevelToken: ReferenceToken;
   extension?: SecurityLevelConstraintExtension;
 }
-export interface SecurityLevelConstraintExtension {}
+export interface SecurityLevelConstraintExtension {
+  [key: string]: unknown;
+}
 /**
  * Recognition is the action of identifying authorized users requesting access by the comparison of
  * presented
@@ -162,14 +169,18 @@ export interface RecognitionMethod {
   order: number;
   extension?: RecognitionMethodExtension;
 }
-export interface RecognitionMethodExtension {}
+export interface RecognitionMethodExtension {
+  [key: string]: unknown;
+}
 /**/
 export interface RecognitionGroup {
   /** A list of recognition methods to request for at the access point. */
   recognitionMethod?: RecognitionMethod[];
   extension?: RecognitionGroupExtension;
 }
-export interface RecognitionGroupExtension {}
+export interface RecognitionGroupExtension {
+  [key: string]: unknown;
+}
 /** The SecurityLevelInfo structure contains information of a specific security level instance. */
 export interface SecurityLevelInfo extends DataEntity {
   /** A user readable name. It shall be up to 64 characters. */
@@ -206,7 +217,9 @@ export interface SecurityLevel extends SecurityLevelInfo {
   recognitionGroup?: RecognitionGroup[];
   extension?: SecurityLevelExtension;
 }
-export interface SecurityLevelExtension {}
+export interface SecurityLevelExtension {
+  [key: string]: unknown;
+}
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

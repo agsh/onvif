@@ -1,5 +1,5 @@
 import xml2js from 'xml2js';
-import { MulticastConfiguration } from './interfaces/onvif';
+import { Config, MulticastConfiguration } from './interfaces/onvif';
 
 const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
@@ -23,15 +23,38 @@ export class OnvifError extends Error {
   }
 }
 
+interface LineraseOptions {
+  array: string[];
+  rawXML?: string[];
+  name?: string;
+}
+
+const rawXMLHandler = {
+  set(obj: any, prop: string, value: any) {
+    throw new OnvifError(`Setting up the simple key '${prop}' is prohibited. Please use '__any__' key of the parent and 'xmj2js' syntax`);
+    obj[prop] = value; // TODO setter in __any__ field
+  },
+  get(obj: any, prop: string) {
+    console.log('get', prop);
+    // if (prop === '__any__') {
+    //   return obj.__any__;
+    // }
+    if (typeof obj[prop] === 'object' && obj[prop] !== null) {
+      return new Proxy(obj[prop], rawXMLHandler);
+    }
+    return obj[prop];
+  },
+};
+
 /**
  * Parse SOAP object to pretty JS-object
  * @param xml xml2js object
  * @param options
+ * @param options.array these tags will always be treated as arrays
+ * @param options.rawXML values of these tags will be in xml2js format
  */
-export function linerase(xml: any, options?: { array: string[]; name?: string } | number): any {
-  if (typeof options !== 'object') {
-    options = { array : [] };
-  }
+export function linerase(xml: any, options: LineraseOptions = { array : [], rawXML : [] }): any {
+  if (options.rawXML === undefined) { options.rawXML = []; }
   if (Array.isArray(xml)) {
     /* trim empty nodes in xml
       ex.:
@@ -40,6 +63,20 @@ export function linerase(xml: any, options?: { array: string[]; name?: string } 
       becomes text node { node: ["\r\n"] }, this is not what we expected
      */
     xml = xml.filter((item) => !(typeof item === 'string' && item.trim() === ''));
+    // if we have xs:any
+    if (options.rawXML.includes(options.name!)) {
+      return xml.map((item: any) => {
+        const rawXMLObject = linerase(item, options);
+        Object.defineProperty(rawXMLObject, '__any__', {
+          value        : item,
+          writable     : true,
+          enumerable   : true, // false,
+          configurable : true,
+        });
+        return rawXMLObject;
+        return new Proxy(rawXMLObject, rawXMLHandler);
+      });
+    }
     if (xml.length === 1 && !options.array.includes(options.name!) /* do not simplify array if its key in array prop */) {
       [xml] = xml;
     } else {
@@ -55,7 +92,7 @@ export function linerase(xml: any, options?: { array: string[]; name?: string } 
           ...linerase(xml.$, options),
         };
       } else {
-        obj[key] = linerase(xml[key], { ...options, name : key });
+        obj[camelCase(key)] = linerase(xml[key], { ...options, name : camelCase(key) });
       }
     });
     return obj;
@@ -91,11 +128,10 @@ export function guid() {
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
 
 /**
- * @private
- * @param tag
+ * @param tagName
  */
-export function camelCase(tag: string) {
-  const str = tag.replace(prefixMatch, '');
+export function camelCase(tagName: string) {
+  const str = tagName.replace(prefixMatch, '');
   const secondLetter = str.charAt(1);
   if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
     return str.charAt(0).toLowerCase() + str.slice(1);
@@ -103,30 +139,52 @@ export function camelCase(tag: string) {
   return str;
 }
 
+function stripPrefix(tagName: string) {
+  return tagName.replace(prefixMatch, '');
+}
+
 /**
  * Parse SOAP response
- * @param rawXml
+ * @param xml
  */
-export async function parseSOAPString(rawXml: string): OnvifResponse {
-  /* Filter out xml name spaces */
-  const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
+export async function parseSOAPString(xml: string): OnvifResponse {
+  /* Filter out xml namespaces */
+  // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
-  const result = await xml2js.parseStringPromise(xml, {
-    tagNameProcessors  : [camelCase],
-    attrNameProcessors : [camelCase],
-    normalize          : true,
-  });
-  if (!result || !result.envelope || !result.envelope.body) {
-    throw new OnvifError('Wrong ONVIF SOAP response, envelope and body expected', {
-      xml : rawXml,
+  let prefix = '';
+  const result = await xml2js.parseStringPromise(xml);
+  try {
+    // eslint-disable-next-line
+    for (const envelopeKey in result) {
+      for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
+        if (url === 'http://www.w3.org/2003/05/soap-envelope') {
+          prefix = `${xmlns.slice(6)}:`;
+          break;
+        }
+      }
+      break;
+    }
+  } catch (e) {
+    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message', {
+      xml,
     });
   }
-  if (result.envelope.body[0].fault) {
-    const fault = result.envelope.body[0].fault[0];
+
+  if (!result[`${prefix}Envelope`]?.[`${prefix}Body`]) {
+    throw new OnvifError('Wrong ONVIF SOAP response, envelope and body are expected', {
+      xml,
+    });
+  }
+  const body = result[`${prefix}Envelope`][`${prefix}Body`][0];
+  // SOAP Fault Element
+  // https://www.w3.org/2003/05/soap-envelope/
+  // https://www.w3schools.com/xml/xml_soap.asp
+  if (body[`${prefix}Fault`]) {
+    const fault = body[`${prefix}Fault`][0];
     let reason;
     try {
-      if (fault.reason[0].text[0]._) {
-        reason = fault.reason[0].text[0]._;
+      if (fault[`${prefix}Reason`][0][`${prefix}Text`][0]._) {
+        reason = fault[`${prefix}Reason`][0][`${prefix}Text`][0]._;
       }
     } catch (e) {
       reason = '';
@@ -140,16 +198,16 @@ export async function parseSOAPString(rawXml: string): OnvifResponse {
     }
     let detail;
     try {
-      [detail] = fault.detail[0].text;
+      [detail] = fault[`${prefix}Detail`][0][`${prefix}Text`];
     } catch (e) {
       detail = '';
     }
 
     throw new OnvifError(`${reason}${detail}`, {
-      xml : rawXml,
+      xml,
     });
   }
-  return [result.envelope.body, xml];
+  return [body, xml];
 }
 
 /**
@@ -184,6 +242,30 @@ export const toOnvifXMLSchemaObject = {
       Port      : multicast.port,
       TTL       : multicast.TTL,
       AutoStart : multicast.autoStart,
+    };
+  },
+  config(config: Config) {
+    return {
+      $ : {
+        Name : config.name,
+        Type : config.type,
+      },
+      Parameters : {
+        ...(config.parameters.simpleItem
+          && {
+            SimpleItem : config.parameters.simpleItem.map((simpleItem) => ({
+              $ : { Name : simpleItem.name, Value : simpleItem.value },
+            })),
+          }
+        ),
+        ...(config.parameters.elementItem
+          && {
+            // don't forget that we have proxy getter here to the `__any__` field
+            ElementItem : config.parameters.elementItem.map((elementItem) => elementItem.__any__),
+          }
+        ),
+        ...(config.parameters.extension && { Extension : config.parameters.extension }),
+      },
     };
   },
 };

@@ -64,8 +64,11 @@ export interface Appearance {
   barcodeInfo?: BarcodeInfo;
   sphericalCoordinate?: SphericalCoordinate;
   label?: LabelInfo[];
+  [key: string]: unknown;
 }
-export interface AppearanceExtension {}
+export interface AppearanceExtension {
+  [key: string]: unknown;
+}
 export interface BarcodeInfo {
   /** Information encoded in barcode */
   data: StringLikelihood;
@@ -73,16 +76,19 @@ export interface BarcodeInfo {
   type?: StringLikelihood;
   /** Refers to the pixels per module */
   PPM?: number;
+  [key: string]: unknown;
 }
 export interface LabelInfo {
   likelihood?: number;
   authority: string;
   ID: unknown;
+  [key: string]: unknown;
 }
 export interface VehicleInfo {
   type: StringLikelihood;
   brand?: StringLikelihood;
   model?: StringLikelihood;
+  [key: string]: unknown;
 }
 export interface LicensePlateInfo {
   /** A string of vehicle license plate number. */
@@ -93,24 +99,30 @@ export interface LicensePlateInfo {
   countryCode?: StringLikelihood;
   /** State province or authority that issue the license plate. */
   issuingEntity?: StringLikelihood;
+  [key: string]: unknown;
 }
 export interface ShapeDescriptor {
   boundingBox: Rectangle;
   centerOfGravity: Vector;
   polygon?: Polygon[];
   extension?: ShapeDescriptorExtension;
+  [key: string]: unknown;
 }
-export interface ShapeDescriptorExtension {}
+export interface ShapeDescriptorExtension {
+  [key: string]: unknown;
+}
 export interface StringLikelihood {}
 export interface ClassCandidate {
   type: ClassType;
   likelihood: number;
+  [key: string]: unknown;
 }
 export interface ClassDescriptor {
   classCandidate?: ClassCandidate[];
   extension?: ClassDescriptorExtension;
   /** ONVIF recommends to use this 'Type' element instead of 'ClassCandidate' and 'Extension' above for new design. Acceptable values are defined in tt:ObjectType. */
   type?: StringLikelihood[];
+  [key: string]: unknown;
 }
 export interface ClassDescriptorExtension {
   otherTypes?: OtherType[];
@@ -122,6 +134,7 @@ export interface OtherType {
   type: string;
   /** A likelihood/probability that the corresponding object belongs to this class. The sum of the likelihoods shall NOT exceed 1 */
   likelihood: number;
+  [key: string]: unknown;
 }
 export interface OnvifObject extends ObjectId {
   /** Object ID of the parent object. eg: License plate object has Vehicle object as parent. */
@@ -131,8 +144,11 @@ export interface OnvifObject extends ObjectId {
   appearance?: Appearance;
   behaviour?: Behaviour;
   extension?: ObjectExtension;
+  [key: string]: unknown;
 }
-export interface ObjectExtension {}
+export interface ObjectExtension {
+  [key: string]: unknown;
+}
 export interface Frame {
   utcTime: Date;
   /** Default color space of Color definitions in frame. Valid values are "RGB" and "YCbCr". Defaults to "YCbCr". */
@@ -146,6 +162,7 @@ export interface Frame {
   extension?: FrameExtension;
   sceneImageRef?: AnyURI;
   sceneImage?: unknown;
+  [key: string]: unknown;
 }
 export interface FrameExtension {
   motionInCells?: MotionInCells;
@@ -178,16 +195,22 @@ export interface Behaviour {
   speed?: number;
   /** Direction the object is moving. Yaw describes the horizontal direction in the range [-180..180] where 0 is towards the right of the device and 90 is away from the device. Pitch describes the vertical direction in the range [-90..90] where 90 is upwards. */
   direction?: GeoOrientation;
+  [key: string]: unknown;
 }
-export interface BehaviourExtension {}
+export interface BehaviourExtension {
+  [key: string]: unknown;
+}
 export interface ObjectTree {
   rename?: Rename[];
   split?: Split[];
   merge?: Merge[];
   delete?: ObjectId[];
   extension?: ObjectTreeExtension;
+  [key: string]: unknown;
 }
-export interface ObjectTreeExtension {}
+export interface ObjectTreeExtension {
+  [key: string]: unknown;
+}
 export interface MotionInCells {
   /** Number of columns of the cell grid (x dimension) */
   columns: number;
@@ -195,6 +218,7 @@ export interface MotionInCells {
   rows: number;
   /** A “1” denotes a cell where motion is detected and a “0” an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0). */
   cells: unknown;
+  [key: string]: unknown;
 }
 export interface MetadataStream {}
 export interface MetadataStreamExtension {
@@ -205,14 +229,24 @@ export interface MetadataStreamExtension2 {}
 export interface AudioAnalyticsStream {
   audioDescriptor?: AudioDescriptor[];
   extension?: AudioAnalyticsStreamExtension;
+  [key: string]: unknown;
 }
 export interface AudioDescriptor {
   utcTime: Date;
+  [key: string]: unknown;
 }
-export interface AudioAnalyticsStreamExtension {}
+export interface AudioAnalyticsStreamExtension {
+  [key: string]: unknown;
+}
 export interface VideoAnalyticsStream {}
-export interface VideoAnalyticsStreamExtension {}
+export interface VideoAnalyticsStreamExtension {
+  [key: string]: unknown;
+}
 export interface PTZStream {}
-export interface PTZStreamExtension {}
+export interface PTZStreamExtension {
+  [key: string]: unknown;
+}
 export interface EventStream {}
-export interface EventStreamExtension {}
+export interface EventStreamExtension {
+  [key: string]: unknown;
+}

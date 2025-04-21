@@ -1,4 +1,5 @@
-import { camelCase, Onvif } from '../src';
+import * as util from 'node:util';
+import { build, camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import { Profile } from '../src/interfaces/onvif';
 
@@ -351,12 +352,68 @@ describe('Configurations', () => {
           sampleRate     : 16,
           sessionTimeout : 'PT13666S',
         },
+        'VideoAnalytics' : {
+          name                         : 'VAName',
+          analyticsEngineConfiguration : {
+            analyticsModule : [
+              {
+                'name'       : 'WhyCellMotionEngine',
+                'type'       : 'tt:CellMotionEngine',
+                'parameters' : {
+                  'simpleItem' : [
+                    {
+                      'name'  : 'Sensitivity',
+                      'value' : 6,
+                    },
+                  ],
+                  'elementItem' : [
+                    {
+                      name       : 'Layout',
+                      cellLayout : {
+                        columns        : 13, // this field must equals that field.
+                        // In the workflow you can't change this value now 😈
+                        rows           : 18,
+                        transformation : {
+                          translate : { x : -1, y : -1 },
+                          scale     : { x : 0.090909, y : 0.111111 },
+                        },
+                      },
+                      __any__ : {
+                        '$'             : { Name : 'Layout' },
+                        'tt:CellLayout' : [
+                          {
+                            '$'                 : { Columns : '13', Rows : '18' }, // yep, it must be '13' 😈
+                            'tt:Transformation' : [
+                              {
+                                'tt:Translate' : [{ '$' : { x : '-1.000000', y : '-1.000000' } }],
+                                'tt:Scale'     : [{ '$' : { x : '0.090909', y : '0.111111' } }],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                'name'       : 'WhyMotionRegionDetector',
+                'type'       : 'tt:MotionRegionDetector',
+                'parameters' : {
+                  'simpleItem' : [
+                    {
+                      'name'  : 'Sensitivity',
+                      'value' : 6,
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
-          // const configuration = await (cam.media as any)[`get${entityName}Configuration`]({
-          //   configurationToken : (profile as any)[camelCase(`${entityName}Configuration`)].token,
-          // });
           const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof Profile];
           const updatedConfiguration = {
             ...JSON.parse(JSON.stringify(configuration)),

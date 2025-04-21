@@ -44,6 +44,7 @@ export interface Eyebrow {
   color?: ColorDescriptor;
   /** Describe the space of two eyebrows, acceptable values are defined in fc:EyebrowSpace. */
   space?: string;
+  [key: string]: unknown;
 }
 export interface Eye {
   /** Describe the shape of the eye, acceptable values are defined in fc:EyeShape. */
@@ -52,6 +53,7 @@ export interface Eye {
   eyelid?: string;
   /** Describe the eyeball of the eye, acceptable values are defined in fc:Eyeball. */
   eyeball?: string;
+  [key: string]: unknown;
 }
 export interface Nose {
   /**
@@ -66,6 +68,7 @@ export interface Nose {
   noseWing?: string;
   /** Describe the end of the nose, acceptable values are defined in fc:NoseEnd. */
   noseEnd?: string;
+  [key: string]: unknown;
 }
 export interface FacialHair {
   /** Describe if there is mustache on the face. */
@@ -74,12 +77,14 @@ export interface FacialHair {
   beard?: boolean;
   /** Describe if there are sideburns on the face. */
   sideburn?: boolean;
+  [key: string]: unknown;
 }
 export interface PoseAngle {
   /** Describe the pose angle of the face. */
   poseAngles?: GeoOrientation;
   /** Describe the expected degree of uncertainty of the pose angle yaw, pitch, and roll. */
   uncertainty?: GeoOrientation;
+  [key: string]: unknown;
 }
 export interface AccessoryDescription {
   /** Describe if the object wear a accessory . */
@@ -91,6 +96,7 @@ export interface AccessoryDescription {
    * the accessory name followed by 'Type' like fc:HatType or fc:HelmetType.
    */
   subtype?: string;
+  [key: string]: unknown;
 }
 export interface Accessory {
   /** Describe if the object wear opticals. */
@@ -109,6 +115,7 @@ export interface Accessory {
   rightEyePatch?: AccessoryDescription;
   /** Describe if there is a patch on the left eye. */
   leftEyePatch?: AccessoryDescription;
+  [key: string]: unknown;
 }
 export interface AdditionalFeatures {
   /** Is there scar on the face. */
@@ -119,6 +126,7 @@ export interface AdditionalFeatures {
   tattoo?: boolean;
   /** Describe freckles on the face, acceptable values are defined in fc:FrecklesType. */
   freckles?: string;
+  [key: string]: unknown;
 }
 export interface HumanFace {
   /** Describe the age of the face. */
@@ -155,4 +163,5 @@ export interface HumanFace {
   accessory?: Accessory;
   /** Describe the other features, eg scar, mole etc of the face. */
   additionalFeatures?: AdditionalFeatures;
+  [key: string]: unknown;
 }

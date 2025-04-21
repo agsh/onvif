@@ -7,17 +7,18 @@ Temporary repo for NPM testing.
 ONVIF Client protocol Profile S (Live Streaming) and Profile G (Replay) Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
-device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
-It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
+device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and 
+control its events. It will also allow you to get information about your NVR (network video recorder) Profile G device 
+and obtain a list of recordings.
 
-The library uses NodeJS. And works on the server-side.
+The library uses Node.js. And works on the server-side.
 
 [![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
 
 
 This is a new version of the ONVIF library. Previous version was written in JS, and this the typescript library with 
-interfaces descbring ONVIF data structures. Right now some of the methods from the v.0.7.x were implemented, 
-the list of supportrted ONVIF commands you can find here: https://github.com/agsh/onvif/blob/v1/IMPLEMENTED.md 
+interfaces descbring ONVIF data structures. Right now some of the methods from the v.0.8 were implemented, 
+the list of supported ONVIF commands you can find here: https://github.com/agsh/onvif/blob/v1/CHECKED.md 
 
 The library will be updated because other methods are currently under development.
 
@@ -28,8 +29,6 @@ The code, which use the old version of the library (0.8.x), should work using th
 https://github.com/agsh/onvif/blob/v1/src/compatibility/cam.ts where all methods are located. (Currently unsupported)
 
 Thanks a lot for your interest and I will be glad to any questions and comments!
-
-P.S. I still need device access to test the code, any help would be greatly appreciated.
 
 ### Interfaces
 Interfaces are generated according to the latest version of the [ONVIF specification](https://github.com/onvif/specs).
@@ -55,6 +54,44 @@ Of course, there are exceptions everywhere, the main rule is to try not to retur
 In some cases, where it is more convenient to use native js types, interfaces are extended by adding new fields that 
 are more convenient to work with. A keyword is used at the end of the names, for example `SetSystemDateAndTime` becomes
 `SetSystemDateAndTimeExtended` with `dateTime?: Date;` field.
+
+### `xs:any` support
+
+The ONVIF specifications include numerous extension points, which presents a challenge: on one hand, we aim to use simple 
+and convenient methods and interfaces; on the other hand, we need a unified mechanism to handle a large volume of 
+undocumented data provided via `<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>` tags 
+in vendor-specific APIs.
+
+This is particularly important for ensuring backward and forward compatibility, as well as for enabling transformation 
+between XML and JavaScript objects in ONVIF get/set methods.
+
+Let’s take a closer look at a specific case. Suppose we have an `ElementItem` structure with predefined attributes and 
+elements, as described in 
+[onvif.xsd](https://github.com/onvif/specs/blob/9cdc78685cc9ddd80099a7a9cb9ada035dd0d5eb/wsdl/ver10/schema/onvif.xsd#L6611), 
+along with additional, unknown elements (note that `xs:anyAttribute` is currently unsupported) returned by the device:
+```xml
+<xs:element name="ElementItem" minOccurs="0" maxOccurs="unbounded">
+    <xs:annotation>
+        <xs:documentation>Complex value structure.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+        <xs:sequence>
+            <xs:any namespace="##any" processContents="lax">
+                <xs:annotation>
+                    <xs:documentation>XML tree containing the element value as defined in the corresponding description.</xs:documentation>
+                </xs:annotation>
+            </xs:any>
+        </xs:sequence>
+        <xs:attribute name="Name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>Item name.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+</xs:element>
+```
+
+... TODO a lot of explanations how it works and describe future improvements
 
 ### Tests
 All tests are written using Jest. You can run them with `npm test`.

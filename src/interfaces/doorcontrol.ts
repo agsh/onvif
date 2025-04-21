@@ -51,6 +51,7 @@ export interface ServiceCapabilities {
    * and DeleteDoor, the value must be set to true.
    */
   doorManagementSupported?: boolean;
+  [key: string]: unknown;
 }
 /** Used as extension base. */
 export interface DoorInfoBase extends DataEntity {
@@ -67,6 +68,7 @@ export interface DoorInfoBase extends DataEntity {
 export interface DoorInfo extends DoorInfoBase {
   /** The capabilities of the Door. */
   capabilities: DoorCapabilities;
+  [key: string]: unknown;
 }
 /**
  * The door structure shall include all properties of the DoorInfo structure and also a timings
@@ -88,7 +90,9 @@ export interface Door extends DoorInfoBase {
   timings: Timings;
   extension?: DoorExtension;
 }
-export interface DoorExtension {}
+export interface DoorExtension {
+  [key: string]: unknown;
+}
 /**
  * A structure defining times such as how long the door is unlocked when accessed,
  * extended grant time, etc.
@@ -131,7 +135,9 @@ export interface Timings {
   preAlarmTime?: Duration;
   extension?: TimingsExtension;
 }
-export interface TimingsExtension {}
+export interface TimingsExtension {
+  [key: string]: unknown;
+}
 /**
  * DoorCapabilities reflect optional functionality of a particular physical entity.
  * Different door instances may have different set of capabilities.
@@ -209,6 +215,7 @@ export interface DoorCapabilities {
    * event.
    */
   fault?: boolean;
+  [key: string]: unknown;
 }
 /** The DoorState structure contains current aggregate runtime status of Door. */
 export interface DoorState {
@@ -252,6 +259,7 @@ export interface DoorState {
    * compatible device shall report current operating mode in this field.
    */
   doorMode: DoorMode;
+  [key: string]: unknown;
 }
 /** Tampering information for a Door. */
 export interface DoorTamper {
@@ -264,6 +272,7 @@ export interface DoorTamper {
   reason?: string;
   /** State of the tamper detector; it is of type DoorTamperState. */
   state: DoorTamperState;
+  [key: string]: unknown;
 }
 /**
  * Fault information for a Door.
@@ -279,9 +288,12 @@ export interface DoorFault {
    * to this structure.
    */
   state: DoorFaultState;
+  [key: string]: unknown;
 }
 /** Extension for the AccessDoor command. */
-export interface AccessDoorExtension {}
+export interface AccessDoorExtension {
+  [key: string]: unknown;
+}
 export interface Capabilities extends ServiceCapabilities {}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {

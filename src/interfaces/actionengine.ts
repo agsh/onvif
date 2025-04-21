@@ -23,7 +23,9 @@ export interface SupportedActions {
   actionDescription?: ActionConfigDescription[];
   extension?: SupportedActionsExtension;
 }
-export interface SupportedActionsExtension {}
+export interface SupportedActionsExtension {
+  [key: string]: unknown;
+}
 /** Action Engine Capabilities data structure contains the maximum number of supported actions and number of actions in use for generic as well as specific action types */
 export interface ActionEngineCapabilities {
   /** The maximum number of trigger configurations that the service provider can concurrently support */
@@ -34,7 +36,9 @@ export interface ActionEngineCapabilities {
   actionCapabilities?: ActionTypeLimits[];
   extension?: ActionEngineCapabilitiesExtension;
 }
-export interface ActionEngineCapabilitiesExtension {}
+export interface ActionEngineCapabilitiesExtension {
+  [key: string]: unknown;
+}
 /** ActionTypeLimits data structure contains maximum and current usage information for a specific action type in the service provider */
 export interface ActionTypeLimits {
   /** Action Type */
@@ -43,6 +47,7 @@ export interface ActionTypeLimits {
   maximum: PositiveInteger;
   /** For the specific action type, the number of actions in use by the service provider */
   inUse?: number;
+  [key: string]: unknown;
 }
 /** Action Configuration data type contains the configuration settings of action configuration parameters, service requester given action Name, and service provider supported action type value */
 export interface ActionConfiguration {
@@ -52,6 +57,7 @@ export interface ActionConfiguration {
   type: unknown;
   /** Action configuration parameter settings. */
   parameters: ItemList;
+  [key: string]: unknown;
 }
 /** Action data type contains the configuration settings of one action instance and service provider assigned unique identifier for this action configuration. */
 export interface Action {
@@ -59,6 +65,7 @@ export interface Action {
   token: ReferenceToken;
   /** Action configuration contains action type, user given action name, and configuratin parameter settings. */
   configuration: ActionConfiguration;
+  [key: string]: unknown;
 }
 /** Action Trigger configuration data type contains mandatory Topic Expression (Section Topic Filter in [Core Specification]), optional Message content expression (Section Message Content Filter in [Core Specification]), and set of actions to be triggered. */
 export interface ActionTriggerConfiguration {
@@ -70,13 +77,16 @@ export interface ActionTriggerConfiguration {
   actionToken?: ReferenceToken[];
   extension?: ActionTriggerConfigurationExtension;
 }
-export interface ActionTriggerConfigurationExtension {}
+export interface ActionTriggerConfigurationExtension {
+  [key: string]: unknown;
+}
 /** Action Trigger data type contains the service provider assigned unique identifier for the configuration and action trigger configuration data. */
 export interface ActionTrigger {
   /** Unique Action Trigger identifier that service provider assigned to the action trigger configuration. */
   token: ReferenceToken;
   /** Action Trigger Configuration */
   configuration: ActionTriggerConfiguration;
+  [key: string]: unknown;
 }
 export interface onvif_action {
   actionDescription?: ActionConfigDescription[];
@@ -88,22 +98,26 @@ export interface EMailServerConfiguration {
   POPConfig: POPConfig;
   /** Credentials configuration */
   authenticationConfig: AuthenticationConfig;
+  [key: string]: unknown;
 }
 export interface SMTPConfig {
   /**/
   portNo?: PositiveInteger;
   /** Destination SMTP Address configuration */
   hostAddress: HostAddress;
+  [key: string]: unknown;
 }
 export interface POPConfig {
   /** Destination POP Server Address configuration */
   hostAddress: HostAddress;
+  [key: string]: unknown;
 }
 export interface HostAddress {
   /** IP Address format type such as IPv4 or IPv6 */
   formatType: AddressFormatType;
   /** IP Address */
   value: string;
+  [key: string]: unknown;
 }
 export interface UserCredentials {
   /** Username */
@@ -112,12 +126,15 @@ export interface UserCredentials {
   password?: unknown;
   extension?: UserCredentialsExtension;
 }
-export interface UserCredentialsExtension {}
+export interface UserCredentialsExtension {
+  [key: string]: unknown;
+}
 export interface AuthenticationConfig {
   /** Email server authentication mode */
   mode: EMailAuthenticationMode;
   /** Username-password */
   user: UserCredentials;
+  [key: string]: unknown;
 }
 export interface EMailReceiverConfiguration {
   /** Configuration for E-mail TO */
@@ -127,7 +144,9 @@ export interface EMailReceiverConfiguration {
   /**/
   extension?: EMailReceiverConfigurationExtension;
 }
-export interface EMailReceiverConfigurationExtension {}
+export interface EMailReceiverConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface EMailAttachmentConfiguration {
   /**/
   fileName?: string;
@@ -136,16 +155,20 @@ export interface EMailAttachmentConfiguration {
   /**/
   extension?: EMailAttachmentConfigurationExtension;
 }
-export interface EMailAttachmentConfigurationExtension {}
+export interface EMailAttachmentConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface EMailBodyTextConfiguration {
   /** Whether content of E-mail message contains event data */
   includeEvent?: boolean;
   /**/
   type?: string;
+  [key: string]: unknown;
 }
 export interface MediaSource {
   /** MediaSource profile reference token */
   profileToken: ReferenceToken;
+  [key: string]: unknown;
 }
 export interface HttpHostConfigurations {
   /** Destination HTTP Server configuration */
@@ -153,7 +176,9 @@ export interface HttpHostConfigurations {
   /**/
   extension?: HttpHostConfigurationsExtension;
 }
-export interface HttpHostConfigurationsExtension {}
+export interface HttpHostConfigurationsExtension {
+  [key: string]: unknown;
+}
 export interface HttpDestinationConfiguration {
   /** URI for POST Message destination */
   uri?: string;
@@ -166,7 +191,9 @@ export interface HttpDestinationConfiguration {
   /**/
   extension?: HttpDestinationConfigurationExtension;
 }
-export interface HttpDestinationConfigurationExtension {}
+export interface HttpDestinationConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface HttpAuthenticationConfiguration {
   /** HTTP Authentication Method */
   method?: HttpAuthenticationMethodType;
@@ -175,7 +202,9 @@ export interface HttpAuthenticationConfiguration {
   /**/
   extension?: HttpAuthenticationConfigurationExtension;
 }
-export interface HttpAuthenticationConfigurationExtension {}
+export interface HttpAuthenticationConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface HttpHostAddress {
   /** IPv4 or IPv6 */
   formatType: AddressFormatType;
@@ -183,12 +212,14 @@ export interface HttpHostAddress {
   portNo?: number;
   /** Destination HTTP Server IP Address */
   value: string;
+  [key: string]: unknown;
 }
 export interface PostContentConfiguration {
   /** MediaSource reference when the media is attached to POST message */
   mediaReference?: MediaSource;
   /** Configuration for POST Message content */
   postBody: PostBodyConfiguration;
+  [key: string]: unknown;
 }
 export interface PostBodyConfiguration {
   /**/
@@ -197,6 +228,7 @@ export interface PostBodyConfiguration {
   includeEvent?: boolean;
   /** Whether attach media into POST message */
   includeMedia?: boolean;
+  [key: string]: unknown;
 }
 export interface FtpHostConfigurations {
   /** FTP Action destination configuration */
@@ -204,7 +236,9 @@ export interface FtpHostConfigurations {
   /**/
   extension?: FtpHostConfigurationsExtension;
 }
-export interface FtpHostConfigurationsExtension {}
+export interface FtpHostConfigurationsExtension {
+  [key: string]: unknown;
+}
 export interface FtpDestinationConfiguration {
   /** FTP Server IP Address */
   hostAddress: FtpHostAddress;
@@ -214,13 +248,17 @@ export interface FtpDestinationConfiguration {
   ftpAuthentication: FtpAuthenticationConfiguration;
   extension?: FtpDestinationConfigurationExtension;
 }
-export interface FtpDestinationConfigurationExtension {}
+export interface FtpDestinationConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface FtpAuthenticationConfiguration {
   /** User Credentials */
   user?: UserCredentials;
   extension?: FtpAuthenticationConfigurationExtension;
 }
-export interface FtpAuthenticationConfigurationExtension {}
+export interface FtpAuthenticationConfigurationExtension {
+  [key: string]: unknown;
+}
 export interface FtpHostAddress {
   /** IPv4 or IPv6 */
   formatType: AddressFormatType;
@@ -228,20 +266,24 @@ export interface FtpHostAddress {
   portNo?: number;
   /** FTP Server IP Address */
   value: string;
+  [key: string]: unknown;
 }
 export interface FtpContent {
   /**/
   ftpContentConfig: FtpContentConfiguration;
+  [key: string]: unknown;
 }
 export interface FtpFileNameConfigurations {
   /** Name of file */
   file_name?: string;
   /** Suffix of file */
   suffix?: FileSuffixType;
+  [key: string]: unknown;
 }
 export interface FtpContentConfiguration {
   /** Type of FTP Upload action */
   type: string;
+  [key: string]: unknown;
 }
 export interface FtpContentConfigurationUploadImages {
   /** Upload Image action; how long? */
@@ -250,26 +292,31 @@ export interface FtpContentConfigurationUploadImages {
   sampleInterval: Duration;
   /** Upload Image action; name of destination file */
   fileName: FtpFileNameConfigurations;
+  [key: string]: unknown;
 }
 export interface FtpContentConfigurationUploadFile {
   /** Name of source file */
   sourceFileName: string;
   /** Name of destination file */
   destinationFileName: string;
+  [key: string]: unknown;
 }
 export interface SMSProviderConfiguration {
   /** SMS Provider's URL */
   providerURL: AnyURI;
   /** Username and password */
   user: UserCredentials;
+  [key: string]: unknown;
 }
 export interface SMSSenderConfiguration {
   /** Sender's e-mail address */
   EMail: string;
+  [key: string]: unknown;
 }
 export interface SMSMessage {
   /** Text Message */
   text: string;
+  [key: string]: unknown;
 }
 export interface TriggeredRecordingConfiguration {
   /** Length of recording time before the triggering event */
@@ -282,10 +329,12 @@ export interface TriggeredRecordingConfiguration {
   recordFrameRate?: PositiveInteger;
   /** Whether Audio recording on/off */
   doRecordAudio: boolean;
+  [key: string]: unknown;
 }
 export interface RecordingActionConfiguration {
   /** Recording configuration */
   recordConfig: TriggeredRecordingConfiguration;
+  [key: string]: unknown;
 }
 export interface GetSupportedActionsResponse {
   /** Array of supported Action types */

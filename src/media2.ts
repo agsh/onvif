@@ -62,7 +62,7 @@ interface GetConfigurationExtended extends GetConfiguration {
 
 type ConfigurationEntityExtended = VideoSourceConfiguration & AudioSourceConfiguration
   & VideoEncoder2Configuration & AudioEncoder2Configuration & VideoAnalyticsConfiguration
-  & MetadataConfiguration & AudioOutputConfiguration & WebRTCConfiguration;
+  & MetadataConfiguration & AudioOutputConfiguration & WebRTCConfiguration & AudioDecoderConfiguration;
 
 /**
  * Media service, ver20 profile
