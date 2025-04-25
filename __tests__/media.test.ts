@@ -1,7 +1,7 @@
 import * as util from 'node:util';
 import { build, camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { Profile } from '../src/interfaces/onvif';
+import { Profile, ProfileExtension } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
@@ -424,10 +424,16 @@ describe('Configurations', () => {
           },
           sessionTimeout : 'PT120S',
         },
+        'AudioOutput' : {
+          name        : 'AOName',
+          sendPrimacy : 'www.wwf.org/',
+          outputLevel : 42,
+        },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
-          const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof Profile];
+          const configuration: any = (profile[camelCase(`${entityName}Configuration`) as keyof Profile]
+           ?? profile.extension![camelCase(`${entityName}Configuration`) as keyof ProfileExtension]);
           const updatedConfiguration = {
             ...JSON.parse(JSON.stringify(configuration)),
             ...props,
@@ -452,15 +458,6 @@ describe('Configurations', () => {
         });
       });
     });
-
-    // describe('Metadata', () => {
-    //   it('should be able to create a metadata', async () => {
-    //     const result = await cam.media.getMetadataConfiguration({
-    //       configurationToken : 'MetadataConfigurationToken_1',
-    //     });
-    //     console.log(result);
-    //   });
-    // });
 
     describe('Finalize', () => {
       it('Remove testing profile', async () => {

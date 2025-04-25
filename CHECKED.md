@@ -100,8 +100,8 @@ Plus new methods have been added in v1.x.
 - [x] setAudioSourceConfiguration.media1
 - [x] setVideoEncoderConfiguration.media1
 - [x] setAudioEncoderConfiguration.media1
-- [ ] setVideoAnalyticsConfiguration.media1
-- [ ] setMetadataConfiguration.media1
+- [x] setVideoAnalyticsConfiguration.media1
+- [x] setMetadataConfiguration.media1
 - [ ] setAudioOutputConfiguration.media1
 - [ ] setAudioDecoderConfiguration.media1
  

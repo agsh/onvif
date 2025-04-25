@@ -85,7 +85,7 @@ import {
   SetAudioSourceConfiguration,
   GetGuaranteedNumberOfVideoEncoderInstances,
   GetGuaranteedNumberOfVideoEncoderInstancesResponse,
-  SetAudioEncoderConfiguration, SetVideoAnalyticsConfiguration, SetMetadataConfiguration,
+  SetAudioEncoderConfiguration, SetVideoAnalyticsConfiguration, SetMetadataConfiguration, SetAudioOutputConfiguration,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1306,13 +1306,13 @@ export class Media {
         ForcePersistence : forcePersistence,
         Configuration    : {
           $ : {
-            token : configuration.token,
+            token           : configuration.token,
+            CompressionType : configuration.compressionType,
+            GeoLocation     : configuration.geoLocation,
+            ShapePolygon    : configuration.shapePolygon,
           },
-          Name            : configuration.name,
-          UseCount        : configuration.useCount,
-          CompressionType : configuration.compressionType,
-          GeoLocation     : configuration.geoLocation,
-          ShapePolygon    : configuration.shapePolygon,
+          Name     : configuration.name,
+          UseCount : configuration.useCount,
           ...(configuration.PTZStatus && {
             PTZStatus : {
               Status   : configuration.PTZStatus.status,
@@ -1347,6 +1347,37 @@ export class Media {
                 && { Extension : configuration.analyticsEngineConfiguration.extension }),
             },
           }),
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * This operation modifies an audio output configuration. The ForcePersistence flag indicates if the changes shall
+   * remain after reboot of the device. An device that signals support for Audio outputs via its Device IO
+   * AudioOutputs capability shall support the modification of audio output parameters through the
+   * SetAudioOutputConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setAudioOutputConfiguration({ configuration, forcePersistence }: SetAudioOutputConfiguration): Promise<void> {
+    const body = build({
+      SetAudioOutputConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token : configuration.token,
+          },
+          Name        : configuration.name,
+          UseCount    : configuration.useCount,
+          OutputToken : configuration.outputToken,
+          ...(configuration.sendPrimacy && { SendPrimacy : configuration.sendPrimacy }),
+          ...(configuration.outputLevel && { OutputLevel : configuration.outputLevel }),
         },
       },
     });
