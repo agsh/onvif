@@ -85,16 +85,21 @@ import {
   SetAudioSourceConfiguration,
   GetGuaranteedNumberOfVideoEncoderInstances,
   GetGuaranteedNumberOfVideoEncoderInstancesResponse,
-  SetAudioEncoderConfiguration, SetVideoAnalyticsConfiguration,
+  SetAudioEncoderConfiguration,
+  SetVideoAnalyticsConfiguration,
+  SetMetadataConfiguration,
+  SetAudioOutputConfiguration,
+  SetAudioDecoderConfiguration,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
   array : [
     'configurations',
-    'analyticsModule',
-    'rule',
-    'simpleItem',
-    'elementItem',
+    'analyticsModule', // analytics
+    'rule', // analytics
+    'simpleItem', // analytics
+    'elementItem', // analytics
+    'events', // metadata
   ],
   rawXML : ['elementItem'],
 };
@@ -1278,6 +1283,134 @@ export class Media {
             ...(configuration.ruleEngineConfiguration.extension
               && { Extension : configuration.ruleEngineConfiguration.extension }),
           },
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * This operation modifies a metadata configuration. The ForcePersistence flag indicates if the changes shall
+   * remain after reboot of the device. Changes in the Multicast settings shall always be persistent. Running streams
+   * using this configuration may be updated immediately according to the new settings. The changes are not
+   * guaranteed to take effect unless the client requests a new stream URI and restarts any affected streams.
+   * Client methods for changing a running stream are out of scope for this specification. A device or another
+   * device that supports metadata streaming shall support the configuration of metadata parameters through the
+   * SetMetadataConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setMetadataConfiguration({ configuration, forcePersistence }: SetMetadataConfiguration): Promise<void> {
+    const body = build({
+      SetMetadataConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token           : configuration.token,
+            CompressionType : configuration.compressionType,
+            GeoLocation     : configuration.geoLocation,
+            ShapePolygon    : configuration.shapePolygon,
+          },
+          Name     : configuration.name,
+          UseCount : configuration.useCount,
+          ...(configuration.PTZStatus && {
+            PTZStatus : {
+              Status   : configuration.PTZStatus.status,
+              Position : configuration.PTZStatus.position,
+              ...(configuration.PTZStatus.fieldOfView && { FieldOfView : configuration.PTZStatus.fieldOfView }),
+            },
+          }),
+          ...(configuration.PTZStatus && {
+            PTZStatus : {
+              Status   : configuration.PTZStatus.status,
+              Position : configuration.PTZStatus.position,
+              ...(configuration.PTZStatus.fieldOfView && { FieldOfView : configuration.PTZStatus.fieldOfView }),
+            },
+          }),
+          ...(configuration.events && {
+            Events : {
+              // maybe the wrong structure, can't test it
+              ...(configuration.events.filter && { Filter : configuration.events.filter }),
+              ...(configuration.events.subscriptionPolicy && { SubscriptionPolicy : configuration.events.subscriptionPolicy.__any__ }),
+            },
+          }),
+          Analytics      : configuration.analytics,
+          Multicast      : toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
+          SessionTimeout : configuration.sessionTimeout,
+          ...(configuration.analyticsEngineConfiguration && {
+            AnalyticsEngineConfiguration : {
+              ...(configuration.analyticsEngineConfiguration.analyticsModule
+                && {
+                  AnalyticsModule : configuration.analyticsEngineConfiguration.analyticsModule.map(toOnvifXMLSchemaObject.config),
+                }),
+              ...(configuration.analyticsEngineConfiguration.extension
+                && { Extension : configuration.analyticsEngineConfiguration.extension }),
+            },
+          }),
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * This operation modifies an audio output configuration. The ForcePersistence flag indicates if the changes shall
+   * remain after reboot of the device. An device that signals support for Audio outputs via its Device IO
+   * AudioOutputs capability shall support the modification of audio output parameters through the
+   * SetAudioOutputConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setAudioOutputConfiguration({ configuration, forcePersistence }: SetAudioOutputConfiguration): Promise<void> {
+    const body = build({
+      SetAudioOutputConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token : configuration.token,
+          },
+          Name        : configuration.name,
+          UseCount    : configuration.useCount,
+          OutputToken : configuration.outputToken,
+          ...(configuration.sendPrimacy && { SendPrimacy : configuration.sendPrimacy }),
+          ...(configuration.outputLevel && { OutputLevel : configuration.outputLevel }),
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * This operation modifies an audio decoder configuration. The ForcePersistence flag indicates if the changes
+   * shall remain after reboot of the device. An device that signals support for Audio outputs via its Device IO
+   * AudioOutputs capability shall support the modification of audio decoder parameters through the SetAudioDe-
+   * coderConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setAudioDecoderConfiguration({ configuration, forcePersistence }: SetAudioDecoderConfiguration): Promise<void> {
+    const body = build({
+      SetAudioDecoderConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token : configuration.token,
+          },
+          Name     : configuration.name,
+          UseCount : configuration.useCount,
+          // TODO add any handler
         },
       },
     });

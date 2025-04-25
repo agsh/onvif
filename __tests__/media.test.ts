@@ -1,7 +1,7 @@
 import * as util from 'node:util';
 import { build, camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { Profile } from '../src/interfaces/onvif';
+import { Profile, ProfileExtension } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
@@ -411,10 +411,30 @@ describe('Configurations', () => {
             ],
           },
         },
+        'Metadata' : {
+          compressionType : '',
+          name            : 'MDName',
+          PTZStatus       : { status : true, position : true },
+          analytics       : true,
+          multicast       : {
+            address   : { type : 'IPv4', IPv4Address : '239.0.1.0' },
+            port      : 32012,
+            TTL       : 512,
+            autoStart : false,
+          },
+          sessionTimeout : 'PT120S',
+        },
+        'AudioOutput' : {
+          name        : 'AOName',
+          sendPrimacy : 'www.wwf.org/',
+          outputLevel : 42,
+        },
+        'AudioDecoder' : {},
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
-          const configuration: any = profile[camelCase(`${entityName}Configuration`) as keyof Profile];
+          const configuration: any = (profile[camelCase(`${entityName}Configuration`) as keyof Profile]
+           ?? profile.extension![camelCase(`${entityName}Configuration`) as keyof ProfileExtension]);
           const updatedConfiguration = {
             ...JSON.parse(JSON.stringify(configuration)),
             ...props,
