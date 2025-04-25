@@ -85,7 +85,11 @@ import {
   SetAudioSourceConfiguration,
   GetGuaranteedNumberOfVideoEncoderInstances,
   GetGuaranteedNumberOfVideoEncoderInstancesResponse,
-  SetAudioEncoderConfiguration, SetVideoAnalyticsConfiguration, SetMetadataConfiguration, SetAudioOutputConfiguration,
+  SetAudioEncoderConfiguration,
+  SetVideoAnalyticsConfiguration,
+  SetMetadataConfiguration,
+  SetAudioOutputConfiguration,
+  SetAudioDecoderConfiguration,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1378,6 +1382,35 @@ export class Media {
           OutputToken : configuration.outputToken,
           ...(configuration.sendPrimacy && { SendPrimacy : configuration.sendPrimacy }),
           ...(configuration.outputLevel && { OutputLevel : configuration.outputLevel }),
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media', body });
+  }
+
+  /**
+   * This operation modifies an audio decoder configuration. The ForcePersistence flag indicates if the changes
+   * shall remain after reboot of the device. An device that signals support for Audio outputs via its Device IO
+   * AudioOutputs capability shall support the modification of audio decoder parameters through the SetAudioDe-
+   * coderConfiguration command.
+   * @param options
+   * @param options.configuration
+   * @param options.forcePersistence
+   */
+  async setAudioDecoderConfiguration({ configuration, forcePersistence }: SetAudioDecoderConfiguration): Promise<void> {
+    const body = build({
+      SetAudioDecoderConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        ForcePersistence : forcePersistence,
+        Configuration    : {
+          $ : {
+            token : configuration.token,
+          },
+          Name     : configuration.name,
+          UseCount : configuration.useCount,
+          // TODO add any handler
         },
       },
     });
