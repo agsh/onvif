@@ -411,6 +411,19 @@ describe('Configurations', () => {
             ],
           },
         },
+        'Metadata' : {
+          compressionType : '',
+          name            : 'MDName',
+          PTZStatus       : { status : true, position : true },
+          analytics       : true,
+          multicast       : {
+            address   : { type : 'IPv4', IPv4Address : '239.0.1.0' },
+            port      : 32012,
+            TTL       : 512,
+            autoStart : false,
+          },
+          sessionTimeout : 'PT120S',
+        },
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
@@ -439,6 +452,15 @@ describe('Configurations', () => {
         });
       });
     });
+
+    // describe('Metadata', () => {
+    //   it('should be able to create a metadata', async () => {
+    //     const result = await cam.media.getMetadataConfiguration({
+    //       configurationToken : 'MetadataConfigurationToken_1',
+    //     });
+    //     console.log(result);
+    //   });
+    // });
 
     describe('Finalize', () => {
       it('Remove testing profile', async () => {
