@@ -429,6 +429,7 @@ describe('Configurations', () => {
           sendPrimacy : 'www.wwf.org/',
           outputLevel : 42,
         },
+        'AudioDecoder' : {},
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
