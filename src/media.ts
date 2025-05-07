@@ -94,6 +94,7 @@ import {
 
 const ConfigurationArraysAndExtensions = {
   array : [
+    // 'extension', // common
     'configurations',
     'analyticsModule', // analytics
     'rule', // analytics
@@ -1042,8 +1043,7 @@ export class Media {
         $ : {
           xmlns : 'http://www.onvif.org/ver10/media/wsdl',
         },
-        ForcePersistence : forcePersistence,
-        Configuration    : {
+        Configuration : {
           $ : {
             token    : configuration.token,
             ViewMode : configuration.viewMode,
@@ -1060,16 +1060,35 @@ export class Media {
             },
           },
           ...(
-            configuration.extension?.rotate
+            configuration.extension
             && {
               Extension : {
-                $ : {
-                  xmlns : 'http://www.onvif.org/ver10/schema',
-                },
-                Rotate : {
-                  Mode   : configuration.extension.rotate.mode,
-                  Degree : configuration.extension.rotate.degree,
-                },
+                ...(configuration.extension.rotate && {
+                  Rotate : {
+                    Mode   : configuration.extension.rotate.mode,
+                    Degree : configuration.extension.rotate.degree,
+                  },
+                }),
+                ...(configuration.extension.extension && {
+                  Extension : {
+                    LensDescription : configuration.extension.extension.lensDescription?.map((lensDescription) => ({
+                      FocalLength : lensDescription.focalLength,
+                      Offset      : lensDescription.offset,
+                      Projection  : lensDescription.projection?.map((lensProjection) => ({
+                        Angle         : lensProjection.angle,
+                        Radius        : lensProjection.radius,
+                        Transmittance : lensProjection.transmittance,
+                      })),
+                      XFactor : lensDescription.XFactor,
+                    })),
+                    ...(configuration.extension.extension.sceneOrientation && {
+                      SceneOrientation : {
+                        mode        : configuration.extension.extension.sceneOrientation.mode,
+                        orientation : configuration.extension.extension.sceneOrientation.orientation,
+                      },
+                    }),
+                  },
+                }),
               },
             }
           ),

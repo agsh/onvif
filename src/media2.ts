@@ -22,15 +22,15 @@ import {
   GetMetadataConfigurations,
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
-  WebRTCConfiguration, GetWebRTCConfigurations,
+  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration,
 } from './interfaces/media.2';
-import { linerase } from './utils';
+import { build, linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
 import {
   AudioDecoderConfiguration,
   AudioEncoder2Configuration,
   AudioOutputConfiguration,
-  AudioSourceConfiguration,
+  AudioSourceConfiguration, LensDescription, LensProjection,
   MetadataConfiguration,
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
@@ -365,6 +365,67 @@ export class Media2 {
   private async getWebRTCConfigurations(options: GetWebRTCConfigurations): Promise<WebRTCConfiguration[]> {
     // return this.getConfigurations({ entityName : 'WebRTC', ...options });
     return [];
+  }
+
+  async setVideoSourceConfiguration({ configuration }: SetVideoSourceConfiguration): Promise<void> {
+    const body = build({
+      SetVideoSourceConfiguration : {
+        $ : {
+          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        Configuration : {
+          $ : {
+            token    : configuration.token,
+            ViewMode : configuration.viewMode,
+          },
+          Name        : configuration.name,
+          UseCount    : configuration.useCount,
+          SourceToken : configuration.sourceToken,
+          Bounds      : {
+            $ : {
+              x      : configuration.bounds.x,
+              y      : configuration.bounds.y,
+              width  : configuration.bounds.width,
+              height : configuration.bounds.height,
+            },
+          },
+          ...(
+            configuration.extension
+            && {
+              Extension : {
+                ...(configuration.extension.rotate && {
+                  Rotate : {
+                    Mode   : configuration.extension.rotate.mode,
+                    Degree : configuration.extension.rotate.degree,
+                  },
+                }),
+                ...(configuration.extension.extension && {
+                  Extension : {
+                    LensDescription : configuration.extension.extension.lensDescription?.map((lensDescription) => ({
+                      FocalLength : lensDescription.focalLength,
+                      Offset      : lensDescription.offset,
+                      Projection  : lensDescription.projection?.map((lensProjection) => ({
+                        Angle         : lensProjection.angle,
+                        Radius        : lensProjection.radius,
+                        Transmittance : lensProjection.transmittance,
+                      })),
+                      XFactor : lensDescription.XFactor,
+                    })),
+                    ...(configuration.extension.extension.sceneOrientation && {
+                      SceneOrientation : {
+                        mode        : configuration.extension.extension.sceneOrientation.mode,
+                        orientation : configuration.extension.extension.sceneOrientation.orientation,
+                      },
+                    }),
+                  },
+                }),
+              },
+            }
+          ),
+        },
+      },
+    });
+    await this.onvif.request({ service : 'media2', body });
   }
 }
 
