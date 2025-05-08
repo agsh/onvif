@@ -55,6 +55,19 @@ const rawXMLHandler = {
  */
 export function linerase(xml: any, options: LineraseOptions = { array : [], rawXML : [] }): any {
   if (options.rawXML === undefined) { options.rawXML = []; }
+  /* if we have xs:any
+    put it content to the Symbol.any
+   */
+  if (options.rawXML.includes(options.name!)) {
+    const rawXMLObject = linerase(xml, { ...options, rawXML : [] });
+    Object.defineProperty(rawXMLObject, Symbol.for('any'), {
+      value        : xml,
+      writable     : true,
+      enumerable   : true, // false,
+      configurable : true,
+    });
+    return rawXMLObject;
+  }
   if (Array.isArray(xml)) {
     /* trim empty nodes in xml
       ex.:
@@ -63,20 +76,7 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
       becomes text node { node: ["\r\n"] }, this is not what we expected
      */
     xml = xml.filter((item) => !(typeof item === 'string' && item.trim() === ''));
-    // if we have xs:any
-    if (options.rawXML.includes(options.name!)) {
-      return xml.map((item: any) => {
-        const rawXMLObject = linerase(item, options);
-        Object.defineProperty(rawXMLObject, '__any__', {
-          value        : item,
-          writable     : true,
-          enumerable   : true, // false,
-          configurable : true,
-        });
-        return rawXMLObject;
-        return new Proxy(rawXMLObject, rawXMLHandler);
-      });
-    }
+
     if (xml.length === 1 && !options.array.includes(options.name!) /* do not simplify array if its key in array prop */) {
       [xml] = xml;
     } else {
