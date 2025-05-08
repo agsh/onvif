@@ -12,6 +12,8 @@ interface OnvifErrorOptions {
   xml?: string;
 }
 
+export const xsany = '__any__';
+
 export class OnvifError extends Error {
   public readonly xml?: string;
   constructor(message: string, options?: OnvifErrorOptions) {
@@ -29,23 +31,6 @@ interface LineraseOptions {
   name?: string;
 }
 
-const rawXMLHandler = {
-  set(obj: any, prop: string, value: any) {
-    throw new OnvifError(`Setting up the simple key '${prop}' is prohibited. Please use '__any__' key of the parent and 'xmj2js' syntax`);
-    obj[prop] = value; // TODO setter in __any__ field
-  },
-  get(obj: any, prop: string) {
-    console.log('get', prop);
-    // if (prop === '__any__') {
-    //   return obj.__any__;
-    // }
-    if (typeof obj[prop] === 'object' && obj[prop] !== null) {
-      return new Proxy(obj[prop], rawXMLHandler);
-    }
-    return obj[prop];
-  },
-};
-
 /**
  * Parse SOAP object to pretty JS-object
  * @param xml xml2js object
@@ -59,8 +44,11 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
     put it content to the Symbol.any
    */
   if (options.rawXML.includes(options.name!)) {
+    if (Array.isArray(xml)) {
+      return xml.map((item: any) => linerase(item, { ...options, name : xsany, rawXML : [xsany] }));
+    }
     const rawXMLObject = linerase(xml, { ...options, rawXML : [] });
-    Object.defineProperty(rawXMLObject, Symbol.for('any'), {
+    Object.defineProperty(rawXMLObject, xsany, {
       value        : xml,
       writable     : true,
       enumerable   : true, // false,
@@ -68,6 +56,7 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
     });
     return rawXMLObject;
   }
+
   if (Array.isArray(xml)) {
     /* trim empty nodes in xml
       ex.:
@@ -132,6 +121,9 @@ export type OnvifResponse = Promise<[Record<string, any>, string]>;
  */
 export function camelCase(tagName: string) {
   const str = tagName.replace(prefixMatch, '');
+  if (str.length === 1) {
+    return str.toLowerCase();
+  }
   const secondLetter = str.charAt(1);
   if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
     return str.charAt(0).toLowerCase() + str.slice(1);
@@ -261,7 +253,10 @@ export const toOnvifXMLSchemaObject = {
         ...(config.parameters.elementItem
           && {
             // don't forget that we have proxy getter here to the `__any__` field
-            ElementItem : config.parameters.elementItem.map((elementItem) => elementItem.__any__),
+            ElementItem : config.parameters.elementItem.map((elementItem) => ({
+              ...elementItem[xsany] as object,
+              Name : elementItem.name,
+            })),
           }
         ),
         ...(config.parameters.extension && { Extension : config.parameters.extension }),
