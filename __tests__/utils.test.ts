@@ -145,21 +145,25 @@ describe('struct', () => {
 describe('xs:any', () => {
   it('any item is an object', async () => {
     const xmlLD = build({
-      'LensDescription' : {
-        'Offset'       : { X : 1, Y : 1 },
-        'XFactor'      : 1,
-        'AnyExtension' : {
-          'Name' : 'extension',
+      'Lens' : {
+        'LensDescription' : {
+          'Offset'          : { X : 1, Y : 1 },
+          'XFactor'         : 1,
+          'tt:AnyExtension' : {
+            'Name' : 'extension',
+          },
         },
       },
     });
     const LensDescription = await xml2js.parseStringPromise(xmlLD);
-    const result: LensDescription = linerase(LensDescription, { array : [], rawXML : ['lensDescription'] }).lensDescription;
+    const result: LensDescription = linerase(LensDescription, { array : [], rawXML : ['lensDescription'] }).lens.lensDescription;
     const newLD = {
-      'LensDescription' : {
-        ...result.__any__ as object,
-        'Offset'  : { X : result.offset.x, Y : result.offset.y },
-        'XFactor' : result.XFactor,
+      'Lens' : {
+        'LensDescription' : {
+          ...result.__any__ as object,
+          'Offset'  : { X : result.offset.x, Y : result.offset.y },
+          'XFactor' : result.XFactor,
+        },
       },
     };
     const newXMLLD = build(newLD);
@@ -192,3 +196,15 @@ describe('xs:any', () => {
     expect(newConfig).toStrictEqual(jsConfig);
   });
 });
+
+export function clean(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(clean);
+  }
+  if (typeof obj === 'object') {
+    return Object.fromEntries(Object.entries(obj)
+      .filter(([k]) => !(typeof obj[k] === 'object' && obj[k].__clean__))
+      .map(([k, v]) => [k, clean(v)]));
+  }
+  return obj;
+}

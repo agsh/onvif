@@ -1,6 +1,7 @@
 /**
  * Media ver10 module
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ * @license MIT
  * @see https://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf
  */
 
@@ -100,9 +101,12 @@ const ConfigurationArraysAndExtensions = {
     'rule', // analytics
     'simpleItem', // analytics
     'elementItem', // analytics
-    'events', // metadata
   ],
-  rawXML : ['elementItem'],
+  rawXML : [
+    'elementItem',
+    'subscriptionPolicy', // metadata
+    'filter', // metadata
+  ],
 };
 
 export interface GetStreamUriOptions {
@@ -839,7 +843,7 @@ export class Media {
    * @param options
    * @param options.configurationToken
    */
-  getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
+  async getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
     return this.getConfiguration({ entityName : 'Metadata', ...options });
   }
 
@@ -1043,7 +1047,8 @@ export class Media {
         $ : {
           xmlns : 'http://www.onvif.org/ver10/media/wsdl',
         },
-        Configuration : {
+        ForcePersistence : forcePersistence,
+        Configuration    : {
           $ : {
             token    : configuration.token,
             ViewMode : configuration.viewMode,
@@ -1073,8 +1078,13 @@ export class Media {
                   Extension : {
                     LensDescription : configuration.extension.extension.lensDescription?.map((lensDescription) => ({
                       FocalLength : lensDescription.focalLength,
-                      Offset      : lensDescription.offset,
-                      Projection  : lensDescription.projection?.map((lensProjection) => ({
+                      Offset      : {
+                        $ : {
+                          x : lensDescription.offset.x,
+                          y : lensDescription.offset.y,
+                        },
+                      },
+                      Projection : lensDescription.projection?.map((lensProjection) => ({
                         Angle         : lensProjection.angle,
                         Radius        : lensProjection.radius,
                         Transmittance : lensProjection.transmittance,
@@ -1338,22 +1348,14 @@ export class Media {
           UseCount : configuration.useCount,
           ...(configuration.PTZStatus && {
             PTZStatus : {
-              Status   : configuration.PTZStatus.status,
-              Position : configuration.PTZStatus.position,
-              ...(configuration.PTZStatus.fieldOfView && { FieldOfView : configuration.PTZStatus.fieldOfView }),
-            },
-          }),
-          ...(configuration.PTZStatus && {
-            PTZStatus : {
-              Status   : configuration.PTZStatus.status,
-              Position : configuration.PTZStatus.position,
-              ...(configuration.PTZStatus.fieldOfView && { FieldOfView : configuration.PTZStatus.fieldOfView }),
+              Status      : configuration.PTZStatus.status,
+              Position    : configuration.PTZStatus.position,
+              FieldOfView : configuration.PTZStatus.fieldOfView,
             },
           }),
           ...(configuration.events && {
             Events : {
-              // maybe the wrong structure, can't test it
-              ...(configuration.events.filter && { Filter : configuration.events.filter }),
+              ...(configuration.events.filter && { Filter : configuration.events.filter[xsany] }),
               ...(configuration.events.subscriptionPolicy && { SubscriptionPolicy : configuration.events.subscriptionPolicy[xsany] }),
             },
           }),

@@ -371,7 +371,7 @@ export class Media2 {
     const body = build({
       SetVideoSourceConfiguration : {
         $ : {
-          xmlns : 'http://www.onvif.org/ver10/media/wsdl',
+          xmlns : 'http://www.onvif.org/ver20/media/wsdl',
         },
         Configuration : {
           $ : {
@@ -403,8 +403,13 @@ export class Media2 {
                   Extension : {
                     LensDescription : configuration.extension.extension.lensDescription?.map((lensDescription) => ({
                       FocalLength : lensDescription.focalLength,
-                      Offset      : lensDescription.offset,
-                      Projection  : lensDescription.projection?.map((lensProjection) => ({
+                      Offset      : {
+                        $ : {
+                          x : lensDescription.offset.x,
+                          y : lensDescription.offset.y,
+                        },
+                      },
+                      Projection : lensDescription.projection?.map((lensProjection) => ({
                         Angle         : lensProjection.angle,
                         Radius        : lensProjection.radius,
                         Transmittance : lensProjection.transmittance,

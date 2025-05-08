@@ -44,8 +44,11 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
     put it content to the Symbol.any
    */
   if (options.rawXML.includes(options.name!)) {
-    if (Array.isArray(xml)) {
+    if (options.array.includes(options.name!)) {
       return xml.map((item: any) => linerase(item, { ...options, name : xsany, rawXML : [xsany] }));
+    }
+    if (Array.isArray(xml)) {
+      [xml] = xml;
     }
     const rawXMLObject = linerase(xml, { ...options, rawXML : [] });
     Object.defineProperty(rawXMLObject, xsany, {
@@ -75,7 +78,7 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
   if (typeof xml === 'object') {
     let obj: any = {};
     Object.keys(xml).forEach((key) => {
-      if (key === '$') { // for xml attributes
+      if (key === '$') { // for the xml attributes
         obj = {
           ...obj,
           ...linerase(xml.$, options),

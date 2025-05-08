@@ -2,6 +2,8 @@ import * as util from 'node:util';
 import { build, camelCase, Onvif } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import { Profile, ProfileExtension } from '../src/interfaces/onvif';
+import { clean } from './utils.test';
+import { FilterType } from '../src/interfaces/basics';
 
 const configurationEntityFields = {
   'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
@@ -334,7 +336,26 @@ describe('Configurations', () => {
 
     describe('Set', () => {
       const configurationEntitiesProps: Record<string, Record<string, any>> = {
-        'VideoSource'  : { bounds : { x : 1, y : 1, width : 10, height : 10 } },
+        'VideoSource' : {
+          bounds : {
+            x : 1, y : 1, width : 10, height : 10,
+          },
+          extension : {
+            __clean__ : true,
+            rotate    : {
+              mode   : 'AUTO',
+              degree : 90,
+            },
+            extension : {
+              lensDescription : [{
+                offset     : { x : 1, y : 1 },
+                XFactor    : 1,
+                projection : [{ angle : 90 }],
+              }],
+              sceneOrientation : { mode : 'AUTO' },
+            },
+          },
+        },
         'VideoEncoder' : {
           quality        : 4,
           sessionTimeout : 'PT13666S',
@@ -409,14 +430,55 @@ describe('Configurations', () => {
                 },
               },
             ],
+            extension : {
+              __clean__ : true,
+            },
+          },
+          ruleEngineConfiguration : {
+            rule : [
+              {
+                name         : 'RuleName',
+                type         : 'type',
+                'parameters' : {
+                  'simpleItem' : [
+                    {
+                      'name'  : 'Sensitivity',
+                      'value' : 6,
+                    },
+                  ],
+                },
+              },
+            ],
+            extension : {
+              __clean__ : true,
+            },
           },
         },
         'Metadata' : {
           compressionType : '',
           name            : 'MDName',
-          PTZStatus       : { status : true, position : true },
-          analytics       : true,
-          multicast       : {
+          PTZStatus       : {
+            status   : true,
+            position : true,
+          },
+          events : {
+            filter : {
+              'topicExpression' : {
+                'dialect' : '',
+              },
+              '__any__' : {
+                'wsnt:TopicExpression' : [
+                  {
+                    '$' : {
+                      'Dialect' : '',
+                    },
+                  },
+                ],
+              },
+            },
+          },
+          analytics : true,
+          multicast : {
             address   : { type : 'IPv4', IPv4Address : '239.0.1.0' },
             port      : 32012,
             TTL       : 512,
@@ -446,7 +508,7 @@ describe('Configurations', () => {
           const receivedConfiguration = await (cam.media as any)[`get${entityName}Configuration`]({
             configurationToken : configuration.token,
           });
-          expect(receivedConfiguration).toEqual(updatedConfiguration);
+          expect(receivedConfiguration).toEqual(clean(updatedConfiguration));
           // restore
           await (cam.media as any)[`set${entityName}Configuration`]({
             forcePersistence : true,
