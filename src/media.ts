@@ -5,7 +5,7 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase, build, toOnvifXMLSchemaObject } from './utils';
+import { linerase, build, toOnvifXMLSchemaObject, xsany } from './utils';
 import {
   AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
   AudioEncoderConfiguration,
@@ -1354,7 +1354,7 @@ export class Media {
             Events : {
               // maybe the wrong structure, can't test it
               ...(configuration.events.filter && { Filter : configuration.events.filter }),
-              ...(configuration.events.subscriptionPolicy && { SubscriptionPolicy : configuration.events.subscriptionPolicy.__any__ }),
+              ...(configuration.events.subscriptionPolicy && { SubscriptionPolicy : configuration.events.subscriptionPolicy[xsany] }),
             },
           }),
           Analytics      : configuration.analytics,
