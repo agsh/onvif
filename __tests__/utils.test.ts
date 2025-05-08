@@ -1,5 +1,7 @@
-import { parseStringPromise } from 'xml2js';
-import { guid, linerase, parseSOAPString, struct } from '../src/utils';
+import xml2js, { parseStringPromise } from 'xml2js';
+import { inspect } from 'node:util';
+import { build, guid, linerase, parseSOAPString, struct, toOnvifXMLSchemaObject, xsany } from '../src/utils';
+import { Config, LensDescription } from '../src/interfaces/onvif';
 
 describe('Linerase function', () => {
   it('should handle tag', async () => {
@@ -137,5 +139,56 @@ describe('struct', () => {
     const list = [{ token : '1' }, { token : '2' }];
     const result = struct(list, 'token');
     expect(Object.keys(result)).toEqual(list.map((obj) => obj.token));
+  });
+});
+
+describe('xs:any', () => {
+  it('any item is an object', async () => {
+    const xmlLD = build({
+      'LensDescription' : {
+        'Offset'       : { X : 1, Y : 1 },
+        'XFactor'      : 1,
+        'AnyExtension' : {
+          'Name' : 'extension',
+        },
+      },
+    });
+    const LensDescription = await xml2js.parseStringPromise(xmlLD);
+    const result: LensDescription = linerase(LensDescription, { array : [], rawXML : ['lensDescription'] }).lensDescription;
+    const newLD = {
+      'LensDescription' : {
+        ...result.__any__ as object,
+        'Offset'  : { X : result.offset.x, Y : result.offset.y },
+        'XFactor' : result.XFactor,
+      },
+    };
+    const newXMLLD = build(newLD);
+    expect(newXMLLD).toStrictEqual(xmlLD);
+  });
+
+  it('any item is an array', async () => {
+    const jsConfig = build({
+      'AnalyticsModule' : {
+        $ : {
+          'Name' : 'name',
+          'Type' : 'type',
+        },
+        'Parameters' : {
+          'ElementItem' : [{
+            'Name'   : 'elementItem1',
+            'Param1' : 'param1',
+          }, {
+            'Name'   : 'elementItem2',
+            'Param2' : 'param2',
+          }],
+        },
+      },
+    });
+    const Config = await xml2js.parseStringPromise(jsConfig);
+    const result: Config = linerase(Config, { array : ['elementItem'], rawXML : ['elementItem'] }).analyticsModule;
+    const newConfig = build({
+      AnalyticsModule : toOnvifXMLSchemaObject.config(result),
+    });
+    expect(newConfig).toStrictEqual(jsConfig);
   });
 });
