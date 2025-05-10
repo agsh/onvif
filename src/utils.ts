@@ -5,6 +5,9 @@ const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const prefixMatch = /(?!xmlns)^.*:/;
 
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+export type PartialRequired<T, K extends keyof T> = Pick<Required<T>, K> & Omit<T, K>;
+
 interface OnvifErrorOptions {
   /**
    * Raw error response from the server
@@ -132,6 +135,18 @@ export function camelCase(tagName: string) {
     return str.charAt(0).toLowerCase() + str.slice(1);
   }
   return str;
+}
+
+export function upFirstLetter(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(upFirstLetter);
+  }
+  if (typeof obj === 'object') {
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [
+      k.charAt(0).toUpperCase() + k.slice(1), upFirstLetter(v),
+    ]));
+  }
+  return obj;
 }
 
 function stripPrefix(tagName: string) {
