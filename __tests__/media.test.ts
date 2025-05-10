@@ -579,7 +579,7 @@ describe('Configurations', () => {
   });
 
   describe('Multicast', () => {
-    it('should start multicasting with different configurations and breaks on unexistsing one', async () => {
+    it('should start multicasting with different configurations and breaks on non-existent one', async () => {
       await cam.media.startMulticastStreaming();
       await cam.media.startMulticastStreaming({
         profileToken : 'ProfileToken_2',
@@ -589,7 +589,7 @@ describe('Configurations', () => {
       })).rejects.toThrow('Profile Not Exist');
     });
 
-    it('should stop multicasting with different configurations and breaks on unexistsing one', async () => {
+    it('should stop multicasting with different configurations and breaks on non-existent one', async () => {
       await cam.media.stopMulticastStreaming();
       await cam.media.stopMulticastStreaming({
         profileToken : 'ProfileToken_2',
@@ -597,6 +597,35 @@ describe('Configurations', () => {
       await expect(cam.media.stopMulticastStreaming({
         profileToken : 'Unknown',
       })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
+  describe('Synchronization Points', () => {
+    it('should set synchronization points', async () => {
+      await cam.media.setSynchronizationPoint();
+      await cam.media.setSynchronizationPoint({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.setSynchronizationPoint({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
+  describe('Video source mode', () => {
+    it('should get video source modes with given video configuration token', async () => {
+      const result = await cam.media.getVideoSourceModes();
+      expect(result[0].token).toBeDefined();
+      expect(result[0].maxResolution).toBeDefined();
+      expect(result[0].maxFramerate).toBeDefined();
+      expect(result[0].reboot).toBeDefined();
+      expect(result[0].encodings).toBeInstanceOf(Array);
+    });
+
+    it('when getting should throw an error when configuration token does not exist', async () => {
+      await expect(cam.media.getVideoSourceModes({
+        videoSourceToken : 'Unknown',
+      })).rejects.toThrow('The requested video source does not exist');
     });
   });
 });

@@ -82,6 +82,7 @@ interface RequestError extends Error {
  * Information about active video source
  */
 export interface ActiveSource {
+  /** Current video source token */
   sourceToken: ReferenceToken;
   profileToken: ReferenceToken;
   videoSourceConfigurationToken: ReferenceToken;
