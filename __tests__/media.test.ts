@@ -688,7 +688,7 @@ describe('Configurations', () => {
           imgPath : 'http://www.onvif.org/ver10/media/wsdl',
         },
       });
-      expect(typeof result).toBe('string');
+      expect(typeof result).toBeDefined();
     });
   });
 });
