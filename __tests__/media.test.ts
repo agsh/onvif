@@ -635,4 +635,60 @@ describe('Configurations', () => {
       expect(result.reboot).toBeDefined();
     });
   });
+
+  describe('OSD', () => {
+    it('should create a new text OSD', async () => {
+      const result = await cam.media.createOSD({
+        position : {
+          type : 'UpperLeft',
+        },
+        type                          : 'Text',
+        videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        textString                    : {
+          plainText : 'zxc',
+          type      : 'Plain',
+          fontColor : {
+            transparent : 7,
+            color       : {
+              z          : 9,
+              y          : 8,
+              x          : 8,
+              colorspace : 'http://www.onvif.org/ver10/colorspace/RGB',
+            },
+          },
+        },
+      });
+      expect(typeof result).toBe('string');
+    });
+
+    it('should create a new image OSD', async () => {
+      const result = await cam.media.createOSD({
+        position : {
+          type : 'Custom',
+        },
+        type                          : 'Image',
+        videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        image                         : {
+          imgPath : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+      });
+      console.log(result);
+      expect(typeof result).toBe('string');
+    });
+
+    it('should set existing OSD', async () => {
+      const result = await cam.media.setOSD({
+        position : {
+          type : 'Custom',
+        },
+        token : 'OSDConfigurationToken_24',
+        type  : 'Image',
+        // videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        image : {
+          imgPath : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+      });
+      expect(typeof result).toBe('string');
+    });
+  });
 });

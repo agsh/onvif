@@ -6,19 +6,34 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase, build, toOnvifXMLSchemaObject, xsany, Optional } from './utils';
 import {
-  AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
+  linerase,
+  build,
+  toOnvifXMLSchemaObject,
+  xsany,
+  Optional,
+  upFirstLetter,
+  OnvifError,
+  PartialRequired,
+} from './utils';
+import {
+  AudioDecoderConfiguration,
+  AudioDecoderConfigurationOptions,
   AudioEncoderConfiguration,
   AudioEncoderConfigurationOptions,
   AudioOutput,
-  AudioOutputConfiguration, AudioOutputConfigurationOptions,
+  AudioOutputConfiguration,
+  AudioOutputConfigurationOptions,
   AudioSource,
   AudioSourceConfiguration,
   AudioSourceConfigurationOptions,
   MediaUri,
   MetadataConfiguration,
-  MetadataConfigurationOptions,
+  MetadataConfigurationOptions, OSDColor,
+  OSDConfiguration, OSDConfigurationExtension, OSDImgConfiguration,
+  OSDPosConfiguration,
+  OSDTextConfiguration,
+  OSDTextConfigurationExtension,
   Profile,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
@@ -27,7 +42,7 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
-import { ReferenceToken } from './interfaces/common';
+import { Color, ReferenceToken, Vector } from './interfaces/common';
 import {
   GetOSDOptions,
   GetOSDOptionsResponse,
@@ -94,7 +109,7 @@ import {
   StopMulticastStreaming,
   GetVideoSourceConfigurationOptions,
   SetSynchronizationPoint,
-  GetVideoSourceModes, GetVideoSourceModesResponse, VideoSourceMode,
+  GetVideoSourceModes, VideoSourceMode,
   SetVideoSourceMode, SetVideoSourceModeResponse,
 } from './interfaces/media';
 
@@ -166,6 +181,39 @@ interface GetConfigurationOptions {
 type ConfigurationOptionsExtended = VideoSourceConfigurationOptions & VideoEncoderConfigurationOptions
   & AudioSourceConfigurationOptions & AudioEncoderConfigurationOptions & MetadataConfigurationOptions
   & AudioOutputConfigurationOptions;
+
+interface OSDConfigurationExtendedBase {
+  token? : ReferenceToken;
+  videoSourceConfigurationToken? : ReferenceToken;
+  position: {type: 'Custom'; pos: Vector} | {type: 'Custom' | 'UpperLeft' | 'UpperRight' | 'LowerLeft' | 'LowerRight'; pos?: never};
+}
+
+type OSDConfigurationExtended =
+  OSDConfigurationExtendedBase & { type: 'Text'; textString: OSDTextConfigurationExtended; image?: never; extension?: never }
+  | OSDConfigurationExtendedBase & { type: 'Image'; textString?: never; image: OSDImgConfiguration; extension?: never }
+  | OSDConfigurationExtendedBase & { type: 'Extended'; textString?: never; image?: never; extension: OSDConfigurationExtension };
+
+interface OSDTextConfigurationExtendedBase {
+  fontSize?: number;
+  fontColor?: OSDColorExtended;
+  backgroundColor?: OSDColorExtended;
+}
+
+type OSDTextConfigurationDate = 'M/d/yyyy' | 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy/MM/dd' | 'yyyy-MM-dd' | 'dddd, MMMM dd, yyyy' | 'MMMM dd, yyyy' | 'dd MMMM, yyyy';
+type OSDTextConfigurationTime = 'h:mm:ss tt' | 'hh:mm:ss tt' | 'H:mm:ss' | 'HH:mm:ss';
+
+type OSDTextConfigurationExtended =
+  OSDTextConfigurationExtendedBase & { type: 'Plain'; isPersistentText?: boolean; dateFormat?: never; timeFormat?: never; plainText: string }
+  | OSDTextConfigurationExtendedBase & { type: 'Date'; isPersistentText?: never; dateFormat: OSDTextConfigurationDate; timeFormat?: never; plainText?: never }
+  | OSDTextConfigurationExtendedBase & { type: 'Time'; isPersistentText?: never; dateFormat?: never; timeFormat: OSDTextConfigurationTime; plainText?: never }
+  | OSDTextConfigurationExtendedBase & { type: 'DateTime'; isPersistentText?: never; dateFormat: OSDTextConfigurationDate; timeFormat: OSDTextConfigurationTime; plainText?: never };
+
+interface OSDColorExtended {
+  transparent?: number;
+  color: Omit<Color, 'colorspace'> & {
+    colorspace?: 'http://www.onvif.org/ver10/colorspace/RGB' | 'http://www.onvif.org/ver10/colorspace/YCbCr';
+  };
+}
 
 /**
  * Media service, ver10 profile
@@ -1205,11 +1253,7 @@ export class Media {
           Name     : configuration.name,
           UseCount : configuration.useCount,
           ...(configuration.PTZStatus && {
-            PTZStatus : {
-              Status      : configuration.PTZStatus.status,
-              Position    : configuration.PTZStatus.position,
-              FieldOfView : configuration.PTZStatus.fieldOfView,
-            },
+            PTZStatus : upFirstLetter(configuration.PTZStatus),
           }),
           ...(configuration.events && {
             Events : {
@@ -1253,8 +1297,8 @@ export class Media {
           Name        : configuration.name,
           UseCount    : configuration.useCount,
           OutputToken : configuration.outputToken,
-          ...(configuration.sendPrimacy && { SendPrimacy : configuration.sendPrimacy }),
-          ...(configuration.outputLevel && { OutputLevel : configuration.outputLevel }),
+          SendPrimacy : configuration.sendPrimacy,
+          OutputLevel : configuration.outputLevel,
         },
       },
     });
@@ -1274,10 +1318,10 @@ export class Media {
         $                : { xmlns : 'http://www.onvif.org/ver10/media/wsdl' },
         ForcePersistence : forcePersistence,
         Configuration    : {
+          ...configuration.__any__ as object,
           $        : { token : configuration.token },
           Name     : configuration.name,
           UseCount : configuration.useCount,
-          // TODO add any handler
         },
       },
     });
@@ -1303,10 +1347,7 @@ export class Media {
       GetStreamUri : {
         $            : { xmlns : 'http://www.onvif.org/ver10/media/wsdl' },
         ProfileToken : profileToken,
-        StreamSetup  : {
-          Stream    : streamSetup.stream,
-          Transport : { Protocol : streamSetup.transport.protocol },
-        },
+        StreamSetup  : upFirstLetter(streamSetup),
       },
     });
     const [data] = await this.onvif.request({ service : 'media', body });
@@ -1422,6 +1463,57 @@ export class Media {
     });
     const [data] = await this.onvif.request({ service : 'media', body });
     return linerase(data).setVideoSourceModeResponse;
+  }
+
+  private async modifyOSD(type: 'Create' | 'Set', OSD: OSDConfigurationExtended) {
+    const body = build({
+      [`${type}OSD`] : {
+        $   : { xmlns : 'http://www.onvif.org/ver10/media/wsdl' },
+        OSD : {
+          $                             : { token : OSD.token },
+          VideoSourceConfigurationToken : OSD.videoSourceConfigurationToken ?? this.onvif.activeSource!.sourceToken,
+          Type                          : OSD.type,
+          Position                      : {
+            Type : OSD.position.pos ? 'Custom' : OSD.position.type,
+            Pos  : OSD.position.pos,
+          },
+          ...(OSD.textString && {
+            TextString : {
+              $               : { isPersistentText : OSD.textString.isPersistentText ?? false },
+              Type            : OSD.textString.type,
+              DateFormat      : OSD.textString.dateFormat,
+              TimeFormat      : OSD.textString.timeFormat,
+              FontSize        : OSD.textString.fontSize,
+              FontColor       : upFirstLetter(OSD.textString.fontColor),
+              BackgroundColor : upFirstLetter(OSD.textString.backgroundColor),
+              PlainText       : OSD.textString.plainText,
+            },
+          }),
+          ...(OSD.image && {
+            Image : { imgPath : OSD.image.imgPath },
+          }),
+          Extension : OSD.extension,
+        },
+      },
+    });
+    const [data] = await this.onvif.request({ service : 'media', body });
+    return linerase(data);
+  }
+
+  /**
+   * Create the OSD.
+   * @param OSD
+   */
+  async createOSD(OSD: OSDConfigurationExtended): Promise<ReferenceToken> {
+    return (await this.modifyOSD('Create', OSD)).createOSDResponse.OSDToken;
+  }
+
+  /**
+   * Set the OSD.
+   * @param OSD
+   */
+  setOSD(OSD: OSDConfigurationExtended & { token: ReferenceToken }): Promise<ReferenceToken> {
+    return this.modifyOSD('Set', OSD);
   }
 
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {

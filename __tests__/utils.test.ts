@@ -1,6 +1,15 @@
 import xml2js, { parseStringPromise } from 'xml2js';
 import { inspect } from 'node:util';
-import { build, guid, linerase, parseSOAPString, struct, toOnvifXMLSchemaObject, xsany } from '../src/utils';
+import {
+  build,
+  guid,
+  linerase,
+  parseSOAPString,
+  struct,
+  toOnvifXMLSchemaObject,
+  upFirstLetter,
+  xsany,
+} from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 
 describe('Linerase function', () => {
@@ -196,6 +205,28 @@ describe('xs:any', () => {
       AnalyticsModule : toOnvifXMLSchemaObject.config(result),
     });
     expect(newConfig).toStrictEqual(jsConfig);
+  });
+});
+
+describe('upFirstLetter', () => {
+  it('should capitalize the first letter of a string', () => {
+    expect(upFirstLetter('hello')).toBe('hello');
+  });
+
+  it('should capitalize the first letter of an array', () => {
+    expect(upFirstLetter([{ hello : 'world' }, { hello : 'world' }])).toStrictEqual([{ Hello : 'world' }, { Hello : 'world' }]);
+  });
+
+  it('should capitalize the first letter of an object', () => {
+    expect(upFirstLetter({ hello : 'world' })).toStrictEqual({ Hello : 'world' });
+  });
+
+  it('should capitalize the first letter of a nested object', () => {
+    expect(upFirstLetter({ hello : { world : 'world' } })).toStrictEqual({ Hello : { World : 'world' } });
+  });
+
+  it('should capitalize the first letter of a nested array', () => {
+    expect(upFirstLetter({ hello : [{ world : 'world' }] })).toStrictEqual({ Hello : [{ World : 'world' }] });
   });
 });
 
