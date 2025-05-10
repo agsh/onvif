@@ -6,7 +6,7 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase, build, toOnvifXMLSchemaObject, xsany } from './utils';
+import { linerase, build, toOnvifXMLSchemaObject, xsany, Optional } from './utils';
 import {
   AudioDecoderConfiguration, AudioDecoderConfigurationOptions,
   AudioEncoderConfiguration,
@@ -95,6 +95,7 @@ import {
   GetVideoSourceConfigurationOptions,
   SetSynchronizationPoint,
   GetVideoSourceModes, GetVideoSourceModesResponse, VideoSourceMode,
+  SetVideoSourceMode, SetVideoSourceModeResponse,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1408,6 +1409,19 @@ export class Media {
         ...videoSourceMode,
         encodings : videoSourceMode.encodings.split(' '),
       }));
+  }
+
+  async setVideoSourceMode({ videoSourceToken = this.onvif.activeSource!.sourceToken, videoSourceModeToken }:
+    Optional<SetVideoSourceMode, 'videoSourceToken'>): Promise<SetVideoSourceModeResponse> {
+    const body = build({
+      SetVideoSourceMode : {
+        $                    : { xmlns : 'http://www.onvif.org/ver10/media/wsdl' },
+        VideoSourceToken     : videoSourceToken,
+        VideoSourceModeToken : videoSourceModeToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service : 'media', body });
+    return linerase(data).setVideoSourceModeResponse;
   }
 
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {

@@ -5,6 +5,8 @@ const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const prefixMatch = /(?!xmlns)^.*:/;
 
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
 interface OnvifErrorOptions {
   /**
    * Raw error response from the server

@@ -613,19 +613,26 @@ describe('Configurations', () => {
   });
 
   describe('Video source mode', () => {
+    let videoSourceMode;
     it('should get video source modes with given video configuration token', async () => {
       const result = await cam.media.getVideoSourceModes();
-      expect(result[0].token).toBeDefined();
-      expect(result[0].maxResolution).toBeDefined();
-      expect(result[0].maxFramerate).toBeDefined();
-      expect(result[0].reboot).toBeDefined();
-      expect(result[0].encodings).toBeInstanceOf(Array);
+      [videoSourceMode] = result;
+      expect(videoSourceMode.token).toBeDefined();
+      expect(videoSourceMode.maxResolution).toBeDefined();
+      expect(videoSourceMode.maxFramerate).toBeDefined();
+      expect(videoSourceMode.reboot).toBeDefined();
+      expect(videoSourceMode.encodings).toBeInstanceOf(Array);
     });
 
     it('when getting should throw an error when configuration token does not exist', async () => {
       await expect(cam.media.getVideoSourceModes({
         videoSourceToken : 'Unknown',
       })).rejects.toThrow('The requested video source does not exist');
+    });
+
+    it('should set video source mode to video source', async () => {
+      const result = await cam.media.setVideoSourceMode({ videoSourceModeToken : videoSourceMode!.token });
+      expect(result.reboot).toBeDefined();
     });
   });
 });
