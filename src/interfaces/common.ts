@@ -85,9 +85,9 @@ export interface Polygon {
   point?: Vector[];
 }
 export interface Color {
-  X: number;
-  Y: number;
-  Z: number;
+  x: number;
+  y: number;
+  z: number;
   /**
    * Acceptable values:
    *
@@ -132,7 +132,7 @@ export interface ColorCluster {
 }
 export interface ColorDescriptor {
   colorCluster?: ColorCluster[];
-  extension?: unknown;
+  extension?: any;
   [key: string]: unknown;
 }
 export interface Transformation {
