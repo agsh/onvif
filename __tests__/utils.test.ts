@@ -180,7 +180,9 @@ describe('xs:any', () => {
         'Parameters' : {
           'ElementItem' : [{
             'Name'   : 'elementItem1',
-            'Param1' : 'param1',
+            'Param1' : {
+              Data : 42,
+            },
           }, {
             'Name'   : 'elementItem2',
             'Param2' : 'param2',

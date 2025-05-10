@@ -476,6 +476,10 @@ describe('Configurations', () => {
                 ],
               },
             },
+            subscriptionPolicy : {
+              __clean__ : true,
+              name      : 'policy',
+            },
           },
           analytics : true,
           multicast : {
@@ -484,7 +488,12 @@ describe('Configurations', () => {
             TTL       : 512,
             autoStart : false,
           },
-          sessionTimeout : 'PT120S',
+          sessionTimeout               : 'PT120S',
+          analyticsEngineConfiguration : {
+            __clean__       : true,
+            analyticsModule : [],
+            extension       : { __clean__ : true },
+          },
         },
         'AudioOutput' : {
           name        : 'AOName',
@@ -526,6 +535,68 @@ describe('Configurations', () => {
       it('Remove testing profile', async () => {
         await cam.media.deleteProfile({ profileToken });
       });
+    });
+  });
+
+  describe('Stream uri', () => {
+    it('should get stream uri with default options', async () => {
+      const result = await cam.media.getStreamUri();
+      expect(result.uri).toBeDefined();
+      expect(result.invalidAfterConnect).toBe(false);
+      expect(result.invalidAfterReboot).toBe(false);
+      expect(result.timeout).toBeDefined();
+    });
+
+    it('should get stream uri with other parameters', async () => {
+      const result = await cam.media.getStreamUri({
+        profileToken : 'ProfileToken_2',
+        streamSetup  : {
+          stream    : 'RTP-Unicast',
+          transport : {
+            protocol : 'HTTP',
+          },
+        },
+      });
+      expect(result.uri).toBeDefined();
+    });
+  });
+
+  describe('Snapshot', () => {
+    it('should get snapshot with default options', async () => {
+      const result = await cam.media.getSnapshotUri();
+      expect(result.uri).toBeDefined();
+      expect(result.invalidAfterConnect).toBe(false);
+      expect(result.invalidAfterReboot).toBe(false);
+      expect(result.timeout).toBeDefined();
+    });
+
+    it('should get snapshot with other parameters', async () => {
+      const result = await cam.media.getSnapshotUri({
+        profileToken : 'ProfileToken_2',
+      });
+      expect(result.uri).toBeDefined();
+    });
+  });
+
+  describe('Multicast', () => {
+    it('should start multicasting with different configurations and breaks on unexistsing one', async () => {
+      await cam.media.startMulticastStreaming();
+      await cam.media.startMulticastStreaming({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.startMulticastStreaming({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
+    });
+
+    it('should stop multicasting with different configurations and breaks on unexistsing one', async () => {
+      await cam.media.stopMulticastStreaming();
+      await cam.media.stopMulticastStreaming({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.stopMulticastStreaming({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
     });
   });
 });
