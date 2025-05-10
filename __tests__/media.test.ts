@@ -672,7 +672,6 @@ describe('Configurations', () => {
           imgPath : 'http://www.onvif.org/ver10/media/wsdl',
         },
       });
-      console.log(result);
       expect(typeof result).toBe('string');
     });
 
@@ -681,7 +680,7 @@ describe('Configurations', () => {
         position : {
           type : 'Custom',
         },
-        token : 'OSDConfigurationToken_24',
+        token : 'OSDConfigurationToken_1',
         type  : 'Image',
         // videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
         image : {
