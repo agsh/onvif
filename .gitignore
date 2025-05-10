@@ -1,7 +1,4 @@
-logs
-*.log
 coverage
 node_modules
 .idea/
 build
-.nyc_output/
