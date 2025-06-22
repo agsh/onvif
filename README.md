@@ -452,6 +452,10 @@ configuration object
 - 0.3.0 Refactoring, documentation, event service basics
 - 0.2.7 WS-Discovery
 
+## Further steps toward 1.0
+- Branch written in Typescript is located here: [https://github.com/agsh/onvif/tree/v1](https://github.com/agsh/onvif/tree/v1)
+- Demo project named Broviki that uses Onvif v1.0 is located here: [https://github.com/agsh/broviki](https://github.com/agsh/broviki)
+
 ## Links
 WSDL schemes and docs:
 - [Operations index](http://www.onvif.org/onvif/ver20/util/operationIndex.html)
