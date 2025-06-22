@@ -124,18 +124,17 @@ export class DiscoverySingleton extends EventEmitter {
         let xml;
         try {
           [data, xml] = await parseSOAPString(msg.toString());
+          data = linerase(data);
         } catch (error) {
           errors.push(error as Error);
           this.emit('error', error, xml);
           return;
         }
         // TODO check for matching RelatesTo field and messageId
-        if (!data[0].probeMatches) {
+        if (!data.probeMatches) {
           errors.push(new OnvifError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}\n${xml}`));
           this.emit('error', `Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, xml);
         } else {
-          data = linerase(data);
-
           // Possible to get multiple matches for the same camera
           // when your computer has more than one network adapter in the same subnet
           const camAddr = data.probeMatches.probeMatch.endpointReference.address;
