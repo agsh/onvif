@@ -1281,7 +1281,7 @@ class Media {
      * Receive snapshot URI
      * @param profileToken
      */
-    async getSnapshotUri({ profileToken = this.onvif.activeSource.profileToken }) {
+    async getSnapshotUri({ profileToken = this.onvif.activeSource.profileToken } = { profileToken: this.onvif.activeSource.profileToken }) {
         if (this.onvif.device.media2Support) {
             // Profile T request using Media2
             const [data] = await this.onvif.request({

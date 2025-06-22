@@ -742,7 +742,7 @@ export declare class Media {
      * Receive snapshot URI
      * @param profileToken
      */
-    getSnapshotUri({ profileToken }: GetSnapshotUri): Promise<{
+    getSnapshotUri({ profileToken }?: GetSnapshotUri): Promise<{
         uri: AnyURI;
     }>;
     getOSDs({ configurationToken, OSDToken }?: GetOSDs): Promise<GetOSDsResponse>;
