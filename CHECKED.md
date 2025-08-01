@@ -1,0 +1,185 @@
+## ONVIF methods
+Which exist in version v0.x. And are implemented in v1.x with test coverage
+Plus new methods have been added in v1.x.
+
+- [x] connect
+- [x] _request
+- [x] _requestPart2
+- [x] getSystemDateAndTime
+- [x] setSystemDateAndTime
+- [x] getCapabilities
+- [x] getServiceCapabilities
+- [x] getActiveSources
+- [x] getServices
+- [x] getDeviceInformation
+- [x] getHostname
+- [x] getScopes
+- [x] setScopes
+- [x] systemReboot
+- [ ] setSystemFactoryDefault
+- [x] _passwordDigest
+- [x] _envelopeHeader
+- [x] _envelopeFooter
+- [x] _parseUrl
+- [x] getNTP
+- [x] setNTP
+- [x] getNetworkInterfaces
+- [x] setNetworkInterfaces
+- [ ] getNetworkDefaultGateway
+- [ ] setNetworkDefaultGateway
+- [x] getDNS
+- [x] setDNS
+- [ ] getNetworkProtocols
+- [ ] getUsers
+- [ ] createUsers
+- [ ] setUsers
+- [ ] deleteUsers
+- [ ] sendAuxiliaryCommand
+- [ ] getEventProperties
+- [ ] getEventServiceCapabilities
+- [ ] subscribe
+- [ ] createPullPointSubscription
+- [ ] renew
+- [ ] pullMessages
+- [ ] unsubscribe
+- [ ] _eventRequest
+- [ ] _eventPull
+- [ ] _restartEventRequest
+- [ ] parseEventXML
+- [x] getVideoSources.media1
+- [x] getAudioSources.media1
+- [x] getAudioOutputs.media1
+
+- [x] getVideoSourceConfigurations.media1
+- [x] getVideoSourceConfigurations.media2
+- [x] getAudioSourceConfigurations.media1
+- [x] getAudioSourceConfigurations.media2
+- [x] getVideoEncoderConfigurations.media1
+- [x] getVideoEncoderConfigurations.media2
+- [x] getAudioEncoderConfigurations.media1
+- [x] getAudioEncoderConfigurations.media2
+- [x] getVideoAnalyticsConfigurations.media1
+- [x] getAnalyticsConfigurations.media2
+- [x] getMetadataConfigurations.media1
+- [x] getMetadataConfigurations.media2
+- [x] getAudioOutputConfigurations.media1
+- [x] getAudioOutputConfigurations.media2
+- [x] getAudioDecoderConfigurations.media1
+- [x] getAudioDecoderConfigurations.media2
+
+- [x] getCompatibleVideoSourceConfigurations.media1
+- [x] getCompatibleAudioSourceConfigurations.media1
+- [x] getCompatibleVideoEncoderConfigurations.media1
+- [x] getCompatibleAudioEncoderConfigurations.media1
+- [x] getCompatibleVideoAnalyticsConfigurations.media1
+- [x] getCompatibleMetadataConfigurations.media1
+- [x] getCompatibleAudioOutputConfigurations.media1
+- [x] getCompatibleAudioDecoderConfigurations.media1
+
+- [x] getVideoSourceConfiguration.media1
+- [x] getAudioSourceConfiguration.media1
+- [x] getVideoEncoderConfiguration.media1
+- [x] getAudioEncoderConfiguration.media1
+- [x] getVideoAnalyticsConfiguration.media1
+- [x] getMetadataConfiguration.media1
+- [x] getAudioOutputConfiguration.media1
+- [x] getAudioDecoderConfiguration.media1
+
+- [x] getVideoSourceConfigurationOptions.media1
+- [x] getAudioSourceConfigurationOptions.media1
+- [x] getVideoEncoderConfigurationOptions.media1
+- [x] getAudioEncoderConfigurationOptions.media1
+- [x] getVideoAnalyticsConfigurationOptions.media1
+- [x] getMetadataConfigurationOptions.media1
+- [x] getAudioOutputConfigurationOptions.media1
+- [x] getAudioDecoderConfigurationOptions.media1
+
+- [x] getGuaranteedNumberOfVideoEncoderInstances
+
+- [x] setVideoSourceConfiguration.media1
+- [x] setAudioSourceConfiguration.media1
+- [x] setVideoEncoderConfiguration.media1
+- [x] setAudioEncoderConfiguration.media1
+- [x] setVideoAnalyticsConfiguration.media1
+- [x] setMetadataConfiguration.media1
+- [x] setAudioOutputConfiguration.media1
+- [x] setAudioDecoderConfiguration.media1
+ 
+- [x] addAudioEncoderConfiguration
+- [x] addAudioSourceConfiguration
+- [x] addVideoEncoderConfiguration
+- [x] addVideoSourceConfiguration
+- [x] addVideoAnalyticsConfiguration
+- [x] addPTZConfiguration
+- [x] addMetadataConfiguration
+- [x] addAudioOutputConfiguration
+- [x] addAudioDecoderConfiguration
+- [x] removeAudioEncoderConfiguration
+- [x] removeAudioSourceConfiguration
+- [x] removeVideoEncoderConfiguration
+- [x] removeVideoSourceConfiguration
+- [x] removeVideoAnalyticsConfiguration
+- [x] removePTZConfiguration
+- [x] removeMetadataConfiguration
+- [x] removeAudioOutputConfiguration
+- [x] removeAudioDecoderConfiguration
+- [x] getProfiles.media1
+- [x] getProfiles.media2
+- [x] getProfile.media1
+- [x] createProfile.media1
+- [x] createProfile.media2
+- [x] addConfiguration.media2
+- [x] removeConfiguration.media2
+- [x] deleteProfile.media1
+- [x] deleteProfile.media2
+- [ ] getStreamUri
+- [ ] getSnapshotUri
+- [ ] setSynchronizationPoint
+- [ ] getOSDs cam.media.getOSDs (schema strict)
+- [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
+- [ ] createOSD
+- [ ] setOSD
+- [ ] deleteOSD
+- [ ] getMediaServiceCapabilities
+- [x] getPresets
+- [x] gotoPreset
+- [x] setPreset
+- [x] removePreset
+- [x] gotoHomePosition
+- [x] setHomePosition
+- [x] getStatus
+- [x] getNodes
+- [x] getConfigurations
+- [x] getConfigurationOptions
+- [x] relativeMove
+- [x] absoluteMove
+- [x] continuousMove
+- [x] stop
+- [x] _panTiltZoomVectors
+- [ ] ptzSendAuxiliaryCommand
+- [ ] getImagingSettings
+- [ ] setImagingSettings
+- [ ] getImagingServiceCapabilities
+- [ ] getCurrentImagingPreset
+- [ ] setCurrentImagingPreset
+- [ ] getVideoSourceOptions
+- [ ] imagingGetMoveOptions
+- [ ] imagingGetStatus
+- [ ] imagingMove
+- [ ] imagingStop
+- [ ] getRecordings
+- [ ] getRecordingJobs
+- [ ] createRecordingJob
+- [ ] deleteRecordingJob
+- [ ] getRecordingSummary
+- [ ] getRecordingInformation
+- [ ] getRecordingConfiguration
+- [ ] getRecordingJobState
+- [ ] getRecordingOptions
+- [ ] getRecordingServiceCapabilities
+- [ ] getTrackConfiguration
+- [ ] getRecordingJobConfiguration
+- [ ] setRecordingJobMode
+- [ ] getReplayUri
+
+118/171 (69.0%)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope                             >
+    <SOAP-ENV:Header>
+        <wsse:Security>
+            <wsse:UsernameToken>
+                <wsse:Username>admin</wsse:Username>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">mJuD/BXtwboUOWdoTTUFcWxTNyo=</wsse:Password>
+                <wsse:Nonce>IywteLw60U/ozdLnYLo88A==</wsse:Nonce>
+                <wsu:Created>2001-04-13T12:26:15.299Z</wsu:Created>
+            </wsse:UsernameToken>
+        </wsse:Security>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <timg:GetServiceCapabilitiesResponse>
+            <timg:Capabilities ImageStabilization="false"></timg:Capabilities>
+        </timg:GetServiceCapabilitiesResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

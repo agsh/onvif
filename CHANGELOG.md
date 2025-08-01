@@ -1,4 +1,5 @@
 ## Changelog
+- 0.7.x and later: https://github.com/agsh/onvif/releases
 - 0.6.6 A lot of fixes (@RogerHardiman). Stable and tested, next step for new version
 - 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. 
      Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. 

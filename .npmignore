@@ -8,3 +8,4 @@ node_modules
 test/*.map
 test/*.js
 examples
+__test__
