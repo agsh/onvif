@@ -476,6 +476,10 @@ describe('Configurations', () => {
                 ],
               },
             },
+            subscriptionPolicy : {
+              __clean__ : true,
+              name      : 'policy',
+            },
           },
           analytics : true,
           multicast : {
@@ -484,7 +488,12 @@ describe('Configurations', () => {
             TTL       : 512,
             autoStart : false,
           },
-          sessionTimeout : 'PT120S',
+          sessionTimeout               : 'PT120S',
+          analyticsEngineConfiguration : {
+            __clean__       : true,
+            analyticsModule : [],
+            extension       : { __clean__ : true },
+          },
         },
         'AudioOutput' : {
           name        : 'AOName',
@@ -526,6 +535,159 @@ describe('Configurations', () => {
       it('Remove testing profile', async () => {
         await cam.media.deleteProfile({ profileToken });
       });
+    });
+  });
+
+  describe('Stream uri', () => {
+    it('should get stream uri with default options', async () => {
+      const result = await cam.media.getStreamUri();
+      expect(result.uri).toBeDefined();
+      expect(result.invalidAfterConnect).toBe(false);
+      expect(result.invalidAfterReboot).toBe(false);
+      expect(result.timeout).toBeDefined();
+    });
+
+    it('should get stream uri with other parameters', async () => {
+      const result = await cam.media.getStreamUri({
+        profileToken : 'ProfileToken_2',
+        streamSetup  : {
+          stream    : 'RTP-Unicast',
+          transport : {
+            protocol : 'HTTP',
+          },
+        },
+      });
+      expect(result.uri).toBeDefined();
+    });
+  });
+
+  describe('Snapshot', () => {
+    it('should get snapshot with default options', async () => {
+      const result = await cam.media.getSnapshotUri();
+      expect(result.uri).toBeDefined();
+      expect(result.invalidAfterConnect).toBe(false);
+      expect(result.invalidAfterReboot).toBe(false);
+      expect(result.timeout).toBeDefined();
+    });
+
+    it('should get snapshot with other parameters', async () => {
+      const result = await cam.media.getSnapshotUri({
+        profileToken : 'ProfileToken_2',
+      });
+      expect(result.uri).toBeDefined();
+    });
+  });
+
+  describe('Multicast', () => {
+    it('should start multicasting with different configurations and breaks on non-existent one', async () => {
+      await cam.media.startMulticastStreaming();
+      await cam.media.startMulticastStreaming({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.startMulticastStreaming({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
+    });
+
+    it('should stop multicasting with different configurations and breaks on non-existent one', async () => {
+      await cam.media.stopMulticastStreaming();
+      await cam.media.stopMulticastStreaming({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.stopMulticastStreaming({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
+  describe('Synchronization Points', () => {
+    it('should set synchronization points', async () => {
+      await cam.media.setSynchronizationPoint();
+      await cam.media.setSynchronizationPoint({
+        profileToken : 'ProfileToken_2',
+      });
+      await expect(cam.media.setSynchronizationPoint({
+        profileToken : 'Unknown',
+      })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
+  describe('Video source mode', () => {
+    let videoSourceMode;
+    it('should get video source modes with given video configuration token', async () => {
+      const result = await cam.media.getVideoSourceModes();
+      [videoSourceMode] = result;
+      expect(videoSourceMode.token).toBeDefined();
+      expect(videoSourceMode.maxResolution).toBeDefined();
+      expect(videoSourceMode.maxFramerate).toBeDefined();
+      expect(videoSourceMode.reboot).toBeDefined();
+      expect(videoSourceMode.encodings).toBeInstanceOf(Array);
+    });
+
+    it('when getting should throw an error when configuration token does not exist', async () => {
+      await expect(cam.media.getVideoSourceModes({
+        videoSourceToken : 'Unknown',
+      })).rejects.toThrow('The requested video source does not exist');
+    });
+
+    it('should set video source mode to video source', async () => {
+      const result = await cam.media.setVideoSourceMode({ videoSourceModeToken : videoSourceMode!.token });
+      expect(result.reboot).toBeDefined();
+    });
+  });
+
+  describe('OSD', () => {
+    it('should create a new text OSD', async () => {
+      const result = await cam.media.createOSD({
+        position : {
+          type : 'UpperLeft',
+        },
+        type                          : 'Text',
+        videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        textString                    : {
+          plainText : 'zxc',
+          type      : 'Plain',
+          fontColor : {
+            transparent : 7,
+            color       : {
+              z          : 9,
+              y          : 8,
+              x          : 8,
+              colorspace : 'http://www.onvif.org/ver10/colorspace/RGB',
+            },
+          },
+        },
+      });
+      expect(typeof result).toBe('string');
+    });
+
+    it('should create a new image OSD', async () => {
+      const result = await cam.media.createOSD({
+        position : {
+          type : 'Custom',
+        },
+        type                          : 'Image',
+        videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        image                         : {
+          imgPath : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+      });
+      expect(typeof result).toBe('string');
+    });
+
+    it('should set existing OSD', async () => {
+      const result = await cam.media.setOSD({
+        position : {
+          type : 'Custom',
+        },
+        token : 'OSDConfigurationToken_1',
+        type  : 'Image',
+        // videoSourceConfigurationToken : 'VideoSourceConfigurationToken_1',
+        image : {
+          imgPath : 'http://www.onvif.org/ver10/media/wsdl',
+        },
+      });
+      expect(typeof result).toBeDefined();
     });
   });
 });

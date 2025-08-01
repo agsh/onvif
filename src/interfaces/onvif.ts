@@ -3416,9 +3416,9 @@ export interface OSDImgConfigurationExtension {
   [key: string]: unknown;
 }
 export interface ColorspaceRange {
-  X: FloatRange;
-  Y: FloatRange;
-  Z: FloatRange;
+  x: FloatRange;
+  y: FloatRange;
+  z: FloatRange;
   /** Acceptable values are the same as in tt:Color. */
   colorspace: AnyURI;
 }
