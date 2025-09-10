@@ -1,7 +1,7 @@
 {
-  "name": "onvif",
+  "name": "onvif-arteco",
   "version": "0.8.1",
-  "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
+  "author": "Arteco Global S.p.A.",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "scripts": {
