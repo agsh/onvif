@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -8,6 +8,7 @@
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
     "lint": "eslint lib/*.js",
+    "lint:fix": "eslint --fix lib/*.js",
     "pretest": "npm run lint",
     "test": "nyc mocha",
     "mockserver": "node startServerMockup.js"
