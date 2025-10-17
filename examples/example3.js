@@ -25,7 +25,15 @@
  *
  * The GetPresets command is left as an asynchronous command
  * and the presets list may come in some time after the StreamURI is displayed
- *
+ * 
+ * Cursor Keys   for Pan and Tilt
+ * + and - Keys  for Zoom In and Zoom Out
+ * 1 to 9 Keys   Goto Preset 1, 2, 3 .. to Preset 9
+ * m             Manual Focus
+ * a             Auto Focs
+ * n             Focus Near
+ * f             Focus Far
+ * q             Quit (also Ctrl-C)
  */
 
 var HOSTNAME = '192.168.0.116',
@@ -49,11 +57,15 @@ new Cam({
 		return;
 	}
 
-	var cam_obj = this;
-	var stop_timer;
-	var ignore_keypress = false;
-	var preset_names = [];
-	var preset_tokens = [];
+	let cam_obj = this;
+	let stop_timer;
+	let ignore_keypress = false;
+	let preset_names = [];
+	let preset_tokens = [];
+	let lastCommand = "";
+	let hasContinuousFocus = false; // also Absolute and Relative
+	let focusMinSpeed = 0;
+	let focusMaxSpeed = 0;
 
 	cam_obj.getStreamUri({
 		protocol: 'RTSP'
@@ -105,6 +117,14 @@ new Cam({
 		}
 	);
 
+	cam_obj.imagingGetMoveOptions({}, function(err, data, xml) {
+		// console.log(data);
+		if ('continuous' in data) {
+			focusMinSpeed = data.continuous.speed.min;
+			focusMaxSpeed = data.continuous.speed.max;
+			hasContinuousFocus = true;
+		}
+	});
 
 	function read_and_process_keyboard() {
 		// listen for the "keypress" events
@@ -153,6 +173,14 @@ new Cam({
 				move(0,0,1,'zoom in');
 			} else if (ch  && ch >= '1' && ch <= '9') {
 				goto_preset(ch);
+			} else if (ch && ch       == 'm') {
+				focus("manual");
+			} else if (ch && ch       == 'a') {
+				focus("auto");
+			} else if (ch && ch       == 'n') {
+				focus("near");
+			} else if (ch && ch       == 'f') {
+				focus("far");
 			}
 		});
 	}
@@ -172,6 +200,8 @@ new Cam({
 
 		// Move the camera
 		console.log('sending move command ' + msg);
+		lastCommand = "PTZ";
+
 		cam_obj.continuousMove({x: x_speed,
 			y: y_speed,
 			zoom: zoom_speed } ,
@@ -191,16 +221,32 @@ new Cam({
 
 
 	function stop() {
-		// send a stop command, stopping Pan/Tilt and stopping zoom
-		console.log('sending stop command');
-		cam_obj.stop({panTilt: true, zoom: true},
-			function(err,stream, xml){
-				if (err) {
-					console.log(err);
-				} else {
-					console.log('stop command sent');
-				}
-			});
+		// if Last Command = PTZ, send a PTZ stop command, stopping Pan/Tilt and stopping zoom
+		// if Last Command = Focus, send a Focus stop command
+		if (lastCommand == "PTZ") {
+			console.log('sending PTZ stop command');
+			lastCommand = "IDLE";
+			cam_obj.stop({panTilt: true, zoom: true},
+				function(err,stream, xml){
+					if (err) {
+						console.log(err);
+					} else {
+						console.log('stop ptz command sent');
+					}
+				});
+		}
+		if (lastCommand == "FOCUS" && hasContinuousFocus) {
+			console.log('sending Focus stop command');
+			lastCommand = "IDLE";
+			cam_obj.imagingStop({},
+				function(err,stream, xml){
+					if (err) {
+						console.log(err);
+					} else {
+						console.log('stop focus command sent');
+					}
+				});
+		}
 	}
 
 
@@ -221,4 +267,62 @@ new Cam({
 				}
 			});
 	}
+
+	function focus(msg) {
+		// Step 1 - Turn off the keyboard processing (so keypresses do not buffer up)
+		// Step 2 - Clear any existing 'stop' timeouts. We will re-schedule a new 'stop' command in this function
+		// Step 3 - Send the Pan/Tilt/Zoom 'move' command.
+		// Step 4 - In the callback from the PTZ 'move' command we schedule the ONVIF Stop command to be executed after a short delay and re-enable the keyboard
+
+		// Pause keyboard processing
+		ignore_keypress = true;
+
+		// Clear any pending 'stop' commands
+		if (stop_timer) {clearTimeout(stop_timer);}
+
+		// Move the camera
+		console.log('sending focus command ' + msg);
+		lastCommand = "FOCUS";
+		if (msg == "auto" || msg == "manual") {
+			let focus = {autoFocusMode: msg.toUpperCase()};
+			let options = {focus: focus};
+			cam_obj.setImagingSettings(options,
+			// completion callback function
+			function(err, stream, xml) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log('focus command sent ' + msg);
+					// schedule a Stop command to run in the future
+					stop_timer = setTimeout(stop,STOP_DELAY_MS);
+				}
+				// Resume keyboard processing
+				ignore_keypress = false;
+			});
+		}
+		if ((msg == "near" || msg == "far") && hasContinuousFocus) {
+			let speed = 0;
+			if (msg == "near") speed = focusMinSpeed * 0.25; // 1/2 of max speed
+			if (msg == "far") speed = focusMaxSpeed * 0.25; // 1/2 of max speed
+			let continuous = {
+				speed: speed
+			}
+			let options = { continuous: continuous};
+			
+			cam_obj.imagingMove(options,
+				// completion callback function
+				function(err, stream, xml) {
+					if (err) {
+						console.log(err);
+					} else {
+						console.log('focus command sent ' + msg);
+						// schedule a Stop command to run in the future
+						stop_timer = setTimeout(stop,STOP_DELAY_MS);
+					}
+					// Resume keyboard processing
+					ignore_keypress = false;
+				});
+		}
+	}
+
 });
