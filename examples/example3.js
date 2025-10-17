@@ -87,9 +87,9 @@ new Cam({
 				// Do this for the first 9 presets
 				console.log("GetPreset Reply");
 				var count = 1;
-				for (var item in stream) {
-					var name = item;          //key
-					var token = stream[item]; //value
+				for (var token in stream) {
+					var name = "";
+					if ('name' in stream[token]) name = stream[token].name;
 					// It is possible to have a preset with a blank name so generate a name
 					if (name.length == 0) {name = 'no name (' + token + ')';}
 					preset_names.push(name);
