@@ -1,7 +1,7 @@
 name: Test
 on:
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "v1" ]
 jobs:
   test:
     name: Test
@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16.x,18.x,20.x]
+        node-version: [16.x,20.x,22.x]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,3 +22,6 @@ jobs:
       # can be used to compile TS -> JS prior to testing if needed
       - run: npm run build --if-present
       - run: npm test
+      - name: Update Coverage Badge
+        uses: we-cli/coverage-badge-action@main
+        if: matrix.node-version == '16.x'

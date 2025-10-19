@@ -2,19 +2,20 @@ const synthTest = !process.env.HOSTNAME;
 
 const assert = require('assert');
 const onvif = require('../lib/onvif');
+
 let serverMockup;
 if (synthTest) {
-	serverMockup = require('../test/serverMockup');
+	serverMockup = require('./serverMockup');
 }
 
 describe('Media', () => {
 	let cam = null;
 	before((done) => {
 		const options = {
-			hostname: process.env.HOSTNAME || 'localhost',
-			username: process.env.USERNAME || 'admin',
-			password: process.env.PASSWORD || '9999',
-			port: process.env.PORT ? parseInt(process.env.PORT) : 10101,
+			hostname : process.env.HOSTNAME || 'localhost',
+			username : process.env.USERNAME || 'admin',
+			password : process.env.PASSWORD || '9999',
+			port     : process.env.PORT ? parseInt(process.env.PORT) : 10101,
 		};
 		cam = new onvif.Cam(options, done);
 	});
@@ -108,8 +109,8 @@ describe('Media', () => {
 	});
 
 	describe('getVideoEncoderConfigurationOptions', () => {
-		const configurationToken = "configurationToken";
-		const profileToken = "profileToken";
+		const configurationToken = 'configurationToken';
+		const profileToken = 'profileToken';
 		it('should return generic configuration options', (done) => {
 			cam.getVideoEncoderConfigurationOptions((err, res) => {
 				assert.strictEqual(err, null);
@@ -132,7 +133,7 @@ describe('Media', () => {
 			});
 		});
 		it('should return a configuration options when `options` is given as an object with `profileToken`', (done) => {
-			cam.getVideoEncoderConfigurationOptions({profileToken: profileToken}, (err, res) => {
+			cam.getVideoEncoderConfigurationOptions({profileToken}, (err, res) => {
 				assert.strictEqual(err, null);
 				assert.ok(res.qualityRange);
 				done();
@@ -140,8 +141,8 @@ describe('Media', () => {
 		});
 		it('should return a configuration options when `options` is given as an object with both `configurationToken` and `profileToken`', (done) => {
 			cam.getVideoEncoderConfigurationOptions({
-				configurationToken: configurationToken,
-				profileToken: profileToken
+				configurationToken,
+				profileToken,
 			}, (err, res) => {
 				assert.strictEqual(err, null);
 				assert.ok(res.qualityRange);
@@ -166,8 +167,8 @@ describe('Media', () => {
 		});
 		it('should accept setting some new video configuration based on the existing', (done) => {
 			const conf = {
-				token: cam.videoEncoderConfigurations[0].$.token,
-				resolution: cam.videoEncoderConfigurations[0].resolution,
+				token      : cam.videoEncoderConfigurations[0].$.token,
+				resolution : cam.videoEncoderConfigurations[0].resolution,
 			};
 			cam.setVideoEncoderConfiguration(conf, (err) => {
 				assert.strictEqual(err, null);
@@ -246,8 +247,8 @@ describe('Media', () => {
 		});
 		it('should accept setting some new audio configuration based on the existing', (done) => {
 			const conf = {
-				token: cam.audioEncoderConfigurations[0].$.token,
-				bitrate: cam.audioEncoderConfigurations[0].bitrate,
+				token   : cam.audioEncoderConfigurations[0].$.token,
+				bitrate : cam.audioEncoderConfigurations[0].bitrate,
 			};
 			cam.setAudioEncoderConfiguration(conf, (err) => {
 				assert.strictEqual(err, null);
@@ -286,8 +287,20 @@ describe('Media', () => {
 	describe('addAudioEncoderConfiguration', () => {
 		it('should add an AudioEncoderConfiguration to a Profile', (done) => {
 			cam.addAudioEncoderConfiguration({
-				profileToken: 'profileToken',
-				configurationToken: 'configurationToken',
+				profileToken       : 'profileToken',
+				configurationToken : 'configurationToken',
+			}, (err) => {
+				assert.strictEqual(err, null);
+				done();
+			});
+		});
+	});
+
+	describe('addAudioEncoderConfiguration', () => {
+		it('should add an AudioEncoderConfiguration to a Profile', (done) => {
+			cam.addPTZConfiguration({
+				profileToken       : 'profileToken',
+				configurationToken : 'configurationToken',
 			}, (err) => {
 				assert.strictEqual(err, null);
 				done();
@@ -298,8 +311,8 @@ describe('Media', () => {
 	describe('addAudioSourceConfiguration', () => {
 		it('should add an AudioSourceConfiguration to a Profile', (done) => {
 			cam.addAudioSourceConfiguration({
-				profileToken: 'profileToken',
-				configurationToken: 'configurationToken',
+				profileToken       : 'profileToken',
+				configurationToken : 'configurationToken',
 			}, (err) => {
 				assert.strictEqual(err, null);
 				done();
@@ -310,8 +323,8 @@ describe('Media', () => {
 	describe('addVideoEncoderConfiguration', () => {
 		it('should add a VideoEncoderConfiguration to a Profile', (done) => {
 			cam.addVideoEncoderConfiguration({
-				profileToken: 'profileToken',
-				configurationToken: 'configurationToken',
+				profileToken       : 'profileToken',
+				configurationToken : 'configurationToken',
 			}, (err) => {
 				assert.strictEqual(err, null);
 				done();
@@ -322,8 +335,8 @@ describe('Media', () => {
 	describe('addVideoSourceConfiguration', () => {
 		it('should add a VideoSourceConfiguration to a Profile', (done) => {
 			cam.addVideoSourceConfiguration({
-				profileToken: 'profileToken',
-				configurationToken: 'configurationToken',
+				profileToken       : 'profileToken',
+				configurationToken : 'configurationToken',
 			}, (err) => {
 				assert.strictEqual(err, null);
 				done();
