@@ -56,6 +56,7 @@ const RESULTS = new Map();
 
 socket.on('message', (msg, rinfo) => {
 	const xml = msg.toString();
+    // console.log(`xml: ${xml}`);
 	parseSOAPString(xml, (err, body) => {
 		if (err || !body || !body[0] || !body[0].probeMatches) {
 			return; // 무시: 잘못된 SOAP 또는 ProbeMatches 없음
@@ -65,10 +66,12 @@ socket.on('message', (msg, rinfo) => {
 			const match = data.probeMatches.probeMatch;
 			const urn = match.endpointReference.address;
 			const xaddrsStr = match.XAddrs || '';
-			const scopesStr = match.Scopes || '';
+			// NOTE: parseSOAPString lowercases tag names when the 2nd letter is lowercase,
+			// so 'Scopes' becomes 'scopes' here.
+			const scopesStr = match.scopes || '';
 			let name = '';
 			let hardware = '';
-			if (typeof scopesStr === 'string') {
+			if (typeof scopesStr === 'string') {                
 				const scopes = scopesStr.split(' ');
 				for (const s of scopes) {
 					if (s.includes('onvif://www.onvif.org/name')) name = decodeURI(s.substring(27));
