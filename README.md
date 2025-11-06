@@ -46,6 +46,14 @@ tests.
 To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise use `jsdoc` with sources from
 `./lib/*.js`
 
+Additional docs (concepts and protocols):
+
+- [SOAP Overview](docs/soap.md) — SOAP/WS-* 개요, WS-Addressing 헤더, WSDL, ONVIF 맥락
+- [ONVIF Communication](docs/onvif-communication.md) — 검색(WS-Discovery), 제어(SOAP/HTTP), 스트리밍(RTSP/RTP), 이벤트
+- [SOAP Probe Message](docs/soap-probe.md) — WS-Discovery Probe 메시지 구성 설명
+- [ONVIF Service Examples](docs/onvif-service-examples.md) — Device/Media/PTZ/Events/Replay 대표 SOAP 호출 예시
+ - [Node http/https Usage](docs/node-http-https.md) — 예제에서 사용한 http/https 요청, 인증, 타임아웃 정리
+
 ## Quick example
 
 Special teasing example how to create little funny video server (http://localhost:6147) with 1 ffmpeg and 3 node.js libraries:

@@ -54,7 +54,7 @@ const LOCAL_BIND_ADDRESS = getIPv4FromInterface(TARGET_INTERFACE_NAME);
 // Deduplication store keyed by URN
 const RESULTS = new Map();
 
-socket.on('message', (msg, rinfo) => {
+socket.on('message', (msg, rinfo) => { 
 	const xml = msg.toString();
     // console.log(`xml: ${xml}`);
 	parseSOAPString(xml, (err, body) => {
@@ -98,7 +98,7 @@ socket.on('message', (msg, rinfo) => {
 			}
 		} catch {}
 	}, 200);
-});
+}); 
 
 socket.on('error', (err) => {
 	console.error('socket error:', err);
