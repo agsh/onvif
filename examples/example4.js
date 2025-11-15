@@ -9,6 +9,8 @@ var onvif = require('../lib/onvif');
 var xml2js = require('xml2js')
 var stripPrefix = require('xml2js').processors.stripPrefix;
 
+let found = [];
+
 /*
 onvif.Discovery.on('device', function(cam,rinfo,xml){
 	// function will be called as soon as NVT responds
@@ -47,6 +49,7 @@ onvif.Discovery.on('device', function(cam, rinfo, xml) {
 			}
 			let msg = 'Discovery Reply from ' + rinfo.address + ' (' + name + ') (' + hardware + ') (' + xaddrs + ') (' + urn + ')';
 			console.log(msg);
+			found.push(msg);
 		}
 	);
 })
@@ -54,4 +57,18 @@ onvif.Discovery.on('error', function(err,xml) {
 	// The ONVIF library had problems parsing some XML
 	console.log('Discovery error ' + err);
 });
-onvif.Discovery.probe();
+onvif.Discovery.on('sending', function(interface, localaddress, localport) {
+	console.log("Sending Discovery to " + interface + " from " + localaddress + ":" + localport);
+});
+
+const options = {
+	timeout: 3000,
+	buffer: 20 * 1024 * 1024,
+};
+
+onvif.Discovery.probe(options, probeFinishedCallback);
+
+function probeFinishedCallback(err, cams) {
+	console.log("Found " + found.length + " device(s)");
+	console.log(found.sort());
+}
