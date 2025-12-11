@@ -294,7 +294,7 @@ The options are:
 *Media.* Obtain a JPEG snapshot URI from the device.
 
 ### getPresets(options, callback)
-Returns the saved presets as an a key-value object where the key is the name of a preset and a value is a preset token.
+Returns the saved presets as a key-value object where the key is the preset token and the value is an object holding preset information with the preset name and other optional information.
 This method also stores the presets information in a `#presets` property of an object.
 
 The options are:
@@ -434,6 +434,11 @@ configuration object
 *Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
 
 ## Changelog
+- Master...
+  Fix example3.js to use the new GetPrests API
+- 0.8.1 BREAKING CHANGES TO GetPresets()
+The original API of 9 years returned an array indexed by the Preset Name. This does not work with cameras that have duplicate preset names (thanks to @Craytor for the fix). In addition ONVIF now includes extra Preset parameters added by @momoAmch. Note example3.js was missed and is broken in 0.8.1 but is now fixed in the master branch
+ So in this version, GetPresets() returns an array indexed by Preset Token. The result is an array of Objects where Objects include a .name value
 - 0.8.0 Only Digest Auth support
 - 0.7.1 Improved events handling
 - 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
