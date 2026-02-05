@@ -10,7 +10,10 @@
     "lint": "eslint lib/*.js",
     "pretest": "npm run lint",
     "test": "nyc mocha",
-    "mockserver": "node startServerMockup.js"
+    "mockserver": "node startServerMockup.js",
+    "publish": "npm publish",
+    "login": "npm login",
+    "logout": "npm logout"
   },
   "contributors": [
     {
