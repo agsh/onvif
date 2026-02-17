@@ -39,6 +39,7 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
+    "sha.js": "^2.4.12",
     "splitargs": "^0.0.7",
     "xml2js": "^0.6.2"
   },
