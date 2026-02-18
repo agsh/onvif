@@ -53,7 +53,7 @@ var Discovery = Object.create(new events.EventEmitter());
  *   });
  * });
  */
-Discovery.probe = function(options, ) {
+Discovery.probe = function(options) {
 	options = options || {};
 	const cams = {};
 	const	errors = [];
