@@ -11,7 +11,6 @@ const
 	guid = require('../lib/utils').guid,
 	linerase = require('../lib/utils').linerase,
 	parseSOAPString = require('../lib/utils').parseSOAPString,
-	url = require('url'),
 	os = require('os');
 
 /**
@@ -117,12 +116,12 @@ Discovery.probe = function(options, callback) {
 					var cam;
 					if (options.resolve !== false) {
 						// Create cam with one of the XAddrs uri
-						var camUris = data.probeMatches.probeMatch.XAddrs.split(' ').map(url.parse),
+						var camUris = data.probeMatches.probeMatch.XAddrs.split(' ').map(url => new URL(url)),
 							camUri = matchXAddr(camUris, rinfo.address);
 						cam = new Cam({
 							hostname: camUri.hostname,
 							port: camUri.port,
-							path: camUri.path,
+							path: camUri.pathname,
 							urn: camAddr
 						});
 						/**
