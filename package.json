@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "1.5.0-alpha",
+  "version": "1.5.1-alpha",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
@@ -66,5 +66,6 @@
     "mocha": "^10.0.0",
     "nimble": "^0.0.2",
     "nyc": "^15.1.0"
-  }
+  },
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }
