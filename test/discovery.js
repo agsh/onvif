@@ -3,7 +3,7 @@ const onvif = require('../lib/onvif');
 
 describe('Discovery', function() {
 	this.timeout(10000);
-	before(() => {
+	before(function() {
 		if (process.platform === 'win32') {
 			this.skip('Skipping test on Windows');
 		}
