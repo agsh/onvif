@@ -18,7 +18,7 @@ const configurationEntityFields = {
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : 'localhost',
+    hostname : '127.0.0.1',
     username : 'admin',
     password : 'admin',
     port     : 8000,

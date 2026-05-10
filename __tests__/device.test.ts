@@ -8,7 +8,7 @@ const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : 'localhost',
+    hostname : '127.0.0.1',
     username : 'admin',
     password : 'admin',
     port     : 8000,
