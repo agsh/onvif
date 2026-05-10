@@ -147,7 +147,8 @@ export class Media2 {
         configuration
           ? configuration.map((configurationRef) => (
             `<Configuration><Type>${configurationRef.type}</Type>${
-              configurationRef.token ? `<Token>${configurationRef.token}</Token></Configuration>` : ''}`
+              configurationRef.token ? `<Token>${configurationRef.token}</Token>` : ''
+            }</Configuration>`
           )).join('')
           : ''
       }</AddConfiguration>`;
