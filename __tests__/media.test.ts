@@ -226,6 +226,62 @@ describe('Sources', () => {
   });
 });
 
+describe('getStreamUri', () => {
+  const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
+
+  it('should return a wrapped media URI when Media2 is supported', async () => {
+    const result = await cam.media.getStreamUri({
+      profileToken : profileToken(),
+      protocol     : 'RTSP',
+    });
+    expect(result).toHaveProperty('mediaUri');
+    expect(result.mediaUri).toMatchObject({
+      invalidAfterConnect : false,
+      invalidAfterReboot  : false,
+      timeout             : 'PT0S',
+    });
+    expect(typeof result.mediaUri.uri).toBe('string');
+    expect(result.mediaUri.uri!.length).toBeGreaterThan(0);
+  });
+
+  it('should default profile token from activeSource when omitted (Media2)', async () => {
+    const explicit = await cam.media.getStreamUri({
+      profileToken : profileToken(),
+      protocol     : 'RTSP',
+    });
+    const implicit = await cam.media.getStreamUri({ protocol : 'RTSP' });
+    expect(implicit.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
+  });
+
+  it('should accept legacy UDP/RTP-Unicast options with Media2', async () => {
+    const result = await cam.media.getStreamUri({
+      profileToken : profileToken(),
+      stream       : 'RTP-Unicast',
+      protocol     : 'UDP',
+    });
+    expect(result.mediaUri!.uri).toBeDefined();
+    expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+  });
+
+  it('should use Media ver10 GetStreamUri when Media2 is disabled', async () => {
+    cam.device.media2Support = false;
+    try {
+      const result = await cam.media.getStreamUri({
+        profileToken : 'ProfileToken_1',
+        stream       : 'RTP-Unicast',
+        protocol     : 'UDP',
+      });
+      // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
+      const mediaUri = result as unknown as { uri: string };
+      expect(mediaUri.uri).toBeDefined();
+      expect(typeof mediaUri.uri).toBe('string');
+      expect(mediaUri.uri.length).toBeGreaterThan(0);
+    } finally {
+      cam.device.media2Support = true;
+    }
+  });
+});
+
 describe('Configurations', () => {
   describe('Get configurations', () => {
     Object

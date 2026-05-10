@@ -35,6 +35,7 @@ import {
   GetOSDs,
   GetOSDsResponse,
   GetVideoSourceConfigurationOptions,
+  TransportProtocol,
 } from './interfaces/media.2';
 import {
   GetSnapshotUri,
@@ -90,7 +91,7 @@ import {
   SetVideoAnalyticsConfiguration,
   SetMetadataConfiguration,
   SetAudioOutputConfiguration,
-  SetAudioDecoderConfiguration,
+  SetAudioDecoderConfiguration, GetStreamUriResponse,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1459,34 +1460,37 @@ export class Media {
    * - RTP over RTSP over TCP: StreamType = "RTP_unicast", TransportProtocol = "RTSP"
    */
   async getStreamUri(options: GetStreamUriOptions = {}):
-    Promise<MediaUri | string> {
+    Promise<GetStreamUriResponse> {
     const {
       profileToken,
       stream = 'RTP-Unicast',
     } = options;
-    let { protocol = 'RTSP' } = options;
+    const { protocol = 'RTSP' } = options;
     if (this.onvif.device.media2Support) {
       // Permitted values for options.protocol are :-
       //   RtspUnicast - RTSP streaming RTP via UDP Unicast.
       //   RtspMulticast - RTSP streaming RTP via UDP Multicast.
       //   RTSP - RTSP streaming RTP over TCP.
       //   RtspOverHttp - Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
-
+      let protocolV2: TransportProtocol = 'RTSP';
       // For backwards compatibility this function will convert Media1 Stream and Transport Protocol to a Media2 protocol
-      if (protocol === 'HTTP') { protocol = 'RtspOverHttp'; }
-      if (protocol === 'TCP') { protocol = 'RTSP'; }
-      if (protocol === 'UDP' && stream === 'RTP-Unicast') { protocol = 'RtspUnicast'; }
-      if (protocol === 'UDP' && stream === 'RTP-Multicast') { protocol = 'RtspMulticast'; }
+      if (protocol === 'HTTP') { protocolV2 = 'RtspOverHttp'; }
+      if (protocol === 'TCP') { protocolV2 = 'RTSP'; }
+      if (protocol === 'UDP' && stream === 'RTP-Unicast') { protocolV2 = 'RtspUnicast'; }
+      if (protocol === 'UDP' && stream === 'RTP-Multicast') { protocolV2 = 'RtspMulticast'; }
 
-      // Profile T request using Media2
-      const [data] = await this.onvif.request({
-        service : 'media2',
-        body    : '<GetStreamUri xmlns="http://www.onvif.org/ver20/media/wsdl">'
-          + `<Protocol>${protocol}</Protocol>`
-          + `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>`
-          + '</GetStreamUri>',
+      const result = await this.onvif.media2.getStreamUri({
+        protocol: protocolV2,
+        profileToken
       });
-      return linerase(data).getStreamUriResponse;
+      return {
+        mediaUri: {
+          uri: result.uri,
+          invalidAfterConnect: false,
+          invalidAfterReboot: false,
+          timeout: 'PT0S'
+        }
+      }
     }
     // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
     const [data] = await this.onvif.request({
