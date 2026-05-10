@@ -22,7 +22,7 @@ import {
   GetMetadataConfigurations,
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
-  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration, GetStreamUri, GetStreamUriResponse,
+  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration, GetStreamUriResponse,
 } from './interfaces/media.2';
 import { build, linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -63,6 +63,11 @@ interface GetConfigurationExtended extends GetConfiguration {
 type ConfigurationEntityExtended = VideoSourceConfiguration & AudioSourceConfiguration
   & VideoEncoder2Configuration & AudioEncoder2Configuration & VideoAnalyticsConfiguration
   & MetadataConfiguration & AudioOutputConfiguration & WebRTCConfiguration & AudioDecoderConfiguration;
+
+interface GetStreamUri {
+  profileToken?: ReferenceToken;
+  protocol?: 'RtspUnicast' | 'RtspMulticast' | 'RTSP' | 'RtspOverHttp';
+}
 
 /**
  * Media service, ver20 profile
@@ -433,6 +438,7 @@ export class Media2 {
     await this.onvif.request({ service : 'media2', body });
   }
 
+
   /**
    * This operation requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
    * The returned URI shall remain valid indefinitely even if the profile is changed.
@@ -447,7 +453,7 @@ export class Media2 {
    * MetadataConfiguration shall have a valid multicast setting.
    */
   @v2
-  async getStreamUri({protocol, profileToken}: GetStreamUri): Promise<GetStreamUriResponse> {
+  async getStreamUri({protocol = 'RtspUnicast', profileToken}: GetStreamUri): Promise<GetStreamUriResponse> {
     const body = build({
       GetStreamUri: {
         $: {
