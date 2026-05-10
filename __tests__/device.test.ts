@@ -2,12 +2,13 @@ import { type } from 'node:os';
 import { Onvif } from '../src';
 import { SetDNS } from '../src/interfaces/devicemgmt';
 
+// eslint-disable-next-line no-useless-escape
 const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&\/\/=]*)/;
 
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : 'localhost',
+    hostname : '127.0.0.1',
     username : 'admin',
     password : 'admin',
     port     : 8000,
@@ -110,10 +111,10 @@ describe('Scopes', () => {
       expect(result.some((scope) => scope.scopeDef === 'Configurable')).toBe(true);
     });
 
-    it('should throw an error when the response from the device is not empty string', () => {
+    it('should throw an error when the response from the device is not empty string', async () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce([[{ setScopesResponse : ['whatever'] }], '<Scopes><Scope>scope</Scope></Scopes>']);
-      expect(
+      await expect(
         cam.device.setScopes([
           'onvif://www.onvif.org/type/error',
         ]),
@@ -163,10 +164,10 @@ describe('NTP', () => {
       expect(result.NTPManual).toBeInstanceOf(Array);
     });
 
-    it('should throw an error when the response from the device is not empty string', () => {
+    it('should throw an error when the response from the device is not empty string', async () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce([[{ setNTPResponse : ['whatever'] }], '<SetNTPResponse />']);
-      expect(
+      await expect(
         // @ts-expect-error fromDCHP is required in the interface
         cam.device.setNTP({}),
       ).rejects.toThrow();
@@ -205,10 +206,10 @@ describe('DNS', () => {
       expect(result.DNSManual).toBeInstanceOf(Array);
     });
 
-    it('should throw an error when the response from the device is not empty string', () => {
+    it('should throw an error when the response from the device is not empty string', async () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce([[{ setDNSResponse : ['whatever'] }], '<SetDNSResponse />']);
-      expect(
+      await expect(
         // @ts-expect-error fromDCHP is required in the interface
         cam.device.setDNS({}),
       ).rejects.toThrow();

@@ -61,7 +61,8 @@ export interface OnvifServices {
   [key: string]: URL | undefined;
 }
 
-export interface OnvifRequestOptions extends RequestOptions {
+export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
+  headers?: http.OutgoingHttpHeaders;
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
@@ -320,7 +321,10 @@ export class Onvif extends EventEmitter {
           // Re-request with the digest auth header
           response.destroy();
           try {
-            options.headers!.Authorization = this.digestAuth(wwwAuthenticate, requestOptions.path!);
+            options.headers = {
+              ...options.headers,
+              authorization : this.digestAuth(wwwAuthenticate, requestOptions.path!),
+            };
             const digestResponse = await this.rawRequest(options);
             return resolve(digestResponse);
           } catch (e) {

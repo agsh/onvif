@@ -21,7 +21,7 @@ const configurationEntityFields = {
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : 'localhost',
+    hostname : '127.0.0.1',
     username : 'admin',
     password : 'admin',
     port     : 8000,
@@ -133,6 +133,7 @@ describe('Profiles', () => {
 
 describe('get<Entity>Configurations', () => {
   Object.entries(configurationEntityFields).forEach(([entityName, properties]) => {
+    // eslint-disable-next-line jest/valid-title
     describe(entityName, () => {
       it('should return a list of configurations from the profile', async () => {
         // @ts-expect-error just

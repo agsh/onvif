@@ -18,7 +18,7 @@ const configurationEntityFields = {
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : 'localhost',
+    hostname : '127.0.0.1',
     username : 'admin',
     password : 'admin',
     port     : 8000,
@@ -160,7 +160,7 @@ describe('Add/remove configurations to the profile', () => {
 
   configurationNames.forEach((configurationName) => {
     describe(`remove${configurationName}`, () => {
-      it('should throw an error if profile token does not exist', async () => {
+      it('should throw an error if profile token empty', async () => {
         // @ts-expect-error just
         await expect(cam.media[`remove${configurationName}Configuration`]({})).rejects.toThrow();
       });
