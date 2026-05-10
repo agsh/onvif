@@ -253,32 +253,79 @@ describe('getStreamUri', () => {
     expect(implicit.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
   });
 
-  it('should accept legacy UDP/RTP-Unicast options with Media2', async () => {
-    const result = await cam.media.getStreamUri({
-      profileToken : profileToken(),
-      stream       : 'RTP-Unicast',
-      protocol     : 'UDP',
-    });
-    expect(result.mediaUri!.uri).toBeDefined();
-    expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
-  });
-
-  it('should use Media ver10 GetStreamUri when Media2 is disabled', async () => {
-    cam.device.media2Support = false;
-    try {
+  describe('protocol values (Media2)', () => {
+    it.each([
+      ['RtspUnicast'],
+      ['RtspMulticast'],
+      ['RtspOverHttp'],
+    ] as const)('should accept native protocol %s', async (protocol) => {
       const result = await cam.media.getStreamUri({
-        profileToken : 'ProfileToken_1',
-        stream       : 'RTP-Unicast',
+        profileToken : profileToken(),
+        protocol,
+      });
+      expect(result.mediaUri?.uri).toBeDefined();
+      expect(typeof result.mediaUri!.uri).toBe('string');
+      expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+    });
+
+    it.each([
+      ['HTTP'],
+      ['TCP'],
+    ] as const)('should accept legacy Media1-style protocol %s', async (protocol) => {
+      const result = await cam.media.getStreamUri({
+        profileToken : profileToken(),
+        protocol,
+      });
+      expect(result.mediaUri?.uri).toBeDefined();
+      expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+    });
+
+    it.each([
+      ['RTP-Unicast'],
+      ['RTP-Multicast'],
+    ] as const)('should map UDP with stream %s', async (stream) => {
+      const result = await cam.media.getStreamUri({
+        profileToken : profileToken(),
+        stream,
         protocol     : 'UDP',
       });
-      // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
-      const mediaUri = result as unknown as { uri: string };
-      expect(mediaUri.uri).toBeDefined();
-      expect(typeof mediaUri.uri).toBe('string');
-      expect(mediaUri.uri.length).toBeGreaterThan(0);
-    } finally {
-      cam.device.media2Support = true;
-    }
+      expect(result.mediaUri?.uri).toBeDefined();
+      expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+    });
+
+    it('should default protocol to RTSP when omitted', async () => {
+      const explicit = await cam.media.getStreamUri({
+        profileToken : profileToken(),
+        protocol     : 'RTSP',
+      });
+      const implicit = await cam.media.getStreamUri({ profileToken : profileToken() });
+      expect(implicit.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
+    });
+  });
+
+  describe('protocol values (Media ver10)', () => {
+    it.each([
+      ['UDP'],
+      ['RTSP'],
+      ['HTTP'],
+      ['TCP'],
+    ] as const)('should return a stream URI when protocol is %s', async (protocol) => {
+      cam.device.media2Support = false;
+      try {
+        const result = await cam.media.getStreamUri({
+          profileToken : 'ProfileToken_1',
+          stream       : 'RTP-Unicast',
+          protocol,
+        });
+        // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
+        const mediaUri = result as unknown as { uri: string };
+        expect(mediaUri.uri).toBeDefined();
+        expect(typeof mediaUri.uri).toBe('string');
+        expect(mediaUri.uri.length).toBeGreaterThan(0);
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
   });
 });
 
