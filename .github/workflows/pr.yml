@@ -2,6 +2,8 @@ name: Test
 on:
   pull_request:
     branches: [ "master", "v1" ]
+  push:
+    branches: [ "master", "v1" ]
 jobs:
   test:
     name: Test
