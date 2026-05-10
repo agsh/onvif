@@ -4,7 +4,7 @@ import {
   ConfigurationEnumeration,
   MediaProfile,
 } from '../src/interfaces/media.2';
-import { ConfigurationEntity } from '../src/interfaces/onvif';
+import { ConfigurationEntity, VideoSourceConfiguration } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder' : ['encoding', 'resolution', 'quality'],
@@ -16,7 +16,38 @@ const configurationEntityFields = {
   'AudioOutput'  : ['outputToken', 'outputLevel'],
   'AudioDecoder' : [],
   'WebRTC'       : [],
-};
+} as const;
+
+function assertMedia2ConfigurationList(
+  entityKey: keyof typeof configurationEntityFields,
+  configurations: unknown[],
+): void {
+  expect(Array.isArray(configurations)).toBe(true);
+  const properties = configurationEntityFields[entityKey];
+  (configurations as Record<string, unknown>[]).forEach((configuration) => {
+    expect(configuration.name).toBeDefined();
+    expect(configuration.token).toBeDefined();
+    expect(configuration.useCount).toBeDefined();
+    properties.forEach((property) => {
+      expect(configuration).toHaveProperty(property);
+    });
+  });
+}
+
+async function assertConfigurationsFilterByProfileAndToken(
+  fetchAll: () => Promise<{ token: string }[]>,
+  fetchFiltered: (profileToken: string, configurationToken: string) => Promise<{ token: string }[]>,
+): Promise<void> {
+  const list = await fetchAll();
+  if (list.length === 0) {
+    return;
+  }
+  const configurationToken = list[0].token;
+  const profileToken = cam.activeSource!.profileToken;
+  const filtered = await fetchFiltered(profileToken, configurationToken);
+  expect(filtered.length).toBeGreaterThanOrEqual(1);
+  expect(filtered.some((configuration) => configuration.token === configurationToken)).toBe(true);
+}
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -43,6 +74,21 @@ describe('Profiles', () => {
       expect(basicProfile).toHaveProperty('configurations');
     });
 
+    it('should return one profile when token is passed', async () => {
+      const token = basicProfile.token;
+      const result = await cam.media2.getProfiles({ token });
+      expect(result).toHaveLength(1);
+      expect(result[0].token).toBe(token);
+    });
+
+    it('should pass explicit configuration types to GetProfiles', async () => {
+      const result = await cam.media2.getProfiles({
+        type : ['VideoSource', 'VideoEncoder'],
+      });
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('configurations');
+    });
+
     it('should fail if media ver20 is not supported', async () => {
       cam.device.media2Support = false;
       expect(() => cam.media2.getProfiles()).toThrow();
@@ -56,11 +102,31 @@ describe('Profiles', () => {
     it('should create a new blank profile and return it', async () => {
       let currentProfiles = await cam.media2.getProfiles();
       const profileCount = currentProfiles.length;
-      const result = await cam.media2.createProfile({ name : 'test2', configuration : [{ type : 'VideoEncoder' }] });
+      const videoEncoderToken = basicProfile.configurations?.videoEncoder?.token;
+      expect(videoEncoderToken).toBeDefined();
+      const result = await cam.media2.createProfile({
+        name          : 'test2',
+        configuration : [{ type : 'VideoEncoder', token : videoEncoderToken }],
+      });
       expect(typeof result).toBe('string');
       newProfileToken = result;
       currentProfiles = await cam.media2.getProfiles();
       expect(currentProfiles.length).toBe(profileCount + 1);
+    });
+
+    it('should create a profile without optional configuration refs', async () => {
+      const token = await cam.media2.createProfile({ name : 'test-no-config-refs' });
+      expect(typeof token).toBe('string');
+      await cam.media2.deleteProfile({ token });
+    });
+
+    it('should create a profile with configuration types but omitting optional tokens', async () => {
+      const token = await cam.media2.createProfile({
+        name          : 'test-types-only',
+        configuration : [{ type : 'VideoEncoder' }],
+      });
+      expect(typeof token).toBe('string');
+      await cam.media2.deleteProfile({ token });
     });
   });
 
@@ -84,6 +150,17 @@ describe('Profiles', () => {
 
     it('should throw an error requested profile token does not exist', async () => {
       await expect(cam.media2.addConfiguration({ profileToken : '???' })).rejects.toThrow('Profile Not Exist');
+    });
+
+    it('should add configuration when only type is given without configuration token', async () => {
+      const profileToken = await cam.media2.createProfile({ name : 'test-add-type-only' });
+      await expect(
+        cam.media2.addConfiguration({
+          profileToken,
+          configuration : [{ type : 'VideoEncoder' }],
+        }),
+      ).resolves.toBeUndefined();
+      await cam.media2.deleteProfile({ token : profileToken });
     });
   });
 
@@ -131,6 +208,165 @@ describe('Profiles', () => {
   });
 });
 
+describe('getVideoSourceConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getVideoSourceConfigurations({});
+    assertMedia2ConfigurationList('VideoSource', result);
+  });
+
+  it('should filter by profileToken and configurationToken', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getVideoSourceConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getVideoSourceConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getVideoEncoderConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getVideoEncoderConfigurations({});
+    assertMedia2ConfigurationList('VideoEncoder', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getVideoEncoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getVideoEncoderConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioSourceConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getAudioSourceConfigurations({});
+    assertMedia2ConfigurationList('AudioSource', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getAudioSourceConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioSourceConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioEncoderConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getAudioEncoderConfigurations({});
+    assertMedia2ConfigurationList('AudioEncoder', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getAudioEncoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioEncoderConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAnalyticsConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getAnalyticsConfigurations({});
+    assertMedia2ConfigurationList('Analytics', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getAnalyticsConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAnalyticsConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getMetadataConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getMetadataConfigurations({});
+    assertMedia2ConfigurationList('Metadata', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getMetadataConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getMetadataConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioOutputConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getAudioOutputConfigurations({});
+    assertMedia2ConfigurationList('AudioOutput', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getAudioOutputConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioOutputConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioDecoderConfigurations', () => {
+  it('should return a list with expected fields', async () => {
+    const result = await cam.media2.getAudioDecoderConfigurations({});
+    assertMedia2ConfigurationList('AudioDecoder', result);
+  });
+
+  it('should filter by profileToken and configurationToken when configurations exist', async () => {
+    await assertConfigurationsFilterByProfileAndToken(
+      () => cam.media2.getAudioDecoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioDecoderConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('setVideoSourceConfiguration', () => {
+  it('should accept SetVideoSourceConfiguration for an existing video source configuration', async () => {
+    const [configuration] = await cam.media2.getVideoSourceConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media2.setVideoSourceConfiguration({ configuration }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should include extension payload when rotate and nested extension are provided', async () => {
+    const [base] = await cam.media2.getVideoSourceConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: VideoSourceConfiguration = {
+      ...base,
+      extension : {
+        rotate : {
+          mode   : 'OFF',
+          degree : 0,
+        },
+        extension : {
+          lensDescription : [{
+            focalLength : 1,
+            offset      : { x : 0, y : 0 },
+            projection  : [{ angle : 0, radius : 1, transmittance : 1 }],
+            XFactor     : 1,
+          }],
+          sceneOrientation : {
+            mode        : 'MANUAL',
+            orientation : '0',
+          },
+        },
+      },
+    };
+    await expect(
+      cam.media2.setVideoSourceConfiguration({ configuration }),
+    ).resolves.toBeUndefined();
+  });
+});
+
 describe('getStreamUri', () => {
   const protocol = 'RtspUnicast';
 
@@ -151,6 +387,19 @@ describe('getStreamUri', () => {
     expect(withDefault.uri).toBe(withExplicit.uri);
   });
 
+  it('should accept alternate stream protocols', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    const rtspTcp = await cam.media2.getStreamUri({ protocol : 'RTSP', profileToken });
+    expect(rtspTcp.uri).toBeDefined();
+  });
+
+  it('should default protocol to RtspUnicast when omitted', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    const explicit = await cam.media2.getStreamUri({ protocol : 'RtspUnicast', profileToken });
+    const defaulted = await cam.media2.getStreamUri({ profileToken });
+    expect(defaulted.uri).toBe(explicit.uri);
+  });
+
   it('should fail if media ver20 is not supported', () => {
     cam.device.media2Support = false;
     try {
@@ -160,27 +409,5 @@ describe('getStreamUri', () => {
     } finally {
       cam.device.media2Support = true;
     }
-  });
-});
-
-describe('get<Entity>Configurations', () => {
-  Object.entries(configurationEntityFields).forEach(([entityName, properties]) => {
-    // eslint-disable-next-line jest/valid-title
-    describe(entityName, () => {
-      it('should return a list of configurations from the profile', async () => {
-        // @ts-expect-error just
-        const result = await cam.media2[`get${entityName}Configurations`]({
-        });
-        expect(Array.isArray(result)).toBe(true);
-        result.forEach((configuration: any) => {
-          expect(configuration.name).toBeDefined();
-          expect(configuration.token).toBeDefined();
-          expect(configuration.useCount).toBeDefined();
-          properties.forEach((property) => {
-            expect(configuration).toHaveProperty(property);
-          });
-        });
-      });
-    });
   });
 });
