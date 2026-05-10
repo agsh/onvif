@@ -3,7 +3,6 @@
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  */
 
-import url from 'url';
 import {
   Onvif, OnvifServices, SetSystemDateAndTimeExtended,
 } from './onvif';
@@ -79,9 +78,9 @@ export class Device {
         if (!service.namespace || !service.XAddr) {
           return;
         }
-        const parsedNamespace = url.parse(service.namespace);
-        if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.path) {
-          const namespaceSplitted = parsedNamespace.path.substring(1).split('/'); // remove leading Slash, then split
+        const parsedNamespace = new URL(service.namespace);
+        if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
+          const namespaceSplitted = parsedNamespace.pathname.substring(1).split('/'); // remove leading Slash, then split
           if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
             // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
             this.media2Support = true;
@@ -294,7 +293,6 @@ export class Device {
       service : 'device',
       body,
     });
-    const a = linerase(data);
     if (linerase(data).setDNSResponse.length !== 0) {
       throw new Error('Wrong `SetDNS` response');
     }

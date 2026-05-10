@@ -136,8 +136,8 @@ describe('Presets', () => {
       expect(result).toBe(presetToken);
     });
 
-    it('should throw an error if there is no preset token to edit', () => {
-      expect(
+    it('should throw an error if there is no preset token to edit', async () => {
+      await expect(
         cam.ptz.setPreset({
           presetToken : 'Undefined_Token',
         }),
@@ -267,8 +267,8 @@ describe('Moves', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should throw an error if the position is not specified', () => {
-      expect(
+    it('should throw an error if the position is not specified', async () => {
+      await expect(
         cam.ptz.absoluteMove(
           // @ts-expect-error position is required
           {},
@@ -310,8 +310,8 @@ describe('Moves', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should throw an error if the translation is not specified', () => {
-      expect(
+    it('should throw an error if the translation is not specified', async () => {
+      await expect(
         cam.ptz.relativeMove(
           // @ts-expect-error translation is required
           {},
@@ -348,8 +348,8 @@ describe('Moves', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should throw an error if the velocity is not specified', () => {
-      expect(
+    it('should throw an error if the velocity is not specified', async () => {
+      await expect(
         cam.ptz.continuousMove(
           // @ts-expect-error velocity is required
           {},
