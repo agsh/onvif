@@ -133,6 +133,7 @@ Plus new methods have been added in v1.x.
 - [x] deleteProfile.media1
 - [x] deleteProfile.media2
 - [ ] getStreamUri
+- [x] getStreamUri.media2
 - [ ] getSnapshotUri
 - [ ] setSynchronizationPoint
 - [ ] getOSDs cam.media.getOSDs (schema strict)

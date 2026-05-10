@@ -22,7 +22,7 @@ import {
   GetMetadataConfigurations,
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
-  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration,
+  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration, GetStreamUri, GetStreamUriResponse,
 } from './interfaces/media.2';
 import { build, linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -432,8 +432,35 @@ export class Media2 {
     });
     await this.onvif.request({ service : 'media2', body });
   }
-}
 
+  /**
+   * This operation requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
+   * The returned URI shall remain valid indefinitely even if the profile is changed.
+   *
+   * Defined stream types are:
+   *     RtspUnicast RTSP streaming RTP as UDP Unicast.
+   *     RtspMulticast RTSP streaming RTP as UDP Multicast.
+   *     RTSP RTSP streaming RTP over TCP.
+   *     RtspOverHttp Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
+   *
+   * If a multicast stream is requested at least one of VideoEncoder2Configuration, AudioEncoder2Configuration and
+   * MetadataConfiguration shall have a valid multicast setting.
+   */
+  @v2
+  async getStreamUri({protocol, profileToken}: GetStreamUri): Promise<GetStreamUriResponse> {
+    const body = build({
+      GetStreamUri: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Protocol: protocol,
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      }
+    });
+    const [data] = await this.onvif.request({ service : 'media2', body });
+    return linerase(data).getStreamUriResponse;
+  }
+}
 function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
   return function v2(this: any, ...args: any[]) {
     if (!this.onvif.device.media2Support) {

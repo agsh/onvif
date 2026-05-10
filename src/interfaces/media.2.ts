@@ -174,7 +174,7 @@ export interface EncoderInstanceInfo {
 }
 export interface StartStopMulticastStreaming {
   /** Contains the token of the Profile that is used to define the multicast stream. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface VideoSourceMode {
   /** Indicate token for video source mode. */
@@ -278,7 +278,7 @@ export interface GetProfilesResponse {
 }
 export interface AddConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Optional item. If present updates the Name property of the profile. */
   name?: Name;
   /** List of configurations to be added. The types shall be provided in the order defined by tr2:ConfigurationEnumeration. List entries with tr2:ConfigurationEnumeration value "All" shall be ignored. */
@@ -287,7 +287,7 @@ export interface AddConfiguration {
 export interface AddConfigurationResponse {}
 export interface RemoveConfiguration {
   /** This element contains a  reference to the media profile from which the configuration shall be removed. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** List of configurations to be removed. The types shall be provided in the order defined by tr2:ConfigurationEnumeration. Tokens appearing in the configuration list shall be ignored. Presence of the "All" type shall result in an empty profile. */
   configuration?: ConfigurationRef[];
 }
@@ -418,7 +418,7 @@ export interface GetStreamUri {
   /** Defines the network protocol for streaming as defined by tr2:TransportProtocol */
   protocol: string;
   /** The ProfileToken element indicates the media profile to use and will define the configuration of the content of the stream. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetStreamUriResponse {
   /** Stable Uri to be used for requesting the media stream */
@@ -426,12 +426,12 @@ export interface GetStreamUriResponse {
 }
 export interface SetSynchronizationPoint {
   /** Contains a Profile reference for which a Synchronization Point is requested. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface SetSynchronizationPointResponse {}
 export interface GetSnapshotUri {
   /** The ProfileToken element indicates the media profile to use and will define the source and dimensions of the snapshot. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetSnapshotUriResponse {
   /** Stable Uri to be used for requesting snapshot images. */

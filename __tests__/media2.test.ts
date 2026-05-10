@@ -131,6 +131,38 @@ describe('Profiles', () => {
   });
 });
 
+describe('getStreamUri', () => {
+  const protocol = 'RtspUnicast';
+
+  it('should return a stream URI for the given protocol and profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    const result = await cam.media2.getStreamUri({ protocol, profileToken });
+    expect(result).toHaveProperty('uri');
+    expect(typeof result.uri).toBe('string');
+    expect(result.uri!.length).toBeGreaterThan(0);
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    const withExplicit = await cam.media2.getStreamUri({
+      protocol,
+      profileToken : cam.activeSource!.profileToken,
+    });
+    const withDefault = await cam.media2.getStreamUri({ protocol });
+    expect(withDefault.uri).toBe(withExplicit.uri);
+  });
+
+  it('should fail if media ver20 is not supported', () => {
+    cam.device.media2Support = false;
+    try {
+      expect(() =>
+        cam.media2.getStreamUri({ protocol, profileToken : cam.activeSource!.profileToken }),
+      ).toThrow('Media2 profile is not supported for this device');
+    } finally {
+      cam.device.media2Support = true;
+    }
+  });
+});
+
 describe('get<Entity>Configurations', () => {
   Object.entries(configurationEntityFields).forEach(([entityName, properties]) => {
     // eslint-disable-next-line jest/valid-title
