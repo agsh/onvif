@@ -87,8 +87,8 @@ describe('Date and time', () => {
   });
 
   describe('setSystemDateAndTime', () => {
-    it('should throw an error when `dateTimeType` is missing or wrong', () => {
-      expect(
+    it('should throw an error when `dateTimeType` is missing or wrong', async () => {
+      await expect(
         // @ts-expect-error dateTimeType is required in the interface
         cam.setSystemDateAndTime({
           dateTime : new Date(),
@@ -96,8 +96,8 @@ describe('Date and time', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an error when `UTCDateTime` and `dateTime` are missing or wrong in manual mode', () => {
-      expect(
+    it('should throw an error when `UTCDateTime` and `dateTime` are missing or wrong in manual mode', async () => {
+      await expect(
         // @ts-expect-error UTCDateTime is required when dateTimeType is manual
         cam.setSystemDateAndTime({
           dateTimeType : 'Manual',
@@ -105,10 +105,10 @@ describe('Date and time', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an error when the response from the device is not empty string', () => {
+    it('should throw an error when the response from the device is not empty string', async () => {
       jest.spyOn(cam as any, 'request')
         .mockReturnValueOnce('whatever');
-      expect(
+      await expect(
         cam.setSystemDateAndTime({
           dateTimeType    : 'NTP',
           daylightSavings : false,

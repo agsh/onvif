@@ -5,7 +5,6 @@
 
 import { EventEmitter } from 'events';
 import { createSocket, RemoteInfo } from 'dgram';
-import url from 'url';
 import os from 'os';
 import { guid, linerase, OnvifError, parseSOAPString } from './utils';
 import { Onvif } from './onvif';
@@ -68,7 +67,6 @@ export class DiscoverySingleton extends EventEmitter {
     return DiscoverySingleton.instance;
   }
 
-  // eslint-disable-next-line no-useless-constructor
   private constructor() {
     super();
   }
@@ -142,11 +140,13 @@ export class DiscoverySingleton extends EventEmitter {
             let cam;
             if (options.resolve !== false) {
               // Create cam with one of the XAddrs uri
-              const camUris = data.probeMatches.probeMatch.XAddrs.split(' ').map(url.parse);
+              const camUris = data.probeMatches.probeMatch.XAddrs.split(' ')
+                .filter(Boolean)
+                .map((href: string) => new URL(href.trim()));
               const camUri = matchXAddr(camUris, rinfo.address);
               cam = new Onvif({
                 hostname : camUri.hostname,
-                port     : parseInt(camUri.port, 10),
+                port     : camUri.port === '' ? undefined : parseInt(camUri.port, 10),
                 path     : camUri.pathname,
                 urn      : camAddr,
               });

@@ -197,6 +197,7 @@ describe('xs:any', () => {
   });
 });
 
+// eslint-disable-next-line jest/no-export
 export function clean(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map(clean);
