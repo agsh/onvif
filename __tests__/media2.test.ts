@@ -4,7 +4,11 @@ import {
   ConfigurationEnumeration,
   MediaProfile,
 } from '../src/interfaces/media.2';
-import { ConfigurationEntity, VideoSourceConfiguration } from '../src/interfaces/onvif';
+import {
+  ConfigurationEntity,
+  VideoEncoder2Configuration,
+  VideoSourceConfiguration,
+} from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
   'VideoEncoder' : ['encoding', 'resolution', 'quality'],
@@ -235,6 +239,38 @@ describe('getVideoEncoderConfigurations', () => {
       (profileToken, configurationToken) =>
         cam.media2.getVideoEncoderConfigurations({ profileToken, configurationToken }),
     );
+  });
+});
+
+describe('setVideoEncoderConfiguration', () => {
+  it('should accept an existing video encoder configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getVideoEncoderConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media2.setVideoEncoderConfiguration(configuration),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit rate control and multicast', async () => {
+    const [base] = await cam.media2.getVideoEncoderConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: VideoEncoder2Configuration = {
+      ...base,
+      rateControl : {
+        constantBitRate : false,
+        frameRateLimit  : base.rateControl?.frameRateLimit ?? 25,
+        bitrateLimit    : base.rateControl?.bitrateLimit ?? 2048,
+      },
+      multicast : base.multicast ?? {
+        address : { type : 'IPv4', IPv4Address : '0.0.0.0' },
+        port      : 0,
+        TTL       : 1,
+        autoStart : false,
+      },
+    };
+    await expect(
+      cam.media2.setVideoEncoderConfiguration(configuration),
+    ).resolves.toBeUndefined();
   });
 });
 
