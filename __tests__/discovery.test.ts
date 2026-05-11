@@ -1,6 +1,7 @@
 /**
  * Integration tests for WS-Discovery against the Happytimesoft ONVIF reference server.
  * Expects the server from `./__tests__/happytime-onvif-server/start.sh` (see `npm test`).
+ * Mocked error-path coverage: `discovery.errors.test.ts`.
  *
  * @jest-environment node
  */
