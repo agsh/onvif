@@ -5,6 +5,7 @@ import {
   AudioEncoder2Configuration,
   AudioSourceConfiguration,
   ConfigurationEntity,
+  MetadataConfiguration,
   VideoEncoder2Configuration,
   VideoSourceConfiguration,
 } from '../src/interfaces/onvif';
@@ -375,6 +376,30 @@ describe('getMetadataConfigurations', () => {
       () => cam.media2.getMetadataConfigurations({}),
       (profileToken, configurationToken) => cam.media2.getMetadataConfigurations({ profileToken, configurationToken }),
     );
+  });
+});
+
+describe('setMetadataConfiguration', () => {
+  it('should accept an existing metadata configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getMetadataConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(cam.media2.setMetadataConfiguration(configuration)).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit multicast and session timeout', async () => {
+    const [base] = await cam.media2.getMetadataConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: MetadataConfiguration = {
+      ...base,
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 8000,
+        TTL: 256,
+        autoStart: false,
+      },
+      sessionTimeout: base.sessionTimeout ?? 'PT60S',
+    };
+    await expect(cam.media2.setMetadataConfiguration(configuration)).resolves.toBeUndefined();
   });
 });
 

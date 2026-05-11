@@ -17,7 +17,7 @@
 [x] SetVideoSourceConfigurationResponse extends SetConfigurationResponse {}
 [x] SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
 [x] SetAudioSourceConfigurationResponse extends SetConfigurationResponse {}
-[ ] SetMetadataConfigurationResponse extends SetConfigurationResponse {}
+[~] SetMetadataConfigurationResponse extends SetConfigurationResponse {}
 [ ] SetAudioOutputConfigurationResponse extends SetConfigurationResponse {}
 [ ] SetAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
 [ ] GetVideoSourceConfigurationOptionsResponse {
