@@ -33,8 +33,8 @@
 - [x] GetSnapshotUriResponse {
 - [x] StartMulticastStreamingResponse extends SetConfigurationResponse {}
 - [x] StopMulticastStreamingResponse extends SetConfigurationResponse {}
-- [ ] GetVideoSourceModesResponse {
-- [ ] SetVideoSourceModeResponse {
+- [x] GetVideoSourceModesResponse {
+- [x] SetVideoSourceModeResponse {
 - [ ] GetOSDsResponse {
 - [ ] SetOSDResponse extends SetConfigurationResponse {}
 - [ ] GetOSDOptionsResponse {
@@ -56,3 +56,4 @@
 89.53
 89.46
 89.65
+89.74
