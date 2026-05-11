@@ -28,6 +28,7 @@ import {
   GetStreamUriResponse,
   GetSnapshotUri,
   GetSnapshotUriResponse,
+  GetAudioSourceConfigurations,
 } from './interfaces/media.2';
 import { build, linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -274,7 +275,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getVideoEncoderConfigurations(options: GetVideoEncoderConfigurations): Promise<VideoEncoder2Configuration[]> {
+  async getVideoEncoderConfigurations(options?: GetVideoEncoderConfigurations): Promise<VideoEncoder2Configuration[]> {
     return this.getConfigurations({ entityName: 'VideoEncoder', ...options });
   }
 
@@ -291,7 +292,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAudioSourceConfigurations(options: GetVideoSourceConfigurations): Promise<AudioSourceConfiguration[]> {
+  async getAudioSourceConfigurations(options?: GetAudioSourceConfigurations): Promise<AudioSourceConfiguration[]> {
     return this.getConfigurations({ entityName: 'AudioSource', ...options });
   }
 
@@ -308,7 +309,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAudioEncoderConfigurations(options: GetAudioEncoderConfigurations): Promise<AudioEncoder2Configuration[]> {
+  async getAudioEncoderConfigurations(options?: GetAudioEncoderConfigurations): Promise<AudioEncoder2Configuration[]> {
     return this.getConfigurations({ entityName: 'AudioEncoder', ...options });
   }
 
@@ -325,7 +326,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAnalyticsConfigurations(options: GetAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
+  async getAnalyticsConfigurations(options?: GetAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
     return this.getConfigurations({ entityName: 'Analytics', ...options });
   }
 
@@ -342,7 +343,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getMetadataConfigurations(options: GetMetadataConfigurations): Promise<MetadataConfiguration[]> {
+  async getMetadataConfigurations(options?: GetMetadataConfigurations): Promise<MetadataConfiguration[]> {
     return this.getConfigurations({ entityName: 'Metadata', ...options });
   }
 
@@ -359,7 +360,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAudioOutputConfigurations(options: GetAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
+  async getAudioOutputConfigurations(options?: GetAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
     return this.getConfigurations({ entityName: 'AudioOutput', ...options });
   }
 
@@ -376,7 +377,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAudioDecoderConfigurations(options: GetAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
+  async getAudioDecoderConfigurations(options?: GetAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
     return this.getConfigurations({ entityName: 'AudioDecoder', ...options });
   }
 
@@ -395,6 +396,54 @@ export class Media2 {
   private async getWebRTCConfigurations(options: GetWebRTCConfigurations): Promise<WebRTCConfiguration[]> {
     // return this.getConfigurations({ entityName : 'WebRTC', ...options });
     return [];
+  }
+
+  async setVideoEncoderConfiguration(configuration: VideoEncoder2Configuration): Promise<void> {
+    const body = build({
+      SetVideoEncoderConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Configuration: {
+          $: {
+            token: configuration.token,
+            GovLength: configuration.govLength,
+            AnchorFrameDistance: configuration.anchorFrameDistance,
+            Profile: configuration.profile,
+            GuaranteedFrameRate: configuration.guaranteedFrameRate,
+            Signed: configuration.signed,
+          },
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+          Encoding: configuration.encoding,
+          Resolution: {
+            Width: configuration.resolution.width,
+            Height: configuration.resolution.height,
+          },
+          ...(configuration.rateControl && {
+            RateControl: {
+              ConstantBitRate: configuration.rateControl.constantBitRate,
+              FrameRateLimit: configuration.rateControl.frameRateLimit,
+              BitrateLimit: configuration.rateControl.bitrateLimit,
+            },
+          }),
+          ...(configuration.multicast && {
+            Multicast: {
+              Address: {
+                Type: configuration.multicast.address.type,
+                IPv4Address: configuration.multicast.address.IPv4Address,
+                IPv6Address: configuration.multicast.address.IPv6Address,
+              },
+              Port: configuration.multicast.port,
+              TTL: configuration.multicast.TTL,
+              AutoStart: configuration.multicast.autoStart,
+            },
+          }),
+          Quality: configuration.quality,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
   }
 
   async setVideoSourceConfiguration({ configuration }: SetVideoSourceConfiguration): Promise<void> {
