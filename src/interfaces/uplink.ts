@@ -1,4 +1,4 @@
-import { StringList, Capabilities } from './onvif';
+import { Capabilities } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken } from './common';
 
