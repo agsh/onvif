@@ -136,7 +136,7 @@ Plus new methods have been added in v1.x.
 - [x] getStreamUri.media2
 - [x] getSnapshotUri
 - [x] getSnapshotUri.media2
-- [ ] setSynchronizationPoint
+- [x] setSynchronizationPoint
 - [ ] getOSDs cam.media.getOSDs (schema strict)
 - [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
 - [ ] createOSD

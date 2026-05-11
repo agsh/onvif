@@ -683,6 +683,130 @@ describe('setVideoSourceConfiguration', () => {
   });
 });
 
+describe('setSynchronizationPoint', () => {
+  it('should set a synchronization point for the active profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    await expect(cam.media2.setSynchronizationPoint({ profileToken })).resolves.toBeUndefined();
+  });
+
+  it('should set a synchronization point for any existing profile token', async () => {
+    const profiles = await cam.media2.getProfiles();
+    expect(profiles.length).toBeGreaterThan(0);
+    for (const profile of profiles) {
+      await expect(cam.media2.setSynchronizationPoint({ profileToken: profile.token })).resolves.toBeUndefined();
+    }
+  });
+
+  it('should set a synchronization point for a newly created profile', async () => {
+    const token = await cam.media2.createProfile({ name: 'test-set-sync-point' });
+    try {
+      await expect(cam.media2.setSynchronizationPoint({ profileToken: token })).resolves.toBeUndefined();
+    } finally {
+      await cam.media2.deleteProfile({ token });
+    }
+  });
+
+  it('should throw an error when the requested profile token does not exist', async () => {
+    await expect(cam.media2.setSynchronizationPoint({ profileToken: '???' })).rejects.toThrow();
+  });
+});
+
+describe('startMulticastStreaming', () => {
+  it('should start multicast streaming for the active profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    await expect(cam.media2.startMulticastStreaming({ profileToken })).resolves.toBeUndefined();
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    const withExplicit = await cam.media2.startMulticastStreaming({
+      profileToken: cam.activeSource!.profileToken,
+    });
+    expect(withExplicit).toBeUndefined();
+    const withDefault = await cam.media2.startMulticastStreaming();
+    expect(withDefault).toBeUndefined();
+  });
+
+  it('should treat an empty options object like omitted profile token', async () => {
+    const withDefault = await cam.media2.startMulticastStreaming();
+    const withEmptyOptions = await cam.media2.startMulticastStreaming({});
+    expect(withDefault).toBeUndefined();
+    expect(withEmptyOptions).toBeUndefined();
+  });
+
+  it('should start multicast streaming for any existing profile token', async () => {
+    const profiles = await cam.media2.getProfiles();
+    expect(profiles.length).toBeGreaterThan(0);
+    for (const profile of profiles) {
+      await expect(cam.media2.startMulticastStreaming({ profileToken: profile.token })).resolves.toBeUndefined();
+    }
+  });
+
+  it('should start multicast streaming for a newly created profile', async () => {
+    const token = await cam.media2.createProfile({ name: 'test-start-multicast' });
+    try {
+      await expect(cam.media2.startMulticastStreaming({ profileToken: token })).resolves.toBeUndefined();
+    } finally {
+      await cam.media2.deleteProfile({ token });
+    }
+  });
+
+  it('should throw an error when the requested profile token does not exist', async () => {
+    await expect(cam.media2.startMulticastStreaming({ profileToken: '???' })).rejects.toThrow();
+  });
+});
+
+describe('stopMulticastStreaming', () => {
+  it('should stop multicast streaming for the active profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    await expect(cam.media2.stopMulticastStreaming({ profileToken })).resolves.toBeUndefined();
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    const withExplicit = await cam.media2.stopMulticastStreaming({
+      profileToken: cam.activeSource!.profileToken,
+    });
+    expect(withExplicit).toBeUndefined();
+    const withDefault = await cam.media2.stopMulticastStreaming();
+    expect(withDefault).toBeUndefined();
+  });
+
+  it('should treat an empty options object like omitted profile token', async () => {
+    const withDefault = await cam.media2.stopMulticastStreaming();
+    const withEmptyOptions = await cam.media2.stopMulticastStreaming({});
+    expect(withDefault).toBeUndefined();
+    expect(withEmptyOptions).toBeUndefined();
+  });
+
+  it('should stop multicast streaming for any existing profile token', async () => {
+    const profiles = await cam.media2.getProfiles();
+    expect(profiles.length).toBeGreaterThan(0);
+    for (const profile of profiles) {
+      await expect(cam.media2.stopMulticastStreaming({ profileToken: profile.token })).resolves.toBeUndefined();
+    }
+  });
+
+  it('should stop multicast streaming for a newly created profile', async () => {
+    const token = await cam.media2.createProfile({ name: 'test-stop-multicast' });
+    try {
+      await expect(cam.media2.stopMulticastStreaming({ profileToken: token })).resolves.toBeUndefined();
+    } finally {
+      await cam.media2.deleteProfile({ token });
+    }
+  });
+
+  it('should throw an error when the requested profile token does not exist', async () => {
+    await expect(cam.media2.stopMulticastStreaming({ profileToken: '???' })).rejects.toThrow();
+  });
+});
+
+describe('startMulticastStreaming / stopMulticastStreaming', () => {
+  it('should allow start then stop for the same profile', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    await expect(cam.media2.startMulticastStreaming({ profileToken })).resolves.toBeUndefined();
+    await expect(cam.media2.stopMulticastStreaming({ profileToken })).resolves.toBeUndefined();
+  });
+});
+
 describe('getStreamUri', () => {
   const protocol = 'RtspUnicast';
 

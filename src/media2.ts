@@ -30,6 +30,10 @@ import {
   GetAudioSourceConfigurations,
   GetVideoEncoderInstances,
   EncoderInstanceInfo,
+  SetSynchronizationPoint,
+  StartMulticastStreaming,
+  StartMulticastStreamingResponse,
+  StopMulticastStreaming,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -841,6 +845,42 @@ export class Media2 {
     });
     const [data] = await this.onvif.request({ service: 'media2', body });
     return linerase(data).getVideoEncoderInstancesResponse.info;
+  }
+
+  async setSynchronizationPoint({ profileToken }: SetSynchronizationPoint) {
+    const body = build({
+      SetSynchronizationPoint: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  async startMulticastStreaming({ profileToken }: StartMulticastStreaming = {}): Promise<void> {
+    const body = build({
+      StartMulticastStreaming: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  async stopMulticastStreaming({ profileToken }: StopMulticastStreaming = {}): Promise<void> {
+    const body = build({
+      StopMulticastStreaming: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
   }
 
   /**
