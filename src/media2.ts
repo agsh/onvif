@@ -34,6 +34,9 @@ import {
   StartMulticastStreaming,
   StartMulticastStreamingResponse,
   StopMulticastStreaming,
+  GetVideoSourceModes,
+  VideoSourceMode,
+  SetVideoSourceMode,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -859,6 +862,13 @@ export class Media2 {
     await this.onvif.request({ service: 'media2', body });
   }
 
+  /**
+   * This command starts multicast streaming using a specified media profile of a device. Streaming continues until
+   * StopMulticastStreaming is called for the same Profile. The streaming shall continue after a reboot of the device
+   * until a StopMulticastStreaming request is received. The multicast address, port and TTL are configured in the
+   * VideoEncoderConfiguration, AudioEncoderConfiguration and MetadataConfiguration respectively.
+   * @param profileToken
+   */
   async startMulticastStreaming({ profileToken }: StartMulticastStreaming = {}): Promise<void> {
     const body = build({
       StartMulticastStreaming: {
@@ -871,6 +881,10 @@ export class Media2 {
     await this.onvif.request({ service: 'media2', body });
   }
 
+  /**
+   * This command stops multicast streaming using a specified media profile of a device
+   * @param profileToken
+   */
   async stopMulticastStreaming({ profileToken }: StopMulticastStreaming = {}): Promise<void> {
     const body = build({
       StopMulticastStreaming: {
@@ -878,6 +892,46 @@ export class Media2 {
           xmlns: 'http://www.onvif.org/ver20/media/wsdl',
         },
         ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * A device returns the information for current video source mode and settable video source modes of specified video
+   * source. A device that indicates a capability of VideoSourceModes shall support this command.
+   * @param options
+   */
+  async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
+    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.sourceToken;
+    const body = build({
+      GetVideoSourceModes: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        VideoSourceToken: videoSourceToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    const response = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse;
+    return response?.videoSourceModes ?? [];
+  }
+
+  /**
+   * SetVideoSourceMode changes the media profile structure relating to video source for the specified video source
+   * mode. A device that indicates a capability of VideoSourceModes shall support this command. The behavior after
+   * changing the mode is not defined in this specification.
+   * @param videoSourceToken
+   * @param videoSourceModeToken
+   */
+  async setVideoSourceMode({ videoSourceToken, videoSourceModeToken }: SetVideoSourceMode): Promise<void> {
+    const body = build({
+      SetVideoSourceMode: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        VideoSourceToken: videoSourceToken,
+        VideoSourceModeToken: videoSourceModeToken,
       },
     });
     await this.onvif.request({ service: 'media2', body });

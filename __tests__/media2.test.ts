@@ -1,6 +1,6 @@
 import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { ConfigurationEnumeration, MediaProfile } from '../src/interfaces/media.2';
+import { ConfigurationEnumeration, MediaProfile, VideoSourceMode } from '../src/interfaces/media.2';
 import {
   AudioDecoderConfiguration,
   AudioEncoder2Configuration,
@@ -804,6 +804,46 @@ describe('startMulticastStreaming / stopMulticastStreaming', () => {
     const profileToken = cam.activeSource!.profileToken;
     await expect(cam.media2.startMulticastStreaming({ profileToken })).resolves.toBeUndefined();
     await expect(cam.media2.stopMulticastStreaming({ profileToken })).resolves.toBeUndefined();
+  });
+});
+
+describe('getVideoSourceModes', () => {
+  function assertVideoSourceModeShape(mode: VideoSourceMode): void {
+    expect(mode.token).toBeDefined();
+    expect(typeof mode.maxFramerate).toBe('number');
+    expect(mode.maxResolution).toBeDefined();
+    expect(typeof mode.maxResolution.width).toBe('number');
+    expect(typeof mode.maxResolution.height).toBe('number');
+    expect(mode.encodings).toBeDefined();
+    expect(typeof mode.reboot).toBe('boolean');
+  }
+
+  it('should return video source modes for an explicit video source token', async () => {
+    const videoSourceToken = cam.activeSource!.sourceToken;
+    const modes = await cam.media2.getVideoSourceModes({ videoSourceToken });
+    expect(Array.isArray(modes)).toBe(true);
+    expect(modes.length).toBeGreaterThan(0);
+    modes.forEach(assertVideoSourceModeShape);
+  });
+
+  it('should default video source token from activeSource when options are omitted', async () => {
+    const explicit = await cam.media2.getVideoSourceModes({
+      videoSourceToken: cam.activeSource!.sourceToken,
+    });
+    const defaulted = await cam.media2.getVideoSourceModes();
+    expect(defaulted).toEqual(explicit);
+  });
+});
+
+describe('setVideoSourceMode', () => {
+  it('should accept a valid video source and mode token pair', async () => {
+    const videoSourceToken = cam.activeSource!.sourceToken;
+    const modes = await cam.media2.getVideoSourceModes({ videoSourceToken });
+    expect(modes.length).toBeGreaterThan(0);
+    const videoSourceModeToken = modes[0].token;
+    await expect(
+      cam.media2.setVideoSourceMode({ videoSourceToken, videoSourceModeToken }),
+    ).resolves.toBeUndefined();
   });
 });
 
