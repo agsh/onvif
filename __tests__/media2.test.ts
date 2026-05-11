@@ -3,6 +3,7 @@ import { ReferenceToken } from '../src/interfaces/common';
 import { ConfigurationEnumeration, MediaProfile } from '../src/interfaces/media.2';
 import {
   AudioEncoder2Configuration,
+  AudioSourceConfiguration,
   ConfigurationEntity,
   VideoEncoder2Configuration,
   VideoSourceConfiguration,
@@ -293,6 +294,24 @@ describe('getAudioSourceConfigurations', () => {
   });
 });
 
+describe('setAudioSourceConfiguration', () => {
+  it('should accept an existing audio source configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getAudioSourceConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(cam.media2.setAudioSourceConfiguration(configuration)).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit source token matching the device', async () => {
+    const [base] = await cam.media2.getAudioSourceConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: AudioSourceConfiguration = {
+      ...base,
+      sourceToken: base.sourceToken,
+    };
+    await expect(cam.media2.setAudioSourceConfiguration(configuration)).resolves.toBeUndefined();
+  });
+});
+
 describe('getAudioEncoderConfigurations', () => {
   it('should return a list with expected fields', async () => {
     const result = await cam.media2.getAudioEncoderConfigurations({});
@@ -393,7 +412,7 @@ describe('setVideoSourceConfiguration', () => {
   it('should accept SetVideoSourceConfiguration for an existing video source configuration', async () => {
     const [configuration] = await cam.media2.getVideoSourceConfigurations({});
     expect(configuration).toBeDefined();
-    await expect(cam.media2.setVideoSourceConfiguration({ configuration })).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoSourceConfiguration(configuration)).resolves.toBeUndefined();
   });
 
   it('should include extension payload when rotate and nested extension are provided', async () => {
@@ -422,7 +441,7 @@ describe('setVideoSourceConfiguration', () => {
         },
       },
     };
-    await expect(cam.media2.setVideoSourceConfiguration({ configuration })).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoSourceConfiguration(configuration)).resolves.toBeUndefined();
   });
 });
 
