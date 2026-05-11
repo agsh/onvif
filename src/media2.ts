@@ -22,7 +22,12 @@ import {
   GetMetadataConfigurations,
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
-  WebRTCConfiguration, GetWebRTCConfigurations, SetVideoSourceConfiguration, GetStreamUriResponse,
+  WebRTCConfiguration,
+  GetWebRTCConfigurations,
+  SetVideoSourceConfiguration,
+  GetStreamUriResponse,
+  GetSnapshotUri,
+  GetSnapshotUriResponse,
 } from './interfaces/media.2';
 import { build, linerase } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -30,7 +35,9 @@ import {
   AudioDecoderConfiguration,
   AudioEncoder2Configuration,
   AudioOutputConfiguration,
-  AudioSourceConfiguration, LensDescription, LensProjection,
+  AudioSourceConfiguration,
+  LensDescription,
+  LensProjection,
   MetadataConfiguration,
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
@@ -60,9 +67,15 @@ interface GetConfigurationExtended extends GetConfiguration {
   entityName: ConfigurationEnumeration;
 }
 
-type ConfigurationEntityExtended = VideoSourceConfiguration & AudioSourceConfiguration
-  & VideoEncoder2Configuration & AudioEncoder2Configuration & VideoAnalyticsConfiguration
-  & MetadataConfiguration & AudioOutputConfiguration & WebRTCConfiguration & AudioDecoderConfiguration;
+type ConfigurationEntityExtended = VideoSourceConfiguration &
+  AudioSourceConfiguration &
+  VideoEncoder2Configuration &
+  AudioEncoder2Configuration &
+  VideoAnalyticsConfiguration &
+  MetadataConfiguration &
+  AudioOutputConfiguration &
+  WebRTCConfiguration &
+  AudioDecoderConfiguration;
 
 interface GetStreamUri {
   profileToken?: ReferenceToken;
@@ -89,17 +102,15 @@ export class Media2 {
    * @param options.type If one or more types are passed only the corresponding configurations will be returned.
    */
   @v2
-  async getProfiles({ token, type }: GetProfiles = {}): Promise<(MediaProfile)[]> {
+  async getProfiles({ token, type }: GetProfiles = {}): Promise<MediaProfile[]> {
     const body = `<GetProfiles xmlns="http://www.onvif.org/ver20/media/wsdl">${
       token !== undefined ? `<Token>${token}</Token>` : ''
-    }${
-      type !== undefined ? `<Type>${type.join(' ')}</Type>` : '<Type>All</Type>'
-    }</GetProfiles>`;
+    }${type !== undefined ? `<Type>${type.join(' ')}</Type>` : '<Type>All</Type>'}</GetProfiles>`;
     const [data] = await this.onvif.request({
-      service : 'media2',
+      service: 'media2',
       body,
     });
-    return linerase(data, { array : ['profiles'] }).getProfilesResponse.profiles;
+    return linerase(data, { array: ['profiles'] }).getProfilesResponse.profiles;
   }
 
   /**
@@ -113,14 +124,17 @@ export class Media2 {
   @v2
   async createProfile({ name, configuration }: CreateProfileExtended): Promise<ReferenceToken> {
     const [data] = await this.onvif.request({
-      service : 'media2',
-      body    : '<CreateProfile xmlns="http://www.onvif.org/ver20/media/wsdl">'
-        + `<Name>${name}</Name>${
+      service: 'media2',
+      body:
+        '<CreateProfile xmlns="http://www.onvif.org/ver20/media/wsdl">' +
+        `<Name>${name}</Name>${
           configuration
-            ? `<Configuration>${configuration.map((configurationRef) => (
-              `<Type>${configurationRef.type}</Type>${
-                configurationRef.token ? `<Token>${configurationRef.token}</Token>` : ''}`
-            ))}</Configuration>`
+            ? `<Configuration>${configuration.map(
+                (configurationRef) =>
+                  `<Type>${configurationRef.type}</Type>${
+                    configurationRef.token ? `<Token>${configurationRef.token}</Token>` : ''
+                  }`,
+              )}</Configuration>`
             : ''
         }</CreateProfile>`,
     });
@@ -140,20 +154,22 @@ export class Media2 {
    */
   @v2
   async addConfiguration({ profileToken, name, configuration }: AddConfigurationExtended): Promise<void> {
-    const body = '<AddConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">'
-      + `<ProfileToken>${profileToken}</ProfileToken>${
-        name !== undefined ? `<Name>${name}</Name>` : ''
-      }${
+    const body =
+      '<AddConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">' +
+      `<ProfileToken>${profileToken}</ProfileToken>${name !== undefined ? `<Name>${name}</Name>` : ''}${
         configuration
-          ? configuration.map((configurationRef) => (
-            `<Configuration><Type>${configurationRef.type}</Type>${
-              configurationRef.token ? `<Token>${configurationRef.token}</Token>` : ''
-            }</Configuration>`
-          )).join('')
+          ? configuration
+              .map(
+                (configurationRef) =>
+                  `<Configuration><Type>${configurationRef.type}</Type>${
+                    configurationRef.token ? `<Token>${configurationRef.token}</Token>` : ''
+                  }</Configuration>`,
+              )
+              .join('')
           : ''
       }</AddConfiguration>`;
     await this.onvif.request({
-      service : 'media2',
+      service: 'media2',
       body,
     });
   }
@@ -170,12 +186,14 @@ export class Media2 {
   @v2
   async removeConfiguration({ profileToken, configuration }: RemoveConfigurationExtended): Promise<void> {
     await this.onvif.request({
-      service : 'media2',
-      body    : '<RemoveConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>${
+      service: 'media2',
+      body:
+        '<RemoveConfiguration xmlns="http://www.onvif.org/ver20/media/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>${
           configuration?.length
-            ? configuration
-              .map((configurationRef) => `<Configuration><Type>${configurationRef.type}</Type></Configuration>`)
+            ? configuration.map(
+                (configurationRef) => `<Configuration><Type>${configurationRef.type}</Type></Configuration>`,
+              )
             : ''
         }</RemoveConfiguration>`,
     });
@@ -192,10 +210,11 @@ export class Media2 {
   @v2
   async deleteProfile({ token }: DeleteProfile): Promise<void> {
     await this.onvif.request({
-      service : 'media2',
-      body    : '<DeleteProfile xmlns="http://www.onvif.org/ver20/media/wsdl">'
-        + `<Token>${token}</Token>`
-        + '</DeleteProfile>',
+      service: 'media2',
+      body:
+        '<DeleteProfile xmlns="http://www.onvif.org/ver20/media/wsdl">' +
+        `<Token>${token}</Token>` +
+        '</DeleteProfile>',
     });
   }
 
@@ -208,16 +227,21 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  private async getConfigurations({ entityName, profileToken, configurationToken }: GetConfigurationExtended): Promise<ConfigurationEntityExtended[]> {
+  private async getConfigurations({
+    entityName,
+    profileToken,
+    configurationToken,
+  }: GetConfigurationExtended): Promise<ConfigurationEntityExtended[]> {
     const body = `<Get${entityName}Configurations xmlns="http://www.onvif.org/ver20/media/wsdl">${
       profileToken !== undefined ? `<ProfileToken>${profileToken}</ProfileToken>` : ''
-    }${configurationToken !== undefined ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
+    }${
+      configurationToken !== undefined ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
     }</Get${entityName}Configurations>`;
     const [data] = await this.onvif.request({
-      service : 'media2',
+      service: 'media2',
       body,
     });
-    return linerase(data, { array : ['configurations'] })[`get${entityName}ConfigurationsResponse`].configurations;
+    return linerase(data, { array: ['configurations'] })[`get${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -234,7 +258,7 @@ export class Media2 {
    */
   @v2
   async getVideoSourceConfigurations(options: GetVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
-    return this.getConfigurations({ entityName : 'VideoSource', ...options });
+    return this.getConfigurations({ entityName: 'VideoSource', ...options });
   }
 
   /**
@@ -251,7 +275,7 @@ export class Media2 {
    */
   @v2
   async getVideoEncoderConfigurations(options: GetVideoEncoderConfigurations): Promise<VideoEncoder2Configuration[]> {
-    return this.getConfigurations({ entityName : 'VideoEncoder', ...options });
+    return this.getConfigurations({ entityName: 'VideoEncoder', ...options });
   }
 
   /**
@@ -268,7 +292,7 @@ export class Media2 {
    */
   @v2
   async getAudioSourceConfigurations(options: GetVideoSourceConfigurations): Promise<AudioSourceConfiguration[]> {
-    return this.getConfigurations({ entityName : 'AudioSource', ...options });
+    return this.getConfigurations({ entityName: 'AudioSource', ...options });
   }
 
   /**
@@ -285,7 +309,7 @@ export class Media2 {
    */
   @v2
   async getAudioEncoderConfigurations(options: GetAudioEncoderConfigurations): Promise<AudioEncoder2Configuration[]> {
-    return this.getConfigurations({ entityName : 'AudioEncoder', ...options });
+    return this.getConfigurations({ entityName: 'AudioEncoder', ...options });
   }
 
   /**
@@ -302,7 +326,7 @@ export class Media2 {
    */
   @v2
   async getAnalyticsConfigurations(options: GetAnalyticsConfigurations): Promise<VideoAnalyticsConfiguration[]> {
-    return this.getConfigurations({ entityName : 'Analytics', ...options });
+    return this.getConfigurations({ entityName: 'Analytics', ...options });
   }
 
   /**
@@ -319,7 +343,7 @@ export class Media2 {
    */
   @v2
   async getMetadataConfigurations(options: GetMetadataConfigurations): Promise<MetadataConfiguration[]> {
-    return this.getConfigurations({ entityName : 'Metadata', ...options });
+    return this.getConfigurations({ entityName: 'Metadata', ...options });
   }
 
   /**
@@ -336,7 +360,7 @@ export class Media2 {
    */
   @v2
   async getAudioOutputConfigurations(options: GetAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
-    return this.getConfigurations({ entityName : 'AudioOutput', ...options });
+    return this.getConfigurations({ entityName: 'AudioOutput', ...options });
   }
 
   /**
@@ -353,7 +377,7 @@ export class Media2 {
    */
   @v2
   async getAudioDecoderConfigurations(options: GetAudioDecoderConfigurations): Promise<AudioDecoderConfiguration[]> {
-    return this.getConfigurations({ entityName : 'AudioDecoder', ...options });
+    return this.getConfigurations({ entityName: 'AudioDecoder', ...options });
   }
 
   /**
@@ -375,70 +399,66 @@ export class Media2 {
 
   async setVideoSourceConfiguration({ configuration }: SetVideoSourceConfiguration): Promise<void> {
     const body = build({
-      SetVideoSourceConfiguration : {
-        $ : {
-          xmlns : 'http://www.onvif.org/ver20/media/wsdl',
+      SetVideoSourceConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
         },
-        Configuration : {
-          $ : {
-            token    : configuration.token,
-            ViewMode : configuration.viewMode,
+        Configuration: {
+          $: {
+            token: configuration.token,
+            ViewMode: configuration.viewMode,
           },
-          Name        : configuration.name,
-          UseCount    : configuration.useCount,
-          SourceToken : configuration.sourceToken,
-          Bounds      : {
-            $ : {
-              x      : configuration.bounds.x,
-              y      : configuration.bounds.y,
-              width  : configuration.bounds.width,
-              height : configuration.bounds.height,
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+          SourceToken: configuration.sourceToken,
+          Bounds: {
+            $: {
+              x: configuration.bounds.x,
+              y: configuration.bounds.y,
+              width: configuration.bounds.width,
+              height: configuration.bounds.height,
             },
           },
-          ...(
-            configuration.extension
-            && {
-              Extension : {
-                ...(configuration.extension.rotate && {
-                  Rotate : {
-                    Mode   : configuration.extension.rotate.mode,
-                    Degree : configuration.extension.rotate.degree,
-                  },
-                }),
-                ...(configuration.extension.extension && {
-                  Extension : {
-                    LensDescription : configuration.extension.extension.lensDescription?.map((lensDescription) => ({
-                      FocalLength : lensDescription.focalLength,
-                      Offset      : {
-                        $ : {
-                          x : lensDescription.offset.x,
-                          y : lensDescription.offset.y,
-                        },
+          ...(configuration.extension && {
+            Extension: {
+              ...(configuration.extension.rotate && {
+                Rotate: {
+                  Mode: configuration.extension.rotate.mode,
+                  Degree: configuration.extension.rotate.degree,
+                },
+              }),
+              ...(configuration.extension.extension && {
+                Extension: {
+                  LensDescription: configuration.extension.extension.lensDescription?.map((lensDescription) => ({
+                    FocalLength: lensDescription.focalLength,
+                    Offset: {
+                      $: {
+                        x: lensDescription.offset.x,
+                        y: lensDescription.offset.y,
                       },
-                      Projection : lensDescription.projection?.map((lensProjection) => ({
-                        Angle         : lensProjection.angle,
-                        Radius        : lensProjection.radius,
-                        Transmittance : lensProjection.transmittance,
-                      })),
-                      XFactor : lensDescription.XFactor,
+                    },
+                    Projection: lensDescription.projection?.map((lensProjection) => ({
+                      Angle: lensProjection.angle,
+                      Radius: lensProjection.radius,
+                      Transmittance: lensProjection.transmittance,
                     })),
-                    ...(configuration.extension.extension.sceneOrientation && {
-                      SceneOrientation : {
-                        mode        : configuration.extension.extension.sceneOrientation.mode,
-                        orientation : configuration.extension.extension.sceneOrientation.orientation,
-                      },
-                    }),
-                  },
-                }),
-              },
-            }
-          ),
+                    XFactor: lensDescription.XFactor,
+                  })),
+                  ...(configuration.extension.extension.sceneOrientation && {
+                    SceneOrientation: {
+                      mode: configuration.extension.extension.sceneOrientation.mode,
+                      orientation: configuration.extension.extension.sceneOrientation.orientation,
+                    },
+                  }),
+                },
+              }),
+            },
+          }),
         },
       },
     });
-    await this.onvif.request({ service : 'media2', body });
+    await this.onvif.request({ service: 'media2', body });
   }
-
 
   /**
    * This operation requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
@@ -454,7 +474,7 @@ export class Media2 {
    * MetadataConfiguration shall have a valid multicast setting.
    */
   @v2
-  async getStreamUri({protocol = 'RtspUnicast', profileToken}: GetStreamUri): Promise<GetStreamUriResponse> {
+  async getStreamUri({ protocol = 'RtspUnicast', profileToken }: GetStreamUri): Promise<GetStreamUriResponse> {
     const body = build({
       GetStreamUri: {
         $: {
@@ -462,10 +482,25 @@ export class Media2 {
         },
         Protocol: protocol,
         ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
-      }
+      },
     });
-    const [data] = await this.onvif.request({ service : 'media2', body });
+    const [data] = await this.onvif.request({ service: 'media2', body });
     return linerase(data).getStreamUriResponse;
+  }
+
+  @v2
+  async getSnapshotUri(options?: GetSnapshotUri): Promise<GetSnapshotUriResponse> {
+    const { profileToken } = options ?? {};
+    const body = build({
+      GetSnapshotUri: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).getSnapshotUriResponse;
   }
 }
 function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
