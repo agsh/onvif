@@ -32,11 +32,13 @@ import {
   EncoderInstanceInfo,
   SetSynchronizationPoint,
   StartMulticastStreaming,
-  StartMulticastStreamingResponse,
   StopMulticastStreaming,
   GetVideoSourceModes,
   VideoSourceMode,
   SetVideoSourceMode,
+  GetOSDs,
+  GetOSDOptions,
+  DeleteOSD,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -54,6 +56,8 @@ import {
   LensProjection,
   MetadataConfiguration,
   MetadataConfigurationOptions,
+  OSDConfiguration,
+  OSDConfigurationOptions,
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
   VideoEncoder2ConfigurationOptions,
@@ -61,6 +65,7 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
+import { GetOSDsResponse } from './interfaces/media';
 
 /**
  * Configurations as defined by tr2:ConfigurationEnumeration
@@ -434,6 +439,7 @@ export class Media2 {
    * client shall adhere to the timeout value signaled via RTSP.
    * @param configuration
    */
+  @v2
   async setVideoEncoderConfiguration(configuration: VideoEncoder2Configuration): Promise<void> {
     const body = build({
       SetVideoEncoderConfiguration: {
@@ -489,6 +495,7 @@ export class Media2 {
    * this specification.
    * @param configuration
    */
+  @v2
   async setVideoSourceConfiguration(configuration: VideoSourceConfiguration): Promise<void> {
     const body = build({
       SetVideoSourceConfiguration: {
@@ -559,6 +566,7 @@ export class Media2 {
    * this specification.
    * @param configuration
    */
+  @v2
   async setAudioEncoderConfiguration(configuration: AudioEncoder2Configuration): Promise<void> {
     const body = build({
       SetAudioEncoderConfiguration: {
@@ -599,6 +607,7 @@ export class Media2 {
    * specification.
    * @param configuration
    */
+  @v2
   async setAudioSourceConfiguration(configuration: AudioSourceConfiguration): Promise<void> {
     const body = build({
       SetAudioSourceConfiguration: {
@@ -625,6 +634,7 @@ export class Media2 {
    * this specification.
    * @param configuration
    */
+  @v2
   async setMetadataConfiguration(configuration: MetadataConfiguration): Promise<void> {
     const body = build({
       SetMetadataConfiguration: {
@@ -692,6 +702,7 @@ export class Media2 {
    * This operation modifies an audio output configuration.
    * @param configuration
    */
+  @v2
   async setAudioOutputConfiguration(configuration: AudioOutputConfigurationExtended): Promise<void> {
     configuration.sendPrimacy = 'www.onvif.org/ver20/HalfDuplex/Server';
     const body = build({
@@ -717,6 +728,7 @@ export class Media2 {
    * This operation modifies an audio decoder configuration.
    * @param configuration
    */
+  @v2
   async setAudioDecoderConfiguration(configuration: AudioDecoderConfiguration): Promise<void> {
     configuration.sendPrimacy = 'www.onvif.org/ver20/HalfDuplex/Server';
     const body = build({
@@ -761,6 +773,7 @@ export class Media2 {
    * compatible with that media profile.
    * @param options
    */
+  @v2
   async getVideoSourceConfigurationOptions(options: GetConfiguration = {}): Promise<VideoSourceConfigurationOptions> {
     return this.getConfigurationOptions({ ...options, entityName: 'VideoSource' });
   }
@@ -775,6 +788,7 @@ export class Media2 {
    * for the device.
    * @param options
    */
+  @v2
   async getVideoEncoderConfigurationOptions(
     options: GetConfiguration = {},
   ): Promise<VideoEncoder2ConfigurationOptions[]> {
@@ -788,6 +802,7 @@ export class Media2 {
    * compatible with that media profile.
    * @param options
    */
+  @v2
   async getAudioSourceConfigurationOptions(options: GetConfiguration = {}): Promise<AudioSourceConfigurationOptions> {
     return this.getConfigurationOptions({ ...options, entityName: 'AudioSource' });
   }
@@ -797,6 +812,7 @@ export class Media2 {
    * parameters) when the audio encoder parameters are reconfigured.
    * @param options
    */
+  @v2
   async getAudioEncoderConfigurationOptions(
     options: GetConfiguration = {},
   ): Promise<AudioEncoderConfigurationOption[]> {
@@ -808,6 +824,7 @@ export class Media2 {
    * for changing the metadata configuration.
    * @param options
    */
+  @v2
   async getMetadataConfigurationOptions(options: GetConfiguration = {}): Promise<MetadataConfigurationOptions> {
     return this.getConfigurationOptions({ ...options, entityName: 'Metadata' });
   }
@@ -819,6 +836,7 @@ export class Media2 {
    * the FrequencyDecibelPair.
    * @param options
    */
+  @v2
   async getAudioOutputConfigurationOptions(options: GetConfiguration = {}): Promise<AudioOutputConfigurationOptions> {
     return this.getConfigurationOptions({ ...options, entityName: 'AudioOutput' });
   }
@@ -827,6 +845,7 @@ export class Media2 {
    * This command list the audio decoding capabilities for a given profile and configuration of a device.
    * @param options
    */
+  @v2
   async getAudioDecoderConfigurationOptions(options: GetConfiguration = {}): Promise<AudioDecoderConfigurationOptions> {
     return this.getConfigurationOptions({ ...options, entityName: 'AudioDecoder' });
   }
@@ -836,6 +855,7 @@ export class Media2 {
    * instances (applications) per Video Source Configuration.
    * @param options
    */
+  @v2
   async getVideoEncoderInstances(options: GetVideoEncoderInstances): Promise<EncoderInstanceInfo> {
     const { configurationToken } = options;
     const body = build({
@@ -850,6 +870,7 @@ export class Media2 {
     return linerase(data).getVideoEncoderInstancesResponse.info;
   }
 
+  @v2
   async setSynchronizationPoint({ profileToken }: SetSynchronizationPoint) {
     const body = build({
       SetSynchronizationPoint: {
@@ -869,6 +890,7 @@ export class Media2 {
    * VideoEncoderConfiguration, AudioEncoderConfiguration and MetadataConfiguration respectively.
    * @param profileToken
    */
+  @v2
   async startMulticastStreaming({ profileToken }: StartMulticastStreaming = {}): Promise<void> {
     const body = build({
       StartMulticastStreaming: {
@@ -885,6 +907,7 @@ export class Media2 {
    * This command stops multicast streaming using a specified media profile of a device
    * @param profileToken
    */
+  @v2
   async stopMulticastStreaming({ profileToken }: StopMulticastStreaming = {}): Promise<void> {
     const body = build({
       StopMulticastStreaming: {
@@ -902,6 +925,7 @@ export class Media2 {
    * source. A device that indicates a capability of VideoSourceModes shall support this command.
    * @param options
    */
+  @v2
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
     const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.sourceToken;
     const body = build({
@@ -924,6 +948,7 @@ export class Media2 {
    * @param videoSourceToken
    * @param videoSourceModeToken
    */
+  @v2
   async setVideoSourceMode({ videoSourceToken, videoSourceModeToken }: SetVideoSourceMode): Promise<void> {
     const body = build({
       SetVideoSourceMode: {
@@ -932,6 +957,180 @@ export class Media2 {
         },
         VideoSourceToken: videoSourceToken,
         VideoSourceModeToken: videoSourceModeToken,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * This operation lists existing OSD configurations for the device.
+   * - If an OSD token is provided the device shall respond with the requested configuration or provide an error if it does not exist.
+   * - In case only a video source configuration token is provided the device shall respond with all configurations that exist for the video source configuration.
+   * - If no tokens are provided the device shall respond with all available OSD configurations.
+   * @param options
+   */
+  @v2
+  async getOSDs(options?: GetOSDs): Promise<OSDConfiguration[]> {
+    const { configurationToken, OSDToken } = options ?? {};
+    const body = build({
+      GetOSDs: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        OSDToken: OSDToken,
+        ConfigurationToken: configurationToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data, { array: ['OSDs'] }).getOSDsResponse.OSDs;
+  }
+
+  /**
+   * Set the OSD
+   * @param options
+   */
+  @v2
+  async setOSDs(options: OSDConfiguration): Promise<void> {
+    const body = build({
+      SetOSD: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        OSD: {
+          $: {
+            token: options.token,
+          },
+          VideoSourceConfigurationToken: options.videoSourceConfigurationToken,
+          Type: options.type,
+          Position: {
+            Type: options.position.type,
+            Pos: options.position.pos,
+            Extension: options.extension,
+          },
+          ...(options.textString && {
+            TextString: {
+              IsPersistentText: options.textString.isPersistentText,
+              Type: options.textString.type,
+              DateFormat: options.textString.dateFormat,
+              TimeFormat: options.textString.timeFormat,
+              FontSize: options.textString.fontSize,
+              ...(options.textString.fontColor && {
+                FontColor: {
+                  Color: options.textString.fontColor.color,
+                  Transparent: options.textString.fontColor.transparent,
+                },
+              }),
+              ...(options.textString.backgroundColor && {
+                BackgroundColor: {
+                  Color: options.textString.backgroundColor.color,
+                  Transparent: options.textString.backgroundColor.transparent,
+                },
+              }),
+              PlainText: options.textString.plainText,
+              Extension: options.textString.extension,
+            },
+          }),
+          ...(options.image && {
+            Image: {
+              ImgPath: options.image.imgPath,
+              Extension: options.image.extension,
+            },
+          }),
+          Extension: options.extension,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * Get the OSD Options.
+   * @param configurationToken
+   */
+  @v2
+  async getOSDOptions({ configurationToken }: GetOSDOptions): Promise<OSDConfigurationOptions> {
+    const body = build({
+      GetOSDOptions: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ConfigurationToken: configurationToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).getOSDOptionsResponse.OSDOptions;
+  }
+
+  /**
+   * Create the OSD.
+   * @param options
+   */
+  @v2
+  async createOSD(options: OSDConfiguration): Promise<void> {
+    const body = build({
+      CreateOSD: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        OSD: {
+          $: {
+            token: options.token,
+          },
+          VideoSourceConfigurationToken: options.videoSourceConfigurationToken,
+          Type: options.type,
+          Position: {
+            Type: options.position.type,
+            Pos: options.position.pos,
+            Extension: options.extension,
+          },
+          ...(options.textString && {
+            TextString: {
+              IsPersistentText: options.textString.isPersistentText,
+              Type: options.textString.type,
+              DateFormat: options.textString.dateFormat,
+              TimeFormat: options.textString.timeFormat,
+              FontSize: options.textString.fontSize,
+              ...(options.textString.fontColor && {
+                FontColor: {
+                  Color: options.textString.fontColor.color,
+                  Transparent: options.textString.fontColor.transparent,
+                },
+              }),
+              ...(options.textString.backgroundColor && {
+                BackgroundColor: {
+                  Color: options.textString.backgroundColor.color,
+                  Transparent: options.textString.backgroundColor.transparent,
+                },
+              }),
+              PlainText: options.textString.plainText,
+              Extension: options.textString.extension,
+            },
+          }),
+          ...(options.image && {
+            Image: {
+              ImgPath: options.image.imgPath,
+              Extension: options.image.extension,
+            },
+          }),
+          Extension: options.extension,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * Delete the OSD.
+   * @param configurationToken
+   */
+  @v2
+  async DeleteOSD({ OSDToken }: DeleteOSD): Promise<void> {
+    const body = build({
+      DeleteOSD: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        OSDToken,
       },
     });
     await this.onvif.request({ service: 'media2', body });
