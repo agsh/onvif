@@ -29,10 +29,10 @@
 - [x] GetAudioDecoderConfigurationOptionsResponse {
 - [x] GetVideoEncoderInstancesResponse {
 - [x] GetStreamUriResponse {
-- [ ] SetSynchronizationPointResponse {}
+- [x] SetSynchronizationPointResponse {}
 - [x] GetSnapshotUriResponse {
-- [ ] StartMulticastStreamingResponse extends SetConfigurationResponse {}
-- [ ] StopMulticastStreamingResponse extends SetConfigurationResponse {}
+- [x] StartMulticastStreamingResponse extends SetConfigurationResponse {}
+- [x] StopMulticastStreamingResponse extends SetConfigurationResponse {}
 - [ ] GetVideoSourceModesResponse {
 - [ ] SetVideoSourceModeResponse {
 - [ ] GetOSDsResponse {
@@ -55,3 +55,4 @@
 89.23
 89.53
 89.46
+89.65
