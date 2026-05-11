@@ -1,25 +1,23 @@
 import { Onvif, ConfigurationRefExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
+import { ConfigurationEnumeration, MediaProfile } from '../src/interfaces/media.2';
 import {
-  ConfigurationEnumeration,
-  MediaProfile,
-} from '../src/interfaces/media.2';
-import {
+  AudioEncoder2Configuration,
   ConfigurationEntity,
   VideoEncoder2Configuration,
   VideoSourceConfiguration,
 } from '../src/interfaces/onvif';
 
 const configurationEntityFields = {
-  'VideoEncoder' : ['encoding', 'resolution', 'quality'],
-  'AudioEncoder' : ['encoding', 'bitrate', 'sampleRate'],
-  'VideoSource'  : ['sourceToken', 'bounds'],
-  'AudioSource'  : ['sourceToken'],
-  'Analytics'    : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
-  'Metadata'     : ['multicast', 'sessionTimeout'],
-  'AudioOutput'  : ['outputToken', 'outputLevel'],
-  'AudioDecoder' : [],
-  'WebRTC'       : [],
+  VideoEncoder: ['encoding', 'resolution', 'quality'],
+  AudioEncoder: ['encoding', 'bitrate', 'sampleRate'],
+  VideoSource: ['sourceToken', 'bounds'],
+  AudioSource: ['sourceToken'],
+  Analytics: ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
+  Metadata: ['multicast', 'sessionTimeout'],
+  AudioOutput: ['outputToken', 'outputLevel'],
+  AudioDecoder: [],
+  WebRTC: [],
 } as const;
 
 function assertMedia2ConfigurationList(
@@ -56,10 +54,10 @@ async function assertConfigurationsFilterByProfileAndToken(
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : '127.0.0.1',
-    username : 'admin',
-    password : 'admin',
-    port     : 8000,
+    hostname: '127.0.0.1',
+    username: 'admin',
+    password: 'admin',
+    port: 8000,
   });
   await cam.connect();
 });
@@ -87,7 +85,7 @@ describe('Profiles', () => {
 
     it('should pass explicit configuration types to GetProfiles', async () => {
       const result = await cam.media2.getProfiles({
-        type : ['VideoSource', 'VideoEncoder'],
+        type: ['VideoSource', 'VideoEncoder'],
       });
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('configurations');
@@ -109,8 +107,8 @@ describe('Profiles', () => {
       const videoEncoderToken = basicProfile.configurations?.videoEncoder?.token;
       expect(videoEncoderToken).toBeDefined();
       const result = await cam.media2.createProfile({
-        name          : 'test2',
-        configuration : [{ type : 'VideoEncoder', token : videoEncoderToken }],
+        name: 'test2',
+        configuration: [{ type: 'VideoEncoder', token: videoEncoderToken }],
       });
       expect(typeof result).toBe('string');
       newProfileToken = result;
@@ -119,15 +117,15 @@ describe('Profiles', () => {
     });
 
     it('should create a profile without optional configuration refs', async () => {
-      const token = await cam.media2.createProfile({ name : 'test-no-config-refs' });
+      const token = await cam.media2.createProfile({ name: 'test-no-config-refs' });
       expect(typeof token).toBe('string');
       await cam.media2.deleteProfile({ token });
     });
 
     it('should create a profile with configuration types but omitting optional tokens', async () => {
       const token = await cam.media2.createProfile({
-        name          : 'test-types-only',
-        configuration : [{ type : 'VideoEncoder' }],
+        name: 'test-types-only',
+        configuration: [{ type: 'VideoEncoder' }],
       });
       expect(typeof token).toBe('string');
       await cam.media2.deleteProfile({ token });
@@ -136,78 +134,88 @@ describe('Profiles', () => {
 
   describe('addConfiguration', () => {
     it('should add a configuration to the profile', async () => {
-      const newConfiguration: ConfigurationRefExtended[] = Object.entries(basicProfile.configurations!)
-        .map(([name, configuration]: [string, any]) => ({
-          type  : name as ConfigurationEnumeration,
-          token : configuration.token as ReferenceToken,
-        }));
+      const newConfiguration: ConfigurationRefExtended[] = Object.entries(basicProfile.configurations!).map(
+        ([name, configuration]: [string, any]) => ({
+          type: name as ConfigurationEnumeration,
+          token: configuration.token as ReferenceToken,
+        }),
+      );
       const result = await cam.media2.addConfiguration({
-        profileToken  : newProfileToken,
-        name          : 'test',
-        configuration : newConfiguration,
+        profileToken: newProfileToken,
+        name: 'test',
+        configuration: newConfiguration,
       });
       expect(result).toBeUndefined();
-      const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
-      expect(Object.values(profile.configurations!).map((configuration) => (configuration as ConfigurationEntity).token))
-        .toStrictEqual(Object.values(basicProfile.configurations!).map((configuration) => (configuration as ConfigurationEntity).token));
+      const [profile] = await cam.media2.getProfiles({ token: newProfileToken });
+      expect(
+        Object.values(profile.configurations!).map((configuration) => (configuration as ConfigurationEntity).token),
+      ).toStrictEqual(
+        Object.values(basicProfile.configurations!).map(
+          (configuration) => (configuration as ConfigurationEntity).token,
+        ),
+      );
     });
 
     it('should throw an error requested profile token does not exist', async () => {
-      await expect(cam.media2.addConfiguration({ profileToken : '???' })).rejects.toThrow('Profile Not Exist');
+      await expect(cam.media2.addConfiguration({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
     });
 
     it('should add configuration when only type is given without configuration token', async () => {
-      const profileToken = await cam.media2.createProfile({ name : 'test-add-type-only' });
+      const profileToken = await cam.media2.createProfile({ name: 'test-add-type-only' });
       await expect(
         cam.media2.addConfiguration({
           profileToken,
-          configuration : [{ type : 'VideoEncoder' }],
+          configuration: [{ type: 'VideoEncoder' }],
         }),
       ).resolves.toBeUndefined();
-      await cam.media2.deleteProfile({ token : profileToken });
+      await cam.media2.deleteProfile({ token: profileToken });
     });
   });
 
   describe('removeConfiguration', () => {
     it('should remove one configuration from the profile', async () => {
-      let [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      let [profile] = await cam.media2.getProfiles({ token: newProfileToken });
       const oldConfigurationsLength = Object.keys(profile.configurations!).length;
       await cam.media2.removeConfiguration({
-        profileToken  : newProfileToken,
-        configuration : [{
-          type : 'VideoEncoder',
-        }],
+        profileToken: newProfileToken,
+        configuration: [
+          {
+            type: 'VideoEncoder',
+          },
+        ],
       });
-      [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      [profile] = await cam.media2.getProfiles({ token: newProfileToken });
       const newConfigurationLength = Object.keys(profile.configurations!).length;
       expect(newConfigurationLength).toBe(oldConfigurationsLength - 1);
     });
 
     it('should remove all configuration from the profile', async () => {
       await cam.media2.removeConfiguration({
-        profileToken  : newProfileToken,
-        configuration : [{
-          type : 'All',
-        }],
+        profileToken: newProfileToken,
+        configuration: [
+          {
+            type: 'All',
+          },
+        ],
       });
-      const [profile] = (await cam.media2.getProfiles({ token : newProfileToken }));
+      const [profile] = await cam.media2.getProfiles({ token: newProfileToken });
       const newConfigurationLength = Object.keys(profile.configurations!).length;
       expect(newConfigurationLength).toBe(0);
     });
 
     it('should throw an error requested profile token does not exist', async () => {
-      await expect(cam.media2.removeConfiguration({ profileToken : '???' })).rejects.toThrow('Profile Not Exist');
+      await expect(cam.media2.removeConfiguration({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
     });
   });
 
   describe('deleteProfile', () => {
     it('should delete the profile', async () => {
-      const result = await cam.media2.deleteProfile({ token : newProfileToken });
+      const result = await cam.media2.deleteProfile({ token: newProfileToken });
       expect(result).toBeUndefined();
     });
 
     it('should throw an error requested profile token does not exist', async () => {
-      await expect(cam.media2.deleteProfile({ token : '???' })).rejects.toThrow('Profile Not Exist');
+      await expect(cam.media2.deleteProfile({ token: '???' })).rejects.toThrow('Profile Not Exist');
     });
   });
 });
@@ -246,9 +254,7 @@ describe('setVideoEncoderConfiguration', () => {
   it('should accept an existing video encoder configuration unchanged', async () => {
     const [configuration] = await cam.media2.getVideoEncoderConfigurations({});
     expect(configuration).toBeDefined();
-    await expect(
-      cam.media2.setVideoEncoderConfiguration(configuration),
-    ).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoEncoderConfiguration(configuration)).resolves.toBeUndefined();
   });
 
   it('should accept configuration with explicit rate control and multicast', async () => {
@@ -256,21 +262,19 @@ describe('setVideoEncoderConfiguration', () => {
     expect(base).toBeDefined();
     const configuration: VideoEncoder2Configuration = {
       ...base,
-      rateControl : {
-        constantBitRate : false,
-        frameRateLimit  : base.rateControl?.frameRateLimit ?? 25,
-        bitrateLimit    : base.rateControl?.bitrateLimit ?? 2048,
+      rateControl: {
+        constantBitRate: false,
+        frameRateLimit: base.rateControl?.frameRateLimit ?? 25,
+        bitrateLimit: base.rateControl?.bitrateLimit ?? 2048,
       },
-      multicast : base.multicast ?? {
-        address : { type : 'IPv4', IPv4Address : '0.0.0.0' },
-        port      : 0,
-        TTL       : 1,
-        autoStart : false,
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 0,
+        TTL: 1,
+        autoStart: false,
       },
     };
-    await expect(
-      cam.media2.setVideoEncoderConfiguration(configuration),
-    ).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoEncoderConfiguration(configuration)).resolves.toBeUndefined();
   });
 });
 
@@ -304,6 +308,29 @@ describe('getAudioEncoderConfigurations', () => {
   });
 });
 
+describe('setAudioEncoderConfiguration', () => {
+  it('should accept an existing audio encoder configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getAudioEncoderConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(cam.media2.setAudioEncoderConfiguration(configuration)).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit multicast', async () => {
+    const [base] = await cam.media2.getAudioEncoderConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: AudioEncoder2Configuration = {
+      ...base,
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 8000,
+        TTL: 1,
+        autoStart: false,
+      },
+    };
+    await expect(cam.media2.setAudioEncoderConfiguration(configuration)).resolves.toBeUndefined();
+  });
+});
+
 describe('getAnalyticsConfigurations', () => {
   it('should return a list with expected fields', async () => {
     const result = await cam.media2.getAnalyticsConfigurations({});
@@ -313,8 +340,7 @@ describe('getAnalyticsConfigurations', () => {
   it('should filter by profileToken and configurationToken when configurations exist', async () => {
     await assertConfigurationsFilterByProfileAndToken(
       () => cam.media2.getAnalyticsConfigurations({}),
-      (profileToken, configurationToken) =>
-        cam.media2.getAnalyticsConfigurations({ profileToken, configurationToken }),
+      (profileToken, configurationToken) => cam.media2.getAnalyticsConfigurations({ profileToken, configurationToken }),
     );
   });
 });
@@ -328,8 +354,7 @@ describe('getMetadataConfigurations', () => {
   it('should filter by profileToken and configurationToken when configurations exist', async () => {
     await assertConfigurationsFilterByProfileAndToken(
       () => cam.media2.getMetadataConfigurations({}),
-      (profileToken, configurationToken) =>
-        cam.media2.getMetadataConfigurations({ profileToken, configurationToken }),
+      (profileToken, configurationToken) => cam.media2.getMetadataConfigurations({ profileToken, configurationToken }),
     );
   });
 });
@@ -368,9 +393,7 @@ describe('setVideoSourceConfiguration', () => {
   it('should accept SetVideoSourceConfiguration for an existing video source configuration', async () => {
     const [configuration] = await cam.media2.getVideoSourceConfigurations({});
     expect(configuration).toBeDefined();
-    await expect(
-      cam.media2.setVideoSourceConfiguration({ configuration }),
-    ).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoSourceConfiguration({ configuration })).resolves.toBeUndefined();
   });
 
   it('should include extension payload when rotate and nested extension are provided', async () => {
@@ -378,28 +401,28 @@ describe('setVideoSourceConfiguration', () => {
     expect(base).toBeDefined();
     const configuration: VideoSourceConfiguration = {
       ...base,
-      extension : {
-        rotate : {
-          mode   : 'OFF',
-          degree : 0,
+      extension: {
+        rotate: {
+          mode: 'OFF',
+          degree: 0,
         },
-        extension : {
-          lensDescription : [{
-            focalLength : 1,
-            offset      : { x : 0, y : 0 },
-            projection  : [{ angle : 0, radius : 1, transmittance : 1 }],
-            XFactor     : 1,
-          }],
-          sceneOrientation : {
-            mode        : 'MANUAL',
-            orientation : '0',
+        extension: {
+          lensDescription: [
+            {
+              focalLength: 1,
+              offset: { x: 0, y: 0 },
+              projection: [{ angle: 0, radius: 1, transmittance: 1 }],
+              XFactor: 1,
+            },
+          ],
+          sceneOrientation: {
+            mode: 'MANUAL',
+            orientation: '0',
           },
         },
       },
     };
-    await expect(
-      cam.media2.setVideoSourceConfiguration({ configuration }),
-    ).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoSourceConfiguration({ configuration })).resolves.toBeUndefined();
   });
 });
 
@@ -417,7 +440,7 @@ describe('getStreamUri', () => {
   it('should default profile token from activeSource when omitted', async () => {
     const withExplicit = await cam.media2.getStreamUri({
       protocol,
-      profileToken : cam.activeSource!.profileToken,
+      profileToken: cam.activeSource!.profileToken,
     });
     const withDefault = await cam.media2.getStreamUri({ protocol });
     expect(withDefault.uri).toBe(withExplicit.uri);
@@ -425,13 +448,13 @@ describe('getStreamUri', () => {
 
   it('should accept alternate stream protocols', async () => {
     const profileToken = cam.activeSource!.profileToken;
-    const rtspTcp = await cam.media2.getStreamUri({ protocol : 'RTSP', profileToken });
+    const rtspTcp = await cam.media2.getStreamUri({ protocol: 'RTSP', profileToken });
     expect(rtspTcp.uri).toBeDefined();
   });
 
   it('should default protocol to RtspUnicast when omitted', async () => {
     const profileToken = cam.activeSource!.profileToken;
-    const explicit = await cam.media2.getStreamUri({ protocol : 'RtspUnicast', profileToken });
+    const explicit = await cam.media2.getStreamUri({ protocol: 'RtspUnicast', profileToken });
     const defaulted = await cam.media2.getStreamUri({ profileToken });
     expect(defaulted.uri).toBe(explicit.uri);
   });
@@ -439,9 +462,9 @@ describe('getStreamUri', () => {
   it('should fail if media ver20 is not supported', () => {
     cam.device.media2Support = false;
     try {
-      expect(() =>
-        cam.media2.getStreamUri({ protocol, profileToken : cam.activeSource!.profileToken }),
-      ).toThrow('Media2 profile is not supported for this device');
+      expect(() => cam.media2.getStreamUri({ protocol, profileToken: cam.activeSource!.profileToken })).toThrow(
+        'Media2 profile is not supported for this device',
+      );
     } finally {
       cam.device.media2Support = true;
     }
@@ -459,7 +482,7 @@ describe('getSnapshotUri', () => {
 
   it('should default profile token from activeSource when omitted', async () => {
     const withExplicit = await cam.media2.getSnapshotUri({
-      profileToken : cam.activeSource!.profileToken,
+      profileToken: cam.activeSource!.profileToken,
     });
     const withDefault = await cam.media2.getSnapshotUri();
     expect(withDefault.uri).toBe(withExplicit.uri);
@@ -474,9 +497,9 @@ describe('getSnapshotUri', () => {
   it('should fail if media ver20 is not supported', () => {
     cam.device.media2Support = false;
     try {
-      expect(() =>
-        cam.media2.getSnapshotUri({ profileToken : cam.activeSource!.profileToken }),
-      ).toThrow('Media2 profile is not supported for this device');
+      expect(() => cam.media2.getSnapshotUri({ profileToken: cam.activeSource!.profileToken })).toThrow(
+        'Media2 profile is not supported for this device',
+      );
     } finally {
       cam.device.media2Support = true;
     }

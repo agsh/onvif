@@ -398,6 +398,16 @@ export class Media2 {
     return [];
   }
 
+  /**
+   * This operation modifies a video encoder configuration. Running streams using this configuration may be immediately
+   * updated according to the new settings. The changes are not guaranteed to take effect unless the client requests a
+   * new stream URI and restarts any affected stream. NVC methods for changing a running stream are out of scope for
+   * this specification.
+   * SessionTimeout is provided as a hint for keeping rtsp session by a device. If necessary the device may adapt
+   * parameter values for SessionTimeout elements without returning an error. For the time between keep alive calls the
+   * client shall adhere to the timeout value signaled via RTSP.
+   * @param configuration
+   */
   async setVideoEncoderConfiguration(configuration: VideoEncoder2Configuration): Promise<void> {
     const body = build({
       SetVideoEncoderConfiguration: {
@@ -446,6 +456,13 @@ export class Media2 {
     await this.onvif.request({ service: 'media2', body });
   }
 
+  /**
+   * This operation modifies a video source configuration. Running streams using this configuration may be immediately
+   * updated according to the new settings. The changes are not guaranteed to take effect unless the client requests a
+   * new stream URI and restarts any affected stream. NVC methods for changing a running stream are out of scope for
+   * this specification.
+   * @param configuration
+   */
   async setVideoSourceConfiguration({ configuration }: SetVideoSourceConfiguration): Promise<void> {
     const body = build({
       SetVideoSourceConfiguration: {
@@ -503,6 +520,46 @@ export class Media2 {
               }),
             },
           }),
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * This operation modifies an audio encoder configuration. Running streams using this configuration may be immediately
+   * updated according to the new settings. The changes are not guaranteed to take effect unless the client requests a
+   * new stream URI and restarts any affected streams. NVC methods for changing a running stream are out of scope for
+   * this specification.
+   * @param configuration
+   */
+  async setAudioEncoderConfiguration(configuration: AudioEncoder2Configuration): Promise<void> {
+    const body = build({
+      SetAudioEncoderConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Configuration: {
+          $: {
+            token: configuration.token,
+          },
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+          Encoding: configuration.encoding,
+          ...(configuration.multicast && {
+            Multicast: {
+              Address: {
+                Type: configuration.multicast.address.type,
+                IPv4Address: configuration.multicast.address.IPv4Address,
+                IPv6Address: configuration.multicast.address.IPv6Address,
+              },
+              Port: configuration.multicast.port,
+              TTL: configuration.multicast.TTL,
+              AutoStart: configuration.multicast.autoStart,
+            },
+          }),
+          Bitrate: configuration.bitrate,
+          SampleRate: configuration.sampleRate,
         },
       },
     });

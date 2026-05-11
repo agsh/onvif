@@ -15,7 +15,7 @@
 [x] GetAudioDecoderConfigurationsResponse {
 [x] SetVideoEncoderConfigurationResponse extends SetConfigurationResponse {}
 [x] SetVideoSourceConfigurationResponse extends SetConfigurationResponse {}
-[ ] SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
+[x] SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
 [ ] SetAudioSourceConfigurationResponse extends SetConfigurationResponse {}
 [ ] SetMetadataConfigurationResponse extends SetConfigurationResponse {}
 [ ] SetAudioOutputConfigurationResponse extends SetConfigurationResponse {}
@@ -28,9 +28,9 @@
 [ ] GetAudioOutputConfigurationOptionsResponse {
 [ ] GetAudioDecoderConfigurationOptionsResponse {
 [ ] GetVideoEncoderInstancesResponse {
-[ ] GetStreamUriResponse {
+[x] GetStreamUriResponse {
 [ ] SetSynchronizationPointResponse {}
-[ ] GetSnapshotUriResponse {
+[x] GetSnapshotUriResponse {
 [ ] StartMulticastStreamingResponse extends SetConfigurationResponse {}
 [ ] StopMulticastStreamingResponse extends SetConfigurationResponse {}
 [ ] GetVideoSourceModesResponse {
@@ -47,3 +47,6 @@
 [ ] DeleteMaskResponse extends SetConfigurationResponse {}
 [ ] GetWebRTCConfigurationsResponse {
 [ ] SetWebRTCConfigurationsResponse {}
+
+87.11
+89.26
