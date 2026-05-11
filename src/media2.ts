@@ -29,20 +29,31 @@ import {
   GetSnapshotUri,
   GetSnapshotUriResponse,
   GetAudioSourceConfigurations,
+  GetVideoSourceConfigurationOptions,
+  GetVideoEncoderInstances,
+  GetVideoEncoderInstancesResponse,
+  EncoderInstanceInfo,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
 import {
   AudioDecoderConfiguration,
+  AudioDecoderConfigurationOptions,
   AudioEncoder2Configuration,
+  AudioEncoderConfigurationOptions,
   AudioOutputConfiguration,
+  AudioOutputConfigurationOptions,
   AudioSourceConfiguration,
+  AudioSourceConfigurationOptions,
   LensDescription,
   LensProjection,
   MetadataConfiguration,
+  MetadataConfigurationOptions,
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
+  VideoEncoderConfigurationOptions,
   VideoSourceConfiguration,
+  VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
 
 /**
@@ -265,7 +276,7 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getVideoSourceConfigurations(options: GetVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
+  async getVideoSourceConfigurations(options?: GetVideoSourceConfigurations): Promise<VideoSourceConfiguration[]> {
     return this.getConfigurations({ entityName: 'VideoSource', ...options });
   }
 
@@ -694,6 +705,139 @@ export class Media2 {
       },
     });
     await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * This operation modifies an audio decoder configuration.
+   * @param configuration
+   */
+  async setAudioDecoderConfiguration(configuration: AudioDecoderConfiguration): Promise<void> {
+    configuration.sendPrimacy = 'www.onvif.org/ver20/HalfDuplex/Server';
+    const body = build({
+      SetAudioDecoderConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Configuration: {
+          $: {
+            token: configuration.token,
+          },
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  private async getConfigurationOptions(options: GetConfiguration & { entityName: string }): Promise<any> {
+    const { configurationToken, profileToken, entityName } = options;
+    const body = build({
+      [`Get${entityName}ConfigurationOptions`]: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ConfigurationToken: configurationToken,
+        ProfileToken: profileToken,
+      },
+    });
+    const [data] = await this.onvif.request({
+      service: 'media2',
+      body,
+    });
+    return linerase(data, { array: ['configurations'] })[`get${entityName}ConfigurationOptionsResponse`].options;
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for video source configuration
+   * parameters) when the video source parameters are reconfigured If a video source configuration is specified, the
+   * options shall concern that particular configuration. If a media profile is specified, the options shall be
+   * compatible with that media profile.
+   * @param options
+   */
+  async getVideoSourceConfigurationOptions(options: GetConfiguration = {}): Promise<VideoSourceConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'VideoSource' });
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for video encoder configuration
+   * parameters) when the video encoder parameters are reconfigured.
+   *
+   * This response contains the available video encoder configuration options. If a video encoder configuration is
+   * specified, the options shall concern that particular configuration. If a media profile is specified, the options
+   * shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic
+   * for the device.
+   * @param options
+   */
+  async getVideoEncoderConfigurationOptions(options: GetConfiguration = {}): Promise<VideoEncoderConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'VideoEncoder' });
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for audio source configuration
+   * parameters) when the audio source parameters are reconfigured. If an audio source configuration is specified, the
+   * options shall concern that particular configuration. If a media profile is specified, the options shall be
+   * compatible with that media profile.
+   * @param options
+   */
+  async getAudioSourceConfigurationOptions(options: GetConfiguration = {}): Promise<AudioSourceConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'AudioSource' });
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for audio encoder configuration
+   * parameters) when the audio encoder parameters are reconfigured.
+   * @param options
+   */
+  async getAudioEncoderConfigurationOptions(options: GetConfiguration = {}): Promise<AudioEncoderConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'AudioEncoder' });
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for metadata configuration parameters)
+   * for changing the metadata configuration.
+   * @param options
+   */
+  async getMetadataConfigurationOptions(options: GetConfiguration = {}): Promise<MetadataConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'Metadata' });
+  }
+
+  /**
+   * This operation returns the available options (supported values and ranges for audio output configuration
+   * parameters) for configuring an audio output. To retrieve the EQPresetList, a valid ConfigurationToken must be
+   * provided. If EQPreset is supported and isFrequencyDecibelEditable is signaled as true, the response shall include
+   * the FrequencyDecibelPair.
+   * @param options
+   */
+  async getAudioOutputConfigurationOptions(options: GetConfiguration = {}): Promise<AudioOutputConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'AudioOutput' });
+  }
+
+  /**
+   * This command list the audio decoding capabilities for a given profile and configuration of a device.
+   * @param options
+   */
+  async getAudioDecoderConfigurationOptions(options: GetConfiguration = {}): Promise<AudioDecoderConfigurationOptions> {
+    return this.getConfigurationOptions({ ...options, entityName: 'AudioDecoder' });
+  }
+
+  /**
+   * The GetVideoEncoderInstances command can be used to request the minimum number of guaranteed video encoder
+   * instances (applications) per Video Source Configuration.
+   * @param options
+   */
+  async getVideoEncoderInstances(options: GetVideoEncoderInstances): Promise<EncoderInstanceInfo> {
+    const { configurationToken } = options;
+    const body = build({
+      GetVideoEncoderInstances: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ConfigurationToken: configurationToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).getVideoEncoderInstancesResponse.info;
   }
 
   /**
