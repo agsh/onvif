@@ -990,7 +990,7 @@ export class Media2 {
    * @param options
    */
   @v2
-  async setOSDs(options: OSDConfiguration): Promise<void> {
+  async setOSD(options: OSDConfiguration): Promise<void> {
     const body = build({
       SetOSD: {
         $: {
@@ -1005,7 +1005,7 @@ export class Media2 {
           Position: {
             Type: options.position.type,
             Pos: options.position.pos,
-            Extension: options.extension,
+            ...(options.position.extension && { Extension: options.position.extension }),
           },
           ...(options.textString && {
             TextString: {
@@ -1081,7 +1081,7 @@ export class Media2 {
           Position: {
             Type: options.position.type,
             Pos: options.position.pos,
-            Extension: options.extension,
+            ...(options.position.extension && { Extension: options.position.extension }),
           },
           ...(options.textString && {
             TextString: {
@@ -1124,7 +1124,7 @@ export class Media2 {
    * @param configurationToken
    */
   @v2
-  async DeleteOSD({ OSDToken }: DeleteOSD): Promise<void> {
+  async deleteOSD({ OSDToken }: DeleteOSD): Promise<void> {
     const body = build({
       DeleteOSD: {
         $: {

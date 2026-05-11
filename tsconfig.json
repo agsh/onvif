@@ -14,12 +14,8 @@
     "skipLibCheck": true,
     // "watch": true,
     "declaration": true,
+    "inlineSources": true
   },
-  "exclude": [
-    "node_modules",
-    "__test__"
-  ],
-  "include": [
-    "src/**/*",
-  ]
+  "exclude": ["node_modules", "__test__"],
+  "include": ["src/**/*"]
 }

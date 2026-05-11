@@ -926,3 +926,146 @@ describe('getSnapshotUri', () => {
     }
   });
 });
+
+describe('OSD', () => {
+  const videoSourceConfigurationToken = 'VideoSourceConfigurationToken_1';
+
+  describe('getOSDs', () => {
+    it('should return an array of OSD configurations', async () => {
+      const result = await cam.media2.getOSDs();
+      expect(Array.isArray(result ?? [])).toBe(true);
+    });
+
+    it('should accept a video source configuration token filter', async () => {
+      const result = await cam.media2.getOSDs({
+        configurationToken: videoSourceConfigurationToken as ReferenceToken,
+      });
+      expect(Array.isArray(result ?? [])).toBe(true);
+    });
+
+    it('should return a single OSD when OSDToken is set', async () => {
+      const all = await cam.media2.getOSDs();
+      if (!all?.length) {
+        return;
+      }
+      const token = all[0].token;
+      const filtered = await cam.media2.getOSDs({ OSDToken: token });
+      expect(filtered?.length).toBe(1);
+      expect(filtered![0].token).toBe(token);
+    });
+
+    it('should fail if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() => cam.media2.getOSDs()).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+
+  describe('getOSDOptions', () => {
+    it('should return OSD capability options for a video source configuration', async () => {
+      const options = await cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
+      expect(options).toBeDefined();
+      expect(options.maximumNumberOfOSDs).toBeDefined();
+      expect(typeof options.maximumNumberOfOSDs.total).toBe('number');
+    });
+
+    it('should fail if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() =>
+          cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken }),
+        ).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+
+  describe('setOSD', () => {
+    it('should accept updating an existing OSD configuration', async () => {
+      const list = await cam.media2.getOSDs({ configurationToken: videoSourceConfigurationToken });
+      const osd = list?.find((o) => o.type === 'Text') ?? list?.[0];
+      if (!osd) {
+        return;
+      }
+      await expect(cam.media2.setOSD(osd)).resolves.toBeUndefined();
+    });
+
+    it('should fail if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() =>
+          cam.media2.setOSD({
+            token: 'x',
+            videoSourceConfigurationToken,
+            type: 'Text',
+            position: { type: 'UpperLeft' },
+            textString: { type: 'Plain', plainText: 'x' },
+          }),
+        ).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+
+  describe('createOSD / deleteOSD', () => {
+    it('should create an OSD then remove it by the token assigned by the device', async () => {
+      const caps = await cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
+      if (caps.maximumNumberOfOSDs.total === 0) {
+        return;
+      }
+
+      const beforeList = await cam.media2.getOSDs();
+      const beforeTokens = new Set((beforeList ?? []).map((o) => o.token));
+
+      await cam.media2.createOSD({
+        token: `jest_req_${Date.now()}`,
+        videoSourceConfigurationToken,
+        type: 'Text',
+        position: { type: 'UpperLeft' },
+        textString: { type: 'Plain', plainText: 'jest osd' },
+      });
+
+      const afterCreate = await cam.media2.getOSDs();
+      const added = afterCreate?.find((o) => !beforeTokens.has(o.token));
+      expect(added).toBeDefined();
+
+      await cam.media2.deleteOSD({ OSDToken: added!.token });
+
+      const afterDelete = await cam.media2.getOSDs();
+      expect(afterDelete?.some((o) => o.token === added!.token)).toBe(false);
+    });
+
+    it('should fail createOSD if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() =>
+          cam.media2.createOSD({
+            token: 'x',
+            videoSourceConfigurationToken,
+            type: 'Text',
+            position: { type: 'UpperLeft' },
+            textString: { type: 'Plain', plainText: 'x' },
+          }),
+        ).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+
+    it('should fail deleteOSD if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() => cam.media2.deleteOSD({ OSDToken: 'x' })).toThrow(
+          'Media2 profile is not supported for this device',
+        );
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+});
