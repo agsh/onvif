@@ -329,6 +329,51 @@ describe('getStreamUri', () => {
   });
 });
 
+describe('getSnapshotUri', () => {
+  const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
+
+  it('should return a wrapped media URI when Media2 is supported', async () => {
+    const result = await cam.media.getSnapshotUri({
+      profileToken : profileToken(),
+    });
+    expect(result).toHaveProperty('mediaUri');
+    expect(result.mediaUri).toMatchObject({
+      invalidAfterConnect : false,
+      invalidAfterReboot  : false,
+      timeout             : 'PT0S',
+    });
+    expect(typeof result.mediaUri!.uri).toBe('string');
+    expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+  });
+
+  it('should default profile token from activeSource when omitted (Media2)', async () => {
+    const explicit = await cam.media.getSnapshotUri({
+      profileToken : profileToken(),
+    });
+    const implicitNoArgs = await cam.media.getSnapshotUri();
+    expect(implicitNoArgs.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
+    // @ts-expect-error profileToken is defaulted at runtime when the property is omitted
+    const implicitEmpty = await cam.media.getSnapshotUri({});
+    expect(implicitEmpty.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
+  });
+
+  describe('Media ver10', () => {
+    it('should return a snapshot media URI when Media2 is not supported', async () => {
+      cam.device.media2Support = false;
+      try {
+        const result = await cam.media.getSnapshotUri({
+          profileToken : 'ProfileToken_1',
+        });
+        expect(result).toHaveProperty('mediaUri');
+        expect(typeof result.mediaUri!.uri).toBe('string');
+        expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+});
+
 describe('Configurations', () => {
   describe('Get configurations', () => {
     Object
