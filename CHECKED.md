@@ -132,9 +132,10 @@ Plus new methods have been added in v1.x.
 - [x] removeConfiguration.media2
 - [x] deleteProfile.media1
 - [x] deleteProfile.media2
-- [ ] getStreamUri
+- [x] getStreamUri
 - [x] getStreamUri.media2
-- [ ] getSnapshotUri
+- [x] getSnapshotUri
+- [x] getSnapshotUri.media2
 - [ ] setSynchronizationPoint
 - [ ] getOSDs cam.media.getOSDs (schema strict)
 - [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
@@ -183,4 +184,4 @@ Plus new methods have been added in v1.x.
 - [ ] setRecordingJobMode
 - [ ] getReplayUri
 
-118/171 (69.0%)
+122/174 (70.1%)

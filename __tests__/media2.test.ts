@@ -411,3 +411,38 @@ describe('getStreamUri', () => {
     }
   });
 });
+
+describe('getSnapshotUri', () => {
+  it('should return a snapshot URI for the given profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    const result = await cam.media2.getSnapshotUri({ profileToken });
+    expect(result).toHaveProperty('uri');
+    expect(typeof result.uri).toBe('string');
+    expect(result.uri!.length).toBeGreaterThan(0);
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    const withExplicit = await cam.media2.getSnapshotUri({
+      profileToken : cam.activeSource!.profileToken,
+    });
+    const withDefault = await cam.media2.getSnapshotUri();
+    expect(withDefault.uri).toBe(withExplicit.uri);
+  });
+
+  it('should treat an empty options object like omitted profile token', async () => {
+    const withDefault = await cam.media2.getSnapshotUri();
+    const withEmptyOptions = await cam.media2.getSnapshotUri({});
+    expect(withEmptyOptions.uri).toBe(withDefault.uri);
+  });
+
+  it('should fail if media ver20 is not supported', () => {
+    cam.device.media2Support = false;
+    try {
+      expect(() =>
+        cam.media2.getSnapshotUri({ profileToken : cam.activeSource!.profileToken }),
+      ).toThrow('Media2 profile is not supported for this device');
+    } finally {
+      cam.device.media2Support = true;
+    }
+  });
+});
