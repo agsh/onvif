@@ -74,13 +74,20 @@ type ConfigurationEntityExtended = VideoSourceConfiguration &
   AudioEncoder2Configuration &
   VideoAnalyticsConfiguration &
   MetadataConfiguration &
-  AudioOutputConfiguration &
+  AudioOutputConfigurationExtended &
   WebRTCConfiguration &
   AudioDecoderConfiguration;
 
 interface GetStreamUri {
   profileToken?: ReferenceToken;
   protocol?: 'RtspUnicast' | 'RtspMulticast' | 'RTSP' | 'RtspOverHttp';
+}
+
+export interface AudioOutputConfigurationExtended extends AudioOutputConfiguration {
+  sendPrimacy:
+    | 'www.onvif.org/ver20/HalfDuplex/Server'
+    | 'www.onvif.org/ver20/HalfDuplex/Client'
+    | 'www.onvif.org/ver20/HalfDuplex/Auto';
 }
 
 /**
@@ -360,7 +367,9 @@ export class Media2 {
    * @param options.configurationToken
    */
   @v2
-  async getAudioOutputConfigurations(options?: GetAudioOutputConfigurations): Promise<AudioOutputConfiguration[]> {
+  async getAudioOutputConfigurations(
+    options?: GetAudioOutputConfigurations,
+  ): Promise<AudioOutputConfigurationExtended[]> {
     return this.getConfigurations({ entityName: 'AudioOutput', ...options });
   }
 
@@ -656,6 +665,31 @@ export class Media2 {
           ...(configuration.extension && {
             Extension: configuration.extension,
           }),
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * This operation modifies an audio output configuration.
+   * @param configuration
+   */
+  async setAudioOutputConfiguration(configuration: AudioOutputConfigurationExtended): Promise<void> {
+    configuration.sendPrimacy = 'www.onvif.org/ver20/HalfDuplex/Server';
+    const body = build({
+      SetAudioOutputConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Configuration: {
+          $: {
+            token: configuration.token,
+          },
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+          OutputToken: configuration.outputToken,
+          SendPrimacy: configuration.sendPrimacy,
         },
       },
     });

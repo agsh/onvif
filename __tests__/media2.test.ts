@@ -1,4 +1,4 @@
-import { Onvif, ConfigurationRefExtended } from '../src';
+import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import { ConfigurationEnumeration, MediaProfile } from '../src/interfaces/media.2';
 import {
@@ -415,6 +415,35 @@ describe('getAudioOutputConfigurations', () => {
       (profileToken, configurationToken) =>
         cam.media2.getAudioOutputConfigurations({ profileToken, configurationToken }),
     );
+  });
+});
+
+describe('setAudioOutputConfiguration', () => {
+  it('should accept an existing audio output configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getAudioOutputConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(cam.media2.setAudioOutputConfiguration(configuration!)).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit output token matching the device', async () => {
+    const [base] = await cam.media2.getAudioOutputConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: AudioOutputConfigurationExtended = {
+      ...base,
+      outputToken: base.outputToken,
+    };
+    await expect(cam.media2.setAudioOutputConfiguration(configuration)).resolves.toBeUndefined();
+  });
+
+  it('should set SendPrimacy to HalfDuplex Server on the configuration object before applying', async () => {
+    const [base] = await cam.media2.getAudioOutputConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: AudioOutputConfigurationExtended = {
+      ...base,
+      sendPrimacy: 'www.onvif.org/ver20/HalfDuplex/Client',
+    };
+    await cam.media2.setAudioOutputConfiguration(configuration);
+    expect(configuration.sendPrimacy).toBe('www.onvif.org/ver20/HalfDuplex/Server');
   });
 });
 
