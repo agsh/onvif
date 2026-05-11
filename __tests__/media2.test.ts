@@ -2,6 +2,7 @@ import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } fro
 import { ReferenceToken } from '../src/interfaces/common';
 import { ConfigurationEnumeration, MediaProfile } from '../src/interfaces/media.2';
 import {
+  AudioDecoderConfiguration,
   AudioEncoder2Configuration,
   AudioSourceConfiguration,
   ConfigurationEntity,
@@ -51,6 +52,21 @@ async function assertConfigurationsFilterByProfileAndToken(
   const filtered = await fetchFiltered(profileToken, configurationToken);
   expect(filtered.length).toBeGreaterThanOrEqual(1);
   expect(filtered.some((configuration) => configuration.token === configurationToken)).toBe(true);
+}
+
+async function assertConfigurationOptionsFilterByProfileAndToken(
+  fetchConfigurations: () => Promise<{ token: string }[]>,
+  fetchOptions: (profileToken: string, configurationToken: string) => Promise<unknown>,
+): Promise<void> {
+  const list = await fetchConfigurations();
+  if (list.length === 0) {
+    return;
+  }
+  const configurationToken = list[0].token;
+  const profileToken = cam.activeSource!.profileToken;
+  const options = await fetchOptions(profileToken, configurationToken);
+  expect(options).toBeDefined();
+  expect(typeof options).toBe('object');
 }
 
 let cam: Onvif;
@@ -237,6 +253,23 @@ describe('getVideoSourceConfigurations', () => {
   });
 });
 
+describe('getVideoSourceConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getVideoSourceConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result).toHaveProperty('boundsRange');
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getVideoSourceConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getVideoSourceConfigurationOptions({ profileToken, configurationToken }),
+    );
+  });
+});
+
 describe('getVideoEncoderConfigurations', () => {
   it('should return a list with expected fields', async () => {
     const result = await cam.media2.getVideoEncoderConfigurations({});
@@ -249,6 +282,60 @@ describe('getVideoEncoderConfigurations', () => {
       (profileToken, configurationToken) =>
         cam.media2.getVideoEncoderConfigurations({ profileToken, configurationToken }),
     );
+  });
+});
+
+describe('getVideoEncoderConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getVideoEncoderConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    if (Array.isArray(result)) {
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('encoding');
+      expect(result[0]).toHaveProperty('qualityRange');
+    } else {
+      expect(result).toHaveProperty('qualityRange');
+    }
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getVideoEncoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getVideoEncoderConfigurationOptions({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getVideoEncoderInstances', () => {
+  it('should return encoder instance info with total for a video source configuration token', async () => {
+    const configurations = await cam.media2.getVideoSourceConfigurations({});
+    expect(configurations.length).toBeGreaterThan(0);
+    const configurationToken = configurations[0].token;
+    const info = await cam.media2.getVideoEncoderInstances({ configurationToken });
+    expect(info).toBeDefined();
+    expect(typeof info).toBe('object');
+    expect(typeof info.total).toBe('number');
+    expect(info.total).toBeGreaterThanOrEqual(0);
+  });
+
+  it('should return per-codec entries when the device reports codec limits', async () => {
+    const configurations = await cam.media2.getVideoSourceConfigurations({});
+    if (configurations.length === 0) {
+      return;
+    }
+    const info = await cam.media2.getVideoEncoderInstances({ configurationToken: configurations[0].token });
+    if (info.codec === undefined) {
+      return;
+    }
+    expect(Array.isArray(info.codec)).toBe(true);
+    info.codec.forEach((instance) => {
+      expect(typeof instance.encoding).toBe('string');
+      expect(instance.encoding.length).toBeGreaterThan(0);
+      expect(typeof instance.number).toBe('number');
+      expect(instance.number).toBeGreaterThanOrEqual(0);
+    });
   });
 });
 
@@ -295,6 +382,23 @@ describe('getAudioSourceConfigurations', () => {
   });
 });
 
+describe('getAudioSourceConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getAudioSourceConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result).toHaveProperty('inputTokensAvailable');
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getAudioSourceConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioSourceConfigurationOptions({ profileToken, configurationToken }),
+    );
+  });
+});
+
 describe('setAudioSourceConfiguration', () => {
   it('should accept an existing audio source configuration unchanged', async () => {
     const [configuration] = await cam.media2.getAudioSourceConfigurations({});
@@ -324,6 +428,29 @@ describe('getAudioEncoderConfigurations', () => {
       () => cam.media2.getAudioEncoderConfigurations({}),
       (profileToken, configurationToken) =>
         cam.media2.getAudioEncoderConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioEncoderConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getAudioEncoderConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    if (Array.isArray(result)) {
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('encoding');
+      expect(result[0]).toHaveProperty('bitrateList');
+    } else {
+      expect(result).toHaveProperty('options');
+    }
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getAudioEncoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioEncoderConfigurationOptions({ profileToken, configurationToken }),
     );
   });
 });
@@ -379,6 +506,23 @@ describe('getMetadataConfigurations', () => {
   });
 });
 
+describe('getMetadataConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getMetadataConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result).toHaveProperty('PTZStatusFilterOptions');
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getMetadataConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getMetadataConfigurationOptions({ profileToken, configurationToken }),
+    );
+  });
+});
+
 describe('setMetadataConfiguration', () => {
   it('should accept an existing metadata configuration unchanged', async () => {
     const [configuration] = await cam.media2.getMetadataConfigurations({});
@@ -414,6 +558,23 @@ describe('getAudioOutputConfigurations', () => {
       () => cam.media2.getAudioOutputConfigurations({}),
       (profileToken, configurationToken) =>
         cam.media2.getAudioOutputConfigurations({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('getAudioOutputConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getAudioOutputConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    expect(result).toHaveProperty('outputLevelRange');
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getAudioOutputConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioOutputConfigurationOptions({ profileToken, configurationToken }),
     );
   });
 });
@@ -459,6 +620,46 @@ describe('getAudioDecoderConfigurations', () => {
       (profileToken, configurationToken) =>
         cam.media2.getAudioDecoderConfigurations({ profileToken, configurationToken }),
     );
+  });
+});
+
+describe('getAudioDecoderConfigurationOptions', () => {
+  it('should return options when called with empty filter', async () => {
+    const result = await cam.media2.getAudioDecoderConfigurationOptions({});
+    expect(result).toBeDefined();
+    expect(typeof result).toBe('object');
+    if (Array.isArray(result)) {
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('encoding');
+    }
+    // Non-array: some emulators return an empty or minimal options object without codec blocks.
+  });
+
+  it('should return options when profileToken and configurationToken are set', async () => {
+    await assertConfigurationOptionsFilterByProfileAndToken(
+      () => cam.media2.getAudioDecoderConfigurations({}),
+      (profileToken, configurationToken) =>
+        cam.media2.getAudioDecoderConfigurationOptions({ profileToken, configurationToken }),
+    );
+  });
+});
+
+describe('setAudioDecoderConfiguration', () => {
+  it('should accept an existing audio decoder configuration unchanged', async () => {
+    const [configuration] = await cam.media2.getAudioDecoderConfigurations({});
+    expect(configuration).toBeDefined();
+    await expect(cam.media2.setAudioDecoderConfiguration(configuration!)).resolves.toBeUndefined();
+  });
+
+  it('should set SendPrimacy to HalfDuplex Server on the configuration object before applying', async () => {
+    const [base] = await cam.media2.getAudioDecoderConfigurations({});
+    expect(base).toBeDefined();
+    const configuration: AudioDecoderConfiguration = {
+      ...base,
+      sendPrimacy: 'www.onvif.org/ver20/HalfDuplex/Client',
+    };
+    await cam.media2.setAudioDecoderConfiguration(configuration);
+    expect(configuration.sendPrimacy).toBe('www.onvif.org/ver20/HalfDuplex/Server');
   });
 });
 
