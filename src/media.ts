@@ -1605,10 +1605,9 @@ export class Media {
       service: mediaService,
       body: `<GetOSDs xmlns="${mediaNS}" >${
         configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
-      }${OSDToken ? `<OSDToken>${configurationToken}</OSDToken>` : ''}</GetOSDs>`,
+      }${OSDToken ? `<OSDToken>${OSDToken}</OSDToken>` : ''}</GetOSDs>`,
     });
-    // this.videoSources = linerase(data).getVideoSourcesResponse.videoSources;
-    return linerase(data[0].getOSDsResponse[0], { array: ['OSDs'] });
+    return linerase(data, { array: ['OSDs'] }).getOSDsResponse;
   }
 
   async getOSDOptions({

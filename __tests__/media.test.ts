@@ -373,6 +373,31 @@ describe('getSnapshotUri', () => {
   });
 });
 
+describe('OSD (Media)', () => {
+  const configurationToken = 'VideoSourceConfigurationToken_1';
+
+  it('should return OSDs via Media.getOSDs', async () => {
+    const result = await cam.media.getOSDs();
+    expect(Array.isArray(result.OSDs ?? [])).toBe(true);
+  });
+
+  it('should filter Media.getOSDs by OSDToken', async () => {
+    const all = await cam.media.getOSDs();
+    const token = all.OSDs?.[0]?.token;
+    if (!token) {
+      return;
+    }
+    const filtered = await cam.media.getOSDs({ OSDToken: token });
+    expect(filtered.OSDs).toHaveLength(1);
+    expect(filtered.OSDs![0].token).toBe(token);
+  });
+
+  it('should return OSD options via Media.getOSDOptions', async () => {
+    const result = await cam.media.getOSDOptions({ configurationToken });
+    expect(typeof result.OSDOptions.maximumNumberOfOSDs.total).toBe('number');
+  });
+});
+
 describe('Configurations', () => {
   describe('Get configurations', () => {
     Object.entries(configurationEntityFields)
