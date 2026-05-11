@@ -1,15 +1,14 @@
 import xml2js, { parseStringPromise } from 'xml2js';
-import { inspect } from 'node:util';
-import { build, guid, linerase, parseSOAPString, struct, toOnvifXMLSchemaObject, xsany } from '../src/utils';
+import { build, guid, linerase, parseSOAPString, struct, toOnvifXMLSchemaObject } from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 
 describe('Linerase function', () => {
   it('should handle tag', async () => {
     const result = await parseStringPromise('<a><b>text</b><c>text</c></a>');
     expect(linerase(result)).toEqual({
-      a : {
-        b : 'text',
-        c : 'text',
+      a: {
+        b: 'text',
+        c: 'text',
       },
     });
   });
@@ -17,11 +16,8 @@ describe('Linerase function', () => {
   it('should handle multiply tags', async () => {
     const result = await parseStringPromise('<a><b>text</b><b>text</b></a>');
     expect(linerase(result)).toEqual({
-      a : {
-        b : [
-          'text',
-          'text',
-        ],
+      a: {
+        b: ['text', 'text'],
       },
     });
   });
@@ -29,49 +25,52 @@ describe('Linerase function', () => {
   it('should handle multiply tags deeply', async () => {
     const result = await parseStringPromise('<a><b><c>text</c><d>t</d></b><b><c>text</c><d>t</d></b></a>');
     expect(linerase(result)).toEqual({
-      a : {
-        b : [
-          { c : 'text', d : 't' },
-          { c : 'text', d : 't' },
+      a: {
+        b: [
+          { c: 'text', d: 't' },
+          { c: 'text', d: 't' },
         ],
       },
     });
   });
 
   it('should deal with numbers', () => {
-    expect(linerase({ a : '34.23' })).toEqual({ a : 34.23 });
-    expect(linerase({ a : '34' })).toEqual({ a : 34 });
-    expect(linerase({ a : '0.34' })).toEqual({ a : 0.34 });
-    expect(linerase({ a : '00.34' })).toEqual({ a : '00.34' });
-    expect(linerase({ a : '-0.34' })).toEqual({ a : -0.34 });
-    expect(linerase({ a : '-12' })).toEqual({ a : -12 });
-    expect(linerase({ a : '000' })).toEqual({ a : '000' });
-    expect(linerase({ a : '012' })).toEqual({ a : '012' });
+    expect(linerase({ a: '34.23' })).toEqual({ a: 34.23 });
+    expect(linerase({ a: '34' })).toEqual({ a: 34 });
+    expect(linerase({ a: '0.34' })).toEqual({ a: 0.34 });
+    expect(linerase({ a: '00.34' })).toEqual({ a: '00.34' });
+    expect(linerase({ a: '-0.34' })).toEqual({ a: -0.34 });
+    expect(linerase({ a: '-12' })).toEqual({ a: -12 });
+    expect(linerase({ a: '000' })).toEqual({ a: '000' });
+    expect(linerase({ a: '012' })).toEqual({ a: '012' });
   });
 
   it('should deal with booleans', () => {
-    expect(linerase({ a : 'true' })).toEqual({ a : true });
-    expect(linerase({ a : 'false' })).toEqual({ a : false });
+    expect(linerase({ a: 'true' })).toEqual({ a: true });
+    expect(linerase({ a: 'false' })).toEqual({ a: false });
   });
 
-  it('should deal with datetime and converts it to Date', () => expect(linerase({ a : '2015-01-20T16:33:03Z' })).toEqual({ a : new Date('2015-01-20T16:33:03Z') }));
+  it('should deal with datetime and converts it to Date', () =>
+    expect(linerase({ a: '2015-01-20T16:33:03Z' })).toEqual({ a: new Date('2015-01-20T16:33:03Z') }));
 
   it('should handle xml attributes', async () => {
     const result = linerase({
-      a : {
-        b : {
-          $ : { c : 'text', d : 't' },
-          e : 'text',
+      a: {
+        b: {
+          $: { c: 'text', d: 't' },
+          e: 'text',
         },
       },
     });
-    expect(result).toEqual({ a : { b : { c : 'text', d : 't', e : 'text' } } });
+    expect(result).toEqual({ a: { b: { c: 'text', d: 't', e: 'text' } } });
   });
 });
 
 describe('GUID function', () => {
-  it('should generate GUID', () => expect(guid())
-    .toMatch(/^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/));
+  it('should generate GUID', () =>
+    expect(guid()).toMatch(
+      /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/,
+    ));
 });
 
 const SOAPResponse = `
@@ -109,14 +108,14 @@ describe('ParseSOAPString', () => {
     expect(xml).toMatch('xmlns');
     const prettyResult = linerase(result);
     expect(prettyResult).toEqual({
-      'getSystemDateAndTimeResponse' : {
-        'systemDateAndTime' : {
-          'dateTimeType'    : 'Manual',
-          'daylightSavings' : true,
-          'timeZone'        : { 'TZ' : 'MoroccoStandardTime0' },
-          'UTCDateTime'     : {
-            'time' : { 'hour' : 19, 'minute' : 14, 'second' : 37 },
-            'date' : { 'year' : 2014, 'month' : 12, 'day' : 24 },
+      getSystemDateAndTimeResponse: {
+        systemDateAndTime: {
+          dateTimeType: 'Manual',
+          daylightSavings: true,
+          timeZone: { TZ: 'MoroccoStandardTime0' },
+          UTCDateTime: {
+            time: { hour: 19, minute: 14, second: 37 },
+            date: { year: 2014, month: 12, day: 24 },
           },
         },
       },
@@ -124,19 +123,21 @@ describe('ParseSOAPString', () => {
   });
 
   it('should throw an error when it is not a SOAP message', async () => {
-    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects
-      .toThrow('Wrong ONVIF SOAP response, not a SOAP message');
+    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects.toThrow(
+      'Wrong ONVIF SOAP response, not a SOAP message',
+    );
   });
 
   it('should throw an error with the wrong SOAP message', async () => {
-    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi a="1"></hi>')).rejects
-      .toThrow('Wrong ONVIF SOAP response, envelope and body are expected');
+    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi a="1"></hi>')).rejects.toThrow(
+      'Wrong ONVIF SOAP response, envelope and body are expected',
+    );
   });
 });
 
 describe('struct', () => {
   it('should return a new object with the keys', () => {
-    const list = [{ token : '1' }, { token : '2' }];
+    const list = [{ token: '1' }, { token: '2' }];
     const result = struct(list, 'token');
     expect(Object.keys(result)).toEqual(list.map((obj) => obj.token));
   });
@@ -145,24 +146,25 @@ describe('struct', () => {
 describe('xs:any', () => {
   it('any item is an object', async () => {
     const xmlLD = build({
-      'Lens' : {
-        'LensDescription' : {
-          'Offset'          : { X : 1, Y : 1 },
-          'XFactor'         : 1,
-          'tt:AnyExtension' : {
-            'Name' : 'extension',
+      Lens: {
+        LensDescription: {
+          Offset: { X: 1, Y: 1 },
+          XFactor: 1,
+          'tt:AnyExtension': {
+            Name: 'extension',
           },
         },
       },
     });
     const LensDescription = await xml2js.parseStringPromise(xmlLD);
-    const result: LensDescription = linerase(LensDescription, { array : [], rawXML : ['lensDescription'] }).lens.lensDescription;
+    const result: LensDescription = linerase(LensDescription, { array: [], rawXML: ['lensDescription'] }).lens
+      .lensDescription;
     const newLD = {
-      'Lens' : {
-        'LensDescription' : {
-          ...result.__any__ as object,
-          'Offset'  : { X : result.offset.x, Y : result.offset.y },
-          'XFactor' : result.XFactor,
+      Lens: {
+        LensDescription: {
+          ...(result.__any__ as object),
+          Offset: { X: result.offset.x, Y: result.offset.y },
+          XFactor: result.XFactor,
         },
       },
     };
@@ -172,26 +174,29 @@ describe('xs:any', () => {
 
   it('any item is an array', async () => {
     const jsConfig = build({
-      'AnalyticsModule' : {
-        $ : {
-          'Name' : 'name',
-          'Type' : 'type',
+      AnalyticsModule: {
+        $: {
+          Name: 'name',
+          Type: 'type',
         },
-        'Parameters' : {
-          'ElementItem' : [{
-            'Name'   : 'elementItem1',
-            'Param1' : 'param1',
-          }, {
-            'Name'   : 'elementItem2',
-            'Param2' : 'param2',
-          }],
+        Parameters: {
+          ElementItem: [
+            {
+              Name: 'elementItem1',
+              Param1: 'param1',
+            },
+            {
+              Name: 'elementItem2',
+              Param2: 'param2',
+            },
+          ],
         },
       },
     });
     const Config = await xml2js.parseStringPromise(jsConfig);
-    const result: Config = linerase(Config, { array : ['elementItem'], rawXML : ['elementItem'] }).analyticsModule;
+    const result: Config = linerase(Config, { array: ['elementItem'], rawXML: ['elementItem'] }).analyticsModule;
     const newConfig = build({
-      AnalyticsModule : toOnvifXMLSchemaObject.config(result),
+      AnalyticsModule: toOnvifXMLSchemaObject.config(result),
     });
     expect(newConfig).toStrictEqual(jsConfig);
   });
@@ -203,9 +208,11 @@ export function clean(obj: any): any {
     return obj.map(clean);
   }
   if (typeof obj === 'object') {
-    return Object.fromEntries(Object.entries(obj)
-      .filter(([k]) => !(typeof obj[k] === 'object' && obj[k].__clean__))
-      .map(([k, v]) => [k, clean(v)]));
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([k]) => !(typeof obj[k] === 'object' && obj[k].__clean__))
+        .map(([k, v]) => [k, clean(v)]),
+    );
   }
   return obj;
 }

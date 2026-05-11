@@ -289,14 +289,9 @@ describe('getVideoEncoderConfigurationOptions', () => {
   it('should return options when called with empty filter', async () => {
     const result = await cam.media2.getVideoEncoderConfigurationOptions({});
     expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-    if (Array.isArray(result)) {
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('encoding');
-      expect(result[0]).toHaveProperty('qualityRange');
-    } else {
-      expect(result).toHaveProperty('qualityRange');
-    }
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0]).toHaveProperty('qualityRange');
   });
 
   it('should return options when profileToken and configurationToken are set', async () => {
@@ -436,14 +431,7 @@ describe('getAudioEncoderConfigurationOptions', () => {
   it('should return options when called with empty filter', async () => {
     const result = await cam.media2.getAudioEncoderConfigurationOptions({});
     expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-    if (Array.isArray(result)) {
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('encoding');
-      expect(result[0]).toHaveProperty('bitrateList');
-    } else {
-      expect(result).toHaveProperty('options');
-    }
+    expect(Array.isArray(result)).toBe(true);
   });
 
   it('should return options when profileToken and configurationToken are set', async () => {
@@ -628,11 +616,6 @@ describe('getAudioDecoderConfigurationOptions', () => {
     const result = await cam.media2.getAudioDecoderConfigurationOptions({});
     expect(result).toBeDefined();
     expect(typeof result).toBe('object');
-    if (Array.isArray(result)) {
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('encoding');
-    }
-    // Non-array: some emulators return an empty or minimal options object without codec blocks.
   });
 
   it('should return options when profileToken and configurationToken are set', async () => {

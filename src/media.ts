@@ -18,7 +18,6 @@ import {
   AudioSource,
   AudioSourceConfiguration,
   AudioSourceConfigurationOptions,
-  MediaUri,
   MetadataConfiguration,
   MetadataConfigurationOptions,
   Profile,
@@ -30,7 +29,6 @@ import {
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
-import { AnyURI } from './interfaces/basics';
 import {
   GetOSDOptions,
   GetOSDOptionsResponse,

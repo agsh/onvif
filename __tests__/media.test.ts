@@ -1,27 +1,37 @@
-import * as util from 'node:util';
-import { build, camelCase, Onvif } from '../src';
+import { camelCase, Onvif, Media } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { Profile, ProfileExtension } from '../src/interfaces/onvif';
+import { Profile } from '../src/interfaces/onvif';
 import { clean } from './utils.test';
-import { FilterType } from '../src/interfaces/basics';
+
+/** Parametrized tests invoke Media methods by dynamically built names. */
+function mediaTestCallable(media: Media): Record<string, (...args: unknown[]) => Promise<unknown>> {
+  return media as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+}
+
+/** Profile / ProfileExtension keys are fixed in the type; tests look up camelCased configuration slots by string. */
+function profileConfigurationBySlot(profile: Profile, slot: string): unknown {
+  const pr = profile as unknown as Record<string, unknown>;
+  const ext = profile.extension as unknown as Record<string, unknown> | undefined;
+  return pr[slot] ?? ext?.[slot];
+}
 
 const configurationEntityFields = {
-  'VideoEncoder'   : ['encoding', 'resolution', 'quality'],
-  'AudioEncoder'   : ['encoding', 'bitrate', 'sampleRate'],
-  'VideoSource'    : ['sourceToken', 'bounds'],
-  'AudioSource'    : ['sourceToken'],
-  'VideoAnalytics' : ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
-  'Metadata'       : ['multicast', 'sessionTimeout'],
-  'AudioOutput'    : ['outputToken', 'outputLevel'],
-  'AudioDecoder'   : [],
+  VideoEncoder: ['encoding', 'resolution', 'quality'],
+  AudioEncoder: ['encoding', 'bitrate', 'sampleRate'],
+  VideoSource: ['sourceToken', 'bounds'],
+  AudioSource: ['sourceToken'],
+  VideoAnalytics: ['analyticsEngineConfiguration', 'ruleEngineConfiguration'],
+  Metadata: ['multicast', 'sessionTimeout'],
+  AudioOutput: ['outputToken', 'outputLevel'],
+  AudioDecoder: [],
 };
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : '127.0.0.1',
-    username : 'admin',
-    password : 'admin',
-    port     : 8000,
+    hostname: '127.0.0.1',
+    username: 'admin',
+    password: 'admin',
+    port: 8000,
   });
   await cam.connect();
 });
@@ -67,7 +77,7 @@ describe('Profiles', () => {
     it('should create a new blank profile and return it', async () => {
       let currentProfiles = await cam.media2.getProfiles();
       const profileCount = currentProfiles.length;
-      const result = await cam.media.createProfile({ name : 'test1', token : 'token' });
+      const result = await cam.media.createProfile({ name: 'test1', token: 'token' });
       expect(result).toHaveProperty('token');
       expect(result.fixed).toBe(false);
       newProfileToken = result.token;
@@ -79,13 +89,13 @@ describe('Profiles', () => {
 
   describe('getProfile', () => {
     it('should return the profile ver20 as ver10 by its token', async () => {
-      const result = await cam.media.getProfile({ profileToken : newProfileToken });
+      const result = await cam.media.getProfile({ profileToken: newProfileToken });
       expect(result.fixed).toBe(false);
     });
 
     it('should return the profile ver10 by its token', async () => {
       cam.device.media2Support = false;
-      const result = await cam.media.getProfile({ profileToken : newProfileToken });
+      const result = await cam.media.getProfile({ profileToken: newProfileToken });
       expect(result.fixed).toBe(false);
       cam.device.media2Support = true;
     });
@@ -94,7 +104,7 @@ describe('Profiles', () => {
   describe('deleteProfile', () => {
     it('should delete non-fixed profile', async () => {
       const profileCount = (await cam.media.getProfiles()).length;
-      const result = await cam.media.deleteProfile({ profileToken : newProfileToken });
+      const result = await cam.media.deleteProfile({ profileToken: newProfileToken });
       expect(result).toBeUndefined();
       const currentProfiles = await cam.media.getProfiles();
       expect(currentProfiles.length).toBe(profileCount - 1);
@@ -109,7 +119,7 @@ describe('Add/remove configurations to the profile', () => {
   describe('Startup', () => {
     it('should create a new profile for the tests', async () => {
       const testProfile = await cam.media.createProfile({
-        name : 'test_configurations_profile',
+        name: 'test_configurations_profile',
       });
       profileToken = testProfile.token;
       configurationNames.forEach((configurationName) => {
@@ -121,32 +131,32 @@ describe('Add/remove configurations to the profile', () => {
   configurationNames.forEach((configurationName) => {
     describe(`add${configurationName}`, () => {
       it('should throw an error if configuration token does not exist', async () => {
-        // @ts-expect-error just
-        await expect(cam.media[`add${configurationName}Configuration`]({
-          profileToken,
-          configurationToken : '???',
-        })).rejects.toThrow('Config Not Exist');
+        await expect(
+          mediaTestCallable(cam.media)[`add${configurationName}Configuration`]({
+            profileToken,
+            configurationToken: '???',
+          }),
+        ).rejects.toThrow('Config Not Exist');
       });
 
       it('should throw an error if profile token does not exist', async () => {
-        // @ts-expect-error just
-        await expect(cam.media[`add${configurationName}Configuration`]({
-          profileToken       : '???',
-          configurationToken : '???',
-        })).rejects.toThrow('Profile Not Exist');
+        await expect(
+          mediaTestCallable(cam.media)[`add${configurationName}Configuration`]({
+            profileToken: '???',
+            configurationToken: '???',
+          }),
+        ).rejects.toThrow('Profile Not Exist');
       });
 
       it('should add a new configuration to the existing profile', async () => {
-        // @ts-expect-error just
-        const result = await cam.media[`add${configurationName}Configuration`]({
+        const result = await mediaTestCallable(cam.media)[`add${configurationName}Configuration`]({
           profileToken,
-          configurationToken : `${configurationName}ConfigurationToken_1`,
+          configurationToken: `${configurationName}ConfigurationToken_1`,
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
         const methodName = camelCase(`${configurationName}Configuration`);
-        // @ts-expect-error just
-        expect(profile[methodName] ?? profile.extension?.[methodName]).toBeDefined();
+        expect(profileConfigurationBySlot(profile, methodName)).toBeDefined();
       });
     });
   });
@@ -161,27 +171,25 @@ describe('Add/remove configurations to the profile', () => {
   configurationNames.forEach((configurationName) => {
     describe(`remove${configurationName}`, () => {
       it('should throw an error if profile token empty', async () => {
-        // @ts-expect-error just
-        await expect(cam.media[`remove${configurationName}Configuration`]({})).rejects.toThrow();
+        await expect(mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({})).rejects.toThrow();
       });
 
       it('should throw an error if profile token does not exist', async () => {
-        // @ts-expect-error just
-        await expect(cam.media[`remove${configurationName}Configuration`]({
-          profileToken : '???',
-        })).rejects.toThrow('Profile Not Exist');
+        await expect(
+          mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({
+            profileToken: '???',
+          }),
+        ).rejects.toThrow('Profile Not Exist');
       });
 
       it('should remove a configuration from the existing profile', async () => {
-        // @ts-expect-error just
-        const result = await cam.media[`remove${configurationName}Configuration`]({
+        const result = await mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({
           profileToken,
         });
         expect(result).toBeUndefined();
         const profile = await cam.media.getProfile({ profileToken });
         const methodName = camelCase(`${configurationName}Configuration`);
-        // @ts-expect-error just
-        expect(profile[methodName] ?? profile.extension?.[methodName]).toBeUndefined();
+        expect(profileConfigurationBySlot(profile, methodName)).toBeUndefined();
       });
     });
   });
@@ -231,14 +239,14 @@ describe('getStreamUri', () => {
 
   it('should return a wrapped media URI when Media2 is supported', async () => {
     const result = await cam.media.getStreamUri({
-      profileToken : profileToken(),
-      protocol     : 'RTSP',
+      profileToken: profileToken(),
+      protocol: 'RTSP',
     });
     expect(result).toHaveProperty('mediaUri');
     expect(result.mediaUri).toMatchObject({
-      invalidAfterConnect : false,
-      invalidAfterReboot  : false,
-      timeout             : 'PT0S',
+      invalidAfterConnect: false,
+      invalidAfterReboot: false,
+      timeout: 'PT0S',
     });
     expect(typeof result.mediaUri.uri).toBe('string');
     expect(result.mediaUri.uri!.length).toBeGreaterThan(0);
@@ -246,48 +254,41 @@ describe('getStreamUri', () => {
 
   it('should default profile token from activeSource when omitted (Media2)', async () => {
     const explicit = await cam.media.getStreamUri({
-      profileToken : profileToken(),
-      protocol     : 'RTSP',
+      profileToken: profileToken(),
+      protocol: 'RTSP',
     });
-    const implicit = await cam.media.getStreamUri({ protocol : 'RTSP' });
+    const implicit = await cam.media.getStreamUri({ protocol: 'RTSP' });
     expect(implicit.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
   });
 
   describe('protocol values (Media2)', () => {
-    it.each([
-      ['RtspUnicast'],
-      ['RtspMulticast'],
-      ['RtspOverHttp'],
-    ] as const)('should accept native protocol %s', async (protocol) => {
-      const result = await cam.media.getStreamUri({
-        profileToken : profileToken(),
-        protocol,
-      });
-      expect(result.mediaUri?.uri).toBeDefined();
-      expect(typeof result.mediaUri!.uri).toBe('string');
-      expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
-    });
+    it.each([['RtspUnicast'], ['RtspMulticast'], ['RtspOverHttp']] as const)(
+      'should accept native protocol %s',
+      async (protocol) => {
+        const result = await cam.media.getStreamUri({
+          profileToken: profileToken(),
+          protocol,
+        });
+        expect(result.mediaUri?.uri).toBeDefined();
+        expect(typeof result.mediaUri!.uri).toBe('string');
+        expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
+      },
+    );
 
-    it.each([
-      ['HTTP'],
-      ['TCP'],
-    ] as const)('should accept legacy Media1-style protocol %s', async (protocol) => {
+    it.each([['HTTP'], ['TCP']] as const)('should accept legacy Media1-style protocol %s', async (protocol) => {
       const result = await cam.media.getStreamUri({
-        profileToken : profileToken(),
+        profileToken: profileToken(),
         protocol,
       });
       expect(result.mediaUri?.uri).toBeDefined();
       expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
     });
 
-    it.each([
-      ['RTP-Unicast'],
-      ['RTP-Multicast'],
-    ] as const)('should map UDP with stream %s', async (stream) => {
+    it.each([['RTP-Unicast'], ['RTP-Multicast']] as const)('should map UDP with stream %s', async (stream) => {
       const result = await cam.media.getStreamUri({
-        profileToken : profileToken(),
+        profileToken: profileToken(),
         stream,
-        protocol     : 'UDP',
+        protocol: 'UDP',
       });
       expect(result.mediaUri?.uri).toBeDefined();
       expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
@@ -295,37 +296,35 @@ describe('getStreamUri', () => {
 
     it('should default protocol to RTSP when omitted', async () => {
       const explicit = await cam.media.getStreamUri({
-        profileToken : profileToken(),
-        protocol     : 'RTSP',
+        profileToken: profileToken(),
+        protocol: 'RTSP',
       });
-      const implicit = await cam.media.getStreamUri({ profileToken : profileToken() });
+      const implicit = await cam.media.getStreamUri({ profileToken: profileToken() });
       expect(implicit.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
     });
   });
 
   describe('protocol values (Media ver10)', () => {
-    it.each([
-      ['UDP'],
-      ['RTSP'],
-      ['HTTP'],
-      ['TCP'],
-    ] as const)('should return a stream URI when protocol is %s', async (protocol) => {
-      cam.device.media2Support = false;
-      try {
-        const result = await cam.media.getStreamUri({
-          profileToken : 'ProfileToken_1',
-          stream       : 'RTP-Unicast',
-          protocol,
-        });
-        // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
-        const mediaUri = result as unknown as { uri: string };
-        expect(mediaUri.uri).toBeDefined();
-        expect(typeof mediaUri.uri).toBe('string');
-        expect(mediaUri.uri.length).toBeGreaterThan(0);
-      } finally {
-        cam.device.media2Support = true;
-      }
-    });
+    it.each([['UDP'], ['RTSP'], ['HTTP'], ['TCP']] as const)(
+      'should return a stream URI when protocol is %s',
+      async (protocol) => {
+        cam.device.media2Support = false;
+        try {
+          const result = await cam.media.getStreamUri({
+            profileToken: 'ProfileToken_1',
+            stream: 'RTP-Unicast',
+            protocol,
+          });
+          // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
+          const mediaUri = result as unknown as { uri: string };
+          expect(mediaUri.uri).toBeDefined();
+          expect(typeof mediaUri.uri).toBe('string');
+          expect(mediaUri.uri.length).toBeGreaterThan(0);
+        } finally {
+          cam.device.media2Support = true;
+        }
+      },
+    );
   });
 });
 
@@ -334,13 +333,13 @@ describe('getSnapshotUri', () => {
 
   it('should return a wrapped media URI when Media2 is supported', async () => {
     const result = await cam.media.getSnapshotUri({
-      profileToken : profileToken(),
+      profileToken: profileToken(),
     });
     expect(result).toHaveProperty('mediaUri');
     expect(result.mediaUri).toMatchObject({
-      invalidAfterConnect : false,
-      invalidAfterReboot  : false,
-      timeout             : 'PT0S',
+      invalidAfterConnect: false,
+      invalidAfterReboot: false,
+      timeout: 'PT0S',
     });
     expect(typeof result.mediaUri!.uri).toBe('string');
     expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
@@ -348,7 +347,7 @@ describe('getSnapshotUri', () => {
 
   it('should default profile token from activeSource when omitted (Media2)', async () => {
     const explicit = await cam.media.getSnapshotUri({
-      profileToken : profileToken(),
+      profileToken: profileToken(),
     });
     const implicitNoArgs = await cam.media.getSnapshotUri();
     expect(implicitNoArgs.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
@@ -362,7 +361,7 @@ describe('getSnapshotUri', () => {
       cam.device.media2Support = false;
       try {
         const result = await cam.media.getSnapshotUri({
-          profileToken : 'ProfileToken_1',
+          profileToken: 'ProfileToken_1',
         });
         expect(result).toHaveProperty('mediaUri');
         expect(typeof result.mediaUri!.uri).toBe('string');
@@ -376,8 +375,7 @@ describe('getSnapshotUri', () => {
 
 describe('Configurations', () => {
   describe('Get configurations', () => {
-    Object
-      .entries(configurationEntityFields)
+    Object.entries(configurationEntityFields)
       .flatMap(([configurationName, properties]) => [
         [`${configurationName}Configurations`, properties],
         [`${configurationName}Configuration`, properties],
@@ -386,12 +384,11 @@ describe('Configurations', () => {
       .forEach(([configurationName, properties]) => {
         describe(`${configurationName}`, () => {
           it('should return the full list of configurations', async () => {
-            // @ts-expect-error just
-            let result = await cam.media[`get${configurationName}`]({
-              profileToken       : 'ProfileToken_1',
-              configurationToken : `${configurationName}Token_1`,
+            const raw = await mediaTestCallable(cam.media)[`get${configurationName}`]({
+              profileToken: 'ProfileToken_1',
+              configurationToken: `${configurationName}Token_1`,
             });
-            if (!Array.isArray(result)) { result = [result]; }
+            const result: unknown[] = Array.isArray(raw) ? raw : [raw];
             expect(result.length).toBeGreaterThan(0);
             result.forEach((configuration: any) => {
               (properties as string[]).forEach((property) => {
@@ -405,21 +402,20 @@ describe('Configurations', () => {
 
   describe('Get configuration options', () => {
     const configurationEntityOptionsFields = {
-      'VideoSource'  : ['boundsRange', 'videoSourceTokensAvailable'],
-      'VideoEncoder' : ['qualityRange', 'JPEG', 'MPEG4', 'H264'],
-      'AudioSource'  : ['inputTokensAvailable'],
-      'AudioEncoder' : ['options'],
-      'Metadata'     : ['geoLocation', 'PTZStatusFilterOptions'],
-      'AudioOutput'  : ['outputTokensAvailable', 'sendPrimacyOptions', 'outputLevelRange'],
-      'AudioDecoder' : ['G711DecOptions'],
+      VideoSource: ['boundsRange', 'videoSourceTokensAvailable'],
+      VideoEncoder: ['qualityRange', 'JPEG', 'MPEG4', 'H264'],
+      AudioSource: ['inputTokensAvailable'],
+      AudioEncoder: ['options'],
+      Metadata: ['geoLocation', 'PTZStatusFilterOptions'],
+      AudioOutput: ['outputTokensAvailable', 'sendPrimacyOptions', 'outputLevelRange'],
+      AudioDecoder: ['G711DecOptions'],
     };
     Object.entries(configurationEntityOptionsFields).forEach(([configurationName, properties]) => {
       describe(`${configurationName}`, () => {
         it('should return the configuration options supported for the concrete profile and configuration', async () => {
-          // @ts-expect-error just
-          const result = await cam.media[`get${configurationName}ConfigurationOptions`]({
-            profileToken       : 'ProfileToken_1',
-            configurationToken : `${configurationName}ConfigurationToken_1`,
+          const result = await mediaTestCallable(cam.media)[`get${configurationName}ConfigurationOptions`]({
+            profileToken: 'ProfileToken_1',
+            configurationToken: `${configurationName}ConfigurationToken_1`,
           });
           properties.forEach((property) => {
             expect(result).toHaveProperty(property);
@@ -427,9 +423,7 @@ describe('Configurations', () => {
         });
 
         it('should return all configuration options', async () => {
-          // @ts-expect-error just
-          const result = await cam.media[`get${configurationName}ConfigurationOptions`]();
-          // console.log(util.inspect(result, { colors : true, depth : 100 }));
+          const result = await mediaTestCallable(cam.media)[`get${configurationName}ConfigurationOptions`]();
           properties.forEach((property) => {
             expect(result).toHaveProperty(property);
           });
@@ -441,7 +435,7 @@ describe('Configurations', () => {
   describe('getGuaranteedNumberOfVideoEncoderInstances', () => {
     it('should response', async () => {
       const result = await cam.media.getGuaranteedNumberOfVideoEncoderInstances({
-        configurationToken : 'VideoSourceConfigurationToken_1',
+        configurationToken: 'VideoSourceConfigurationToken_1',
       });
       expect(typeof result.totalNumber).toBe('number');
       expect(typeof result.JPEG).toBe('number');
@@ -455,23 +449,23 @@ describe('Configurations', () => {
     let profile: Profile;
     describe('Create profile', () => {
       it('should be empty', async () => {
-        profileToken = (await cam.media.createProfile({
-          name : 'profile',
-        })).token;
+        profileToken = (
+          await cam.media.createProfile({
+            name: 'profile',
+          })
+        ).token;
       });
 
       Object.keys(configurationEntityFields).forEach((configurationName) => {
         it(`should add a "${configurationName}" configuration to the existing profile`, async () => {
-          // @ts-expect-error just
-          const result = await cam.media[`add${configurationName}Configuration`]({
+          const result = await mediaTestCallable(cam.media)[`add${configurationName}Configuration`]({
             profileToken,
-            configurationToken : `${configurationName}ConfigurationToken_1`,
+            configurationToken: `${configurationName}ConfigurationToken_1`,
           });
           expect(result).toBeUndefined();
           const profile = await cam.media.getProfile({ profileToken });
           const methodName = camelCase(`${configurationName}Configuration`);
-          // @ts-expect-error just
-          expect(profile[methodName] ?? profile.extension?.[methodName]).toBeDefined();
+          expect(profileConfigurationBySlot(profile, methodName)).toBeDefined();
         });
       });
 
@@ -484,78 +478,83 @@ describe('Configurations', () => {
 
     describe('Set', () => {
       const configurationEntitiesProps: Record<string, Record<string, any>> = {
-        'VideoSource' : {
-          bounds : {
-            x : 1, y : 1, width : 10, height : 10,
+        VideoSource: {
+          bounds: {
+            x: 1,
+            y: 1,
+            width: 10,
+            height: 10,
           },
-          extension : {
-            __clean__ : true,
-            rotate    : {
-              mode   : 'AUTO',
-              degree : 90,
+          extension: {
+            __clean__: true,
+            rotate: {
+              mode: 'AUTO',
+              degree: 90,
             },
-            extension : {
-              lensDescription : [{
-                offset     : { x : 1, y : 1 },
-                XFactor    : 1,
-                projection : [{ angle : 90 }],
-              }],
-              sceneOrientation : { mode : 'AUTO' },
+            extension: {
+              lensDescription: [
+                {
+                  offset: { x: 1, y: 1 },
+                  XFactor: 1,
+                  projection: [{ angle: 90 }],
+                },
+              ],
+              sceneOrientation: { mode: 'AUTO' },
             },
           },
         },
-        'VideoEncoder' : {
-          quality        : 4,
-          sessionTimeout : 'PT13666S',
-          encoding       : 'MPEG4',
-          H264           : undefined,
-          MPEG4          : {
-            govLength    : 4,
-            mpeg4Profile : 'SP',
+        VideoEncoder: {
+          quality: 4,
+          sessionTimeout: 'PT13666S',
+          encoding: 'MPEG4',
+          H264: undefined,
+          MPEG4: {
+            govLength: 4,
+            mpeg4Profile: 'SP',
           },
         },
-        'AudioSource'  : { sourceToken : 'AudioSourceToken_1' },
-        'AudioEncoder' : {
-          encoding       : 'G726',
-          bitrate        : 128,
-          sampleRate     : 16,
-          sessionTimeout : 'PT13666S',
+        AudioSource: { sourceToken: 'AudioSourceToken_1' },
+        AudioEncoder: {
+          encoding: 'G726',
+          bitrate: 128,
+          sampleRate: 16,
+          sessionTimeout: 'PT13666S',
         },
-        'VideoAnalytics' : {
-          name                         : 'VAName',
-          analyticsEngineConfiguration : {
-            analyticsModule : [
+        VideoAnalytics: {
+          name: 'VAName',
+          analyticsEngineConfiguration: {
+            analyticsModule: [
               {
-                'name'       : 'WhyCellMotionEngine',
-                'type'       : 'tt:CellMotionEngine',
-                'parameters' : {
-                  'simpleItem' : [
+                name: 'WhyCellMotionEngine',
+                type: 'tt:CellMotionEngine',
+                parameters: {
+                  simpleItem: [
                     {
-                      'name'  : 'Sensitivity',
-                      'value' : 6,
+                      name: 'Sensitivity',
+                      value: 6,
                     },
                   ],
-                  'elementItem' : [
+                  elementItem: [
                     {
-                      name       : 'Layout',
-                      cellLayout : {
-                        columns        : 13, // this field must equals that field.
+                      name: 'Layout',
+                      cellLayout: {
+                        columns: 13, // this field must equals that field.
                         // In the workflow you can't change this value now 😈
-                        rows           : 18,
-                        transformation : {
-                          translate : { x : -1, y : -1 },
-                          scale     : { x : 0.090909, y : 0.111111 },
+                        rows: 18,
+                        transformation: {
+                          translate: { x: -1, y: -1 },
+                          scale: { x: 0.090909, y: 0.111111 },
                         },
                       },
-                      __any__ : {
-                        '$'             : { Name : 'Layout' },
-                        'tt:CellLayout' : [
+                      __any__: {
+                        $: { Name: 'Layout' },
+                        'tt:CellLayout': [
                           {
-                            '$'                 : { Columns : '13', Rows : '18' }, // yep, it must be '13' 😈
-                            'tt:Transformation' : [
+                            $: { Columns: '13', Rows: '18' }, // yep, it must be '13' 😈
+                            'tt:Transformation': [
                               {
-                                'tt:Translate' : [{ '$' : { x : '-1.000000', y : '-1.000000' } }],
-                                'tt:Scale'     : [{ '$' : { x : '0.090909', y : '0.111111' } }],
+                                'tt:Translate': [{ $: { x: '-1.000000', y: '-1.000000' } }],
+                                'tt:Scale': [{ $: { x: '0.090909', y: '0.111111' } }],
                               },
                             ],
                           },
@@ -566,104 +565,104 @@ describe('Configurations', () => {
                 },
               },
               {
-                'name'       : 'WhyMotionRegionDetector',
-                'type'       : 'tt:MotionRegionDetector',
-                'parameters' : {
-                  'simpleItem' : [
+                name: 'WhyMotionRegionDetector',
+                type: 'tt:MotionRegionDetector',
+                parameters: {
+                  simpleItem: [
                     {
-                      'name'  : 'Sensitivity',
-                      'value' : 6,
+                      name: 'Sensitivity',
+                      value: 6,
                     },
                   ],
                 },
               },
             ],
-            extension : {
-              __clean__ : true,
+            extension: {
+              __clean__: true,
             },
           },
-          ruleEngineConfiguration : {
-            rule : [
+          ruleEngineConfiguration: {
+            rule: [
               {
-                name         : 'RuleName',
-                type         : 'type',
-                'parameters' : {
-                  'simpleItem' : [
+                name: 'RuleName',
+                type: 'type',
+                parameters: {
+                  simpleItem: [
                     {
-                      'name'  : 'Sensitivity',
-                      'value' : 6,
+                      name: 'Sensitivity',
+                      value: 6,
                     },
                   ],
                 },
               },
             ],
-            extension : {
-              __clean__ : true,
+            extension: {
+              __clean__: true,
             },
           },
         },
-        'Metadata' : {
-          compressionType : '',
-          name            : 'MDName',
-          PTZStatus       : {
-            status   : true,
-            position : true,
+        Metadata: {
+          compressionType: '',
+          name: 'MDName',
+          PTZStatus: {
+            status: true,
+            position: true,
           },
-          events : {
-            filter : {
-              'topicExpression' : {
-                'dialect' : '',
+          events: {
+            filter: {
+              topicExpression: {
+                dialect: '',
               },
-              '__any__' : {
-                'wsnt:TopicExpression' : [
+              __any__: {
+                'wsnt:TopicExpression': [
                   {
-                    '$' : {
-                      'Dialect' : '',
+                    $: {
+                      Dialect: '',
                     },
                   },
                 ],
               },
             },
           },
-          analytics : true,
-          multicast : {
-            address   : { type : 'IPv4', IPv4Address : '239.0.1.0' },
-            port      : 32012,
-            TTL       : 512,
-            autoStart : false,
+          analytics: true,
+          multicast: {
+            address: { type: 'IPv4', IPv4Address: '239.0.1.0' },
+            port: 32012,
+            TTL: 512,
+            autoStart: false,
           },
-          sessionTimeout : 'PT120S',
+          sessionTimeout: 'PT120S',
         },
-        'AudioOutput' : {
-          name        : 'AOName',
-          sendPrimacy : 'www.wwf.org/',
-          outputLevel : 42,
+        AudioOutput: {
+          name: 'AOName',
+          sendPrimacy: 'www.wwf.org/',
+          outputLevel: 42,
         },
-        'AudioDecoder' : {},
+        AudioDecoder: {},
       };
       Object.entries(configurationEntitiesProps).forEach(([entityName, props]) => {
         it(`${entityName}Configuration`, async () => {
-          const configuration: any = (profile[camelCase(`${entityName}Configuration`) as keyof Profile]
-           ?? profile.extension![camelCase(`${entityName}Configuration`) as keyof ProfileExtension]);
+          const slot = camelCase(`${entityName}Configuration`);
+          const configuration: any = profileConfigurationBySlot(profile, slot);
           const updatedConfiguration = {
             ...JSON.parse(JSON.stringify(configuration)),
             ...props,
           };
           await (cam.media as any)[`set${entityName}Configuration`]({
-            forcePersistence : true,
-            configuration    : updatedConfiguration,
+            forcePersistence: true,
+            configuration: updatedConfiguration,
           });
           const receivedConfiguration = await (cam.media as any)[`get${entityName}Configuration`]({
-            configurationToken : configuration.token,
+            configurationToken: configuration.token,
           });
           expect(receivedConfiguration).toEqual(clean(updatedConfiguration));
           // restore
           await (cam.media as any)[`set${entityName}Configuration`]({
-            forcePersistence : true,
+            forcePersistence: true,
             configuration,
           });
           const restoredConfiguration = await (cam.media as any)[`get${entityName}Configuration`]({
-            configurationToken : configuration.token,
+            configurationToken: configuration.token,
           });
           expect(restoredConfiguration).toEqual(configuration);
         });

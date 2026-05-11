@@ -24,14 +24,11 @@ import {
   GetAudioDecoderConfigurations,
   WebRTCConfiguration,
   GetWebRTCConfigurations,
-  SetVideoSourceConfiguration,
   GetStreamUriResponse,
   GetSnapshotUri,
   GetSnapshotUriResponse,
   GetAudioSourceConfigurations,
-  GetVideoSourceConfigurationOptions,
   GetVideoEncoderInstances,
-  GetVideoEncoderInstancesResponse,
   EncoderInstanceInfo,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
@@ -40,6 +37,7 @@ import {
   AudioDecoderConfiguration,
   AudioDecoderConfigurationOptions,
   AudioEncoder2Configuration,
+  AudioEncoderConfigurationOption,
   AudioEncoderConfigurationOptions,
   AudioOutputConfiguration,
   AudioOutputConfigurationOptions,
@@ -51,6 +49,7 @@ import {
   MetadataConfigurationOptions,
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
+  VideoEncoder2ConfigurationOptions,
   VideoEncoderConfigurationOptions,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
@@ -769,7 +768,9 @@ export class Media2 {
    * for the device.
    * @param options
    */
-  async getVideoEncoderConfigurationOptions(options: GetConfiguration = {}): Promise<VideoEncoderConfigurationOptions> {
+  async getVideoEncoderConfigurationOptions(
+    options: GetConfiguration = {},
+  ): Promise<VideoEncoder2ConfigurationOptions[]> {
     return this.getConfigurationOptions({ ...options, entityName: 'VideoEncoder' });
   }
 
@@ -789,7 +790,9 @@ export class Media2 {
    * parameters) when the audio encoder parameters are reconfigured.
    * @param options
    */
-  async getAudioEncoderConfigurationOptions(options: GetConfiguration = {}): Promise<AudioEncoderConfigurationOptions> {
+  async getAudioEncoderConfigurationOptions(
+    options: GetConfiguration = {},
+  ): Promise<AudioEncoderConfigurationOption[]> {
     return this.getConfigurationOptions({ ...options, entityName: 'AudioEncoder' });
   }
 
