@@ -463,7 +463,7 @@ export class Media2 {
    * this specification.
    * @param configuration
    */
-  async setVideoSourceConfiguration({ configuration }: SetVideoSourceConfiguration): Promise<void> {
+  async setVideoSourceConfiguration(configuration: VideoSourceConfiguration): Promise<void> {
     const body = build({
       SetVideoSourceConfiguration: {
         $: {
@@ -560,6 +560,25 @@ export class Media2 {
           }),
           Bitrate: configuration.bitrate,
           SampleRate: configuration.sampleRate,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  async setAudioSourceConfiguration(configuration: AudioSourceConfiguration): Promise<void> {
+    const body = build({
+      SetAudioSourceConfiguration: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Configuration: {
+          $: {
+            token: configuration.token,
+          },
+          Name: configuration.name,
+          UseCount: configuration.useCount,
+          SourceToken: configuration.sourceToken,
         },
       },
     });
