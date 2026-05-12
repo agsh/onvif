@@ -42,6 +42,12 @@ import {
   GetMasks,
   Mask,
   CreateOSDResponse,
+  CreateMaskResponse,
+  GetMaskOptions,
+  MaskOptions,
+  DeleteMask,
+  GetServiceCapabilities,
+  Capabilities2,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -123,6 +129,22 @@ export class Media2 {
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
+  }
+
+  /**
+   * Returns the capabilities of the media service. The result is returned in a typed answer.
+   */
+  @v2
+  async getServiceCapabilities(): Promise<Capabilities2> {
+    const body = build({
+      GetServiceCapabilities: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).getServiceCapabilitiesResponse.capabilities;
   }
 
   /**
@@ -1179,7 +1201,7 @@ export class Media2 {
    *     }
    *   });
    */
-  async createMask(options: Mask): Promise<any> {
+  async createMask(options: Mask): Promise<CreateMaskResponse> {
     const body = build({
       CreateMask: {
         $: {
@@ -1215,9 +1237,85 @@ export class Media2 {
         },
       },
     });
-    console.log(body);
     const [data] = await this.onvif.request({ service: 'media2', body });
     return linerase(data).createMaskResponse;
+  }
+
+  async setMask(options: Mask): Promise<void> {
+    const body = build({
+      SetMask: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Mask: {
+          $: {
+            token: options.token,
+          },
+          ConfigurationToken: options.configurationToken,
+          Polygon: {
+            Point: options.polygon.point?.map((point) => ({
+              $: {
+                x: point.x,
+                y: point.y,
+              },
+            })),
+          },
+          Name: options.name,
+          Type: options.type,
+          ...(options.color && {
+            Color: {
+              $: {
+                Colorspace: options.color.colorspace,
+                Likelihood: options.color.likelihood,
+                X: options.color.x,
+                Y: options.color.y,
+                Z: options.color.z,
+              },
+            },
+          }),
+          Enabled: options.enabled,
+        },
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * Get the Mask Options.
+   * @param configurationToken
+   * @example
+   * const res = await cam.media2.getMaskOptions({ configurationToken: 'MaskToken_1' });
+   * console.log(res.types);
+   */
+  @v2
+  async getMaskOptions({ configurationToken }: GetMaskOptions): Promise<MaskOptions> {
+    const body = build({
+      GetMaskOptions: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ConfigurationToken: configurationToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).getMaskOptionsResponse.options;
+  }
+
+  /**
+   * Delete the Mask.
+   * @param token
+   */
+  @v2
+  async deleteMask({ token }: DeleteMask): Promise<void> {
+    const body = build({
+      DeleteMask: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Token: token,
+      },
+    });
+    await this.onvif.request({ service: 'media2', body });
   }
 
   /**
