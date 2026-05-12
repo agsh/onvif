@@ -39,6 +39,9 @@ import {
   GetOSDs,
   GetOSDOptions,
   DeleteOSD,
+  GetMasks,
+  Mask,
+  CreateOSDResponse,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
@@ -945,8 +948,7 @@ export class Media2 {
    * SetVideoSourceMode changes the media profile structure relating to video source for the specified video source
    * mode. A device that indicates a capability of VideoSourceModes shall support this command. The behavior after
    * changing the mode is not defined in this specification.
-   * @param videoSourceToken
-   * @param videoSourceModeToken
+   * @param options
    */
   @v2
   async setVideoSourceMode({ videoSourceToken, videoSourceModeToken }: SetVideoSourceMode): Promise<void> {
@@ -1063,10 +1065,12 @@ export class Media2 {
 
   /**
    * Create the OSD.
+   * NB!: Unlike the reference implementation, this method returns the generated configuration, since not all
+   * implementations allow you to specify the token yourself; it is often generated on the server side.
    * @param options
    */
   @v2
-  async createOSD(options: OSDConfiguration): Promise<void> {
+  async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
     const body = build({
       CreateOSD: {
         $: {
@@ -1116,7 +1120,8 @@ export class Media2 {
         },
       },
     });
-    await this.onvif.request({ service: 'media2', body });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).createOSDResponse;
   }
 
   /**
@@ -1134,6 +1139,85 @@ export class Media2 {
       },
     });
     await this.onvif.request({ service: 'media2', body });
+  }
+
+  /**
+   * This operation lists existing Mask configurations for the device.
+   * - If an Mask token is provided the device shall respond with the requested configuration or provide an error if it does not exist.
+   * - In case only a video source configuration token is provided the device shall respond with all configurations that exist for the video source configuration.
+   * - If no tokens are provided the device shall respond with all available Mask configurations.
+   * @param options
+   */
+  @v2
+  async getMasks(options?: GetMasks): Promise<Mask[]> {
+    const { configurationToken, token } = options ?? {};
+    const body = build({
+      GetMasks: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Token: token,
+        ConfigurationToken: configurationToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data, { array: ['masks'] }).getMasksResponse.masks ?? [];
+  }
+
+  /**
+   * Create the Mask.
+   * @param options
+   * @example
+   * const { token } = await cam.media2.createMask({
+   *     type: 'Color',
+   *     token: 'mask_token_1',
+   *     color: { X: 1, Y: 2, Z: 3, colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr' },
+   *     configurationToken: 'VideoSourceConfigurationToken_1',
+   *     enabled: true,
+   *     polygon: {
+   *       point: [{ x: 0.1, y: 0.1 }, { x: 0.2, y: 0.2 }, { x: 0.3, y: 0.3 }],
+   *     }
+   *   });
+   */
+  async createMask(options: Mask): Promise<any> {
+    const body = build({
+      CreateMask: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        Mask: {
+          $: {
+            token: options.token,
+          },
+          ConfigurationToken: options.configurationToken,
+          Polygon: {
+            Point: options.polygon.point?.map((point) => ({
+              $: {
+                x: point.x,
+                y: point.y,
+              },
+            })),
+          },
+          Name: options.name,
+          Type: options.type,
+          ...(options.color && {
+            Color: {
+              $: {
+                Colorspace: options.color.colorspace,
+                Likelihood: options.color.likelihood,
+                X: options.color.x,
+                Y: options.color.y,
+                Z: options.color.z,
+              },
+            },
+          }),
+          Enabled: options.enabled,
+        },
+      },
+    });
+    console.log(body);
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data).createMaskResponse;
   }
 
   /**
