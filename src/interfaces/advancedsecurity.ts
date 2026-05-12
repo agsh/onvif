@@ -1,6 +1,6 @@
 import { NCName, AnyURI, Duration } from './basics';
 import { PositiveInteger } from './types';
-import { DeviceEntity, StringList, Date } from './onvif';
+import { StringList, DeviceEntity, Date } from './onvif';
 import { ReferenceToken } from './common';
 
 /** Unique identifier for keys in the keystore. */
@@ -15,6 +15,7 @@ export type PassphraseID = NCName;
 export type Dot1XID = NCName;
 /** The status of a key in the keystore. */
 export type KeyStatus = 'ok' | 'generating' | 'corrupt';
+export type KeyPairAlgorithm = 'RSA' | 'ECC';
 /** An object identifier (OID) in dot-decimal form as specified in RFC4512. */
 export type DotDecimalOID = string;
 /** The distinguished name attribute type encoded as specified in RFC 4514. */
@@ -189,6 +190,8 @@ export interface X509Certificate {
   alias?: string;
   /** The base64-encoded DER representation of the X.509 certificate. */
   certificateContent: Base64DERencodedASN1Value;
+  /** The keystore has a matching private key. */
+  hasPrivateKey?: boolean;
   [key: string]: unknown;
 }
 /** A sequence of certificate IDs. */
@@ -226,6 +229,11 @@ export interface Dot1XCapabilities {
 export interface Dot1XStage {
   /** The authentication method for this stage (e.g., "EAP-PEAP"). */
   method: string;
+  /**
+   * The unique identifier of the certification path validation policy to be used for validating the authorization server certificate.
+   * If not configured, authorization server certificate validation behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.
+   */
+  certPathValidationPolicyID?: CertPathValidationPolicyID;
   /** The identity used in this authentication method, if required. */
   identity?: string;
   /** The unique identifier of the certification path used in this authentication method, if required. */
@@ -283,24 +291,34 @@ export interface KeystoreCapabilities {
   maximumNumberOfCertificationPaths?: PositiveInteger;
   /** Indicates support for modifying an existing certification path or certification path validation policy. */
   setCertPath?: boolean;
-  /** Indication that the device supports on-board RSA key pair generation. */
+  /** Deprecated - Indication that the device supports on-board ECC key pair generation. */
   RSAKeyPairGeneration?: boolean;
-  /** Indication that the device supports on-board ECC key pair generation. */
+  /** Deprecated - Indication that the device supports on-board ECC key pair generation. */
   ECCKeyPairGeneration?: boolean;
+  /** List of supported key algorithm like 'RSA' and 'ECC'. For a full list of definitions see tas:KeyPairAlgorithm. */
+  keyPairGeneration?: StringList;
   /** Indicates which RSA key lengths are supported by the device. */
   RSAKeyLengths?: RSAKeyLengths;
-  /** Indicates which elliptic curves are supported by the device. */
+  /** Indicates which elliptic curves are supported by the device. Supported curve names can be found in the IANA TLS Supported Groups section, under the Description field. */
   ellipticCurves?: EllipticCurves;
+  /** Deprecated - Indicates support for creating PKCS#10 requests for RSA keys and uploading the certificate obtained from a CA.. */
+  PKCS10ExternalCertificationWithRSA?: boolean;
   /** Indicates support for creating PKCS#10 requests for keypairs and uploading the certificate obtained from a CA. */
   PKCS10?: boolean;
+  /** Deprecated - Indicates support for creating self-signed certificates for RSA keys. */
+  selfSignedCertificateCreationWithRSA?: boolean;
   /** Indicates support for creating self-signed certificates. */
   selfSignedCertificateCreation?: boolean;
   /** Indicates which X.509 versions are supported by the device. */
   X509Versions?: X509Versions;
   /** Indicates the maximum number of passphrases that the device is able to store simultaneously. */
   maximumNumberOfPassphrases?: number;
+  /** Deprecated - Indicates support for uploading an RSA key pair in a PKCS#8 data structure. */
+  PKCS8RSAKeyPairUpload?: boolean;
   /** Indicates support for uploading a key pair in a PKCS#8 data structure. */
   PKCS8?: boolean;
+  /** Deprecated - Indicates support for uploading a certificate along with an RSA private key in a PKCS#12 data structure. */
+  PKCS12CertificateWithRSAPrivateKeyUpload?: boolean;
   /** Indicates support for uploading a certificate along with a private key in a PKCS#12 data structure. */
   PKCS12?: boolean;
   /** Indicates which password-based encryption algorithms are supported by the device. */
@@ -340,7 +358,7 @@ export interface AuthorizationServerConfigurationData {
   type: string;
   /** How to authenticate with the server, tas:ClientAuthenticationMethod lists the acceptable values */
   clientAuth?: string;
-  /** Authorization server address */
+  /** Authorization server metadata endpoint conforming to RFC8414, such as "https://your.domain/.well-known/openid-configuration" */
   serverUri: AnyURI;
   /** Client identifier issued by the authorization server */
   clientID?: string;
@@ -717,8 +735,8 @@ export interface GetAllCertPathValidationPoliciesResponse {
   certPathValidationPolicy?: CertPathValidationPolicy[];
 }
 export interface SetCertPathValidationPolicy {
-  /** The ID of the certification path validation policy to be modified. */
-  certPathValidationPolicyID: CertPathValidationPolicyID;
+  /** This element is deprecated and ignored; the ID of the certification path validation policy being modified must be specified in the CertPathValidationPolicy structure. */
+  certPathValidationPolicyID?: CertPathValidationPolicyID;
   /** The updated certification path validation policy to be stored. */
   certPathValidationPolicy: CertPathValidationPolicy;
 }

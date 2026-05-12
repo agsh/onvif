@@ -60,7 +60,7 @@ export interface GetConfigurationOptionsResponse {
 }
 export interface SendAuxiliaryCommand {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** The Auxiliary request data. */
   auxiliaryData: AuxiliaryData;
 }
@@ -70,7 +70,7 @@ export interface SendAuxiliaryCommandResponse {
 }
 export interface GetPresets {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetPresetsResponse {
   /** A list of presets which are available for the requested MediaProfile. */
@@ -78,7 +78,7 @@ export interface GetPresetsResponse {
 }
 export interface SetPreset {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A requested preset name. */
   presetName?: string;
   /** A requested preset token. */
@@ -90,13 +90,13 @@ export interface SetPresetResponse {
 }
 export interface RemovePreset {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A requested preset token. */
   presetToken: ReferenceToken;
 }
 export interface GotoPreset {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A requested preset token. */
   presetToken: ReferenceToken;
   /** A requested speed.The speed parameter can only be specified when Speed Spaces are available for the PTZ Node. */
@@ -104,7 +104,7 @@ export interface GotoPreset {
 }
 export interface GetStatus {
   /** A reference to the MediaProfile where the PTZStatus should be requested. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetStatusResponse {
   /** The PTZStatus for the requested MediaProfile. */
@@ -112,19 +112,19 @@ export interface GetStatusResponse {
 }
 export interface GotoHomePosition {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A requested speed.The speed parameter can only be specified when Speed Spaces are available for the PTZ Node. */
   speed?: PTZSpeed;
 }
 export interface GotoHomePositionResponse {}
 export interface SetHomePosition {
   /** A reference to the MediaProfile where the home position should be set. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface SetHomePositionResponse {}
 export interface ContinuousMove {
   /** A reference to the MediaProfile. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A Velocity vector specifying the velocity of pan, tilt and zoom. */
   velocity: PTZSpeed;
   /** An optional Timeout parameter. */
@@ -133,7 +133,7 @@ export interface ContinuousMove {
 export interface ContinuousMoveResponse {}
 export interface RelativeMove {
   /** A reference to the MediaProfile. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A positional Translation relative to the current position */
   translation: PTZVector;
   /** An optional Speed parameter. */
@@ -142,7 +142,7 @@ export interface RelativeMove {
 export interface RelativeMoveResponse {}
 export interface AbsoluteMove {
   /** A reference to the MediaProfile. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A Position vector specifying the absolute target position. */
   position: PTZVector;
   /** An optional Speed. */
@@ -151,7 +151,7 @@ export interface AbsoluteMove {
 export interface AbsoluteMoveResponse {}
 export interface GeoMove {
   /** A reference to the MediaProfile. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** The geolocation of the target position. */
   target: GeoLocation;
   /** An optional Speed. */
@@ -164,7 +164,7 @@ export interface GeoMove {
 export interface GeoMoveResponse {}
 export interface Stop {
   /** A reference to the MediaProfile that indicate what should be stopped. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Set true when we want to stop ongoing pan and tilt movements.If PanTilt arguments are not present, this command stops these movements. */
   panTilt?: boolean;
   /** Set true when we want to stop ongoing zoom movement.If Zoom arguments are not present, this command stops ongoing zoom movement. */
@@ -172,50 +172,50 @@ export interface Stop {
 }
 export interface StopResponse {}
 export interface GetPresetTours {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetPresetToursResponse {
   presetTour?: PresetTour[];
 }
 export interface GetPresetTour {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   presetTourToken: ReferenceToken;
 }
 export interface GetPresetTourResponse {
   presetTour: PresetTour;
 }
 export interface GetPresetTourOptions {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   presetTourToken?: ReferenceToken;
 }
 export interface GetPresetTourOptionsResponse {
   options: PTZPresetTourOptions;
 }
 export interface CreatePresetTour {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface CreatePresetTourResponse {
   presetTourToken: ReferenceToken;
 }
 export interface ModifyPresetTour {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   presetTour: PresetTour;
 }
 export interface ModifyPresetTourResponse {}
 export interface OperatePresetTour {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   presetTourToken: ReferenceToken;
   operation: PTZPresetTourOperation;
 }
 export interface OperatePresetTourResponse {}
 export interface RemovePresetTour {
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   presetTourToken: ReferenceToken;
 }
 export interface RemovePresetTourResponse {}
 export interface GetCompatibleConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleConfigurationsResponse {
   /** A list of all existing PTZConfigurations on the NVT that is suitable to be added to the addressed media profile. */
@@ -223,7 +223,7 @@ export interface GetCompatibleConfigurationsResponse {
 }
 export interface MoveAndStartTracking {
   /** A reference to the MediaProfile where the operation should take place. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** A preset token. */
   presetToken?: ReferenceToken;
   /** The geolocation of the target position. */

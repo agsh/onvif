@@ -167,7 +167,7 @@ export interface EMailBodyTextConfiguration {
 }
 export interface MediaSource {
   /** MediaSource profile reference token */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   [key: string]: unknown;
 }
 export interface HttpHostConfigurations {

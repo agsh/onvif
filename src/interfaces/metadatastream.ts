@@ -46,7 +46,17 @@ export type BarcodeType =
   | 'PDF417'
   | 'QRCode';
 export type LabelAuthority = 'ISO_3864' | 'ISO_7010' | 'UNECE_ADR' | 'UNECE_GHS';
-export type ObjectType = 'Animal' | 'HumanFace' | 'Human' | 'Bicycle' | 'Vehicle' | 'LicensePlate' | 'Bike' | 'Barcode';
+export type ObjectType =
+  | 'Animal'
+  | 'HumanFace'
+  | 'Human'
+  | 'Bicycle'
+  | 'Vehicle'
+  | 'LicensePlate'
+  | 'Bike'
+  | 'Barcode'
+  | 'Fire'
+  | 'Smoke';
 export type ClassType = 'Animal' | 'Face' | 'Human' | 'Vehical' | 'Other';
 export interface Appearance {
   transformation?: Transformation;
@@ -81,13 +91,14 @@ export interface BarcodeInfo {
 export interface LabelInfo {
   likelihood?: number;
   authority: string;
-  ID: unknown;
+  ID: string;
   [key: string]: unknown;
 }
 export interface VehicleInfo {
   type: StringLikelihood;
   brand?: StringLikelihood;
   model?: StringLikelihood;
+  color?: ColorDescriptor;
   [key: string]: unknown;
 }
 export interface LicensePlateInfo {
@@ -112,23 +123,21 @@ export interface ShapeDescriptorExtension {
   [key: string]: unknown;
 }
 export interface StringLikelihood {}
+export interface ClassDescriptor {
+  classCandidate?: ClassCandidate[];
+  extension?: ClassDescriptorExtension;
+  /** For well-defined values see tt:ObjectType. Other type definitions like tt:VehicleType may be applied as well. */
+  type?: StringLikelihood[];
+  [key: string]: unknown;
+}
 export interface ClassCandidate {
   type: ClassType;
   likelihood: number;
   [key: string]: unknown;
 }
-export interface ClassDescriptor {
-  classCandidate?: ClassCandidate[];
-  extension?: ClassDescriptorExtension;
-  /** ONVIF recommends to use this 'Type' element instead of 'ClassCandidate' and 'Extension' above for new design. Acceptable values are defined in tt:ObjectType. */
-  type?: StringLikelihood[];
-  [key: string]: unknown;
-}
 export interface ClassDescriptorExtension {
   otherTypes?: OtherType[];
-  extension?: ClassDescriptorExtension2;
 }
-export interface ClassDescriptorExtension2 {}
 export interface OtherType {
   /** Object Class Type */
   type: string;
@@ -219,6 +228,14 @@ export interface MotionInCells {
   /** A “1” denotes a cell where motion is detected and a “0” an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0). */
   cells: unknown;
   [key: string]: unknown;
+}
+/** An Object track includes a sequence of object states representing how an object's state changes over time. */
+export interface ObjectTrack {
+  objectState: ObjectState[];
+}
+/** An object state describes an object's condition, for e.g position, speed and appearance, at a certain time instance. */
+export interface ObjectState extends OnvifObject {
+  captureTime: Date;
 }
 export interface MetadataStream {}
 export interface MetadataStreamExtension {

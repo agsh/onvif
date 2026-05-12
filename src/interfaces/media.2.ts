@@ -15,6 +15,7 @@ import {
   StringList,
   Description,
   ColorOptions,
+  EQPreset,
   VideoSourceConfigurationOptions,
   VideoEncoder2ConfigurationOptions,
   AudioSourceConfigurationOptions,
@@ -23,10 +24,21 @@ import {
   AudioOutputConfigurationOptions,
   OSDConfiguration,
   OSDConfigurationOptions,
+  Date,
+  MulticastAudioDecoderConfiguration,
+  MulticastAudioDecoderConfigurationOptions,
 } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken, Polygon, Color } from './common';
 
+export type SupportedAudioClipFormat =
+  | 'audio/vnd.wave;codec=1'
+  | 'audio/vnd.wave;codec=7'
+  | 'audio/mpeg'
+  | 'audio/ogg;codecs=opus'
+  | 'audio/ogg;codecs=vorbis'
+  | 'audio/ogg;codecs=flac'
+  | 'audio/ogg;codecs=speex';
 export type ConfigurationEnumeration =
   | 'All'
   | 'VideoSource'
@@ -73,7 +85,11 @@ export interface Capabilities2 {
   /** Streaming capabilities. */
   streamingCapabilities: StreamingCapabilities;
   /** Media signing capabilities. */
-  mediaSigningCapabilities: MediaSigningCapabilities;
+  mediaSigningCapabilities?: MediaSigningCapabilities;
+  /** Audio clip capabilities. */
+  audioClipCapabilities?: AudioClipCapabilities;
+  /** MulticastAudioDecoder capabilities. */
+  multicastAudioDecoderCapabilities?: MulticastAudioDecoderCapabilities;
   [key: string]: unknown;
 }
 export interface ProfileCapabilities {
@@ -100,9 +116,27 @@ export interface StreamingCapabilities {
   secureRTSPStreaming?: boolean;
   [key: string]: unknown;
 }
+export interface MulticastAudioDecoderCapabilities {
+  /** Indicates support for multicast audio decoder. */
+  multicastAudioDecoder?: boolean;
+  /** Indicates whether the SRTP is supported in MulticastAudioDecoder or not. */
+  SRTP?: boolean;
+  /** Indicates whether the IPv6 is supported in MulticastAudioDecoder or not. */
+  IPv6?: boolean;
+  [key: string]: unknown;
+}
 export interface MediaSigningCapabilities {
   /** Indicates whether the device supports signing of media according to the Media Signing Specification. */
   mediaSigningSupported?: boolean;
+  [key: string]: unknown;
+}
+export interface AudioClipCapabilities {
+  /** Indicates the maximum number of audio clips that can be uploaded to the device. */
+  maxAudioClipLimit?: number;
+  /** Indicates the maximum size of the audio clip that can be uploaded, in KB. */
+  maxAudioClipSize?: number;
+  /** Enumerates the supported audio clip formats. See tr2: SupportedAudioClipFormat. */
+  supportedAudioClipFormat?: StringAttrList;
   [key: string]: unknown;
 }
 export interface ConfigurationRef {
@@ -247,6 +281,45 @@ export interface WebRTCConfiguration {
   error?: string;
   [key: string]: unknown;
 }
+export interface AudioClip {
+  /** Enables/disables the audio clip. */
+  enabled: boolean;
+  /** Name of the audio clip. */
+  name: string;
+  /** Optional token list of physical audio outputs. */
+  audioOutputToken?: ReferenceToken[];
+  /** Format of the audio clip. For definitions see tr2:SupportedAudioClipFormat parameter. */
+  type: string;
+  /** The number of times the audio clip can be repeated when it is played. A value of 0 means no repeat (i.e., the audio clip plays once and does not repeat). A value of 1 means the audio clip plays once and repeats once after the first play. A value of -1 means the audio clip repeats infinitely after the first play until it is stopped by the user. */
+  repeatCycles: number;
+  /** Optional time interval, in seconds, between audio clips when the audio clip is repeated. */
+  repeatInterval?: number;
+  /** Optional level to control the volume of the audio clip when it is played. */
+  audioOutputLevel?: number;
+  /** Optional schedule token associated with the audio clip configuration. The audio clip should be played when the configured schedule is triggered. */
+  scheduleToken?: ReferenceToken;
+  [key: string]: unknown;
+}
+export interface GetAudioClipsResponseItem {
+  /** Unique token associated with the audio clip. */
+  token: ReferenceToken;
+  /** Configuration of the audio clip. */
+  configuration: AudioClip;
+  [key: string]: unknown;
+}
+export interface PlayingAudioClips {
+  /** Unique token associated with the audio clip. */
+  token: ReferenceToken;
+  /** Name of the audio clip. */
+  name: string;
+  /** Token list of physical audio outputs. */
+  audioOutputToken: ReferenceToken[];
+  /** Output level to control the volume of the audio clip when it is played. */
+  audioOutputLevel: number;
+  /** Number of repeat cycles left while playing the audio clip. */
+  repeatsLeft: number;
+  [key: string]: unknown;
+}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the media service is returned in the Capabilities element. */
@@ -372,6 +445,11 @@ export interface SetAudioDecoderConfiguration {
   configuration: AudioDecoderConfiguration;
 }
 export interface SetAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
+export interface SetEQPresetConfiguration {
+  /** Contains the modified EQ Preset configuration. */
+  configuration: EQPreset;
+}
+export interface SetEQPresetConfigurationResponse extends SetConfigurationResponse {}
 export interface GetVideoSourceConfigurationOptions extends GetConfiguration {}
 export interface GetVideoSourceConfigurationOptionsResponse {
   /** This message contains the video source configuration options. If a video source configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
@@ -541,3 +619,73 @@ export interface SetWebRTCConfigurations {
   webRTCConfiguration?: WebRTCConfiguration[];
 }
 export interface SetWebRTCConfigurationsResponse {}
+export interface GetAudioClips {
+  /** Audio clip token. */
+  token?: ReferenceToken;
+}
+export interface GetAudioClipsResponse {
+  /** List of audio clip items. */
+  audioClipItem?: GetAudioClipsResponseItem[];
+}
+export interface AddAudioClip {
+  /** Optional token associated with the audio clip. */
+  token?: ReferenceToken;
+  /** Audio clip configuration to add. */
+  configuration: AudioClip;
+}
+export interface AddAudioClipResponse {
+  /** Unique token of the audio clip to be uploaded. */
+  token: ReferenceToken;
+  /** A URL to which the audio clip can be uploaded. */
+  uploadUri: AnyURI;
+  /** Expiry time by which the client should upload the audio clip to the device. */
+  expiryTime: Date;
+}
+export interface SetAudioClip {
+  /** Unique token associated with the audio clip. */
+  token: ReferenceToken;
+  /** Audio clip configuration to modify. */
+  configuration: AudioClip;
+}
+export interface SetAudioClipResponse {}
+export interface DeleteAudioClip {
+  /** Token of the audio clip to be deleted from the device. */
+  token: ReferenceToken;
+}
+export interface DeleteAudioClipResponse {}
+export interface PlayAudioClip {
+  /** Token of the audio clip to be played or stopped. */
+  token: ReferenceToken;
+  /** Optional token list of physical audio outputs. If the AudioOutputToken is not provided in the API request, the AudioOutputToken from the audio clip configuration will be used. */
+  audioOutputToken?: ReferenceToken[];
+  /** If it is true, play the audio clip; if it is false, stop the ongoing audio clip. */
+  play: boolean;
+  /** Optional RepeatCycles to be used for the current play operation. If RepeatCycles is not provided in the API request, the RepeatCycles specified in the audio clip configuration will be used for the current play operation. */
+  repeatCycles?: number;
+}
+export interface PlayAudioClipResponse {}
+export interface GetPlayingAudioClips {}
+export interface GetPlayingAudioClipsResponse {
+  /** List of audio clips currently playing in the device. */
+  playingAudioClips?: PlayingAudioClips[];
+}
+export interface GetMulticastAudioDecoderConfigurations {
+  /** Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations. */
+  configurationToken?: ReferenceToken;
+}
+export interface GetMulticastAudioDecoderConfigurationsResponse {
+  /** This message contains the list of multicast audio decoder configurations. */
+  configurations?: MulticastAudioDecoderConfiguration[];
+}
+export interface GetMulticastAudioDecoderConfigurationOptions {
+  /** This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration. */
+  configurationToken?: ReferenceToken;
+}
+export interface GetMulticastAudioDecoderConfigurationOptionsResponse {
+  options?: MulticastAudioDecoderConfigurationOptions[];
+}
+export interface SetMulticastAudioDecoderConfiguration {
+  /** Contains the modified multicast audio decoder configuration. The configuration shall exist in the device. */
+  configuration: MulticastAudioDecoderConfiguration;
+}
+export interface SetMulticastAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
