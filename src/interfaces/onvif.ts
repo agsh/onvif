@@ -89,7 +89,7 @@ export type MoveAndTrackMethod = 'PresetToken' | 'GeoLocation' | 'PTZVector' | '
 export type AutoFocusMode = 'AUTO' | 'MANUAL';
 export type AFModes = 'OnceAfterMove';
 export type WideDynamicMode = 'OFF' | 'ON';
-/** Enumeration describing the available backlight compensation modes. */
+/** Enumeration describing the available backlight compenstation modes. */
 export type BacklightCompensationMode = 'OFF' | 'ON';
 export type ExposurePriority = 'LowNoise' | 'FrameRate';
 export type ExposureMode = 'AUTO' | 'MANUAL';
@@ -273,6 +273,11 @@ export interface VideoSourceConfigurationExtension2 {
   sceneOrientation?: SceneOrientation;
 }
 export interface Rotate {
+  /**
+   * When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,
+   * when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection, the device shall automatically adjust the pan direction.
+   */
+  mirror?: boolean;
   /** Parameter to enable/disable Rotation feature. */
   mode: RotateMode;
   /** Optional parameter to configure how much degree of clockwise rotation of image  for On mode. Omitting this parameter for On mode means 180 degree rotation. */
@@ -334,10 +339,12 @@ export interface VideoSourceConfigurationOptionsExtension2 {
 }
 export interface RotateOptions {
   /**
-   * Signals if a device requires a reboot after changing the rotation.
-   * If a device can handle rotation changes without rebooting this value shall be set to false.
+   * Signals if a device requires a reboot after changing the rotation or mirror.
+   * If a device can handle rotation changes or mirror changes without rebooting this value shall be set to false.
    */
   reboot?: boolean;
+  /** Signals if video source mirroring is supported. */
+  mirror?: boolean;
   /** Supported options of Rotate mode parameter. */
   mode?: RotateMode[];
   /** List of supported degree value for rotation. */
@@ -434,7 +441,7 @@ export interface JpegOptions {
   resolutionsAvailable?: VideoResolution[];
   /** Supported frame rate in fps (frames per second). */
   frameRateRange: IntRange;
-  /** Supported encoding interval range. The encoding interval corresponds to the number of frames divided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
+  /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
   encodingIntervalRange: IntRange;
 }
 export interface JpegOptions2 extends JpegOptions {
@@ -449,7 +456,7 @@ export interface Mpeg4Options {
   govLengthRange: IntRange;
   /** Supported frame rate in fps (frames per second). */
   frameRateRange: IntRange;
-  /** Supported encoding interval range. The encoding interval corresponds to the number of frames divided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
+  /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
   encodingIntervalRange: IntRange;
   /** List of supported MPEG-4 profiles. */
   mpeg4ProfilesSupported?: Mpeg4Profile[];
@@ -466,7 +473,7 @@ export interface H264Options {
   govLengthRange: IntRange;
   /** Supported frame rate in fps (frames per second). */
   frameRateRange: IntRange;
-  /** Supported encoding interval range. The encoding interval corresponds to the number of frames divided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
+  /** Supported encoding interval range. The encoding interval corresponds to the number of frames devided by the encoded frames. An encoding interval value of "1" means that all frames are encoded. */
   encodingIntervalRange: IntRange;
   /** List of supported H.264 profiles. */
   H264ProfilesSupported?: H264Profile[];
@@ -573,7 +580,7 @@ export interface AudioEncoderConfigurationOptions {
   options?: AudioEncoderConfigurationOption[];
 }
 export interface AudioEncoderConfigurationOption {
-  /** The encoding used for audio data (either G.711, G.726 or AAC) */
+  /** The enoding used for audio data (either G.711, G.726 or AAC) */
   encoding: AudioEncoding;
   /** List of supported bitrates in kbps for the specified Encoding */
   bitrateList: IntItems;
@@ -649,7 +656,7 @@ export interface PTZFilter {
 export interface SubscriptionPolicy {
   [key: string]: unknown;
 }
-/** Subscription handling in the same way as base notification subscription. */
+/** Subcription handling in the same way as base notification subscription. */
 export interface EventSubscription {
   filter?: FilterType;
   subscriptionPolicy?: SubscriptionPolicy;
@@ -671,7 +678,7 @@ export interface MetadataConfigurationOptionsExtension2 {}
 export interface PTZStatusFilterOptions {
   /** True if the device is able to stream pan or tilt status information. */
   panTiltStatusSupported: boolean;
-  /** True if the device is able to stream zoom status information. */
+  /** True if the device is able to stream zoom status inforamtion. */
   zoomStatusSupported: boolean;
   /** True if the device is able to stream the pan or tilt position. */
   panTiltPositionSupported?: boolean;
@@ -750,7 +757,7 @@ export interface AudioOutput extends DeviceEntity {
   [key: string]: unknown;
 }
 export interface AudioOutputConfiguration extends ConfigurationEntity {
-  /** Token of the physical Audio output. */
+  /** Token of the phsycial Audio output. */
   outputToken: ReferenceToken;
   /**
    * An audio channel MAY support different types of audio transmission. While for full duplex
@@ -774,6 +781,28 @@ export interface AudioOutputConfiguration extends ConfigurationEntity {
   sendPrimacy?: AnyURI;
   /** Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange. */
   outputLevel: number;
+  [key: string]: unknown;
+}
+export interface FrequencyDecibelPair {
+  /** The center frequency of the band in hertz (Readonly). For example, value of 1000 refers to 1kHz and 2000 refers to 2kHz. */
+  centerFrequency: number;
+  /** Decibel value associated with the center frequency. */
+  decibel: number;
+  [key: string]: unknown;
+}
+export interface EQPreset {
+  /** Unique identifier for the preset. */
+  token: ReferenceToken;
+  /** Preset name. (Readonly) */
+  name: string;
+  /** This indicates whether the EQ preset is designated as the default. When the scheduler is inactive, this preset will be applied. Only one preset can be set as the default among the EQ presets linked to an audio output. If all presets have isDefault set to false, the device may automatically select one preset as the default. */
+  isDefault: boolean;
+  /** Optional schedule token (if supported). */
+  scheduleToken?: string;
+  /** Indicates whether the device allows changing the decibel level for frequencies. (Readonly) */
+  isFrequencyDecibelEditable: boolean;
+  /** List of frequency decibel pairs, each defined by a center frequency and its corresponding decibel value. */
+  frequencyDecibelPair?: FrequencyDecibelPair[];
   [key: string]: unknown;
 }
 export interface AudioOutputConfigurationOptions {
@@ -801,6 +830,10 @@ export interface AudioOutputConfigurationOptions {
   sendPrimacyOptions?: AnyURI[];
   /** Minimum and maximum level range supported for this Output. */
   outputLevelRange: IntRange;
+  /** Indicates whether EQPreset scheduling is supported. */
+  EQPresetScheduleSupport?: boolean;
+  /** List of supported EQPresets. */
+  EQPresets?: EQPreset[];
   [key: string]: unknown;
 }
 /**
@@ -843,6 +876,104 @@ export interface G726DecOptions {
 export interface AudioDecoderConfigurationOptionsExtension {
   [key: string]: unknown;
 }
+/** Configuration for the Multicast Audio Decoder. */
+export interface MulticastAudioDecoderConfiguration extends ConfigurationEntity {
+  /** Indicates whether the Multicast Audio Decoder is enabled or disabled. */
+  enable: boolean;
+  /** Token of the physical Audio output. This element is optional and can occur multiple times. */
+  audioOutputToken?: ReferenceToken[];
+  /** Specifies the encoding type according to IANA media types. */
+  encoding: string;
+  /** The bitrate of the audio stream in bits per second. */
+  bitrate: number;
+  /** The sampling rate of the audio stream in kHz. */
+  samplingRate: number;
+  /** Contains configuration details for multicast settings. */
+  multicast: MulticastReceiverConfiguration;
+  /**
+   * Defines the RTP payload type used for the audio stream.
+   * To ensure compatibility, it is recommended to use dynamic payload types (96 and above), as specified in RFC 3551.
+   * Standard payload types (0-95) should only be used for predefined audio formats matching the audio encoding as defined in
+   * IANA RTP Payload Types,
+   * as using them for non-standard media may lead to unexpected errors or interoperability issues.
+   */
+  RTPPayloadType: number;
+  /**
+   * Indicates the priority level when multiple configurations are active.
+   * A higher value signifies a higher priority. If several configurations have the same priority value the order between those configurations is undefined.
+   */
+  priority: number;
+  /**
+   * Optional media format parameters as specified in SDP, such as:
+   * a=fmtp:101 stereo=1; sprop-stereo=1.
+   */
+  mediaFormatParameters?: string;
+  /** Optional configuration parameters for SRTP pre-shared key usage, applicable when SRTP is supported. When this configuration is present, RTP packets shall be encrypted. */
+  SRTPPreSharedParameters?: SRTPPreShared;
+  [key: string]: unknown;
+}
+export interface SRTPPreShared {
+  /**
+   * An optional SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
+   * This includes both the SRTP master key, followed by the master salt.
+   * The sizes of the key and salt depend on the specified SRTPCryptoPolicy.
+   * When this element is specified, RTP packets shall be encrypted.
+   * The SRTPPSK shall never be returned on a get method.
+   */
+  SRTPPSK: string;
+  /**
+   * Specifies the cryptographic algorithm when using SRTP,
+   * selecting from predefined values provided in the GetMulticastAudioDecoderConfigurationOptions response.
+   */
+  secureStreamingProtocolAlgorithm: string;
+  /**
+   * The RTP header extension ID (ExtMapID) used to identify the ROC extension, as defined in RFC 8285.
+   * Valid values are 1 to 14 for one-byte header extensions.
+   */
+  ROCExtMapID: number;
+  [key: string]: unknown;
+}
+export interface MulticastReceiverConfiguration {
+  /** The multicast address (if this address is set to 0 no multicast streaming is enabled) */
+  address: IPAddress;
+  /** The RTP multicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification. */
+  port: number;
+  /** In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope. */
+  TTL: number;
+  /** Unique identifier of the network interface on the device. If not specified, all available interfaces will be used for listening. */
+  interfaceToken?: ReferenceToken[];
+  /** When a source-specific multicast address is configured, the device will process multicast data only from the specified source, in accordance with SSM principles defined in RFC 4607. */
+  sourceSpecificMulticast?: IPAddress;
+  [key: string]: unknown;
+}
+export interface MulticastAudioDecoderConfigurationOptions {
+  /** Supported encoding options for the multicast audio decoder. */
+  encodingOptions: AudioDecoder2Options;
+  /** Specifies the priority range as an integer. This indicates the priority level for audio configuration. */
+  priorityRange: IntRange;
+  /**
+   * An optional parameter specifies the list of supported cryptographic algorithms when SRTP support is signaled as 'true' in the GetServiceCapabilitiesResponse.
+   * Refer to tt:SrtpSecurityAlgorithms for the acceptable values.
+   */
+  secureStreamingProtocolAlgorithms?: StringList;
+  /** Optional list of physical Audio output tokens. This element is used when only certain audio outputs can be configured for this token. */
+  audioOutputTokens?: StringList;
+  [key: string]: unknown;
+}
+export interface AudioDecoder2Options {
+  /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
+  encoding: string;
+  /** List of supported bitrates in kbps for the specified Encoding */
+  bitrateList: IntItems;
+  /** List of supported Sample Rates in kHz for the specified Encoding */
+  sampleRateList: IntItems;
+  /**
+   * Optional element for specifying the RTP payload type,
+   * particularly when it is fixed for a specific audio encoding as defined in IANA RTP Payload Types.
+   */
+  RTPPayloadType?: number;
+  [key: string]: unknown;
+}
 export interface MulticastConfiguration {
   /** The multicast address (if this address is set to 0 no multicast streaming is enaled) */
   address: IPAddress;
@@ -850,7 +981,7 @@ export interface MulticastConfiguration {
   port: number;
   /** In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope. */
   TTL: number;
-  /** Read only property signalling that streaming is persistent. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state. */
+  /** Read only property signalling that streaming is persistant. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state. */
   autoStart: boolean;
   [key: string]: unknown;
 }
@@ -955,7 +1086,7 @@ export interface IPv4Configuration {
   [key: string]: unknown;
 }
 export interface IPv6Configuration {
-  /** Indicates whether router advertisement is used. */
+  /** Indicates whether router advertisment is used. */
   acceptRouterAdvert?: boolean;
   /** DHCP configuration. */
   DHCP: IPv6DHCPConfiguration;
@@ -965,7 +1096,7 @@ export interface IPv6Configuration {
   linkLocal?: PrefixedIPv6Address[];
   /** List of IPv6 addresses configured by using DHCP. */
   fromDHCP?: PrefixedIPv6Address[];
-  /** List of IPv6 addresses configured by using router advertisement. */
+  /** List of IPv6 addresses configured by using router advertisment. */
   fromRA?: PrefixedIPv6Address[];
   extension?: IPv6ConfigurationExtension;
 }
@@ -1087,7 +1218,7 @@ export interface NetworkInterfaceSetConfigurationExtension {
 export interface IPv6NetworkInterfaceSetConfiguration {
   /** Indicates whether or not IPv6 is enabled. */
   enabled?: boolean;
-  /** Indicates whether router advertisement is used. */
+  /** Indicates whether router advertisment is used. */
   acceptRouterAdvert?: boolean;
   /** List of manually added IPv6 addresses. */
   manual?: PrefixedIPv6Address[];
@@ -1482,9 +1613,9 @@ export interface SystemLogUri {
   uri: AnyURI;
   [key: string]: unknown;
 }
-/** General date time information returned by the GetSystemDateTime method. */
+/** General date time inforamtion returned by the GetSystemDateTime method. */
 export interface SystemDateTime {
-  /** Indicates if the time is set manually or through NTP. */
+  /** Indicates if the time is set manully or through NTP. */
   dateTimeType: SetDateTimeType;
   /** Informative indicator whether daylight savings is currently on/off. */
   daylightSavings: boolean;
@@ -1540,6 +1671,12 @@ export interface RemoteUser {
   useDerivedPassword: boolean;
   [key: string]: unknown;
 }
+export interface UserRole {
+  /** Name of the editable user level. */
+  name: string;
+  /** Names of the permitted function for the editable user level. The names must be prepended by the namespace prefix and colon. */
+  functions: StringList;
+}
 export interface User {
   /** Username string. */
   username: string;
@@ -1550,6 +1687,8 @@ export interface User {
   extension?: UserExtension;
 }
 export interface UserExtension {
+  /** The names of the roles assigned to the user. */
+  roles: StringList;
   [key: string]: unknown;
 }
 export interface CertificateGenerationParameters {
@@ -1613,7 +1752,7 @@ export interface Dot1XConfigurationExtension {
   [key: string]: unknown;
 }
 export interface EAPMethodConfiguration {
-  /** Configuration information for TLS Method. */
+  /** Confgiuration information for TLS Method. */
   TLSConfiguration?: TLSConfiguration;
   /** Password for those EAP Methods that require a password. The password shall never be returned on a get method. */
   password?: string;
@@ -1941,7 +2080,7 @@ export interface PTZPresetTourSpotOptions {
 export interface PTZPresetTourPresetDetailOptions {
   /** A list of available Preset Tokens for tour spots. */
   presetToken?: ReferenceToken[];
-  /** An option to indicate Home position for tour spots. */
+  /** An option to indicate Home postion for tour spots. */
   home?: boolean;
   /** Supported range of Pan and Tilt for tour spots. */
   panTiltPositionSpace?: Space2DDescription;
@@ -2146,7 +2285,7 @@ export interface ContinuousFocusOptions {
   speed: FloatRange;
 }
 export interface WhiteBalance {
-  /** Auto white balancing mode (auto/manual). */
+  /** Auto whitebalancing mode (auto/manual). */
   mode: WhiteBalanceMode;
   /** Rgain (unitless). */
   crGain: number;
@@ -2362,7 +2501,7 @@ export interface ImageStabilizationOptionsExtension {
   [key: string]: unknown;
 }
 export interface IrCutFilterAutoAdjustmentOptions {
-  /** Supported options of boundary types for adjustment of Ir cut filter auto mode. The options shall be chosen from tt:IrCutFilterAutoBoundaryType. */
+  /** Supported options of boundary types for adjustment of Ir cut filter auto mode. The opptions shall be chosen from tt:IrCutFilterAutoBoundaryType. */
   boundaryType?: string[];
   /** Indicates whether or not boundary offset for toggling Ir cut filter is supported. */
   boundaryOffset?: boolean;
@@ -2528,7 +2667,7 @@ export interface SimpleItem {
 export interface ElementItem {
   /** Item name. */
   name: string;
-  /** XML tree containing the element value as defined in the corresponding description. */
+  /** XML tree contiaing the element value as defined in the corresponding description. */
   [key: string]: unknown;
 }
 export interface ItemList {
@@ -2577,7 +2716,7 @@ export interface ElementItemDescription {
  * Use ElementItems only when complex structures are inevitable.
  */
 export interface ItemListDescription {
-  /** Description of a simple item. The type must be of category simpleType (xs:string, xs:integer, xs:float, ...). */
+  /** Description of a simple item. The type must be of cathegory simpleType (xs:string, xs:integer, xs:float, ...). */
   simpleItemDescription?: SimpleItemDescription[];
   /** Description of a complex type. The Type must reference a defined type. */
   elementItemDescription?: ElementItemDescription[];
@@ -2722,11 +2861,11 @@ export interface PaneConfiguration {
 export interface PaneLayout {
   /** Reference to the configuration of the streaming and coding parameters. */
   pane: ReferenceToken;
-  /** Describes the location and size of the area on the monitor. The area coordinate values are expressed in normalized units [-1.0, 1.0]. */
+  /** Describes the location and size of the area on the monitor. The area coordinate values are espressed in normalized units [-1.0, 1.0]. */
   area: Rectangle;
   [key: string]: unknown;
 }
-/** A layout describes a set of Video windows that are displayed simultaneously on a display. */
+/** A layout describes a set of Video windows that are displayed simultaniously on a display. */
 export interface Layout {
   /** List of panes assembling the display layout. */
   paneLayout?: PaneLayout[];
@@ -2741,7 +2880,7 @@ export interface CodingCapabilities {
   audioEncodingCapabilities?: AudioEncoderConfigurationOptions;
   /** If the device supports audio decoding this section describes the supported codecs and their settings. */
   audioDecodingCapabilities?: AudioDecoderConfigurationOptions;
-  /** This section describes the supported video codecs and their configuration. */
+  /** This section describes the supported video codesc and their configuration. */
   videoDecodingCapabilities: VideoDecoderConfigurationOptions;
   [key: string]: unknown;
 }
@@ -2853,7 +2992,7 @@ export interface FindEventResult {
   recordingToken: RecordingReference;
   /** A reference to the track where this event was found. Empty string if no track is associated with this event. */
   trackToken: TrackReference;
-  /** The time when the event occurred. */
+  /** The time when the event occured. */
   time: Date;
   /** The description of the event. */
   event: unknown;
@@ -2909,7 +3048,7 @@ export interface RecordingInformation {
   recordingStatus: RecordingStatus;
   [key: string]: unknown;
 }
-/** A set of informative descriptions of a data source. The Search service allows a client to filter on recordings based on information in this structure. */
+/** A set of informative desciptions of a data source. The Search searvice allows a client to filter on recordings based on information in this structure. */
 export interface RecordingSourceInformation {
   /**
    * Identifier for the source chosen by the client that creates the structure.
@@ -2926,16 +3065,27 @@ export interface RecordingSourceInformation {
   address: AnyURI;
   [key: string]: unknown;
 }
+export interface AsymmetricEncryption {
+  /** List of certificates used to encrypt the symmetric key for the PSSH box. */
+  certificateID: string[];
+  /**
+   * Frequency at which the device shall generate a new key to encrypt a new segment.
+   * If not specified, key rotation is disabled.
+   * KeyRotationDuration must be a positive duration value.
+   */
+  keyRotationDuration?: Duration;
+  [key: string]: unknown;
+}
 export interface RecordingEncryption {
   /**
    * Mode of encryption.
    * See tt:EncryptionMode for a list of definitions and capability trc:SupportedEncryptionModes for the supported encryption modes.
    */
   mode: string;
-  /** Key ID of the associated key for encryption. */
-  KID: string;
+  /** Key ID of the associated key for encryption. This parameter is ignored when AsymmetricEncryption is configured. */
+  KID?: string;
   /**
-   * Key for encrypting content.
+   * Key for encrypting content. This parameter is ignored when AsymmetricEncryption is configured.
    * The device shall not include this parameter when reading.
    */
   key?: unknown;
@@ -2945,6 +3095,7 @@ export interface RecordingEncryption {
    * Each track shall only be contained in one encryption configuration.
    */
   track?: string[];
+  asymmetricEncryption?: AsymmetricEncryption;
   [key: string]: unknown;
 }
 export interface SegmentDurationOverride {
@@ -3056,7 +3207,7 @@ export interface RecordingConfiguration {
   /** Informative description of the source. */
   content: Description;
   /**
-   * Specifies the maximum time that data in any track within the
+   * Sspecifies the maximum time that data in any track within the
    * recording shall be stored. The device shall delete any data older than the maximum retention
    * time. Such data shall not be accessible anymore. If the MaximumRetentionPeriod is set to 0,
    * the device shall not limit the retention time of stored data, except by resource constraints.
@@ -3355,7 +3506,7 @@ export interface OSDPosConfiguration {
 export interface OSDPosConfigurationExtension {
   [key: string]: unknown;
 }
-/** The value range of "Transparent" could be defined by vendors only should follow this rule: the minimum value means non-transparent and the maximum value means fully transparent. */
+/** The value range of "Transparent" could be defined by vendors only should follow this rule: the minimum value means non-transparent and the maximum value maens fully transparent. */
 export interface OSDColor {
   transparent?: number;
   color: Color;
@@ -3416,9 +3567,9 @@ export interface OSDImgConfigurationExtension {
   [key: string]: unknown;
 }
 export interface ColorspaceRange {
-  X: FloatRange;
-  Y: FloatRange;
-  Z: FloatRange;
+  x: FloatRange;
+  y: FloatRange;
+  z: FloatRange;
   /** Acceptable values are the same as in tt:Color. */
   colorspace: AnyURI;
 }
@@ -3428,7 +3579,7 @@ export interface ColorOptions {}
 export interface OSDColorOptions {
   /** Optional list of supported colors. */
   color?: ColorOptions;
-  /** Range of the transparent level. Larger means more transparent. */
+  /** Range of the transparent level. Larger means more tranparent. */
   transparent?: IntRange;
   extension?: OSDColorOptionsExtension;
 }

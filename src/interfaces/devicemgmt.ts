@@ -21,6 +21,7 @@ import {
   NetworkHost,
   RemoteUser,
   User,
+  UserRole,
   CapabilityCategory,
   HostnameInformation,
   DNSInformation,
@@ -53,7 +54,7 @@ import {
   Dot11AvailableNetworks,
   SystemLogUriList,
 } from './onvif';
-import { IntRange, ReferenceToken, LocationEntity } from './common';
+import { ReferenceToken, IntRange, LocationEntity } from './common';
 
 export type AutoGeoModes = 'Location' | 'Heading' | 'Leveling';
 /** All hardware types specified are related to network devices supporting ONVIF specification. */
@@ -154,6 +155,8 @@ export interface SecurityCapabilities {
   maxPasswordHistory?: number;
   /** Supported hashing algorithms as part of HTTP and RTSP Digest authentication.Example: MD5,SHA-256 */
   hashingAlgorithms?: StringList;
+  /** Whenever set to an integer greater than zero, it signals that the device supports editable user roles. It indicates the maximum number of editable user roles. */
+  maxUserRoles?: number;
 }
 export interface SystemCapabilities {
   /** Indicates support for WS Discovery resolve requests. */
@@ -168,6 +171,8 @@ export interface SystemCapabilities {
   systemLogging?: boolean;
   /** Indicates support for firmware upgrade through MTOM. */
   firmwareUpgrade?: boolean;
+  /** Indicates support for firmware upgrade through the cloud. */
+  cloudFirmwareUpgrade?: boolean;
   /** Indicates support for firmware upgrade through HTTP. */
   httpFirmwareUpgrade?: boolean;
   /** Indicates support for system backup through HTTP. */
@@ -180,6 +185,8 @@ export interface SystemCapabilities {
   storageConfiguration?: boolean;
   /** Indicates maximum number of storage configurations supported. */
   maxStorageConfigurations?: number;
+  /** Indicates support for renewal of storage configuration. */
+  storageConfigurationRenewal?: boolean;
   /** If present signals support for geo location. The value signals the supported number of entries. */
   geoLocationEntries?: number;
   /** List of supported automatic GeoLocation adjustment supported by the device. Valid items are defined by tds:AutoGeoMode. */
@@ -207,12 +214,26 @@ export interface Extension {
 export interface UserCredential {
   /** User name */
   userName: string;
-  /** optional password */
+  /** optional password, device shall not return the credentials (password) in the reply. */
   password?: string;
   extension?: Extension;
-  /** optional access token */
+  /** optional access token, device shall not return the credentials (token) in the reply. */
   token?: string;
   [key: string]: unknown;
+}
+export interface ConfigurationRenewal {
+  /** Remote URL to be queried by the device to renew the storage configuration. */
+  renewalEndpoint: AnyURI;
+  /** AuthorizationServer token referring to the server that provides access tokens to authorize with the the renewal endpoint. */
+  authorizationServer: ReferenceToken;
+  /**
+   * CertPathValidationPolicyID used to validate the renewal endpoint server certificate.
+   * If not configured, server certificate validation behavior is undefined and the device may either apply
+   * a vendor specific default validation policy or skip validation at all.
+   */
+  certPathValidationPolicyID?: string;
+  /** Optional user readable error information (readonly). */
+  error?: string;
 }
 export interface StorageConfigurationData {
   /** tds:StorageType lists the acceptable values for type attribute */
@@ -228,6 +249,7 @@ export interface StorageConfigurationData {
   extension?: Extension;
   /** The unique identifier of the certification path validation policy to be used for validating the server certificate as declared in the security service. */
   certPathValidationPolicyID?: string;
+  configurationRenewal?: ConfigurationRenewal;
   [key: string]: unknown;
 }
 export interface StorageConfiguration extends DeviceEntity {
@@ -399,6 +421,20 @@ export interface SetUser {
   user: User[];
 }
 export interface SetUserResponse {}
+export interface GetUserRoles {
+  userRole?: string;
+}
+export interface GetUserRolesResponse {
+  userRole?: UserRole[];
+}
+export interface SetUserRole {
+  userRole: UserRole;
+}
+export interface SetUserRoleResponse {}
+export interface DeleteUserRole {
+  userRole: string;
+}
+export interface DeleteUserRoleResponse {}
 export interface GetWsdlUrl {}
 export interface GetWsdlUrlResponse {
   wsdlUrl: AnyURI;
@@ -755,6 +791,12 @@ export interface StartFirmwareUpgrade {}
 export interface StartFirmwareUpgradeResponse {
   uploadUri: AnyURI;
   uploadDelay: Duration;
+  expectedDownTime: Duration;
+}
+export interface UpgradeFirmware {
+  version: string;
+}
+export interface UpgradeFirmwareResponse {
   expectedDownTime: Duration;
 }
 export interface StartSystemRestore {}
