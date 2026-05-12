@@ -1,52 +1,51 @@
-- [ ] SetConfigurationResponse {}
-- [ ] GetServiceCapabilitiesResponse {
-- [x] CreateProfileResponse {
-- [x] GetProfilesResponse {
-- [x] AddConfigurationResponse {}
-- [x] RemoveConfigurationResponse {}
-- [x] DeleteProfileResponse {}
-- [x] GetVideoEncoderConfigurationsResponse {
-- [x] GetVideoSourceConfigurationsResponse {
-- [x] GetAudioEncoderConfigurationsResponse {
-- [x] GetAudioSourceConfigurationsResponse {
-- [x] GetAnalyticsConfigurationsResponse {
-- [x] GetMetadataConfigurationsResponse {
-- [x] GetAudioOutputConfigurationsResponse {
-- [x] GetAudioDecoderConfigurationsResponse {
-- [x] SetVideoEncoderConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetVideoSourceConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetAudioSourceConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetMetadataConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetAudioOutputConfigurationResponse extends SetConfigurationResponse {}
-- [x] SetAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
-- [x] GetVideoSourceConfigurationOptionsResponse {
-- [x] GetVideoEncoderConfigurationOptionsResponse {
-- [x] GetAudioSourceConfigurationOptionsResponse {
-- [x] GetAudioEncoderConfigurationOptionsResponse {
-- [x] GetMetadataConfigurationOptionsResponse {
-- [x] GetAudioOutputConfigurationOptionsResponse {
-- [x] GetAudioDecoderConfigurationOptionsResponse {
-- [x] GetVideoEncoderInstancesResponse {
-- [x] GetStreamUriResponse {
-- [x] SetSynchronizationPointResponse {}
-- [x] GetSnapshotUriResponse {
-- [x] StartMulticastStreamingResponse extends SetConfigurationResponse {}
-- [x] StopMulticastStreamingResponse extends SetConfigurationResponse {}
-- [x] GetVideoSourceModesResponse {
-- [x] SetVideoSourceModeResponse {
-- [x] GetOSDsResponse {
-- [x] SetOSDResponse extends SetConfigurationResponse {}
-- [x] GetOSDOptionsResponse {
-- [x] CreateOSDResponse {
-- [x] DeleteOSDResponse extends SetConfigurationResponse {}
-- [x] GetMasksResponse {
-- [ ] SetMaskResponse extends SetConfigurationResponse {}
-- [ ] GetMaskOptionsResponse {
-- [ ] CreateMaskResponse {
-- [ ] DeleteMaskResponse extends SetConfigurationResponse {}
-- [ ] GetWebRTCConfigurationsResponse {
-- [ ] SetWebRTCConfigurationsResponse {}
+- [ ] GetServiceCapabilities {
+- [x] CreateProfile {
+- [x] GetProfiles {
+- [x] AddConfiguration {}
+- [x] RemoveConfiguration {}
+- [x] DeleteProfile {}
+- [x] GetVideoEncoderConfigurations {
+- [x] GetVideoSourceConfigurations {
+- [x] GetAudioEncoderConfigurations {
+- [x] GetAudioSourceConfigurations {
+- [x] GetAnalyticsConfigurations {
+- [x] GetMetadataConfigurations {
+- [x] GetAudioOutputConfigurations {
+- [x] GetAudioDecoderConfigurations {
+- [x] SetVideoEncoderConfiguration extends SetConfiguration {}
+- [x] SetVideoSourceConfiguration extends SetConfiguration {}
+- [x] SetAudioEncoderConfiguration extends SetConfiguration {}
+- [x] SetAudioSourceConfiguration extends SetConfiguration {}
+- [x] SetMetadataConfiguration extends SetConfiguration {}
+- [x] SetAudioOutputConfiguration extends SetConfiguration {}
+- [x] SetAudioDecoderConfiguration extends SetConfiguration {}
+- [x] GetVideoSourceConfigurationOptions {
+- [x] GetVideoEncoderConfigurationOptions {
+- [x] GetAudioSourceConfigurationOptions {
+- [x] GetAudioEncoderConfigurationOptions {
+- [x] GetMetadataConfigurationOptions {
+- [x] GetAudioOutputConfigurationOptions {
+- [x] GetAudioDecoderConfigurationOptions {
+- [x] GetVideoEncoderInstances {
+- [x] GetStreamUri {
+- [x] SetSynchronizationPoint {}
+- [x] GetSnapshotUri {
+- [x] StartMulticastStreaming extends SetConfiguration {}
+- [x] StopMulticastStreaming extends SetConfiguration {}
+- [x] GetVideoSourceModes {
+- [x] SetVideoSourceMode {
+- [x] GetOSDs {
+- [x] SetOSD extends SetConfiguration {}
+- [x] GetOSDOptions {
+- [x] CreateOSD {
+- [x] DeleteOSD extends SetConfiguration {}
+- [x] GetMasks {
+- [x] SetMask extends SetConfiguration {}
+- [x] GetMaskOptions {
+- [x] CreateMask {
+- [x] DeleteMask extends SetConfiguration {}
+- [ ] GetWebRTCConfigurations {
+- [ ] SetWebRTCConfigurations {}
 
 87.11
 89.26
