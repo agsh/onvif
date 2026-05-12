@@ -1,8 +1,10 @@
 import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import {
+  Capabilities2,
   ConfigurationEnumeration,
   CreateOSDResponse,
+  Mask,
   MediaProfile,
   VideoSourceMode,
 } from '../src/interfaces/media.2';
@@ -1063,6 +1065,234 @@ describe('OSD', () => {
         expect(() => cam.media2.deleteOSD({ OSDToken: 'x' })).toThrow(
           'Media2 profile is not supported for this device',
         );
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+});
+
+describe('getServiceCapabilities', () => {
+  it('should return Media2 capabilities with profile and streaming sections', async () => {
+    const caps = await cam.media2.getServiceCapabilities();
+    expect(caps).toBeDefined();
+    expect(typeof caps).toBe('object');
+    expect(caps.profileCapabilities).toBeDefined();
+    expect(typeof caps.profileCapabilities).toBe('object');
+    expect(caps.streamingCapabilities).toBeDefined();
+    expect(typeof caps.streamingCapabilities).toBe('object');
+  });
+
+  it('should expose optional mask flags as booleans when present', async () => {
+    const caps: Capabilities2 = await cam.media2.getServiceCapabilities();
+    expect(caps.mask === undefined || typeof caps.mask === 'boolean').toBe(true);
+    expect(caps.sourceMask === undefined || typeof caps.sourceMask === 'boolean').toBe(true);
+  });
+
+  it('should fail if media ver20 is not supported', () => {
+    cam.device.media2Support = false;
+    try {
+      expect(() => cam.media2.getServiceCapabilities()).toThrow('Media2 profile is not supported for this device');
+    } finally {
+      cam.device.media2Support = true;
+    }
+  });
+});
+
+describe('Masks', () => {
+  let videoSourceConfigurationToken: ReferenceToken;
+
+  beforeAll(async () => {
+    const configurations = await cam.media2.getVideoSourceConfigurations({});
+    if (configurations.length === 0) {
+      throw new Error('getVideoSourceConfigurations returned no configurations for mask tests');
+    }
+    videoSourceConfigurationToken = configurations[0].token;
+  });
+  describe('getMasks', () => {
+    it('should return an array (possibly empty)', async () => {
+      const masks = await cam.media2.getMasks();
+      expect(Array.isArray(masks)).toBe(true);
+    });
+
+    it('should accept configurationToken filter', async () => {
+      const masks = await cam.media2.getMasks({
+        configurationToken: videoSourceConfigurationToken,
+      });
+      expect(Array.isArray(masks)).toBe(true);
+    });
+
+    it('should return a single mask when token filter matches an existing mask', async () => {
+      const all = await cam.media2.getMasks();
+      if (all.length === 0) {
+        return;
+      }
+      const maskToken = all[0].token!;
+      const filtered = await cam.media2.getMasks({ token: maskToken });
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].token).toBe(maskToken);
+    });
+
+    it('should fail if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() => cam.media2.getMasks()).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+
+  describe('getMaskOptions', () => {
+    it('should return mask options when masking is supported', async () => {
+      const caps = await cam.media2.getServiceCapabilities();
+      if (!caps.mask) {
+        return;
+      }
+      const options = await cam.media2.getMaskOptions({
+        configurationToken: videoSourceConfigurationToken,
+      });
+      expect(options).toBeDefined();
+      expect(typeof options.maxMasks).toBe('number');
+      expect(options.maxMasks).toBeGreaterThanOrEqual(0);
+      expect(typeof options.maxPoints).toBe('number');
+      expect(options.maxPoints).toBeGreaterThanOrEqual(0);
+      expect(options.color).toBeDefined();
+    });
+
+    it('should fail if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() =>
+          cam.media2.getMaskOptions({ configurationToken: videoSourceConfigurationToken }),
+        ).toThrow('Media2 profile is not supported for this device');
+      } finally {
+        cam.device.media2Support = true;
+      }
+    });
+  });
+
+  describe('createMask / setMask / deleteMask', () => {
+    function rectanglePolygon(pointCount: number): Mask['polygon'] {
+      if (pointCount >= 4) {
+        return {
+          point: [
+            { x: 0.05, y: 0.05 },
+            { x: 0.25, y: 0.05 },
+            { x: 0.25, y: 0.25 },
+            { x: 0.05, y: 0.25 },
+          ],
+        };
+      }
+      return {
+        point: [
+          { x: 0.1, y: 0.1 },
+          { x: 0.2, y: 0.1 },
+          { x: 0.15, y: 0.2 },
+        ],
+      };
+    }
+
+    it('should accept setMask for an existing mask unchanged', async () => {
+      const list = await cam.media2.getMasks({ configurationToken: videoSourceConfigurationToken });
+      if (list.length === 0) {
+        return;
+      }
+      const mask = list[0];
+      await expect(cam.media2.setMask(mask)).resolves.toBeUndefined();
+    });
+
+    it('should reject createMask for a non-existent video source configuration token', async () => {
+      await expect(
+        cam.media2.createMask({
+          token: `jest_bad_${Date.now()}`,
+          configurationToken: '___nonexistent_configuration_token___' as ReferenceToken,
+          type: 'Blurred',
+          enabled: true,
+          polygon: {
+            point: [
+              { x: 0.1, y: 0.1 },
+              { x: 0.2, y: 0.1 },
+              { x: 0.15, y: 0.2 },
+            ],
+          },
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should create a mask, update it with setMask, then delete it', async () => {
+      const caps = await cam.media2.getServiceCapabilities();
+      if (!caps.mask) {
+        return;
+      }
+      const options = await cam.media2.getMaskOptions({
+        configurationToken: videoSourceConfigurationToken,
+      });
+      if (options.maxMasks === 0 || options.maxPoints < 3) {
+        return;
+      }
+      expect(options.maxMasks).toBeGreaterThan(0);
+      expect(options.maxPoints).toBeGreaterThanOrEqual(3);
+
+      const maskType = options.types?.includes('Blurred')
+        ? 'Blurred'
+        : options.types?.includes('Color')
+          ? 'Color'
+          : (options.types?.[0] ?? 'Pixelated');
+      const pointCount = options.rectangleOnly ? 4 : Math.min(3, options.maxPoints);
+      const polygon = rectanglePolygon(pointCount);
+
+      const requestedToken = `jest_mask_${Date.now()}`;
+      const maskPayload: Mask = {
+        token: requestedToken,
+        configurationToken: videoSourceConfigurationToken,
+        type: maskType,
+        enabled: true,
+        polygon,
+        ...(maskType === 'Color'
+          ? {
+              color: {
+                x: 0.5,
+                y: 0.5,
+                z: 0.5,
+                colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr',
+              },
+            }
+          : {}),
+      };
+
+      let maskToken: ReferenceToken;
+      try {
+        const createResponse = await cam.media2.createMask(maskPayload);
+        expect(createResponse.token).toBeDefined();
+        maskToken = createResponse.token;
+
+        const updated: Mask = {
+          token: maskToken,
+          configurationToken: videoSourceConfigurationToken,
+          type: maskType,
+          enabled: false,
+          polygon,
+        };
+        await cam.media2.setMask(updated);
+
+        await cam.media2.deleteMask({ token: maskToken });
+
+        const after = await cam.media2.getMasks({ token: maskToken });
+        expect(after.length).toBe(0);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/config not exist|not implemented|action not supported|invalid/i.test(msg)) {
+          return;
+        }
+        throw e;
+      }
+    });
+
+    it('should fail deleteMask if media ver20 is not supported', () => {
+      cam.device.media2Support = false;
+      try {
+        expect(() => cam.media2.deleteMask({ token: 'x' })).toThrow('Media2 profile is not supported for this device');
       } finally {
         cam.device.media2Support = true;
       }
