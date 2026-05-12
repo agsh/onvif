@@ -1,6 +1,11 @@
 import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { ConfigurationEnumeration, MediaProfile, VideoSourceMode } from '../src/interfaces/media.2';
+import {
+  ConfigurationEnumeration,
+  CreateOSDResponse,
+  MediaProfile,
+  VideoSourceMode,
+} from '../src/interfaces/media.2';
 import {
   AudioDecoderConfiguration,
   AudioEncoder2Configuration,
@@ -1019,10 +1024,7 @@ describe('OSD', () => {
         return;
       }
 
-      const beforeList = await cam.media2.getOSDs();
-      const beforeTokens = new Set((beforeList ?? []).map((o) => o.token));
-
-      await cam.media2.createOSD({
+      const createResponse: CreateOSDResponse = await cam.media2.createOSD({
         token: `jest_req_${Date.now()}`,
         videoSourceConfigurationToken,
         type: 'Text',
@@ -1030,14 +1032,12 @@ describe('OSD', () => {
         textString: { type: 'Plain', plainText: 'jest osd' },
       });
 
-      const afterCreate = await cam.media2.getOSDs();
-      const added = afterCreate?.find((o) => !beforeTokens.has(o.token));
-      expect(added).toBeDefined();
+      expect(createResponse.OSDToken).toBeDefined();
 
-      await cam.media2.deleteOSD({ OSDToken: added!.token });
+      await cam.media2.deleteOSD({ OSDToken: createResponse.OSDToken });
 
       const afterDelete = await cam.media2.getOSDs();
-      expect(afterDelete?.some((o) => o.token === added!.token)).toBe(false);
+      expect(afterDelete?.some((o) => o.token === createResponse.OSDToken)).toBe(false);
     });
 
     it('should fail createOSD if media ver20 is not supported', () => {

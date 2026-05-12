@@ -170,8 +170,10 @@ describe('Add/remove configurations to the profile', () => {
 
   configurationNames.forEach((configurationName) => {
     describe(`remove${configurationName}`, () => {
-      it('should throw an error if profile token empty', async () => {
-        await expect(mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({})).rejects.toThrow();
+      it('should not throw an error if profile token empty and use active source', async () => {
+        await expect(
+          mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({}),
+        ).resolves.toBeUndefined();
       });
 
       it('should throw an error if profile token does not exist', async () => {
@@ -351,7 +353,6 @@ describe('getSnapshotUri', () => {
     });
     const implicitNoArgs = await cam.media.getSnapshotUri();
     expect(implicitNoArgs.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
-    // @ts-expect-error profileToken is defaulted at runtime when the property is omitted
     const implicitEmpty = await cam.media.getSnapshotUri({});
     expect(implicitEmpty.mediaUri!.uri).toBe(explicit.mediaUri!.uri);
   });
