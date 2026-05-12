@@ -3,12 +3,30 @@ import { ColorDescriptor } from './common';
 export type BodyShape = 'Fat' | 'Thin' | 'Other';
 export type TopsCategory = 'LongSleeve' | 'ShortSleeve' | 'Sleeveless' | 'Other';
 export type Grain = 'Stria' | 'Plaid' | 'PureColour' | 'Decal' | 'Other';
-export type TopsStyle = 'Tailor' | 'Jacket' | 'Shirt' | 'Sweater' | 'Overcoat' | 'Dress' | 'Vest' | 'Other';
+export type TopsStyle =
+  | 'Tailor'
+  | 'Jacket'
+  | 'Shirt'
+  | 'Sweater'
+  | 'Overcoat'
+  | 'Dress'
+  | 'Vest'
+  | 'SafetyVest'
+  | 'Other';
 export type BottomsCategory = 'Trousers' | 'Shorts' | 'Skirt' | 'Other';
 export type BottomsStyle = 'FormalPants' | 'Jeans' | 'Other';
 export type ShoesCategory = 'Boots' | 'LeatherShoes' | 'Sneakers' | 'Sandal' | 'Slipper' | 'Other';
-export type KnapsackCategory = 'SingleShoulderBag' | 'Backpack' | 'Other';
+export type BagCategory =
+  | 'ShoulderBag'
+  | 'Backpack'
+  | 'ToteBag'
+  | 'Briefcase'
+  | 'Suitcase'
+  | 'SingleShoulderBag'
+  | 'Other';
 export type CartCategory = 'BabyCarriage' | 'TwoWheelVehicle' | 'Tricyle' | 'Other';
+export type WeaponCategory = 'Knife' | 'Rifle' | 'Pistol' | 'Revolver';
+export type WeaponPose = 'InHolster' | 'InHand' | 'Aiming';
 export type Smoking = 'NoSmoking' | 'Cigar' | 'ElectronicCigarettes' | 'Other';
 export type UsingMobile = 'ByLeftHand' | 'ByRightHand' | 'Other';
 export type HumanActivity =
@@ -84,7 +102,7 @@ export interface Clothing {
   [key: string]: unknown;
 }
 export interface Bag {
-  /** Describe the Category of the Bag, acceptable values are defined in bd:KnapsackCategory. */
+  /** Describe the Category of the Bag, acceptable values are defined in bd:BagCategory. */
   category?: string;
   /** Describe the Colour of the Bag, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
@@ -111,6 +129,15 @@ export interface Cart {
   color?: ColorDescriptor;
   [key: string]: unknown;
 }
+export interface Weapon {
+  /** Describe the Category of the Weapon, acceptable values are defined in bd:WeaponCategory. */
+  category?: string;
+  /** Describe the Color of the weapon, acceptable values are defined in tt:ColorDescriptor. */
+  color?: ColorDescriptor;
+  /** Describes how the weapon is held. Acceptable values are defined in bd:WeaponPose. */
+  pose?: string;
+  [key: string]: unknown;
+}
 export interface Belonging {
   /** Describe the Bag of the body,acceptable values are defined in bd:Bag */
   bag?: Bag;
@@ -124,6 +151,17 @@ export interface Belonging {
   cart?: Cart;
   /** Describe if the body carries the Weapon. */
   weapon?: boolean;
+  [key: string]: unknown;
+}
+export interface Belongings {
+  /** Describes a bag the body is wearing. */
+  bag?: Bag[];
+  /** Describes an umbrella carried by the body. */
+  umbrella?: Umbrella;
+  /** Describes a cart pushed by the body. */
+  cart?: Cart;
+  /** Describe a waepon the body carries. */
+  weapon?: Weapon[];
   [key: string]: unknown;
 }
 export interface Behaviour {
@@ -140,9 +178,11 @@ export interface HumanBody {
   bodyMetric?: BodyMetric;
   /** Describe the Clothing of the body. */
   clothing?: Clothing;
-  /** Describe the Belonging of the body. */
+  /** Deprecated set of belongings. Use Belongings. */
   belonging?: Belonging;
   /** Describe the Behaviour of the body. */
   behaviour?: Behaviour;
+  /** Set of belongings. */
+  belongings?: Belongings;
   [key: string]: unknown;
 }

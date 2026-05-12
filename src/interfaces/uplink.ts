@@ -1,4 +1,4 @@
-import { Capabilities } from './onvif';
+import { StringList, Capabilities } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken } from './common';
 
@@ -10,8 +10,8 @@ export interface Configuration {
   remoteAddress: AnyURI;
   /** ID of the certificate to be used for client authentication. */
   certificateID?: string;
-  /** Authorization level that will be assigned to the uplink connection. */
-  userLevel: string;
+  /** List of authorization levels and roles that will be used to restrict the commands that will be accepted through the uplink connection. */
+  userLevel: StringList;
   /** Current connection status (see tup:ConnectionStatus for possible values). */
   status?: string;
   /**
@@ -19,7 +19,7 @@ export interface Configuration {
    * behavior is undefined and the device may either apply a vendor specific default validation policy or skip validation at all.
    */
   certPathValidationPolicyID?: string;
-  /** AuthorizationServer token referring to the server that provides JWT tokens to authorize with the uplink server. */
+  /** AuthorizationServer token referring to the server that provides access tokens to authorize with the uplink server. */
   authorizationServer?: ReferenceToken;
   /** Optional user readable error information (readonly). */
   error?: string;

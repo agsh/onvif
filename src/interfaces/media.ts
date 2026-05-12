@@ -118,7 +118,7 @@ export interface CreateProfileResponse {
 }
 export interface GetProfile {
   /** this command requests a specific profile */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetProfileResponse {
   /** returns the requested media profile */
@@ -131,7 +131,7 @@ export interface GetProfilesResponse {
 }
 export interface AddVideoEncoderConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the VideoEncoderConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -141,12 +141,12 @@ export interface RemoveVideoEncoderConfiguration {
    * Contains a reference to the media profile from which the
    * VideoEncoderConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveVideoEncoderConfigurationResponse {}
 export interface AddVideoSourceConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the VideoSourceConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -156,12 +156,12 @@ export interface RemoveVideoSourceConfiguration {
    * Contains a reference to the media profile from which the
    * VideoSourceConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveVideoSourceConfigurationResponse {}
 export interface AddAudioEncoderConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the AudioEncoderConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -171,12 +171,12 @@ export interface RemoveAudioEncoderConfiguration {
    * Contains a reference to the media profile from which the
    * AudioEncoderConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveAudioEncoderConfigurationResponse {}
 export interface AddAudioSourceConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the AudioSourceConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -186,12 +186,12 @@ export interface RemoveAudioSourceConfiguration {
    * Contains a reference to the media profile from which the
    * AudioSourceConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveAudioSourceConfigurationResponse {}
 export interface AddPTZConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the PTZConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -201,12 +201,12 @@ export interface RemovePTZConfiguration {
    * Contains a reference to the media profile from which the
    * PTZConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemovePTZConfigurationResponse {}
 export interface AddVideoAnalyticsConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the VideoAnalyticsConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -216,12 +216,12 @@ export interface RemoveVideoAnalyticsConfiguration {
    * Contains a reference to the media profile from which the
    * VideoAnalyticsConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveVideoAnalyticsConfigurationResponse {}
 export interface AddMetadataConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the MetadataConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -231,12 +231,12 @@ export interface RemoveMetadataConfiguration {
    * Contains a reference to the media profile from which the
    * MetadataConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveMetadataConfigurationResponse {}
 export interface AddAudioOutputConfiguration {
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the AudioOutputConfiguration to add */
   configurationToken: ReferenceToken;
 }
@@ -246,24 +246,24 @@ export interface RemoveAudioOutputConfiguration {
    * Contains a reference to the media profile from which the
    * AudioOutputConfiguration shall be removed.
    */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveAudioOutputConfigurationResponse {}
 export interface AddAudioDecoderConfiguration {
   /** This element contains a reference to the profile where the configuration should be added. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** This element contains a reference to the AudioDecoderConfiguration to add. */
   configurationToken: ReferenceToken;
 }
 export interface AddAudioDecoderConfigurationResponse {}
 export interface RemoveAudioDecoderConfiguration {
   /** This element contains a  reference to the media profile from which the AudioDecoderConfiguration shall be removed. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface RemoveAudioDecoderConfigurationResponse {}
 export interface DeleteProfile {
   /** This element contains a  reference to the profile that should be deleted. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface DeleteProfileResponse {}
 export interface GetVideoEncoderConfigurations {}
@@ -372,7 +372,7 @@ export interface GetAudioDecoderConfigurationResponse {
 }
 export interface GetCompatibleVideoEncoderConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleVideoEncoderConfigurationsResponse {
   /** Contains a list of video encoder configurations that are compatible with the specified media profile. */
@@ -380,7 +380,7 @@ export interface GetCompatibleVideoEncoderConfigurationsResponse {
 }
 export interface GetCompatibleVideoSourceConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleVideoSourceConfigurationsResponse {
   /** Contains a list of video source configurations that are compatible with the specified media profile. */
@@ -388,7 +388,7 @@ export interface GetCompatibleVideoSourceConfigurationsResponse {
 }
 export interface GetCompatibleAudioEncoderConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleAudioEncoderConfigurationsResponse {
   /** Contains a list of audio encoder configurations that are compatible with the specified media profile. */
@@ -396,7 +396,7 @@ export interface GetCompatibleAudioEncoderConfigurationsResponse {
 }
 export interface GetCompatibleAudioSourceConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleAudioSourceConfigurationsResponse {
   /** Contains a list of audio source configurations that are compatible with the specified media profile. */
@@ -404,7 +404,7 @@ export interface GetCompatibleAudioSourceConfigurationsResponse {
 }
 export interface GetCompatibleVideoAnalyticsConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleVideoAnalyticsConfigurationsResponse {
   /** Contains a list of video analytics configurations that are compatible with the specified media profile. */
@@ -412,7 +412,7 @@ export interface GetCompatibleVideoAnalyticsConfigurationsResponse {
 }
 export interface GetCompatibleMetadataConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleMetadataConfigurationsResponse {
   /** Contains a list of metadata configurations that are compatible with the specified media profile. */
@@ -420,7 +420,7 @@ export interface GetCompatibleMetadataConfigurationsResponse {
 }
 export interface GetCompatibleAudioOutputConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleAudioOutputConfigurationsResponse {
   /** Contains a list of audio output configurations that are compatible with the specified media profile. */
@@ -428,7 +428,7 @@ export interface GetCompatibleAudioOutputConfigurationsResponse {
 }
 export interface GetCompatibleAudioDecoderConfigurations {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetCompatibleAudioDecoderConfigurationsResponse {
   /** Contains a list of audio decoder configurations that are compatible with the specified media profile. */
@@ -577,7 +577,7 @@ export interface GetStreamUri {
   /** Stream Setup that should be used with the uri */
   streamSetup: StreamSetup;
   /** The ProfileToken element indicates the media profile to use and will define the configuration of the content of the stream. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetStreamUriResponse {
   /**/
@@ -585,22 +585,22 @@ export interface GetStreamUriResponse {
 }
 export interface StartMulticastStreaming {
   /** Contains the token of the Profile that is used to define the multicast stream. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface StartMulticastStreamingResponse {}
 export interface StopMulticastStreaming {
   /** Contains the token of the Profile that is used to define the multicast stream. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface StopMulticastStreamingResponse {}
 export interface SetSynchronizationPoint {
   /** Contains a Profile reference for which a Synchronization Point is requested. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface SetSynchronizationPointResponse {}
 export interface GetSnapshotUri {
   /** The ProfileToken element indicates the media profile to use and will define the source and dimensions of the snapshot. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 export interface GetSnapshotUriResponse {
   /**/
