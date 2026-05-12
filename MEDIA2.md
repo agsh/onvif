@@ -35,12 +35,12 @@
 - [x] StopMulticastStreamingResponse extends SetConfigurationResponse {}
 - [x] GetVideoSourceModesResponse {
 - [x] SetVideoSourceModeResponse {
-- [~] GetOSDsResponse {
-- [~] SetOSDResponse extends SetConfigurationResponse {}
-- [~] GetOSDOptionsResponse {
-- [~] CreateOSDResponse {
-- [~] DeleteOSDResponse extends SetConfigurationResponse {}
-- [ ] GetMasksResponse {
+- [x] GetOSDsResponse {
+- [x] SetOSDResponse extends SetConfigurationResponse {}
+- [x] GetOSDOptionsResponse {
+- [x] CreateOSDResponse {
+- [x] DeleteOSDResponse extends SetConfigurationResponse {}
+- [x] GetMasksResponse {
 - [ ] SetMaskResponse extends SetConfigurationResponse {}
 - [ ] GetMaskOptionsResponse {
 - [ ] CreateMaskResponse {

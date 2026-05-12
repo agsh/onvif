@@ -129,7 +129,7 @@ interface AddConfiguration {
   /** Configuration name */
   name: string;
   /** Reference to the profile where the configuration should be added */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
   /** Contains a reference to the configuration to add */
   configurationToken: ReferenceToken;
 }
@@ -138,7 +138,7 @@ interface RemoveConfiguration {
   /** Configuration name */
   name: string;
   /** Contains a reference to the media profile from which the configuration shall be removed. */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 
 type ConfigurationExtended = VideoSourceConfiguration & VideoEncoderConfiguration & AudioEncoderConfiguration;
@@ -147,7 +147,7 @@ interface GetCompatibleConfigurations {
   /** Configuration name */
   entityName: string;
   /** Contains the token of an existing media profile the configurations shall be compatible with */
-  profileToken: ReferenceToken;
+  profileToken?: ReferenceToken;
 }
 
 interface GetConfiguration {
@@ -258,7 +258,7 @@ export class Media {
       service: 'media',
       body:
         `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-        `<ProfileToken>${profileToken}</ProfileToken>` +
+        `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
         `<ConfigurationToken>${configurationToken}</ConfigurationToken>` +
         `</${name}>`,
     });
@@ -403,7 +403,7 @@ export class Media {
       service: 'media',
       body:
         `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-        `<ProfileToken>${profileToken}</ProfileToken>` +
+        `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
         `</${name}>`,
     });
   }
@@ -665,7 +665,7 @@ export class Media {
   }: GetCompatibleConfigurations): Promise<ConfigurationExtended[]> {
     const body =
       `<GetCompatible${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-      `<ProfileToken>${profileToken}</ProfileToken>` +
+      `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
       `</GetCompatible${entityName}Configurations>`;
     const [data] = await this.onvif.request({
       service: 'media',
