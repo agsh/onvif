@@ -1,6 +1,5 @@
 import { AnyURI, Duration } from './basics';
 import {
-  Capabilities,
   OnvifVersion,
   IntList,
   StringList,
@@ -70,6 +69,10 @@ export type HardwareTypes =
   | 'Display'
   | 'IO-Device';
 export type StorageType = 'NFS' | 'CIFS' | 'CDMI' | 'FTP' | 'ObjectStorageS3' | 'ObjectStorageAzure';
+export interface Capabilities {
+  /** The placeholder for the service capabilities. The service capability element shall be returned here. For example for the device service that would be the tds:DeviceServiceCapabilities element (not complextype). */
+  [key: string]: unknown;
+}
 export interface Service {
   /** Namespace of the service being described. This parameter allows to match the service capabilities to the service. Note that only one set of capabilities is supported per namespace. */
   namespace: AnyURI;

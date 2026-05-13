@@ -1,7 +1,24 @@
-import { StringList, Capabilities, SupportedRules, Config, SupportedAnalyticsModules } from './onvif';
+import { StringList, SupportedRules, Config, SupportedAnalyticsModules } from './onvif';
 import { Frame } from './metadatastream';
 import { ReferenceToken } from './common';
 
+export interface Capabilities {
+  /** Indication that the device supports the rules interface and the rules syntax. */
+  ruleSupport?: boolean;
+  /** Indication that the device supports the scene analytics module interface. */
+  analyticsModuleSupport?: boolean;
+  /** Indication that the device produces the cell based scene description */
+  cellBasedSceneDescriptionSupported?: boolean;
+  /** Indication that the device supports the GetRuleOptions operation on the rules interface */
+  ruleOptionsSupported?: boolean;
+  /** Indication that the device supports the GetAnalyticsModuleOptions operation on the analytics interface */
+  analyticsModuleOptionsSupported?: boolean;
+  /** Indication that the device supports the GetSupportedMetadata operation. */
+  supportedMetadata?: boolean;
+  /** Indication what kinds of method that the device support for sending image, acceptable values are defined in tt:ImageSendingType. */
+  imageSendingType?: StringList;
+  [key: string]: unknown;
+}
 export interface ConfigOptions {
   /** The RuleType the ConfigOptions applies to if the Name attribute is ambiguous. */
   ruleType?: unknown;

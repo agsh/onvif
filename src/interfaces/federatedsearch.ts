@@ -1,10 +1,12 @@
 import { AnyURI } from './basics';
-import { Capabilities } from './onvif';
 
 /** Corresponds to SimpleTermType definition in ISO/IEC 15938-12 */
 export type SimpleTermType = AnyURI;
 /** Corresponds to mimeType definition in ISO/IEC 15938-12 */
 export type mimeType = string;
+export interface Capabilities {
+  [key: string]: unknown;
+}
 /**
  * Contains features provided by a database, formatted according to
  * presets defined in ISO/IEC 15938-12
