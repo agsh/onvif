@@ -2,6 +2,7 @@
  * Media ver20 module
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  * @see https://www.onvif.org/specs/srv/media/ONVIF-Media2-Service-Spec.pdf
+ * @see http://www.onvif.org/ver20/media/wsdl
  */
 
 import { Onvif } from './onvif';
@@ -23,7 +24,6 @@ import {
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
   WebRTCConfiguration,
-  GetWebRTCConfigurations,
   GetStreamUriResponse,
   GetSnapshotUri,
   GetSnapshotUriResponse,
@@ -46,7 +46,6 @@ import {
   GetMaskOptions,
   MaskOptions,
   DeleteMask,
-  GetServiceCapabilities,
   Capabilities2,
 } from './interfaces/media.2';
 import { build, linerase, toOnvifXMLSchemaObject } from './utils';
@@ -56,13 +55,10 @@ import {
   AudioDecoderConfigurationOptions,
   AudioEncoder2Configuration,
   AudioEncoderConfigurationOption,
-  AudioEncoderConfigurationOptions,
   AudioOutputConfiguration,
   AudioOutputConfigurationOptions,
   AudioSourceConfiguration,
   AudioSourceConfigurationOptions,
-  LensDescription,
-  LensProjection,
   MetadataConfiguration,
   MetadataConfigurationOptions,
   OSDConfiguration,
@@ -70,11 +66,9 @@ import {
   VideoAnalyticsConfiguration,
   VideoEncoder2Configuration,
   VideoEncoder2ConfigurationOptions,
-  VideoEncoderConfigurationOptions,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
-import { GetOSDsResponse } from './interfaces/media';
 
 /**
  * Configurations as defined by tr2:ConfigurationEnumeration
@@ -125,7 +119,7 @@ export interface AudioOutputConfigurationExtended extends AudioOutputConfigurati
  * Media service, ver20 profile
  */
 export class Media2 {
-  private onvif: Onvif;
+  private readonly onvif: Onvif;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
