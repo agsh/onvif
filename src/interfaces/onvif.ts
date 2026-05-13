@@ -1599,7 +1599,7 @@ export interface BinaryData {
 }
 export interface AttachmentData {
   contentType?: unknown;
-  clude: unknown;
+  include: unknown;
 }
 export interface BackupFile {
   name: string;
