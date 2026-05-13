@@ -1,8 +1,27 @@
 import { AnyURI, FilterType, Duration } from './basics';
-import { Capabilities, Date } from './onvif';
+import { Date } from './onvif';
 
 export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
+export interface Capabilities {
+  /** Indicates that the WS Subscription policy is supported. */
+  WSSubscriptionPolicySupport?: boolean;
+  /** Indicates that the WS Pausable Subscription Manager Interface is supported. */
+  WSPausableSubscriptionManagerInterfaceSupport?: boolean;
+  /** Maximum number of supported notification producers as defined by WS-BaseNotification. */
+  maxNotificationProducers?: number;
+  /** Maximum supported number of notification pull points. */
+  maxPullPoints?: number;
+  /** Indication if the device supports persistent notification storage. */
+  persistentNotificationStorage?: boolean;
+  /** A space separated list of supported event broker protocols as defined by the tev:EventBrokerProtocol datatype. */
+  eventBrokerProtocols?: string;
+  /** Maxiumum number of event broker configurations that can be added to the device. */
+  maxEventBrokers?: number;
+  /** Indicates that metadata streaming over MQTT is supported */
+  metadataOverMQTT?: boolean;
+  [key: string]: unknown;
+}
 export interface EventBrokerConfig {
   /** Event broker address in the format "scheme://host:port[/resource]". The supported schemes shall be returned by the EventBrokerProtocols capability. The resource part of the URL is only valid when using websocket. The Address must be unique. */
   address: AnyURI;

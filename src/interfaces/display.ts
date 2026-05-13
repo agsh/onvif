@@ -1,6 +1,11 @@
-import { Capabilities, Layout, LayoutOptions, CodingCapabilities, PaneConfiguration } from './onvif';
 import { ReferenceToken } from './common';
+import { Layout, LayoutOptions, CodingCapabilities, PaneConfiguration } from './onvif';
 
+export interface Capabilities {
+  /** Indication that the SetLayout command supports only predefined layouts. */
+  fixedLayout?: boolean;
+  [key: string]: unknown;
+}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the display service is returned in the Capabilities element. */
