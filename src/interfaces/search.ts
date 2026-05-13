@@ -1,5 +1,4 @@
 import {
-  Capabilities,
   RecordingSummary,
   RecordingReference,
   RecordingInformation,
@@ -18,6 +17,12 @@ import {
 } from './onvif';
 import { Duration } from './basics';
 
+export interface Capabilities {
+  metadataSearch?: boolean;
+  /** Indicates support for general virtual property events in the FindEvents method. */
+  generalStartEvents?: boolean;
+  [key: string]: unknown;
+}
 export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the search service is returned in the Capabilities element. */
