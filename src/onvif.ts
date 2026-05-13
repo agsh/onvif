@@ -69,9 +69,17 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   /** SOAP body */
   body: string;
   /** Defines another url to request */
-  url?: string;
+  url?: URL;
   /** Make request to PTZ uri or not */
   ptz?: boolean;
+  /** Timeout for pull-point event requests */
+  timeout?: number;
+  /** Keep header open
+   * @deprecated
+   */
+  openHeader?: boolean;
+  /** Additional SOAP-headers */
+  soapHeaders?: string;
 }
 
 interface RequestError extends Error {
@@ -227,7 +235,7 @@ export class Onvif extends EventEmitter {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
         setImmediate(() => {
-          // this._eventRequest(); TODO bring back
+          this.events.eventRequest();
         });
       }
     });
@@ -240,10 +248,10 @@ export class Onvif extends EventEmitter {
 
   /**
    * Envelope header for all SOAP messages
-   * @param openHeader
+   * @param options
    * @private
    */
-  private envelopeHeader(openHeader = false) {
+  envelopeHeader(options?: OnvifRequestOptions) {
     let header =
       '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">' +
       '<s:Header>';
@@ -260,7 +268,10 @@ export class Onvif extends EventEmitter {
         '</UsernameToken>' +
         '</Security>';
     }
-    if (!(openHeader !== undefined && openHeader)) {
+    if (options?.soapHeaders) {
+      header += options.soapHeaders;
+    }
+    if (options?.openHeader !== true) {
       header +=
         '</s:Header>' +
         '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
@@ -298,13 +309,23 @@ export class Onvif extends EventEmitter {
       let alreadyReturned = false;
       const requestOptions: RequestOptions = {
         ...options,
-        hostname: this.hostname,
-        path: options.service
-          ? this.uri[options.service]
-            ? this.uri[options.service]!.pathname
-            : this.path
-          : this.path,
-        port: this.port,
+        ...(options.url
+          ? {
+              // if we have url property for pull-point event requests
+              hostname: options.url.hostname,
+              path: options.url.pathname,
+              port: options.url.port,
+            }
+          : {
+              // try to guess the right path for the requested service
+              hostname: this.hostname,
+              path: options.service
+                ? this.uri[options.service]
+                  ? this.uri[options.service]!.pathname
+                  : this.path
+                : this.path,
+              port: this.port,
+            }),
         agent: this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
         timeout: this.timeout,
       };
@@ -362,7 +383,7 @@ export class Onvif extends EventEmitter {
         return undefined;
       });
 
-      request.setTimeout(this.timeout, () => {
+      request.setTimeout(options.timeout ?? this.timeout, () => {
         if (alreadyReturned) {
           return;
         }
@@ -448,7 +469,7 @@ export class Onvif extends EventEmitter {
     options.headers = options.headers ?? {};
     return this.rawRequest({
       ...options,
-      body: `${this.envelopeHeader()}${options.body}${this.envelopeFooter()}`,
+      body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
     });
   }
 
@@ -691,8 +712,6 @@ export class Onvif extends EventEmitter {
       await this.device.getCapabilities();
     }
     await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
-    const prof = await this.media2.getProfiles();
-    const vs = await this.media2.getVideoSourceConfigurations();
     await this.getActiveSources();
     this.emit('connect');
     return this;
