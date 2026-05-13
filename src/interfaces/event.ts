@@ -46,9 +46,9 @@ export interface CreatePullPointSubscriptionResponse {
   /** Endpoint reference of the subscription to be used for pulling the messages. */
   subscriptionReference: unknown;
   /** Current time of the server for synchronization purposes. */
-  urrentTime: unknown;
+  currentTime: unknown;
   /** Date time when the PullPoint will be shut down without further pull requests. */
-  erminationTime: unknown;
+  terminationTime: unknown;
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
@@ -62,7 +62,7 @@ export interface PullMessagesResponse {
   /** Date time when the PullPoint will be shut down without further pull requests. */
   terminationTime: Date;
   /** List of messages. This list shall be empty in case of a timeout. */
-  otificationMessage?: unknown[];
+  notificationMessage?: unknown[];
 }
 export interface PullMessagesFaultResponse {
   /** Maximum timeout supported by the device. */
@@ -84,7 +84,7 @@ export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
   topicNamespaceLocation: AnyURI[];
   /** True when topicset is fixed for all times. */
-  ixedTopicSet: unknown;
+  fixedTopicSet: unknown;
   /** Set of topics supported. */
   topicSet: unknown;
   /**
@@ -95,7 +95,7 @@ export interface GetEventPropertiesResponse {
    * http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet.
    *
    */
-  opicExpressionDialect: unknown[];
+  topicExpressionDialect: unknown[];
   /**
    * Defines the XPath function set supported for message content filtering.
    * The following MessageContentFilterDialects should be returned if a device supports the message content filtering:
