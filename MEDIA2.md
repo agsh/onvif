@@ -1,4 +1,4 @@
-- [ ] GetServiceCapabilities {
+- [x] GetServiceCapabilities {
 - [x] CreateProfile {
 - [x] GetProfiles {
 - [x] AddConfiguration {}

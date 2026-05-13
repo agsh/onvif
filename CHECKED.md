@@ -143,6 +143,12 @@ Plus new methods have been added in v1.x.
 - [ ] setOSD
 - [ ] deleteOSD
 - [ ] getMediaServiceCapabilities
+- [x] getOSDs cam.media2.getOSDs (schema strict)
+- [x] getOSDOptions cam.media2.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
+- [x] createOSD.media2
+- [x] setOSD.media2
+- [x] deleteOSD.media2
+- [x] getMediaServiceCapabilities.media2
 - [x] getPresets
 - [x] gotoPreset
 - [x] setPreset
