@@ -18,6 +18,7 @@ import { PTZ } from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
+import { Events } from './events';
 
 /**
  * Cam constructor options
@@ -175,6 +176,7 @@ export class Onvif extends EventEmitter {
   public readonly media: Media;
   public readonly media2: Media2;
   public readonly ptz: PTZ;
+  public readonly events: Events;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -187,7 +189,6 @@ export class Onvif extends EventEmitter {
   public timeout: number;
   public agent: Agent | boolean;
   public preserveAddress = false;
-  private events: Record<string, unknown>;
   public uri: OnvifServices;
   private timeShift?: number;
   public capabilities: Capabilities;
@@ -212,7 +213,6 @@ export class Onvif extends EventEmitter {
     this.urn = options.urn;
     this.agent = options.agent ?? false;
     this.preserveAddress = options.preserveAddress ?? false;
-    this.events = {};
     this.uri = {};
     this.capabilities = {};
 
@@ -220,6 +220,7 @@ export class Onvif extends EventEmitter {
     this.media = new Media(this);
     this.media2 = new Media2(this);
     this.ptz = new PTZ(this);
+    this.events = new Events(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
