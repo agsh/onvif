@@ -446,12 +446,19 @@ export class Media2 {
    * to the provided media profile.
    * - If no tokens are provided the device shall respond with all available configurations.
    * @protected Specs not ready yet, this method is for the future development
-   * @param options
+   * @experimental
    */
   @v2
-  private async getWebRTCConfigurations(options: GetWebRTCConfigurations): Promise<WebRTCConfiguration[]> {
-    // return this.getConfigurations({ entityName : 'WebRTC', ...options });
-    return [];
+  protected async getWebRTCConfigurations(): Promise<WebRTCConfiguration[]> {
+    const body = build({
+      GetWebRTCConfigurations: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media2', body });
+    return linerase(data, { array: ['webRTCConfiguration'] }).getWebRTCConfigurationsResponse.webRTCConfiguration;
   }
 
   /**
@@ -1241,6 +1248,12 @@ export class Media2 {
     return linerase(data).createMaskResponse;
   }
 
+  /**
+   * Set the Mask
+   * @see {@link createMask}
+   * @param options
+   */
+  @v2
   async setMask(options: Mask): Promise<void> {
     const body = build({
       SetMask: {
