@@ -1,5 +1,4 @@
 import { AnyURI, FilterType, Duration } from './basics';
-import { Date } from './onvif';
 
 export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
 export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
