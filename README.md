@@ -5,7 +5,10 @@
 ONVIF Client protocol Node.js implementation.
 
 > [!TIP]
-> This is unstable branch for version 1.x, for stable use version 0.x see [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
+> This page is for the future version of the ONVIF library version 1.x written in typescript.
+> If you are looking for the readme for stable version 0.x, please see
+> [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
+
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and 
@@ -36,6 +39,7 @@ Thanks a lot for your interest and I will be glad to any questions and comments!
   [onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces)
 * Complete [documentation](https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/index.html)
 * Tests with the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
+* Events support
 * Full media2 [support](https://github.com/agsh/onvif/blob/v1/MEDIA2.md)
 
 ### Interfaces
