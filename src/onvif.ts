@@ -18,7 +18,7 @@ import { PTZ } from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
-import { Events } from './events';
+import { Events, NotificationMessage } from './events';
 
 /**
  * Cam constructor options
@@ -133,7 +133,17 @@ export interface SystemDateTimeExtended extends SystemDateTime {
   dateTime: Date;
 }
 
-export class Onvif extends EventEmitter {
+type OnvifEvents = {
+  newListener: string; // private usage for event handling
+  /**
+   * Indicates any event from Onvif device.
+   * @event event
+   * @example
+   * ```typescript
+   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * ```
+   */
+  event: NotificationMessage;
   /**
    * Indicates raw xml request to device.
    * @event rawRequest
@@ -142,7 +152,7 @@ export class Onvif extends EventEmitter {
    * onvif.on('rawRequest', (xml) => { console.log('-> request was', xml); });
    * ```
    */
-  static rawRequest = 'rawRequest' as const;
+  rawRequest: string;
   /**
    * Indicates raw xml response from device.
    * @event rawResponse
@@ -151,7 +161,7 @@ export class Onvif extends EventEmitter {
    * onvif.on('rawResponse', (xml) => { console.log('<- response was', xml); });
    * ```
    */
-  static rawResponse = 'rawResponse' as const;
+  rawResponse: string;
   /**
    * Indicates any warnings
    * @event warn
@@ -160,17 +170,22 @@ export class Onvif extends EventEmitter {
    * onvif.on('warn', console.warn);
    * ```
    */
-  static warn = 'warn' as const;
+  warn: Error;
   /**
    * Indicates any errors
-   * @param error Error object
    * @event error
    * @example
    * ```typescript
    * onvif.on('error', console.error);
    * ```
    */
-  static error = 'error' as const;
+  error: Error;
+};
+
+export class Onvif extends EventEmitter {
+  on<K extends keyof OnvifEvents>(event: K, listener: (payload: OnvifEvents[K]) => void): this {
+    return super.on(event, listener);
+  }
 
   /**
    * Core device namespace for device v1.0 methods
