@@ -65,8 +65,8 @@
 -[x] GetAudioDecoderConfigurationOptions
 -[x] GetGuaranteedNumberOfVideoEncoderInstances
 -[x] GetStreamUri
--[ ] StartMulticastStreaming
--[ ] StopMulticastStreaming
+-[x] StartMulticastStreaming
+-[x] StopMulticastStreaming
 -[ ] SetSynchronizationPoint
 -[x] GetSnapshotUri
 -[ ] GetVideoSourceModes

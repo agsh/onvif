@@ -95,6 +95,8 @@ import {
   GetStreamUriResponse,
   GetSnapshotUriResponse,
   Capabilities,
+  StopMulticastStreaming,
+  StartMulticastStreaming,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -195,7 +197,7 @@ export class Media {
     const body = build({
       GetServiceCapabilities: {
         $: {
-          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
         },
       },
     });
@@ -1612,6 +1614,43 @@ export class Media {
       body,
     });
     return linerase(data).getSnapshotUriResponse;
+  }
+
+  /**
+   * This command starts multicast streaming using a specified media profile of a device. Streaming continues until
+   * StopMulticastStreaming is called for the same Profile. The streaming shall continue after a reboot of the device
+   * until a StopMulticastStreaming request is received. The multicast address, port and TTL are configured in the
+   * VideoEncoderConfiguration, AudioEncoderConfiguration and MetadataConfiguration respectively.
+   * @param options
+   */
+  async startMulticastStreaming(options?: StartMulticastStreaming): Promise<void> {
+    const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
+    const body = build({
+      StartMulticastStreaming: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media', body });
+  }
+
+  /**
+   * This command stop multicast streaming using a specified media profile of a device
+   * @param options
+   */
+  async stopMulticastStreaming(options?: StopMulticastStreaming): Promise<void> {
+    const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
+    const body = build({
+      StopMulticastStreaming: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+        ProfileToken: profileToken,
+      },
+    });
+    await this.onvif.request({ service: 'media', body });
   }
 
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {
