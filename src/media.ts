@@ -94,6 +94,7 @@ import {
   SetAudioDecoderConfiguration,
   GetStreamUriResponse,
   GetSnapshotUriResponse,
+  Capabilities,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -188,6 +189,21 @@ export class Media {
   }
 
   /**
+   * Returns the capabilities of the media service. The result is returned in a typed answer.
+   */
+  async getServiceCapabilities(): Promise<Capabilities> {
+    const body = build({
+      GetServiceCapabilities: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver20/media/wsdl',
+        },
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media', body });
+    return linerase(data).getServiceCapabilitiesResponse.capabilities;
+  }
+
+  /**
    * Receive profiles in Media ver10 format
    * Any endpoint can ask for the existing media profiles of a device using the GetProfiles command. Pre-configured or
    * dynamically configured profiles can be retrieved using this command. This command lists all configured profiles in
@@ -254,13 +270,16 @@ export class Media {
    * Common function to add configuration
    */
   private async addConfiguration({ name, configurationToken, profileToken }: AddConfiguration) {
+    const body = build({
+      [name]: {
+        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ConfigurationToken: configurationToken,
+      },
+    });
     await this.onvif.request({
       service: 'media',
-      body:
-        `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-        `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
-        `<ConfigurationToken>${configurationToken}</ConfigurationToken>` +
-        `</${name}>`,
+      body,
     });
   }
 

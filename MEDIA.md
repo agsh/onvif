@@ -1,0 +1,79 @@
+-[x] GetServiceCapabilities
+-[x] GetVideoSources
+-[x] GetAudioSources
+-[x] GetAudioOutputs
+-[x] CreateProfile
+-[x] GetProfile
+-[x] GetProfiles
+-[x] AddVideoEncoderConfiguration
+-[x] RemoveVideoEncoderConfiguration
+-[x] AddVideoSourceConfiguration
+-[x] RemoveVideoSourceConfiguration
+-[x] AddAudioEncoderConfiguration
+-[x] RemoveAudioEncoderConfiguration
+-[x] AddAudioSourceConfiguration
+-[x] RemoveAudioSourceConfiguration
+-[x] AddPTZConfiguration
+-[x] RemovePTZConfiguration
+-[x] AddVideoAnalyticsConfiguration
+-[x] RemoveVideoAnalyticsConfiguration
+-[x] AddMetadataConfiguration
+-[x] RemoveMetadataConfiguration
+-[x] AddAudioOutputConfiguration
+-[x] RemoveAudioOutputConfiguration
+-[x] AddAudioDecoderConfiguration
+-[x] RemoveAudioDecoderConfiguration
+-[x] DeleteProfile
+-[x] GetVideoEncoderConfigurations
+-[x] GetVideoSourceConfigurations
+-[x] GetAudioEncoderConfigurations
+-[x] GetAudioSourceConfigurations
+-[x] GetVideoAnalyticsConfigurations
+-[x] GetMetadataConfigurations
+-[x] GetAudioOutputConfigurations
+-[x] GetAudioDecoderConfigurations
+-[x] GetVideoSourceConfiguration
+-[x] GetVideoEncoderConfiguration
+-[x] GetAudioSourceConfiguration
+-[x] GetAudioEncoderConfiguration
+-[x] GetVideoAnalyticsConfiguration
+-[x] GetMetadataConfiguration
+-[x] GetAudioOutputConfiguration
+-[x] GetAudioDecoderConfiguration
+-[x] GetCompatibleVideoEncoderConfigurations
+-[x] GetCompatibleVideoSourceConfigurations
+-[x] GetCompatibleAudioEncoderConfigurations
+-[x] GetCompatibleAudioSourceConfigurations
+-[x] GetCompatibleVideoAnalyticsConfigurations
+-[x] GetCompatibleMetadataConfigurations
+-[x] GetCompatibleAudioOutputConfigurations
+-[x] GetCompatibleAudioDecoderConfigurations
+-[x] SetVideoEncoderConfiguration
+-[x] SetVideoSourceConfiguration
+-[x] SetAudioEncoderConfiguration
+-[x] SetAudioSourceConfiguration
+-[x] SetVideoAnalyticsConfiguration
+-[x] SetMetadataConfiguration
+-[x] SetAudioOutputConfiguration
+-[x] SetAudioDecoderConfiguration
+-[x] GetVideoSourceConfigurationOptions
+-[x] GetVideoEncoderConfigurationOptions
+-[x] GetAudioSourceConfigurationOptions
+-[x] GetAudioEncoderConfigurationOptions
+-[x] GetMetadataConfigurationOptions
+-[x] GetAudioOutputConfigurationOptions
+-[x] GetAudioDecoderConfigurationOptions
+-[x] GetGuaranteedNumberOfVideoEncoderInstances
+-[x] GetStreamUri
+-[ ] StartMulticastStreaming
+-[ ] StopMulticastStreaming
+-[ ] SetSynchronizationPoint
+-[x] GetSnapshotUri
+-[ ] GetVideoSourceModes
+-[ ] SetVideoSourceMode
+-[x] GetOSDs
+-[ ] GetOSD
+-[ ] SetOSD
+-[x] GetOSDOptions
+-[ ] CreateOSD
+-[ ] DeleteOSD 
