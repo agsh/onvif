@@ -8,7 +8,11 @@ ONVIF Client protocol Node.js implementation.
 > This page is for the future version of the ONVIF library version 1.x written in typescript.
 > If you are looking for the readme for stable version 0.x, please see
 > [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
-
+>
+> Default installation from npm still uses version 0.x. If you want to try this new version, install it with
+> ```shell
+> npm install onvif@alpha
+> ```
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and 

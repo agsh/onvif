@@ -1,5 +1,5 @@
 {
   "out": "docs",
   "internalModule": "Onvif specs",
-  "highlightLanguages": ["xml", "ts", "js"]
+  "highlightLanguages": ["xml", "ts", "js", "shell"]
 }

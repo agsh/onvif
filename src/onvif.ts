@@ -135,24 +135,18 @@ export interface SystemDateTimeExtended extends SystemDateTime {
 
 type OnvifEvents = {
   newListener: string; // private usage for event handling
-  /**
-   * Indicates any event from Onvif device.
-   * @event event
-   * @example
-   * ```typescript
-   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
-   * ```
-   */
-  event: NotificationMessage;
-  /**
-   * Indicates raw xml request to device.
-   * @event rawRequest
-   * @example
-   * ```typescript
-   * onvif.on('rawRequest', (xml) => { console.log('-> request was', xml); });
-   * ```
-   */
-  rawRequest: string;
+  [Onvif.EVENT]: NotificationMessage;
+  [Onvif.RAW_REQUEST]: string;
+  [Onvif.RAW_RESPONSE]: string;
+  [Onvif.WARN]: Error;
+  [Onvif.ERROR]: Error;
+};
+
+export class Onvif extends EventEmitter {
+  on<K extends keyof OnvifEvents>(event: K, listener: (payload: OnvifEvents[K]) => void): this {
+    return super.on(event, listener);
+  }
+
   /**
    * Indicates raw xml response from device.
    * @event rawResponse
@@ -161,16 +155,18 @@ type OnvifEvents = {
    * onvif.on('rawResponse', (xml) => { console.log('<- response was', xml); });
    * ```
    */
-  rawResponse: string;
+  static readonly RAW_RESPONSE = 'rawResponse';
+
   /**
-   * Indicates any warnings
-   * @event warn
+   * Indicates raw xml request to device.
+   * @event rawRequest
    * @example
    * ```typescript
-   * onvif.on('warn', console.warn);
+   * onvif.on('rawRequest', (xml) => { console.log('-> request was', xml); });
    * ```
    */
-  warn: Error;
+  static readonly RAW_REQUEST = 'rawRequest';
+
   /**
    * Indicates any errors
    * @event error
@@ -179,13 +175,27 @@ type OnvifEvents = {
    * onvif.on('error', console.error);
    * ```
    */
-  error: Error;
-};
+  static readonly ERROR = 'error';
 
-export class Onvif extends EventEmitter {
-  on<K extends keyof OnvifEvents>(event: K, listener: (payload: OnvifEvents[K]) => void): this {
-    return super.on(event, listener);
-  }
+  /**
+   * Indicates any event from Onvif device.
+   * @event event
+   * @example
+   * ```typescript
+   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * ```
+   */
+  static readonly EVENT = 'event';
+
+  /**
+   * Indicates any warnings
+   * @event warn
+   * @example
+   * ```typescript
+   * onvif.on('warn', console.warn);
+   * ```
+   */
+  static readonly WARN = 'warn';
 
   /**
    * Core device namespace for device v1.0 methods
@@ -387,11 +397,6 @@ export class Onvif extends EventEmitter {
           }
           alreadyReturned = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
-          /**
-           * Indicates raw xml response from device.
-           * @event Onvif#rawResponse
-           * @type {string}
-           */
           this.emit('rawResponse', xml);
           resolve(parseSOAPString(xml));
         });

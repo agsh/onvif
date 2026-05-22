@@ -40,7 +40,8 @@ export interface PullMessagesResponse {
 export interface NotificationMessage {
   topic: Topic;
   subscriptionReference?: EndpointReference;
-  message: EventMessage;
+  producerReference?: EndpointReference;
+  message: { message: EventMessage };
 }
 
 export interface Topic {
@@ -53,7 +54,7 @@ export interface EndpointReference {
 }
 
 export interface EventMessage {
-  utcTime: string; // TODO why it is string after linerase?
+  utcTime: Date;
   propertyOperation?: PropertyOperation;
 
   source?: ItemList;
@@ -138,6 +139,7 @@ export class Events {
         // if there is no pull-point subscription or it has expired, create new subscription
         try {
           await this.createPullPointSubscription();
+          await this.setSynchronizationPoint();
           delete this.events.eventReconnectMs;
           this.eventPull();
         } catch (error) {
@@ -151,7 +153,7 @@ export class Events {
         this.eventPull();
       }
     } else {
-      delete this.events.subscription;
+      console.log('DELETE?1');
       await this.unsubscribe();
     }
   }
@@ -176,6 +178,7 @@ export class Events {
     const [data] = await this.onvif.request({ service: 'events', body });
     const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
     this.events.subscription = pullPointSubscription;
+    console.log('---- we createdpp-sub', JSON.stringify(pullPointSubscription, null, 2));
     return pullPointSubscription;
   }
 
@@ -193,6 +196,7 @@ export class Events {
         });
         delete this.events.eventReconnectMs;
         msgs.notificationMessage?.forEach((msg: NotificationMessage) => {
+          console.log(this.events.subscription?.subscriptionReference.address);
           this.onvif.emit('event', msg);
         });
         if (+msgs.terminationTime <= Date.now()) {
@@ -205,6 +209,8 @@ export class Events {
         }
         this.eventRequest(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
       } catch (error) {
+        console.error('ERROR!');
+        console.error(error);
         this.onvif.emit('eventsError', error);
         if (isSoapError(error)) {
           // connection reset (request ended without messages) - restart Event loop for pullMessages request
@@ -218,7 +224,8 @@ export class Events {
 
       // TODO rest of the method
     } else {
-      delete this.events.subscription;
+      console.log('DELETE2?');
+
       if (this.events.subscription) {
         await this.unsubscribe();
       }
@@ -236,15 +243,13 @@ export class Events {
         MessageLimit: options?.messageLimit ?? 10,
       },
     });
-    const [data] = await this.onvif.request({
+    const [data, xml] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
       timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    const response = linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse;
-    console.log('>>>', JSON.stringify(response, null, 2));
-    return response;
+    return linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse;
   }
 
   async renew(): Promise<TerminationTimeResponse> {
@@ -300,6 +305,7 @@ export class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
     this.onvif.removeAllListeners('event');
+    console.log('DELETE3?');
     delete this.events.subscription;
   }
 
@@ -311,7 +317,7 @@ export class Events {
    * which was returned in either the SubscriptionResponse or in the CreatePullPointSubscriptionResponse. The property
    * update is transmitted via the notification transportation of the notification interface. This method is mandatory.
    */
-  async setSynchronizationPoint(): Promise<any> {
+  async setSynchronizationPoint(): Promise<void> {
     const subscriptionParams = this.getSubsctiptionUrlAndHeaders();
     const body = build({
       SetSynchronizationPoint: {
@@ -320,12 +326,11 @@ export class Events {
         },
       },
     });
-    const [data] = await this.onvif.request({
+    await this.onvif.request({
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data);
   }
 
   /**
@@ -334,7 +339,7 @@ export class Events {
    */
   private getSubsctiptionUrlAndHeaders() {
     if (!this.events.subscription?.subscriptionReference.address) {
-      throw new Error('You should have pull-point subscription to unsubscribe.');
+      throw new Error(`You should have pull-point subscription. ${JSON.stringify(this.events.subscription)}`);
     }
     const url = new URL(this.events.subscription.subscriptionReference.address);
     const axisSubscriptionId = this.events.subscription?.subscriptionReference.referenceParameters?.subscriptionId;
