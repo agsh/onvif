@@ -248,6 +248,46 @@ describe('startMulticastStreaming / stopMulticastStreaming', () => {
   });
 });
 
+describe('setSynchronizationPoint', () => {
+  it('should set a synchronization point for the active profile token', async () => {
+    const profileToken = cam.activeSource!.profileToken;
+    await expect(cam.media.setSynchronizationPoint({ profileToken })).resolves.toBeUndefined();
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    await expect(
+      cam.media.setSynchronizationPoint({ profileToken: cam.activeSource!.profileToken }),
+    ).resolves.toBeUndefined();
+    await expect(cam.media.setSynchronizationPoint()).resolves.toBeUndefined();
+  });
+
+  it('should treat an empty options object like omitted profile token', async () => {
+    await expect(cam.media.setSynchronizationPoint()).resolves.toBeUndefined();
+    await expect(cam.media.setSynchronizationPoint({})).resolves.toBeUndefined();
+  });
+
+  it('should set a synchronization point for any existing profile token', async () => {
+    const profiles = await cam.media.getProfiles();
+    expect(profiles.length).toBeGreaterThan(0);
+    for (const profile of profiles) {
+      await expect(cam.media.setSynchronizationPoint({ profileToken: profile.token })).resolves.toBeUndefined();
+    }
+  });
+
+  it('should set a synchronization point for a newly created profile', async () => {
+    const profile = await cam.media.createProfile({ name: 'test-set-sync-point-media' });
+    try {
+      await expect(cam.media.setSynchronizationPoint({ profileToken: profile.token })).resolves.toBeUndefined();
+    } finally {
+      await cam.media.deleteProfile({ profileToken: profile.token });
+    }
+  });
+
+  it('should throw an error when the requested profile token does not exist', async () => {
+    await expect(cam.media.setSynchronizationPoint({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
+  });
+});
+
 describe('Add/remove configurations to the profile', () => {
   let profileToken: ReferenceToken;
   const configurationNames = ['PTZ', ...Object.keys(configurationEntityFields)];
