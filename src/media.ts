@@ -98,6 +98,9 @@ import {
   StopMulticastStreaming,
   StartMulticastStreaming,
   SetSynchronizationPoint,
+  GetVideoSourceModes,
+  GetVideoSourceModesResponse,
+  VideoSourceMode,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1676,6 +1679,22 @@ export class Media {
       },
     });
     await this.onvif.request({ service: 'media', body });
+  }
+
+  async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
+    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
+    const body = build({
+      GetVideoSourceModes: {
+        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
+        VideoSourceToken: videoSourceToken,
+      },
+    });
+    const [data] = await this.onvif.request({
+      service: 'media',
+      body,
+    });
+    const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes;
+    return modes.map((mode: any) => ({ ...mode, encodings: mode.encodings.split(' ') }));
   }
 
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {

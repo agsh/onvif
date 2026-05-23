@@ -1,5 +1,6 @@
 import { camelCase, Onvif, Media } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
+import { VideoSourceMode } from '../src/interfaces/media';
 import { Profile } from '../src/interfaces/onvif';
 import { clean } from './utils.test';
 
@@ -285,6 +286,52 @@ describe('setSynchronizationPoint', () => {
 
   it('should throw an error when the requested profile token does not exist', async () => {
     await expect(cam.media.setSynchronizationPoint({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
+  });
+});
+
+describe('getVideoSourceModes', () => {
+  function assertVideoSourceModeShape(mode: VideoSourceMode): void {
+    expect(mode.token).toBeDefined();
+    expect(typeof mode.maxFramerate).toBe('number');
+    expect(mode.maxResolution).toBeDefined();
+    expect(typeof mode.maxResolution.width).toBe('number');
+    expect(typeof mode.maxResolution.height).toBe('number');
+    expect(Array.isArray(mode.encodings)).toBe(true);
+    expect(mode.encodings.length).toBeGreaterThan(0);
+    mode.encodings.forEach((encoding) => {
+      expect(typeof encoding).toBe('string');
+    });
+    expect(typeof mode.reboot).toBe('boolean');
+  }
+
+  it('should return video source modes for an explicit video source token', async () => {
+    const videoSourceToken = cam.activeSource!.videoSourceToken;
+    const modes = await cam.media.getVideoSourceModes({ videoSourceToken });
+    expect(Array.isArray(modes)).toBe(true);
+    expect(modes.length).toBeGreaterThan(0);
+    modes.forEach(assertVideoSourceModeShape);
+  });
+
+  it('should default video source token from activeSource when options are omitted', async () => {
+    const explicit = await cam.media.getVideoSourceModes({
+      videoSourceToken: cam.activeSource!.videoSourceToken,
+    });
+    const defaulted = await cam.media.getVideoSourceModes();
+    expect(defaulted).toEqual(explicit);
+  });
+
+  it('should treat an empty options object like omitted video source token', async () => {
+    const withDefault = await cam.media.getVideoSourceModes();
+    // @ts-expect-error videoSourceToken is defaulted from activeSource at runtime when omitted
+    const withEmptyOptions = await cam.media.getVideoSourceModes({});
+    expect(withEmptyOptions).toEqual(withDefault);
+  });
+
+  it('should split encodings into a string array', async () => {
+    const modes = await cam.media.getVideoSourceModes({
+      videoSourceToken: cam.activeSource!.videoSourceToken,
+    });
+    expect(modes[0].encodings).toEqual(expect.arrayContaining(['H264']));
   });
 });
 

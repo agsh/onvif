@@ -1,3 +1,5 @@
+https://www.onvif.org/ver10/media/wsdl/media.wsdl
+
 -[x] GetServiceCapabilities
 -[x] GetVideoSources
 -[x] GetAudioSources
@@ -67,9 +69,9 @@
 -[x] GetStreamUri
 -[x] StartMulticastStreaming
 -[x] StopMulticastStreaming
--[ ] SetSynchronizationPoint
+-[x] SetSynchronizationPoint
 -[x] GetSnapshotUri
--[ ] GetVideoSourceModes
+-[x] GetVideoSourceModes
 -[ ] SetVideoSourceMode
 -[x] GetOSDs
 -[ ] GetOSD

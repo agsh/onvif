@@ -95,6 +95,7 @@ export interface ActiveSource {
   sourceToken: ReferenceToken;
   profileToken: ReferenceToken;
   videoSourceConfigurationToken: ReferenceToken;
+  videoSourceToken: ReferenceToken;
   encoding?: string;
   width?: number;
   height?: number;
@@ -140,6 +141,7 @@ type OnvifEvents = {
   [Onvif.RAW_RESPONSE]: string;
   [Onvif.WARN]: Error;
   [Onvif.ERROR]: Error;
+  [Onvif.CONNECT]: void;
 };
 
 export class Onvif extends EventEmitter {
@@ -196,6 +198,16 @@ export class Onvif extends EventEmitter {
    * ```
    */
   static readonly WARN = 'warn';
+
+  /**
+   * Indicates successfully connection
+   * @event connect
+   * @example
+   * ```typescript
+   * onvif.on('connect', () => console.log('connected!'));
+   * ```
+   */
+  static readonly CONNECT = 'connect';
 
   /**
    * Core device namespace for device v1.0 methods
@@ -692,6 +704,7 @@ export class Onvif extends EventEmitter {
         sourceToken: videoSrcToken,
         profileToken: this.defaultProfiles[idx].token,
         videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration!.token,
+        videoSourceToken: videoSrcToken,
       };
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {
         const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
