@@ -5,7 +5,7 @@
 ONVIF Client protocol Node.js implementation.
 
 > [!TIP]
-> This page is for the future version of the ONVIF library version 1.x written in typescript.
+> This page is for the future version of the ONVIF library version 1.x written in the typescript.
 > If you are looking for the readme for stable version 0.x, please see
 > [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
 >
