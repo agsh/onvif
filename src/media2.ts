@@ -953,7 +953,7 @@ export class Media2 {
    */
   @v2
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
-    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.sourceToken;
+    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
     const body = build({
       GetVideoSourceModes: {
         $: {
@@ -963,8 +963,8 @@ export class Media2 {
       },
     });
     const [data] = await this.onvif.request({ service: 'media2', body });
-    const response = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse;
-    return response?.videoSourceModes ?? [];
+    const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes ?? [];
+    return modes.map((mode: any) => ({ ...mode, encodings: mode.encodings.split(' ') }));
   }
 
   /**

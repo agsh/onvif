@@ -1693,7 +1693,7 @@ export class Media {
       service: 'media',
       body,
     });
-    const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes;
+    const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes ?? [];
     return modes.map((mode: any) => ({ ...mode, encodings: mode.encodings.split(' ') }));
   }
 
