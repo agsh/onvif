@@ -101,6 +101,8 @@ import {
   GetVideoSourceModes,
   GetVideoSourceModesResponse,
   VideoSourceMode,
+  SetVideoSourceMode,
+  SetVideoSourceModeResponse,
 } from './interfaces/media';
 
 const ConfigurationArraysAndExtensions = {
@@ -1695,6 +1697,27 @@ export class Media {
     });
     const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes ?? [];
     return modes.map((mode: any) => ({ ...mode, encodings: mode.encodings.split(' ') }));
+  }
+
+  /**
+   * SetVideoSourceMode changes the media profile structure relating to video source for the specified video source mode.
+   * A device that indicates a capability of VideoSourceModes shall support this command. The behavior after changing
+   * the mode is not defined in this specification.
+   * @param options
+   */
+  async setVideoSourceMode(options: SetVideoSourceMode): Promise<SetVideoSourceModeResponse> {
+    const body = build({
+      SetVideoSourceMode: {
+        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
+        VideoSourceToken: options.videoSourceToken,
+        VideoSourceModeToken: options.videoSourceModeToken,
+      },
+    });
+    const [data] = await this.onvif.request({
+      service: 'media',
+      body,
+    });
+    return linerase(data).setVideoSourceModeResponse;
   }
 
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {

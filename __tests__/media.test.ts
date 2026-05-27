@@ -335,6 +335,48 @@ describe('getVideoSourceModes', () => {
   });
 });
 
+describe('setVideoSourceMode', () => {
+  it('should accept a valid video source token and video source mode token pair', async () => {
+    const videoSourceToken = cam.activeSource!.videoSourceToken;
+    const modes = await cam.media.getVideoSourceModes({ videoSourceToken });
+    expect(modes.length).toBeGreaterThan(0);
+    const videoSourceModeToken = modes[0].token;
+    const result = await cam.media.setVideoSourceMode({ videoSourceToken, videoSourceModeToken });
+    expect(typeof result.reboot).toBe('boolean');
+  });
+
+  it('should set video source mode for every available mode token', async () => {
+    const videoSourceToken = cam.activeSource!.videoSourceToken;
+    const modes = await cam.media.getVideoSourceModes({ videoSourceToken });
+    expect(modes.length).toBeGreaterThan(0);
+    for (const mode of modes) {
+      const result = await cam.media.setVideoSourceMode({
+        videoSourceToken,
+        videoSourceModeToken: mode.token,
+      });
+      expect(typeof result.reboot).toBe('boolean');
+    }
+  });
+
+  it('should throw if the requested video source token does not exist', async () => {
+    await expect(
+      cam.media.setVideoSourceMode({
+        videoSourceToken: '???',
+        videoSourceModeToken: 'VideoSourceModeToken_1',
+      }),
+    ).rejects.toThrow('The requested video source does not exist');
+  });
+
+  it('should throw if the requested video source mode token does not exist', async () => {
+    await expect(
+      cam.media.setVideoSourceMode({
+        videoSourceToken: cam.activeSource!.videoSourceToken,
+        videoSourceModeToken: '???',
+      }),
+    ).rejects.toThrow('The requested video source mode does not exist');
+  });
+});
+
 describe('Add/remove configurations to the profile', () => {
   let profileToken: ReferenceToken;
   const configurationNames = ['PTZ', ...Object.keys(configurationEntityFields)];

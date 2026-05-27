@@ -822,6 +822,7 @@ describe('getVideoSourceModes', () => {
     expect(typeof mode.maxResolution.width).toBe('number');
     expect(typeof mode.maxResolution.height).toBe('number');
     expect(mode.encodings).toBeDefined();
+    expect(Array.isArray(mode.encodings)).toBe(true);
     expect(typeof mode.reboot).toBe('boolean');
   }
 
@@ -848,9 +849,7 @@ describe('setVideoSourceMode', () => {
     const modes = await cam.media2.getVideoSourceModes({ videoSourceToken });
     expect(modes.length).toBeGreaterThan(0);
     const videoSourceModeToken = modes[0].token;
-    await expect(
-      cam.media2.setVideoSourceMode({ videoSourceToken, videoSourceModeToken }),
-    ).resolves.toBeUndefined();
+    await expect(cam.media2.setVideoSourceMode({ videoSourceToken, videoSourceModeToken })).resolves.toBeUndefined();
   });
 });
 
@@ -982,9 +981,9 @@ describe('OSD', () => {
     it('should fail if media ver20 is not supported', () => {
       cam.device.media2Support = false;
       try {
-        expect(() =>
-          cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken }),
-        ).toThrow('Media2 profile is not supported for this device');
+        expect(() => cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken })).toThrow(
+          'Media2 profile is not supported for this device',
+        );
       } finally {
         cam.device.media2Support = true;
       }
@@ -1163,9 +1162,9 @@ describe('Masks', () => {
     it('should fail if media ver20 is not supported', () => {
       cam.device.media2Support = false;
       try {
-        expect(() =>
-          cam.media2.getMaskOptions({ configurationToken: videoSourceConfigurationToken }),
-        ).toThrow('Media2 profile is not supported for this device');
+        expect(() => cam.media2.getMaskOptions({ configurationToken: videoSourceConfigurationToken })).toThrow(
+          'Media2 profile is not supported for this device',
+        );
       } finally {
         cam.device.media2Support = true;
       }
