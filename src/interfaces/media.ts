@@ -625,6 +625,8 @@ export interface SetVideoSourceModeResponse {
   reboot: boolean;
 }
 export interface GetOSDs {
+  /** The GetOSDs command fetches the OSD configuration if the OSD token is known. */
+  OSDToken?: ReferenceToken;
   /** Token of the Video Source Configuration, which has OSDs associated with are requested. If token not exist, request all available OSDs. */
   configurationToken?: ReferenceToken;
 }

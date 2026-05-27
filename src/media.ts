@@ -20,6 +20,7 @@ import {
   AudioSourceConfigurationOptions,
   MetadataConfiguration,
   MetadataConfigurationOptions,
+  OSDConfiguration,
   Profile,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
@@ -29,14 +30,6 @@ import {
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
-import {
-  GetOSDOptions,
-  GetOSDOptionsResponse,
-  GetOSDs,
-  GetOSDsResponse,
-  GetVideoSourceConfigurationOptions,
-  TransportProtocol,
-} from './interfaces/media.2';
 import {
   GetSnapshotUri,
   CreateProfile,
@@ -99,11 +92,14 @@ import {
   StartMulticastStreaming,
   SetSynchronizationPoint,
   GetVideoSourceModes,
-  GetVideoSourceModesResponse,
   VideoSourceMode,
   SetVideoSourceMode,
   SetVideoSourceModeResponse,
+  GetOSD,
+  GetVideoSourceConfigurationOptions,
+  CreateOSDResponse,
 } from './interfaces/media';
+import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
 
 const ConfigurationArraysAndExtensions = {
   array: [
@@ -1720,7 +1716,12 @@ export class Media {
     return linerase(data).setVideoSourceModeResponse;
   }
 
-  async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<GetOSDsResponse> {
+  /**
+   * Get the OSDs.
+   * @param configurationToken
+   * @param OSDToken
+   */
+  async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<OSDConfiguration[]> {
     const mediaService = this.onvif.device.media2Support ? 'media2' : 'media';
     const mediaNS = this.onvif.device.media2Support
       ? 'http://www.onvif.org/ver20/media/wsdl'
@@ -1732,12 +1733,156 @@ export class Media {
         configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
       }${OSDToken ? `<OSDToken>${OSDToken}</OSDToken>` : ''}</GetOSDs>`,
     });
-    return linerase(data, { array: ['OSDs'] }).getOSDsResponse;
+    return linerase(data, { array: ['OSDs'] }).getOSDsResponse.OSDs ?? [];
   }
 
-  async getOSDOptions({
-    configurationToken = this.onvif.activeSource!.videoSourceConfigurationToken,
-  }: GetOSDOptions): Promise<GetOSDOptionsResponse> {
+  /**
+   * Get the OSD.
+   * @param OSDToken
+   */
+  async getOSD({ OSDToken }: GetOSD): Promise<OSDConfiguration> {
+    const [data] = await this.onvif.request({
+      service: 'media',
+      body: `<GetOSD xmlns="http://www.onvif.org/ver10/media/wsdl" >${OSDToken ? `<OSDToken>${OSDToken}</OSDToken>` : ''}</GetOSD>`,
+    });
+    return linerase(data).getOSDResponse.OSD;
+  }
+
+  /**
+   * Set the OSD
+   * @param options
+   */
+  async setOSD(options: OSDConfiguration) {
+    const body = build({
+      SetOSD: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        OSD: {
+          $: {
+            token: options.token,
+          },
+          VideoSourceConfigurationToken: options.videoSourceConfigurationToken,
+          Type: options.type,
+          Position: {
+            Type: options.position.type,
+            Pos: options.position.pos,
+            ...(options.position.extension && { Extension: options.position.extension }),
+          },
+          ...(options.textString && {
+            TextString: {
+              IsPersistentText: options.textString.isPersistentText,
+              Type: options.textString.type,
+              DateFormat: options.textString.dateFormat,
+              TimeFormat: options.textString.timeFormat,
+              FontSize: options.textString.fontSize,
+              ...(options.textString.fontColor && {
+                FontColor: {
+                  Color: options.textString.fontColor.color,
+                  Transparent: options.textString.fontColor.transparent,
+                },
+              }),
+              ...(options.textString.backgroundColor && {
+                BackgroundColor: {
+                  Color: options.textString.backgroundColor.color,
+                  Transparent: options.textString.backgroundColor.transparent,
+                },
+              }),
+              PlainText: options.textString.plainText,
+              Extension: options.textString.extension,
+            },
+          }),
+          ...(options.image && {
+            Image: {
+              ImgPath: options.image.imgPath,
+              Extension: options.image.extension,
+            },
+          }),
+          Extension: options.extension,
+        },
+      },
+    });
+    await this.onvif.request({
+      service: 'media',
+      body,
+    });
+  }
+
+  /**
+   * Create the OSD.
+   * @param options
+   */
+  async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
+    const body = build({
+      CreateOSD: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
+        },
+        OSD: {
+          $: {
+            token: options.token,
+          },
+          VideoSourceConfigurationToken: options.videoSourceConfigurationToken,
+          Type: options.type,
+          Position: {
+            Type: options.position.type,
+            Pos: options.position.pos,
+            ...(options.position.extension && { Extension: options.position.extension }),
+          },
+          ...(options.textString && {
+            TextString: {
+              IsPersistentText: options.textString.isPersistentText,
+              Type: options.textString.type,
+              DateFormat: options.textString.dateFormat,
+              TimeFormat: options.textString.timeFormat,
+              FontSize: options.textString.fontSize,
+              ...(options.textString.fontColor && {
+                FontColor: {
+                  Color: options.textString.fontColor.color,
+                  Transparent: options.textString.fontColor.transparent,
+                },
+              }),
+              ...(options.textString.backgroundColor && {
+                BackgroundColor: {
+                  Color: options.textString.backgroundColor.color,
+                  Transparent: options.textString.backgroundColor.transparent,
+                },
+              }),
+              PlainText: options.textString.plainText,
+              Extension: options.textString.extension,
+            },
+          }),
+          ...(options.image && {
+            Image: {
+              ImgPath: options.image.imgPath,
+              Extension: options.image.extension,
+            },
+          }),
+          Extension: options.extension,
+        },
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'media', body });
+    return linerase(data).createOSDResponse;
+  }
+
+  /**
+   * Delete the OSD.
+   * @param OSDToken
+   */
+  async deleteOSD({ OSDToken }: DeleteOSD): Promise<void> {
+    const body = build({
+      DeleteOSD: {
+        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
+        OSDToken,
+      },
+    });
+    await this.onvif.request({ service: 'media', body });
+  }
+
+  async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
+    const configurationToken =
+      options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
     const mediaService = this.onvif.device.media2Support ? 'media2' : 'media';
     const mediaNS = this.onvif.device.media2Support
       ? 'http://www.onvif.org/ver20/media/wsdl'

@@ -1149,7 +1149,7 @@ export class Media2 {
 
   /**
    * Delete the OSD.
-   * @param configurationToken
+   * @param OSDToken
    */
   @v2
   async deleteOSD({ OSDToken }: DeleteOSD): Promise<void> {

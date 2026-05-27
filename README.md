@@ -65,6 +65,7 @@ I will be happy to answer any questions and hear your feedback.
 - Tests using the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
 - Event support
 - Full Media2 [support](https://github.com/agsh/onvif/blob/v1/MEDIA2.md)
+- Full Media [support](https://github.com/agsh/onvif/blob/v1/MEDIA.md)
 
 ---
 

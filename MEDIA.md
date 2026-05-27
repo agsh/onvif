@@ -74,8 +74,8 @@ https://www.onvif.org/ver10/media/wsdl/media.wsdl
 -[x] GetVideoSourceModes
 -[x] SetVideoSourceMode
 -[x] GetOSDs
--[ ] GetOSD
--[ ] SetOSD
+-[x] GetOSD
+-[x] SetOSD
 -[x] GetOSDOptions
--[ ] CreateOSD
--[ ] DeleteOSD 
+-[x] CreateOSD
+-[x] DeleteOSD 

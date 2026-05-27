@@ -1,7 +1,7 @@
 import { camelCase, Onvif, Media } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { VideoSourceMode } from '../src/interfaces/media';
-import { Profile } from '../src/interfaces/onvif';
+import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
+import { OSDConfiguration, Profile } from '../src/interfaces/onvif';
 import { clean } from './utils.test';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
@@ -640,27 +640,112 @@ describe('getSnapshotUri', () => {
 });
 
 describe('OSD (Media)', () => {
-  const configurationToken = 'VideoSourceConfigurationToken_1';
+  const videoSourceConfigurationToken = 'VideoSourceConfigurationToken_1' as ReferenceToken;
 
-  it('should return OSDs via Media.getOSDs', async () => {
-    const result = await cam.media.getOSDs();
-    expect(Array.isArray(result.OSDs ?? [])).toBe(true);
+  function assertOsdConfigurationShape(osd: OSDConfiguration): void {
+    expect(osd.token).toBeDefined();
+    expect(osd.type).toBeDefined();
+    expect(osd.position).toBeDefined();
+    expect(osd.position.type).toBeDefined();
+  }
+
+  describe('getOSDs', () => {
+    it('should return an array of OSD configurations', async () => {
+      const result = await cam.media.getOSDs();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+      result.forEach(assertOsdConfigurationShape);
+    });
+
+    it('should accept a video source configuration token filter', async () => {
+      const result = await cam.media.getOSDs({ configurationToken: videoSourceConfigurationToken });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('should return a single OSD when OSDToken is set', async () => {
+      const all = await cam.media.getOSDs();
+      if (!all.length) {
+        return;
+      }
+      const token = all[0].token;
+      const filtered = await cam.media.getOSDs({ OSDToken: token });
+      expect(filtered).toHaveLength(1);
+      expect(filtered[0].token).toBe(token);
+    });
   });
 
-  it('should filter Media.getOSDs by OSDToken', async () => {
-    const all = await cam.media.getOSDs();
-    const token = all.OSDs?.[0]?.token;
-    if (!token) {
-      return;
-    }
-    const filtered = await cam.media.getOSDs({ OSDToken: token });
-    expect(filtered.OSDs).toHaveLength(1);
-    expect(filtered.OSDs![0].token).toBe(token);
+  describe('getOSD', () => {
+    it('should return one OSD configuration by token', async () => {
+      const all = await cam.media.getOSDs();
+      expect(all.length).toBeGreaterThan(0);
+      const token = all[0].token;
+      const osd = await cam.media.getOSD({ OSDToken: token });
+      assertOsdConfigurationShape(osd);
+      expect(osd.token).toBe(token);
+    });
+
+    it('should throw when the requested OSD token does not exist', async () => {
+      await expect(cam.media.getOSD({ OSDToken: '???' })).rejects.toThrow('Config Not Exist');
+    });
   });
 
-  it('should return OSD options via Media.getOSDOptions', async () => {
-    const result = await cam.media.getOSDOptions({ configurationToken });
-    expect(typeof result.OSDOptions.maximumNumberOfOSDs.total).toBe('number');
+  describe('getOSDOptions', () => {
+    it('should return OSD capability options for a video source configuration', async () => {
+      const result = await cam.media.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
+      expect(result.OSDOptions).toBeDefined();
+      expect(typeof result.OSDOptions.maximumNumberOfOSDs.total).toBe('number');
+    });
+
+    it('should default configuration token from activeSource when omitted', async () => {
+      const explicit = await cam.media.getOSDOptions({
+        configurationToken: cam.activeSource!.videoSourceConfigurationToken,
+      });
+      const defaulted = await cam.media.getOSDOptions();
+      expect(defaulted).toEqual(explicit);
+    });
+  });
+
+  describe('setOSD', () => {
+    it('should accept updating an existing OSD configuration', async () => {
+      const list = await cam.media.getOSDs({ configurationToken: videoSourceConfigurationToken });
+      const osd = list.find((o) => o.type === 'Text') ?? list[0];
+      if (!osd) {
+        return;
+      }
+      await expect(cam.media.setOSD(osd)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('createOSD / deleteOSD', () => {
+    it('should create an OSD and delete it using the token returned by the device', async () => {
+      const caps = await cam.media.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
+      if (caps.OSDOptions.maximumNumberOfOSDs.total === 0) {
+        return;
+      }
+
+      const createResponse: CreateOSDResponse = await cam.media.createOSD({
+        token: `jest_media_osd_${Date.now()}`,
+        videoSourceConfigurationToken,
+        type: 'Text',
+        position: { type: 'UpperLeft' },
+        textString: { type: 'Plain', plainText: 'jest osd media' },
+      });
+
+      expect(createResponse.OSDToken).toBeDefined();
+
+      const created = await cam.media.getOSD({ OSDToken: createResponse.OSDToken });
+      expect(created.token).toBe(createResponse.OSDToken);
+
+      await cam.media.deleteOSD({ OSDToken: createResponse.OSDToken });
+
+      const afterDelete = await cam.media.getOSDs();
+      expect(afterDelete.some((o) => o.token === createResponse.OSDToken)).toBe(false);
+    });
+
+    it('should throw when deleting a non-existent OSD token', async () => {
+      await expect(cam.media.deleteOSD({ OSDToken: '???' })).rejects.toThrow('Config Not Exist');
+    });
   });
 });
 
