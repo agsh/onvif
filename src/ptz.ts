@@ -6,20 +6,23 @@
  */
 
 import { Onvif } from './onvif';
-import { linerase } from './utils';
+import { build, linerase } from './utils';
 import { PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
-import {
-  PTZConfiguration, PTZConfigurationOptions,
-  PTZNode, PTZPreset,
-  PTZSpeed,
-} from './interfaces/onvif';
+import { PTZConfiguration, PTZConfigurationOptions, PTZNode, PTZPreset, PTZSpeed } from './interfaces/onvif';
 import {
   AbsoluteMove,
-  ContinuousMove, GetConfiguration, GetConfigurationOptions, GetPresets,
+  ContinuousMove,
+  GeoMove,
+  GetConfiguration,
+  GetConfigurationOptions,
+  GetPresets,
   GetStatus,
-  GotoHomePosition, GotoPreset,
-  RelativeMove, RemovePreset,
-  SetHomePosition, SetPreset,
+  GotoHomePosition,
+  GotoPreset,
+  RelativeMove,
+  RemovePreset,
+  SetHomePosition,
+  SetPreset,
   Stop,
 } from './interfaces/ptz.2';
 
@@ -101,9 +104,10 @@ interface RelativeMoveExtended extends Omit<RelativeMove, 'profileToken' | 'tran
 /**
  * SetHomePosition interface which uses active source profile token by default
  */
-interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | 'velocity'> {
+interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | 'velocity' | 'timeout'> {
   profileToken?: ReferenceToken;
   velocity: PTZSpeed | PTZInputVector;
+  timeout?: number | string;
 }
 /**
  * SetHomePosition interface which uses active source profile token by default
@@ -137,16 +141,16 @@ export class PTZ {
   }
 
   /**
-  * Returns an object of the existing PTZ Nodes on the device: node name -> PTZNode.
-  * Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus
-  */
+   * Returns an object of the existing PTZ Nodes on the device: node name -> PTZNode.
+   * Use this function to get maximum number of presets, ranges of admitted values for x, y, zoom, iris, focus
+   */
   async getNodesExtended(): Promise<GetNodesExtended> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />',
+      service: 'PTZ',
+      body: '<GetNodes xmlns="http://www.onvif.org/ver20/ptz/wsdl" />',
     });
     this.#nodes = {};
-    linerase(data, { array : ['getNodesResponse'] }).getNodesResponse.forEach((ptzNode: any) => {
+    linerase(data, { array: ['getNodesResponse'] }).getNodesResponse.forEach((ptzNode: any) => {
       const node: PTZNode = ptzNode.PTZNode;
       this.#nodes[node.token] = node;
     });
@@ -166,15 +170,16 @@ export class PTZ {
    */
   async getConfigurationsExtended(): Promise<GetConfigurationsExtended> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetConfigurations xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + '</GetConfigurations>',
+      service: 'PTZ',
+      body: '<GetConfigurations xmlns="http://www.onvif.org/ver20/ptz/wsdl">' + '</GetConfigurations>',
     });
     this.#configurations = {};
-    linerase(data, { array : ['PTZConfiguration'] }).getConfigurationsResponse.PTZConfiguration.forEach((configuration: any) => {
-      const result = linerase(configuration);
-      this.#configurations[result.token] = result;
-    });
+    linerase(data, { array: ['PTZConfiguration'] }).getConfigurationsResponse.PTZConfiguration.forEach(
+      (configuration: any) => {
+        const result = linerase(configuration);
+        this.#configurations[result.token] = result;
+      },
+    );
     return this.#configurations;
   }
 
@@ -204,10 +209,11 @@ export class PTZ {
    */
   async getConfiguration(options: GetConfiguration): Promise<PTZConfiguration> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetConfiguration xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<PTZConfigurationToken>${options.PTZConfigurationToken}</PTZConfigurationToken>`
-        + '</GetConfiguration>',
+      service: 'PTZ',
+      body:
+        '<GetConfiguration xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<PTZConfigurationToken>${options.PTZConfigurationToken}</PTZConfigurationToken>` +
+        '</GetConfiguration>',
     });
     return linerase(data).getConfigurationResponse.PTZConfiguration;
   }
@@ -221,13 +227,13 @@ export class PTZ {
    * @param options
    * @param options.configurationToken Token of an existing configuration that the options are intended for
    */
-  async getConfigurationOptions({ configurationToken }: GetConfigurationOptions):
-    Promise<PTZConfigurationOptions> {
+  async getConfigurationOptions({ configurationToken }: GetConfigurationOptions): Promise<PTZConfigurationOptions> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetConfigurationOptions xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ConfigurationToken>${configurationToken}</ConfigurationToken>`
-        + '</GetConfigurationOptions>',
+      service: 'PTZ',
+      body:
+        '<GetConfigurationOptions xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ConfigurationToken>${configurationToken}</ConfigurationToken>` +
+        '</GetConfigurationOptions>',
     });
     return linerase(data).getConfigurationOptionsResponse.PTZConfigurationOptions;
   }
@@ -236,16 +242,21 @@ export class PTZ {
    * Operation to request all PTZ presets with token names as an object for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresetsExtended({ profileToken }: GetPresets = { profileToken : this.onvif.activeSource!.profileToken }): Promise<GetPresetsExtended> {
+  async getPresetsExtended(
+    { profileToken }: GetPresets = { profileToken: this.onvif.activeSource!.profileToken },
+  ): Promise<GetPresetsExtended> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + '</GetPresets>',
+      service: 'PTZ',
+      body:
+        '<GetPresets xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>` +
+        '</GetPresets>',
     });
     this.#presets = {};
-    const result = linerase(data, { array : ['preset'] }).getPresetsResponse.preset;
-    result.forEach((preset: PTZPreset) => { this.#presets[preset.token!] = preset; });
+    const result = linerase(data, { array: ['preset'] }).getPresetsResponse.preset;
+    result.forEach((preset: PTZPreset) => {
+      this.#presets[preset.token!] = preset;
+    });
     return this.#presets;
   }
 
@@ -253,7 +264,7 @@ export class PTZ {
    * Operation to request a list of all PTZ presets for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresets({ profileToken }: GetPresets = { profileToken : this.onvif.activeSource!.profileToken }) {
+  async getPresets({ profileToken }: GetPresets = { profileToken: this.onvif.activeSource!.profileToken }) {
     return this.getPresetsExtended({ profileToken }).then((result) => Object.values(result));
   }
 
@@ -270,12 +281,17 @@ export class PTZ {
    * @param options.presetToken Preset token if we want to replace existing
    * @returns Preset token
    */
-  async setPreset({ profileToken = this.onvif.activeSource!.profileToken, presetName, presetToken }: SetPresetExtended): Promise<ReferenceToken> {
+  async setPreset({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetName,
+    presetToken,
+  }: SetPresetExtended): Promise<ReferenceToken> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<PresetName>${presetName}</PresetName>${
+      service: 'PTZ',
+      body:
+        '<SetPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>` +
+        `<PresetName>${presetName}</PresetName>${
           presetToken ? `<PresetToken>${presetToken}</PresetToken>` : ''
         }</SetPreset>`,
     });
@@ -287,38 +303,67 @@ export class PTZ {
    * The operation is supported if the PresetPosition capability exists for the Node in the selected profile.
    * @param options
    */
-  async removePreset({ profileToken = this.onvif.activeSource!.profileToken, presetToken }: RemovePresetExtended): Promise<void> {
+  async removePreset({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetToken,
+  }: RemovePresetExtended): Promise<void> {
     await this.onvif.request({
-      service : 'PTZ',
-      body    : '<RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<PresetToken>${presetToken}</PresetToken>`
-        + '</RemovePreset>',
+      service: 'PTZ',
+      body:
+        '<RemovePreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>` +
+        `<PresetToken>${presetToken}</PresetToken>` +
+        '</RemovePreset>',
     });
   }
 
-  private static formatPTZSimpleVector({
-    pan, tilt, x, y, zoom,
-  }: PTZInputVector = {
-    x : 0, y : 0, zoom : 0,
-  }): PTZVector {
-    return <PTZVector>{
-      panTilt : {
-        x : pan || x,
-        y : tilt || y,
+  private static formatPTZSimpleVector(
+    { pan, tilt, x, y, zoom }: PTZInputVector = {
+      x: 0,
+      y: 0,
+      zoom: 0,
+    },
+  ) {
+    return {
+      panTilt: {
+        x: pan || x,
+        y: tilt || y,
       },
-      zoom : {
-        x : zoom,
+      zoom: {
+        x: zoom,
       },
-    };
+    } as PTZVector;
   }
 
-  private static PTZVectorToXML(input: PTZVector | PTZInputVector | PTZSpeed) {
-    const vector: PTZVector = ('x' in input || 'pan' in input) ? PTZ.formatPTZSimpleVector(input) : (input as PTZVector);
-    return (
-      (vector.panTilt ? `<PanTilt x="${vector.panTilt.x}" y="${vector.panTilt.y}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
-        + (vector.zoom ? `<Zoom x="${vector.zoom.x}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
-    );
+  private static PTZVectorToXML(input: PTZVector | PTZInputVector | PTZSpeed | undefined) {
+    if (!input) {
+      return undefined;
+    }
+    const vector: PTZVector = 'x' in input || 'pan' in input ? PTZ.formatPTZSimpleVector(input) : (input as PTZVector);
+    // return (
+    //   (vector.panTilt
+    //     ? `<PanTilt x="${vector.panTilt.x}" y="${vector.panTilt.y}" xmlns="http://www.onvif.org/ver10/schema"/>`
+    //     : '') + (vector.zoom ? `<Zoom x="${vector.zoom.x}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
+    // );
+    return {
+      ...(vector.panTilt && {
+        PanTilt: {
+          $: {
+            xmlns: 'http://www.onvif.org/ver10/schema',
+            x: vector.panTilt.x,
+            y: vector.panTilt.y,
+          },
+        },
+      }),
+      ...(vector.zoom && {
+        Zoom: {
+          $: {
+            xmlns: 'http://www.onvif.org/ver10/schema',
+            x: vector.zoom.x,
+          },
+        },
+      }),
+    };
   }
 
   /**
@@ -326,14 +371,22 @@ export class PTZ {
    * there is support for at least on PTZ preset by the PTZNode.
    * @param options
    */
-  async gotoPreset({ profileToken = this.onvif.activeSource!.profileToken, presetToken, speed }: GotoPresetExtended): Promise<void> {
+  async gotoPreset({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetToken,
+    speed,
+  }: GotoPresetExtended): Promise<void> {
+    const body = build({
+      GotoPreset: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetToken: presetToken,
+        speed: PTZ.PTZVectorToXML(speed),
+      },
+    });
     await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GotoPreset xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<PresetToken>${presetToken}</PresetToken>${
-          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
-        }</GotoPreset>`,
+      service: 'PTZ',
+      body,
     });
   }
 
@@ -342,13 +395,20 @@ export class PTZ {
    * in the PTZNode is true.
    * @param options
    */
-  async gotoHomePosition({ profileToken = this.onvif.activeSource!.profileToken, speed }: GotoHomePositionExtended): Promise<void> {
+  async gotoHomePosition({
+    profileToken = this.onvif.activeSource!.profileToken,
+    speed,
+  }: GotoHomePositionExtended): Promise<void> {
+    const body = build({
+      GotoHomePosition: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        speed: PTZ.PTZVectorToXML(speed),
+      },
+    });
     await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GotoHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>${
-          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
-        }</GotoHomePosition>`,
+      service: 'PTZ',
+      body,
     });
   }
 
@@ -360,10 +420,11 @@ export class PTZ {
    */
   async setHomePosition({ profileToken = this.onvif.activeSource!.profileToken }: SetHomePositionExtended) {
     await this.onvif.request({
-      service : 'PTZ',
-      body    : '<SetHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + '</SetHomePosition>',
+      service: 'PTZ',
+      body:
+        '<SetHomePosition xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>` +
+        '</SetHomePosition>',
     });
   }
 
@@ -373,10 +434,11 @@ export class PTZ {
    */
   async getStatus({ profileToken = this.onvif.activeSource!.profileToken }: GetStatusExtended): Promise<PTZStatus> {
     const [data] = await this.onvif.request({
-      service : 'PTZ',
-      body    : '<GetStatus xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + '</GetStatus>',
+      service: 'PTZ',
+      body:
+        '<GetStatus xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken>` +
+        '</GetStatus>',
     });
     return linerase(data).getStatusResponse.PTZStatus;
   }
@@ -389,22 +451,19 @@ export class PTZ {
    * default speed set by the PTZConfiguration will be used.
    * @param options
    */
-  async absoluteMove({
-    profileToken = this.onvif.activeSource!.profileToken,
-    position,
-    speed,
-  }: AbsoluteMoveExtended): Promise<void> {
+  async absoluteMove({ profileToken = this.onvif.activeSource!.profileToken, position, speed }: AbsoluteMoveExtended) {
     if (!position) {
-      throw new Error('\'position\' is required');
+      throw new Error("'position' is required");
     }
-    await this.onvif.request({
-      service : 'PTZ',
-      body    : '<AbsoluteMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<Position>${PTZ.PTZVectorToXML(position)}</Position>${
-          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
-        }</AbsoluteMove>`,
+    const body = build({
+      AbsoluteMove: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        Position: PTZ.PTZVectorToXML(position),
+        Speed: PTZ.PTZVectorToXML(speed),
+      },
     });
+    await this.onvif.request({ service: 'PTZ', body });
   }
 
   /**
@@ -422,18 +481,17 @@ export class PTZ {
     speed,
   }: RelativeMoveExtended): Promise<void> {
     if (!translation) {
-      throw new Error('\'translation\' is required');
+      throw new Error("'translation' is required");
     }
-    await this.onvif.request({
-      service : 'PTZ',
-      body    : '<RelativeMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<Translation>${
-          PTZ.PTZVectorToXML(translation)
-        }</Translation>${
-          speed ? `<Speed>${PTZ.PTZVectorToXML(speed)}</Speed>` : ''
-        }</RelativeMove>`,
+    const body = build({
+      RelativeMove: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        Translation: PTZ.PTZVectorToXML(translation),
+        Speed: PTZ.PTZVectorToXML(speed),
+      },
     });
+    await this.onvif.request({ service: 'PTZ', body });
   }
 
   /**
@@ -448,16 +506,45 @@ export class PTZ {
     timeout,
   }: ContinuousMoveExtended): Promise<void> {
     if (!velocity) {
-      throw new Error('\'velocity\' is required');
+      throw new Error("'velocity' is required");
     }
-    await this.onvif.request({
-      service : 'PTZ',
-      body    : '<ContinuousMove xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken>`
-        + `<Velocity>${PTZ.PTZVectorToXML(velocity)}</Velocity>${
-          timeout ? `<Timeout>${typeof timeout === 'number' ? `PT${timeout / 1000}S` : timeout}</Timeout>` : ''
-        }</ContinuousMove>`,
+    const body = build({
+      RelativeMove: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        Velocity: PTZ.PTZVectorToXML(velocity),
+        Timeout: typeof timeout === 'number' ? `PT${timeout / 1000}S` : timeout,
+      },
     });
+    await this.onvif.request({ service: 'PTZ', body });
+  }
+
+  /**
+   * Operation to move pan,tilt or zoom to point to a destination based on the geolocation of the target.
+   *
+   * The speed argument is optional. If an x/y speed value is given it is up to the device to either use the x value as
+   * absolute resoluting speed vector or to map x and y to the component speed. If the speed argument is omitted,
+   * the default speed set by the PTZConfiguration will be used. The area height and area dwidth parameters are optional,
+   * they can be used independently and may be used by the device to automatically determine the best zoom level to show
+   * the target.
+   * @param options
+   */
+  async geoMove(options: GeoMove) {
+    const body = build({
+      GeoMove: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: options.profileToken ?? this.onvif.activeSource!.profileToken,
+        Target: {
+          Lon: options.target.lon,
+          Lat: options.target.lat,
+          Elevation: options.target.elevation,
+        },
+        Speed: PTZ.PTZVectorToXML(options.speed),
+        AreaHeight: options.areaHeight,
+        AreaWidth: options.areaWidth,
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
   }
 
   /**
@@ -470,10 +557,11 @@ export class PTZ {
     const panTilt = options?.panTilt ?? true;
     const zoom = options?.zoom ?? true;
     await this.onvif.request({
-      service : 'PTZ',
-      body    : '<Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">'
-        + `<ProfileToken>${profileToken}</ProfileToken><PanTilt>${panTilt}</PanTilt><Zoom>${zoom}</Zoom>`
-        + '</Stop>',
+      service: 'PTZ',
+      body:
+        '<Stop xmlns="http://www.onvif.org/ver20/ptz/wsdl">' +
+        `<ProfileToken>${profileToken}</ProfileToken><PanTilt>${panTilt}</PanTilt><Zoom>${zoom}</Zoom>` +
+        '</Stop>',
     });
   }
 }

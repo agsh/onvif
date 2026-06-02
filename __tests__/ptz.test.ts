@@ -358,6 +358,56 @@ describe('Moves', () => {
     });
   });
 
+  describe('geoMove', () => {
+    const geoTarget = { lon: 37.6173, lat: 55.7558, elevation: 156 };
+
+    async function expectGeoMoveOutcome(geoMoveCall: () => Promise<void>): Promise<void> {
+      const nodes = await cam.ptz.getNodesExtended();
+      const supported = Object.values(nodes).some((node) => node.geoMove === true);
+      if (supported) {
+        await expect(geoMoveCall()).resolves.toBeUndefined();
+      } else {
+        await expect(geoMoveCall()).rejects.toThrow(/does not support geo move/i);
+      }
+    }
+
+    it('should move to a geolocation target when PTZ nodes advertise geoMove support', async () => {
+      await expectGeoMoveOutcome(() =>
+        cam.ptz.geoMove({
+          profileToken: cam.activeSource!.profileToken,
+          target: geoTarget,
+        }),
+      );
+    });
+
+    it('should default profile token from activeSource when omitted', async () => {
+      await expectGeoMoveOutcome(() => cam.ptz.geoMove({ target: geoTarget }));
+    });
+
+    it('should accept optional speed and area dimensions per GeoMove schema', async () => {
+      await expectGeoMoveOutcome(() =>
+        cam.ptz.geoMove({
+          target: geoTarget,
+          speed: {
+            panTilt: { x: 0.5, y: 0.5 },
+            zoom: { x: 0.1 },
+          },
+          areaHeight: 10,
+          areaWidth: 20,
+        }),
+      );
+    });
+
+    it('should throw when the requested profile token does not exist', async () => {
+      await expect(
+        cam.ptz.geoMove({
+          profileToken: '???',
+          target: geoTarget,
+        }),
+      ).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
   describe('stop', () => {
     it('should stop', async () => {
       const result = await cam.ptz.stop({});

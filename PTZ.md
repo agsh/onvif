@@ -16,7 +16,7 @@
 [x] ContinuousMove
 [x] RelativeMove
 [x] AbsoluteMove
-[ ] GeoMove
+[x] GeoMove
 [x] Stop
 [ ] GetPresetTours
 [ ] GetPresetTour

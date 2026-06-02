@@ -93,6 +93,9 @@ interface RequestError extends Error {
  */
 export interface ActiveSource {
   sourceToken: ReferenceToken;
+  /**
+   * Media profile token
+   */
   profileToken: ReferenceToken;
   videoSourceConfigurationToken: ReferenceToken;
   videoSourceToken: ReferenceToken;
