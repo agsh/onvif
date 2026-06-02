@@ -1,9 +1,9 @@
-[ ] GetServiceCapabilities
+[x] GetServiceCapabilities
 [x] GetNodes
-[ ] GetNode
+[x] GetNode
 [x] GetConfigurations
 [x] GetConfiguration
-[ ] SetConfiguration
+[x] SetConfiguration
 [x] GetConfigurationOptions
 [ ] SendAuxiliaryCommand
 [x] GetPresets

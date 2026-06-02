@@ -169,6 +169,39 @@ describe('Configurations and configuration options', () => {
       expect(result).toHaveProperty('PTControlDirection');
     });
   });
+
+  describe('setConfiguration', () => {
+    let configurationToken: ReferenceToken;
+
+    beforeAll(async () => {
+      const configurations = await cam.ptz.getConfigurations();
+      configurationToken = configurations[0].token;
+    });
+
+    it('should accept an existing PTZ configuration unchanged with forcePersistence', async () => {
+      const configuration = await cam.ptz.getConfiguration({ PTZConfigurationToken: configurationToken });
+      await expect(
+        cam.ptz.setConfiguration({ PTZConfiguration: configuration, forcePersistence: true }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should accept forcePersistence false', async () => {
+      const configuration = await cam.ptz.getConfiguration({ PTZConfigurationToken: configurationToken });
+      await expect(
+        cam.ptz.setConfiguration({ PTZConfiguration: configuration, forcePersistence: false }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should throw when the PTZ configuration token does not exist', async () => {
+      const configuration = await cam.ptz.getConfiguration({ PTZConfigurationToken: configurationToken });
+      await expect(
+        cam.ptz.setConfiguration({
+          PTZConfiguration: { ...configuration, token: '???' },
+          forcePersistence: true,
+        }),
+      ).rejects.toThrow('Config Not Exist');
+    });
+  });
 });
 
 describe('Presets', () => {

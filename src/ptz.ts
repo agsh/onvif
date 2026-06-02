@@ -24,6 +24,7 @@ import {
   GotoPreset,
   RelativeMove,
   RemovePreset,
+  SetConfiguration,
   SetHomePosition,
   SetPreset,
   Stop,
@@ -247,6 +248,66 @@ export class PTZ {
         '</GetConfiguration>',
     });
     return linerase(data).getConfigurationResponse.PTZConfiguration;
+  }
+
+  /**
+   * Set/update a existing PTZConfiguration on the device.
+   * @param options
+   */
+  async setConfiguration(options: SetConfiguration) {
+    const body = build({
+      SetConfiguration: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        PTZConfiguration: {
+          $: {
+            token: options.PTZConfiguration.token,
+            MoveRamp: options.PTZConfiguration.moveRamp,
+            PresetRamp: options.PTZConfiguration.presetRamp,
+            PresetTourRamp: options.PTZConfiguration.presetTourRamp,
+          },
+          Name: options.PTZConfiguration.name,
+          UseCount: options.PTZConfiguration.useCount,
+          NodeToken: options.PTZConfiguration.nodeToken,
+          DefaultAbsolutePantTiltPositionSpace: options.PTZConfiguration.defaultAbsolutePantTiltPositionSpace,
+          DefaultAbsoluteZoomPositionSpace: options.PTZConfiguration.defaultAbsoluteZoomPositionSpace,
+          DefaultRelativePanTiltTranslationSpace: options.PTZConfiguration.defaultRelativePanTiltTranslationSpace,
+          DefaultRelativeZoomTranslationSpace: options.PTZConfiguration.defaultRelativeZoomTranslationSpace,
+          DefaultContinuousPanTiltVelocitySpace: options.PTZConfiguration.defaultContinuousPanTiltVelocitySpace,
+          DefaultContinuousZoomVelocitySpace: options.PTZConfiguration.defaultContinuousZoomVelocitySpace,
+          DefaultPTZSpeed: PTZ.PTZVectorToXML(options.PTZConfiguration.defaultPTZSpeed),
+          DefaultPTZTimeout: options.PTZConfiguration.defaultPTZTimeout,
+          ...(options.PTZConfiguration.panTiltLimits && {
+            PanTiltLimits: {
+              Range: {
+                URI: options.PTZConfiguration.panTiltLimits.range.URI,
+                XRange: {
+                  Min: options.PTZConfiguration.panTiltLimits.range.XRange.min,
+                  Max: options.PTZConfiguration.panTiltLimits.range.XRange.max,
+                },
+                YRange: {
+                  Min: options.PTZConfiguration.panTiltLimits.range.YRange.min,
+                  Max: options.PTZConfiguration.panTiltLimits.range.YRange.max,
+                },
+              },
+            },
+          }),
+          ...(options.PTZConfiguration.zoomLimits && {
+            ZoomLimits: {
+              Range: {
+                URI: options.PTZConfiguration.zoomLimits.range.URI,
+                XRange: {
+                  Min: options.PTZConfiguration.zoomLimits.range.XRange.min,
+                  Max: options.PTZConfiguration.zoomLimits.range.XRange.max,
+                },
+              },
+            },
+          }),
+          Extension: options.PTZConfiguration.extension,
+        },
+        ForcePersistence: options.forcePersistence,
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
   }
 
   /**
