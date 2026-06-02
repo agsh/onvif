@@ -5,12 +5,41 @@ import { ReferenceToken } from '../src/interfaces/common';
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : '127.0.0.1',
-    username : 'admin',
-    password : 'admin',
-    port     : 8000,
+    hostname: '127.0.0.1',
+    username: 'admin',
+    password: 'admin',
+    port: 8000,
   });
   await cam.connect();
+});
+
+describe('getServiceCapabilities', () => {
+  it('should return PTZ service capabilities as an object', async () => {
+    const caps = await cam.ptz.getServiceCapabilities();
+    expect(caps).toBeDefined();
+    expect(typeof caps).toBe('object');
+    expect(Array.isArray(caps)).toBe(false);
+  });
+
+  it('should return capability flags from the happytime mock server', async () => {
+    const caps = await cam.ptz.getServiceCapabilities();
+    expect(caps.EFlip).toBe(true);
+    expect(caps.reverse).toBe(true);
+    expect(caps.getCompatibleConfigurations).toBe(true);
+    expect(caps.moveStatus).toBe(true);
+    expect(caps.statusPosition).toBe(true);
+  });
+
+  it('should expose optional capability flags as booleans when present', async () => {
+    const caps = await cam.ptz.getServiceCapabilities();
+    const optionalFlags = ['EFlip', 'reverse', 'getCompatibleConfigurations', 'moveStatus', 'statusPosition'] as const;
+    optionalFlags.forEach((key) => {
+      if (caps[key] !== undefined) {
+        // eslint-disable-next-line jest/no-conditional-expect
+        expect(typeof caps[key]).toBe('boolean');
+      }
+    });
+  });
 });
 
 describe('Nodes', () => {
@@ -46,6 +75,31 @@ describe('Nodes', () => {
         expect(node).toHaveProperty('token');
         expect(node).toHaveProperty('name');
       });
+    });
+  });
+
+  describe('getNode', () => {
+    it('should return a PTZ node matching an entry from getNodes', async () => {
+      const nodes = await cam.ptz.getNodes();
+      expect(nodes.length).toBeGreaterThan(0);
+      const [listed] = nodes;
+      const node = await cam.ptz.getNode({ nodeToken: listed.token });
+      expect(node.token).toBe(listed.token);
+      expect(node.name).toBe(listed.name);
+      expect(node).toHaveProperty('supportedPTZSpaces');
+      expect(node).toHaveProperty('maximumNumberOfPresets');
+      expect(node).toHaveProperty('homeSupported');
+    });
+
+    it('should return node fields advertised by the happytime mock server', async () => {
+      const node = await cam.ptz.getNode({ nodeToken: 'PTZNodeToken_1' });
+      expect(node.token).toBe('PTZNodeToken_1');
+      expect(node.name).toBe('PTZNodeName_1');
+      expect(node.geoMove).toBe(true);
+    });
+
+    it('should throw when the requested node token does not exist', async () => {
+      await expect(cam.ptz.getNode({ nodeToken: '???' })).rejects.toThrow('No such PTZ Node on the device');
     });
   });
 });
@@ -102,14 +156,14 @@ describe('Configurations and configuration options', () => {
     });
 
     it('throws an error with the wrong token', async () => {
-      await expect(cam.ptz.getConfiguration({ PTZConfigurationToken : '???' })).rejects.toThrow();
+      await expect(cam.ptz.getConfiguration({ PTZConfigurationToken: '???' })).rejects.toThrow();
     });
   });
 
   describe('getConfigurationOptions', () => {
     it('should return an options object for configuration token', async () => {
       const configuration = (await cam.ptz.getConfigurations())[0].token;
-      const result = await cam.ptz.getConfigurationOptions({ configurationToken : configuration });
+      const result = await cam.ptz.getConfigurationOptions({ configurationToken: configuration });
       expect(result).toHaveProperty('spaces');
       expect(result).toHaveProperty('PTZTimeout');
       expect(result).toHaveProperty('PTControlDirection');
@@ -122,14 +176,14 @@ describe('Presets', () => {
     let presetToken: ReferenceToken;
     it('should create a new preset for the empty presetToken', async () => {
       presetToken = await cam.ptz.setPreset({
-        presetName : 'My_Token',
+        presetName: 'My_Token',
       });
       expect(typeof presetToken).toBe('string');
     });
 
     it('should edit already existing preset by token', async () => {
       const result = await cam.ptz.setPreset({
-        presetName : 'My_Token_2',
+        presetName: 'My_Token_2',
         presetToken,
       });
       expect(typeof result).toBe('string');
@@ -139,7 +193,7 @@ describe('Presets', () => {
     it('should throw an error if there is no preset token to edit', async () => {
       await expect(
         cam.ptz.setPreset({
-          presetToken : 'Undefined_Token',
+          presetToken: 'Undefined_Token',
         }),
       ).rejects.toThrow();
     });
@@ -157,7 +211,7 @@ describe('Presets', () => {
     });
 
     it('should return presets for the selected profile', async () => {
-      const result = await cam.ptz.getPresetsExtended({ profileToken : cam.activeSource!.profileToken });
+      const result = await cam.ptz.getPresetsExtended({ profileToken: cam.activeSource!.profileToken });
       expect(result).toStrictEqual(activeSourceResult);
     });
 
@@ -167,7 +221,7 @@ describe('Presets', () => {
     });
 
     it('should return presets as an array for the selected profile', async () => {
-      const result = await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken });
+      const result = await cam.ptz.getPresets({ profileToken: cam.activeSource!.profileToken });
       expect(result).toBeInstanceOf(Array);
       expect(result.length).toBe(Object.keys(activeSourceResult).length);
     });
@@ -187,16 +241,16 @@ describe('Presets', () => {
 
   describe('gotoPreset', () => {
     it('should go to preset by token', async () => {
-      const presetToken = (await cam.ptz.getPresets({ profileToken : cam.activeSource!.profileToken }))[0].token!;
+      const presetToken = (await cam.ptz.getPresets({ profileToken: cam.activeSource!.profileToken }))[0].token!;
       const result = await cam.ptz.gotoPreset({
         presetToken,
-        speed : {
-          panTilt : {
-            x : 0,
-            y : 0,
+        speed: {
+          panTilt: {
+            x: 0,
+            y: 0,
           },
-          zoom : {
-            x : 0,
+          zoom: {
+            x: 0,
           },
         },
       });
@@ -232,13 +286,13 @@ describe('Moves', () => {
   describe('absoluteMove', () => {
     it('should move', async () => {
       const result = await cam.ptz.absoluteMove({
-        position : {
-          panTilt : {
-            x : 0,
-            y : 0,
+        position: {
+          panTilt: {
+            x: 0,
+            y: 0,
           },
-          zoom : {
-            x : 0,
+          zoom: {
+            x: 0,
           },
         },
       });
@@ -247,10 +301,10 @@ describe('Moves', () => {
 
     it('should move with simplified position vector first variant', async () => {
       const result = await cam.ptz.absoluteMove({
-        position : {
-          x    : 0,
-          y    : 0,
-          zoom : 0,
+        position: {
+          x: 0,
+          y: 0,
+          zoom: 0,
         },
       });
       expect(result).toBeUndefined();
@@ -258,10 +312,10 @@ describe('Moves', () => {
 
     it('should move with simplified position vector second variant', async () => {
       const result = await cam.ptz.absoluteMove({
-        position : {
-          pan  : 0,
-          tilt : 0,
-          zoom : 0,
+        position: {
+          pan: 0,
+          tilt: 0,
+          zoom: 0,
         },
       });
       expect(result).toBeUndefined();
@@ -280,19 +334,19 @@ describe('Moves', () => {
   describe('relativeMove', () => {
     it('should move', async () => {
       const result = await cam.ptz.relativeMove({
-        translation : {
-          panTilt : {
-            x : 0,
-            y : 0,
+        translation: {
+          panTilt: {
+            x: 0,
+            y: 0,
           },
-          zoom : {
-            x : 0,
+          zoom: {
+            x: 0,
           },
         },
-        speed : {
-          panTilt : {
-            x : 0,
-            y : 0,
+        speed: {
+          panTilt: {
+            x: 0,
+            y: 0,
           },
         },
       });
@@ -301,10 +355,10 @@ describe('Moves', () => {
 
     it('should move with simplified position vector', async () => {
       const result = await cam.ptz.relativeMove({
-        translation : {
-          x    : 1,
-          y    : 0.3,
-          zoom : 0.1,
+        translation: {
+          x: 1,
+          y: 0.3,
+          zoom: 0.1,
         },
       });
       expect(result).toBeUndefined();
@@ -323,26 +377,26 @@ describe('Moves', () => {
   describe('continuousMove', () => {
     it('should move', async () => {
       const result = await cam.ptz.continuousMove({
-        velocity : {
-          panTilt : {
-            x : 0,
-            y : 0,
+        velocity: {
+          panTilt: {
+            x: 0,
+            y: 0,
           },
-          zoom : {
-            x : 0,
+          zoom: {
+            x: 0,
           },
         },
-        timeout : 'PT5S',
+        timeout: 'PT5S',
       });
       expect(result).toBeUndefined();
     });
 
     it('should move with simplified position vector', async () => {
       const result = await cam.ptz.continuousMove({
-        velocity : {
-          x    : 1,
-          y    : 0.3,
-          zoom : 0.1,
+        velocity: {
+          x: 1,
+          y: 0.3,
+          zoom: 0.1,
         },
       });
       expect(result).toBeUndefined();
@@ -416,9 +470,9 @@ describe('Moves', () => {
 
     it('should stop with optional parameters', async () => {
       const result = await cam.ptz.stop({
-        panTilt      : true,
-        zoom         : true,
-        profileToken : cam.activeSource!.profileToken,
+        panTilt: true,
+        zoom: true,
+        profileToken: cam.activeSource!.profileToken,
       });
       expect(result).toBeUndefined();
     });

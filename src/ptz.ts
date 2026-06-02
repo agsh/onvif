@@ -11,11 +11,14 @@ import { PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
 import { PTZConfiguration, PTZConfigurationOptions, PTZNode, PTZPreset, PTZSpeed } from './interfaces/onvif';
 import {
   AbsoluteMove,
+  Capabilities,
   ContinuousMove,
   GeoMove,
   GetConfiguration,
   GetConfigurationOptions,
+  GetNode,
   GetPresets,
+  GetServiceCapabilitiesResponse,
   GetStatus,
   GotoHomePosition,
   GotoPreset,
@@ -138,6 +141,34 @@ export class PTZ {
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
+  }
+
+  /**
+   * Returns the capabilities of the PTZ service. The result is returned in a typed answer.
+   */
+  async getServiceCapabilities(): Promise<Capabilities> {
+    const [data] = await this.onvif.request({
+      service: 'PTZ',
+      body: '<GetServiceCapabilities xmlns="http://www.onvif.org/ver20/ptz/wsdl" />',
+    });
+    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? [];
+  }
+
+  /**
+   * Get a specific PTZ Node identified by a reference token or a name.
+   * @param nodeToken
+   */
+  async getNode({ nodeToken }: GetNode): Promise<PTZNode> {
+    const [data] = await this.onvif.request({
+      service: 'PTZ',
+      body: build({
+        GetNode: {
+          $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+          NodeToken: nodeToken,
+        },
+      }),
+    });
+    return linerase(data).getNodeResponse?.PTZNode;
   }
 
   /**
