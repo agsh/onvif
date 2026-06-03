@@ -20,6 +20,7 @@ import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces
 import { ReferenceToken } from './interfaces/common';
 import { Events, NotificationMessage } from './events';
 import { Replay } from './replay';
+import { Imaging } from './imaging';
 
 /**
  * Cam constructor options
@@ -227,6 +228,7 @@ export class Onvif extends EventEmitter {
   public readonly ptz: PTZ;
   public readonly events: Events;
   public readonly replay: Replay;
+  public readonly imaging: Imaging;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -272,6 +274,7 @@ export class Onvif extends EventEmitter {
     this.ptz = new PTZ(this);
     this.events = new Events(this);
     this.replay = new Replay(this);
+    this.imaging = new Imaging(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {

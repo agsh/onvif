@@ -1,0 +1,10 @@
+[x] GetServiceCapabilities
+[x] GetImagingSettings
+[x] GetOptions
+[x] Move
+[x] GetMoveOptions
+[x] Stop
+[x] GetStatus
+[x] GetPresets
+[x] GetCurrentPreset
+[x] SetCurrentPreset
