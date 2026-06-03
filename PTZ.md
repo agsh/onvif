@@ -5,7 +5,7 @@
 [x] GetConfiguration
 [x] SetConfiguration
 [x] GetConfigurationOptions
-[ ] SendAuxiliaryCommand
+[x] SendAuxiliaryCommand
 [x] GetPresets
 [x] SetPreset
 [x] RemovePreset

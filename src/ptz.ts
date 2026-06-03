@@ -8,7 +8,14 @@
 import { Onvif } from './onvif';
 import { build, linerase } from './utils';
 import { PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
-import { PTZConfiguration, PTZConfigurationOptions, PTZNode, PTZPreset, PTZSpeed } from './interfaces/onvif';
+import {
+  AuxiliaryData,
+  PTZConfiguration,
+  PTZConfigurationOptions,
+  PTZNode,
+  PTZPreset,
+  PTZSpeed,
+} from './interfaces/onvif';
 import {
   AbsoluteMove,
   Capabilities,
@@ -24,6 +31,7 @@ import {
   GotoPreset,
   RelativeMove,
   RemovePreset,
+  SendAuxiliaryCommand,
   SetConfiguration,
   SetHomePosition,
   SetPreset,
@@ -328,6 +336,27 @@ export class PTZ {
         '</GetConfigurationOptions>',
     });
     return linerase(data).getConfigurationOptionsResponse.PTZConfigurationOptions;
+  }
+
+  /**
+   * Operation to send auxiliary commands to the PTZ device mapped by the PTZNode in the selected profile.
+   * The operation is supported if the AuxiliarySupported element of the PTZNode is true
+   * @param options
+   */
+  async sendAuxiliaryCommand(options: SendAuxiliaryCommand): Promise<AuxiliaryData> {
+    const body = build({
+      SendAuxiliaryCommand: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: options.profileToken ?? this.onvif.activeSource!.profileToken,
+        AuxiliaryData: options.auxiliaryData,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    const auxiliaryResponse = linerase(data).sendAuxiliaryCommandResponse.auxiliaryResponse;
+    if (Array.isArray(auxiliaryResponse)) {
+      return auxiliaryResponse[0] ?? '';
+    }
+    return auxiliaryResponse ?? '';
   }
 
   /**

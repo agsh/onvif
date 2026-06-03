@@ -204,6 +204,41 @@ describe('Configurations and configuration options', () => {
   });
 });
 
+describe('sendAuxiliaryCommand', () => {
+  it('should send an auxiliary command supported by the PTZ node', async () => {
+    const nodes = await cam.ptz.getNodesExtended();
+    const node = Object.values(nodes)[0];
+    expect(node.auxiliaryCommands?.length).toBeGreaterThan(0);
+    const auxiliaryData = node.auxiliaryCommands![0];
+    const result = await cam.ptz.sendAuxiliaryCommand({
+      profileToken: cam.activeSource!.profileToken,
+      auxiliaryData,
+    });
+    expect(typeof result).toBe('string');
+  });
+
+  it('should default profile token from activeSource when omitted', async () => {
+    const nodes = await cam.ptz.getNodesExtended();
+    const auxiliaryData = Object.values(nodes)[0].auxiliaryCommands![0];
+    const withExplicit = await cam.ptz.sendAuxiliaryCommand({
+      profileToken: cam.activeSource!.profileToken,
+      auxiliaryData,
+    });
+    const withDefault = await cam.ptz.sendAuxiliaryCommand({ auxiliaryData });
+    expect(typeof withExplicit).toBe('string');
+    expect(typeof withDefault).toBe('string');
+  });
+
+  it('should throw when the requested profile token does not exist', async () => {
+    await expect(
+      cam.ptz.sendAuxiliaryCommand({
+        profileToken: '???',
+        auxiliaryData: 'Wiper start',
+      }),
+    ).rejects.toThrow('Profile Not Exist');
+  });
+});
+
 describe('Presets', () => {
   describe('setPreset', () => {
     let presetToken: ReferenceToken;
