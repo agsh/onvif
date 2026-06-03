@@ -14,23 +14,33 @@ import {
   PTZConfigurationOptions,
   PTZNode,
   PTZPreset,
+  PresetTour,
+  PTZPresetTourOptions,
+  PTZPresetTourPresetDetail,
+  PTZPresetTourSpot,
   PTZSpeed,
 } from './interfaces/onvif';
 import {
   AbsoluteMove,
   Capabilities,
   ContinuousMove,
+  CreatePresetTour,
   GeoMove,
   GetConfiguration,
   GetConfigurationOptions,
   GetNode,
   GetPresets,
-  GetServiceCapabilitiesResponse,
+  GetPresetTour,
+  GetPresetTourOptions,
+  GetPresetTours,
   GetStatus,
   GotoHomePosition,
   GotoPreset,
+  ModifyPresetTour,
+  OperatePresetTour,
   RelativeMove,
   RemovePreset,
+  RemovePresetTour,
   SendAuxiliaryCommand,
   SetConfiguration,
   SetHomePosition,
@@ -390,6 +400,134 @@ export class PTZ {
   }
 
   /**
+   * Operation to request all existing preset tours in the selected profile.
+   * @param options
+   */
+  async getPresetTours(
+    { profileToken }: GetPresetTours = { profileToken: this.onvif.activeSource!.profileToken },
+  ): Promise<PresetTour[]> {
+    const body = build({
+      GetPresetTours: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    return linerase(data, { array: ['presetTour'] }).getPresetToursResponse.presetTour ?? [];
+  }
+
+  /**
+   * Operation to request a specific preset tour in the selected profile.
+   * @param options
+   */
+  async getPresetTour({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetTourToken,
+  }: GetPresetTour): Promise<PresetTour> {
+    const body = build({
+      GetPresetTour: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetTourToken: presetTourToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    return linerase(data).getPresetTourResponse.presetTour;
+  }
+
+  /**
+   * Operation to request available options to create and modify preset tours.
+   * @param options
+   */
+  async getPresetTourOptions({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetTourToken,
+  }: GetPresetTourOptions = {}): Promise<PTZPresetTourOptions> {
+    const body = build({
+      GetPresetTourOptions: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetTourToken: presetTourToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    return linerase(data).getPresetTourOptionsResponse.options;
+  }
+
+  /**
+   * Operation to create a new preset tour for the selected profile.
+   * @param options
+   */
+  async createPresetTour({
+    profileToken = this.onvif.activeSource!.profileToken,
+  }: CreatePresetTour = {}): Promise<ReferenceToken> {
+    const body = build({
+      CreatePresetTour: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    return linerase(data).createPresetTourResponse.presetTourToken;
+  }
+
+  /**
+   * Operation to modify the specified preset tour for the selected profile.
+   * @param options
+   */
+  async modifyPresetTour({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetTour,
+  }: ModifyPresetTour): Promise<void> {
+    const body = build({
+      ModifyPresetTour: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetTour: PTZ.presetTourToXML(presetTour),
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
+  }
+
+  /**
+   * Operation to perform an operation on the specified preset tour.
+   * @param options
+   */
+  async operatePresetTour({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetTourToken,
+    operation,
+  }: OperatePresetTour): Promise<void> {
+    const body = build({
+      OperatePresetTour: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetTourToken: presetTourToken,
+        Operation: operation,
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
+  }
+
+  /**
+   * Operation to delete the specified preset tour.
+   * @param options
+   */
+  async removePresetTour({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetTourToken,
+  }: RemovePresetTour): Promise<void> {
+    const body = build({
+      RemovePresetTour: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        PresetTourToken: presetTourToken,
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
+  }
+
+  /**
    * The SetPreset command saves the current device position parameters so that the device can move to the saved preset
    * position through the GotoPreset operation. In order to create a new preset, the SetPresetRequest contains no
    * PresetToken. If creation is successful, the Response contains the PresetToken which uniquely identifies the Preset.
@@ -454,6 +592,74 @@ export class PTZ {
         x: zoom,
       },
     } as PTZVector;
+  }
+
+  private static presetTourPresetDetailToXML(detail: PTZPresetTourPresetDetail) {
+    const result: Record<string, unknown> = {};
+    if (detail.presetToken !== undefined) {
+      result.PresetToken = detail.presetToken;
+    }
+    if (detail.home !== undefined) {
+      result.Home = detail.home;
+    }
+    if (detail.PTZPosition !== undefined) {
+      result.PTZPosition = detail.PTZPosition;
+    }
+    if (detail.extension) {
+      result.Extension = detail.extension;
+    }
+    return result;
+  }
+
+  private static presetTourSpotToXML(spot: PTZPresetTourSpot) {
+    return {
+      PresetDetail: PTZ.presetTourPresetDetailToXML(spot.presetDetail),
+      ...(spot.speed && { Speed: PTZ.PTZVectorToXML(spot.speed) }),
+      ...(spot.stayTime !== undefined && { StayTime: spot.stayTime }),
+      ...(spot.extension && { Extension: spot.extension }),
+    };
+  }
+
+  private static presetTourToXML(presetTour: PresetTour) {
+    return {
+      ...(presetTour.token && {
+        $: { token: presetTour.token },
+      }),
+      ...(presetTour.name && { Name: presetTour.name }),
+      ...(presetTour.status && {
+        Status: {
+          State: presetTour.status.state,
+          ...(presetTour.status.currentTourSpot && {
+            CurrentTourSpot: PTZ.presetTourSpotToXML(presetTour.status.currentTourSpot),
+          }),
+          ...(presetTour.status.extension && { Extension: presetTour.status.extension }),
+        },
+      }),
+      ...(presetTour.autoStart && { AutoStart: presetTour.autoStart }),
+      ...(presetTour.startingCondition && {
+        StartingCondition: {
+          ...(presetTour.startingCondition.randomPresetOrder && {
+            RandomPresetOrder: presetTour.startingCondition.randomPresetOrder,
+          }),
+          ...(presetTour.startingCondition.recurringTime && {
+            RecurringTime: presetTour.startingCondition.recurringTime,
+          }),
+          ...(presetTour.startingCondition.recurringDuration && {
+            RecurringDuration: presetTour.startingCondition.recurringDuration,
+          }),
+          ...(presetTour.startingCondition.direction && {
+            Direction: presetTour.startingCondition.direction,
+          }),
+          ...(presetTour.startingCondition.extension && {
+            Extension: presetTour.startingCondition.extension,
+          }),
+        },
+      }),
+      ...(presetTour.tourSpot && {
+        TourSpot: presetTour.tourSpot.map((spot) => PTZ.presetTourSpotToXML(spot)),
+      }),
+      ...(presetTour.extension && { Extension: presetTour.extension }),
+    };
   }
 
   private static PTZVectorToXML(input: PTZVector | PTZInputVector | PTZSpeed | undefined) {

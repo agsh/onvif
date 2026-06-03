@@ -1,6 +1,7 @@
 import { Onvif } from '../src';
 import { GetPresetsExtended } from '../src/ptz';
 import { ReferenceToken } from '../src/interfaces/common';
+import { PresetTour } from '../src/interfaces/onvif';
 
 let cam: Onvif;
 beforeAll(async () => {
@@ -236,6 +237,119 @@ describe('sendAuxiliaryCommand', () => {
         auxiliaryData: 'Wiper start',
       }),
     ).rejects.toThrow('Profile Not Exist');
+  });
+});
+
+describe('Preset tours', () => {
+  const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
+
+  function assertPresetTourShape(tour: PresetTour): void {
+    expect(tour.token).toBeDefined();
+    expect(tour.status).toBeDefined();
+    expect(tour.status.state).toBeDefined();
+    expect(typeof tour.autoStart).toBe('boolean');
+  }
+
+  async function withCreatedPresetTour<T>(fn: (presetTourToken: ReferenceToken) => Promise<T>): Promise<T> {
+    const presetTourToken = await cam.ptz.createPresetTour();
+    try {
+      return await fn(presetTourToken);
+    } finally {
+      await cam.ptz.removePresetTour({ presetTourToken }).catch(() => undefined);
+    }
+  }
+
+  describe('getPresetTours', () => {
+    it('should return an array of preset tours for the active profile', async () => {
+      await withCreatedPresetTour(async (presetTourToken) => {
+        const tours = await cam.ptz.getPresetTours();
+        expect(Array.isArray(tours)).toBe(true);
+        expect(tours.some((t) => t.token === presetTourToken)).toBe(true);
+        tours.forEach(assertPresetTourShape);
+      });
+    });
+
+    it('should default profile token from activeSource when omitted', async () => {
+      await withCreatedPresetTour(async () => {
+        const explicit = await cam.ptz.getPresetTours({ profileToken: profileToken() });
+        const defaulted = await cam.ptz.getPresetTours();
+        expect(defaulted).toEqual(explicit);
+      });
+    });
+
+    it('should throw when the requested profile token does not exist', async () => {
+      await expect(cam.ptz.getPresetTours({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
+    });
+  });
+
+  describe('getPresetTourOptions', () => {
+    it('should return preset tour options for the active profile', async () => {
+      const options = await cam.ptz.getPresetTourOptions();
+      expect(typeof options.autoStart).toBe('boolean');
+      expect(options.startingCondition).toBeDefined();
+      expect(options.tourSpot).toBeDefined();
+      expect(options.tourSpot.presetDetail).toBeDefined();
+    });
+
+    it('should default profile token from activeSource when omitted', async () => {
+      const explicit = await cam.ptz.getPresetTourOptions({ profileToken: profileToken() });
+      const defaulted = await cam.ptz.getPresetTourOptions();
+      expect(defaulted).toEqual(explicit);
+    });
+  });
+
+  describe('getPresetTour', () => {
+    it('should return one preset tour by token', async () => {
+      await withCreatedPresetTour(async (presetTourToken) => {
+        const tour = await cam.ptz.getPresetTour({ presetTourToken });
+        assertPresetTourShape(tour);
+        expect(tour.token).toBe(presetTourToken);
+      });
+    });
+
+    it('should throw when the requested preset tour token does not exist', async () => {
+      await expect(cam.ptz.getPresetTour({ presetTourToken: '???' })).rejects.toThrow(
+        'The requested token does not exist',
+      );
+    });
+  });
+
+  describe('createPresetTour / modifyPresetTour / operatePresetTour / removePresetTour', () => {
+    it('should create, modify, operate, and remove a preset tour', async () => {
+      const options = await cam.ptz.getPresetTourOptions();
+      const presetTourToken = await cam.ptz.createPresetTour();
+      expect(presetTourToken).toBeDefined();
+
+      const created = await cam.ptz.getPresetTour({ presetTourToken });
+      assertPresetTourShape(created);
+      expect(created.token).toBe(presetTourToken);
+
+      const ptzPresetToken = options.tourSpot.presetDetail.presetToken;
+      const presetTokenValue = Array.isArray(ptzPresetToken) ? ptzPresetToken[0] : ptzPresetToken;
+
+      await expect(
+        cam.ptz.modifyPresetTour({
+          presetTour: {
+            ...created,
+            name: 'jest_preset_tour',
+            tourSpot: [{ presetDetail: { presetToken: presetTokenValue }, stayTime: 'PT5S' }],
+          },
+        }),
+      ).resolves.toBeUndefined();
+
+      await expect(cam.ptz.operatePresetTour({ presetTourToken, operation: 'Start' })).resolves.toBeUndefined();
+      await expect(cam.ptz.operatePresetTour({ presetTourToken, operation: 'Stop' })).resolves.toBeUndefined();
+
+      await expect(cam.ptz.removePresetTour({ presetTourToken })).resolves.toBeUndefined();
+
+      const tours = await cam.ptz.getPresetTours();
+      expect(tours.some((t) => t.token === presetTourToken)).toBe(false);
+    });
+
+    it('should create and remove a preset tour with default profile token', async () => {
+      const token = await cam.ptz.createPresetTour();
+      await expect(cam.ptz.removePresetTour({ presetTourToken: token })).resolves.toBeUndefined();
+    });
   });
 });
 

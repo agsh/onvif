@@ -18,12 +18,12 @@
 [x] AbsoluteMove
 [x] GeoMove
 [x] Stop
-[ ] GetPresetTours
-[ ] GetPresetTour
-[ ] GetPresetTourOptions
-[ ] CreatePresetTour
-[ ] ModifyPresetTour
-[ ] OperatePresetTour
-[ ] RemovePresetTour
+[x] GetPresetTours
+[x] GetPresetTour
+[x] GetPresetTourOptions
+[x] CreatePresetTour
+[x] ModifyPresetTour
+[x] OperatePresetTour
+[x] RemovePresetTour
 [ ] GetCompatibleConfigurations
 [ ] MoveAndStartTracking
