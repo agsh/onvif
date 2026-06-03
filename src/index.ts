@@ -6,5 +6,6 @@ export * from './discovery';
 export * from './ptz';
 export * from './replay';
 export * from './imaging';
+export * from './recording';
 export * from './utils';
 // export * from './compatibility/cam'; // development frozen

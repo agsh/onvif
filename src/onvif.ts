@@ -21,6 +21,7 @@ import { ReferenceToken } from './interfaces/common';
 import { Events, NotificationMessage } from './events';
 import { Replay } from './replay';
 import { Imaging } from './imaging';
+import { Recording } from './recording';
 
 /**
  * Cam constructor options
@@ -229,6 +230,7 @@ export class Onvif extends EventEmitter {
   public readonly events: Events;
   public readonly replay: Replay;
   public readonly imaging: Imaging;
+  public readonly recording: Recording;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -275,6 +277,7 @@ export class Onvif extends EventEmitter {
     this.events = new Events(this);
     this.replay = new Replay(this);
     this.imaging = new Imaging(this);
+    this.recording = new Recording(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
