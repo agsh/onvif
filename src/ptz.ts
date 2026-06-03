@@ -7,7 +7,7 @@
 
 import { Onvif } from './onvif';
 import { build, linerase } from './utils';
-import { PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
+import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
 import {
   AuxiliaryData,
   PTZConfiguration,
@@ -26,6 +26,7 @@ import {
   ContinuousMove,
   CreatePresetTour,
   GeoMove,
+  GetCompatibleConfigurations,
   GetConfiguration,
   GetConfigurationOptions,
   GetNode,
@@ -136,6 +137,17 @@ interface ContinuousMoveExtended extends Omit<ContinuousMove, 'profileToken' | '
  */
 interface StopExtended extends Omit<Stop, 'profileToken'> {
   profileToken?: ReferenceToken;
+}
+/**
+ * MoveAndStartTracking with simplified target position vector.
+ */
+interface MoveAndStartTrackingExtended {
+  profileToken?: ReferenceToken;
+  presetToken?: ReferenceToken;
+  geoLocation?: GeoLocation;
+  targetPosition?: PTZVector | PTZInputVector;
+  speed?: PTZSpeed;
+  objectID?: number;
 }
 
 export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
@@ -346,6 +358,23 @@ export class PTZ {
         '</GetConfigurationOptions>',
     });
     return linerase(data).getConfigurationOptionsResponse.PTZConfigurationOptions;
+  }
+
+  /**
+   * Operation to get all available PTZConfigurations that can be added to the referenced media profile.
+   * @param options
+   */
+  async getCompatibleConfigurations({
+    profileToken = this.onvif.activeSource!.profileToken,
+  }: GetCompatibleConfigurations = {}): Promise<PTZConfiguration[]> {
+    const body = build({
+      GetCompatibleConfigurations: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'PTZ', body });
+    return linerase(data, { array: ['PTZConfiguration'] }).getCompatibleConfigurationsResponse.PTZConfiguration ?? [];
   }
 
   /**
@@ -869,6 +898,38 @@ export class PTZ {
         Speed: PTZ.PTZVectorToXML(options.speed),
         AreaHeight: options.areaHeight,
         AreaWidth: options.areaWidth,
+      },
+    });
+    await this.onvif.request({ service: 'PTZ', body });
+  }
+
+  /**
+   * Operation to move the camera to a target position and delegate PTZ control to the tracking algorithm.
+   * @param options
+   */
+  async moveAndStartTracking({
+    profileToken = this.onvif.activeSource!.profileToken,
+    presetToken,
+    geoLocation,
+    targetPosition,
+    speed,
+    objectID,
+  }: MoveAndStartTrackingExtended = {}): Promise<void> {
+    const body = build({
+      MoveAndStartTracking: {
+        $: { xmlns: 'http://www.onvif.org/ver20/ptz/wsdl' },
+        ProfileToken: profileToken,
+        ...(presetToken && { PresetToken: presetToken }),
+        ...(geoLocation && {
+          GeoLocation: {
+            Lon: geoLocation.lon,
+            Lat: geoLocation.lat,
+            Elevation: geoLocation.elevation,
+          },
+        }),
+        ...(targetPosition && { TargetPosition: PTZ.PTZVectorToXML(targetPosition) }),
+        ...(speed && { Speed: PTZ.PTZVectorToXML(speed) }),
+        ...(objectID && { ObjectID: objectID }),
       },
     });
     await this.onvif.request({ service: 'PTZ', body });

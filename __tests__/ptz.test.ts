@@ -1,6 +1,7 @@
 import { Onvif } from '../src';
 import { GetPresetsExtended } from '../src/ptz';
 import { ReferenceToken } from '../src/interfaces/common';
+import { Capabilities } from '../src/interfaces/ptz.2';
 import { PresetTour } from '../src/interfaces/onvif';
 
 let cam: Onvif;
@@ -201,6 +202,32 @@ describe('Configurations and configuration options', () => {
           forcePersistence: true,
         }),
       ).rejects.toThrow('Config Not Exist');
+    });
+  });
+
+  describe('getCompatibleConfigurations', () => {
+    it('should return PTZ configurations compatible with the active profile', async () => {
+      const compatible = await cam.ptz.getCompatibleConfigurations();
+      const all = await cam.ptz.getConfigurations();
+      expect(Array.isArray(compatible)).toBe(true);
+      expect(compatible.length).toBeGreaterThan(0);
+      compatible.forEach((configuration) => {
+        expect(configuration).toHaveProperty('token');
+        expect(configuration).toHaveProperty('nodeToken');
+        expect(all.some((c) => c.token === configuration.token)).toBe(true);
+      });
+    });
+
+    it('should default profile token from activeSource when omitted', async () => {
+      const explicit = await cam.ptz.getCompatibleConfigurations({
+        profileToken: cam.activeSource!.profileToken,
+      });
+      const defaulted = await cam.ptz.getCompatibleConfigurations();
+      expect(defaulted).toEqual(explicit);
+    });
+
+    it('should throw when the requested profile token does not exist', async () => {
+      await expect(cam.ptz.getCompatibleConfigurations({ profileToken: '???' })).rejects.toThrow('Profile Not Exist');
     });
   });
 });
@@ -591,6 +618,63 @@ describe('Moves', () => {
           {},
         ),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('moveAndStartTracking', () => {
+    const geoTarget = { lon: 37.6173, lat: 55.7558, elevation: 156 };
+
+    function isMoveAndStartTrackingSupported(caps: Capabilities): boolean {
+      const moveAndTrack = caps.moveAndTrack;
+      if (moveAndTrack === undefined) {
+        return false;
+      }
+      if (Array.isArray(moveAndTrack)) {
+        return moveAndTrack.length > 0;
+      }
+      return String(moveAndTrack).length > 0;
+    }
+
+    async function expectMoveAndStartTrackingOutcome(call: () => Promise<void>): Promise<void> {
+      const caps = await cam.ptz.getServiceCapabilities();
+      if (isMoveAndStartTrackingSupported(caps)) {
+        await expect(call()).resolves.toBeUndefined();
+      } else {
+        await expect(call()).rejects.toThrow();
+      }
+    }
+
+    it('should move to a preset and start tracking when MoveAndTrack is advertised', async () => {
+      const presets = await cam.ptz.getPresets();
+      expect(presets.length).toBeGreaterThan(0);
+      await expectMoveAndStartTrackingOutcome(() => cam.ptz.moveAndStartTracking({ presetToken: presets[0].token }));
+    });
+
+    it('should default profile token from activeSource when omitted', async () => {
+      const presets = await cam.ptz.getPresets();
+      await expectMoveAndStartTrackingOutcome(() =>
+        cam.ptz.moveAndStartTracking({
+          profileToken: cam.activeSource!.profileToken,
+          presetToken: presets[0].token,
+        }),
+      );
+    });
+
+    it('should accept geolocation and absolute position targets', async () => {
+      await expectMoveAndStartTrackingOutcome(() => cam.ptz.moveAndStartTracking({ geoLocation: geoTarget }));
+      await expectMoveAndStartTrackingOutcome(() =>
+        cam.ptz.moveAndStartTracking({ targetPosition: { pan: 0.1, tilt: 0.1, zoom: 0 } }),
+      );
+    });
+
+    it('should throw when the requested profile token does not exist', async () => {
+      const presets = await cam.ptz.getPresets();
+      const call = () =>
+        cam.ptz.moveAndStartTracking({
+          profileToken: '???',
+          presetToken: presets[0].token,
+        });
+      await expect(call()).rejects.toThrow();
     });
   });
 

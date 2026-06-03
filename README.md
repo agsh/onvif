@@ -66,6 +66,7 @@ I will be happy to answer any questions and hear your feedback.
 - Event support
 - Full Media2 [support](https://github.com/agsh/onvif/blob/v1/MEDIA2.md)
 - Full Media [support](https://github.com/agsh/onvif/blob/v1/MEDIA.md)
+- Full PTZ [support](https://github.com/agsh/onvif/blob/v1/PTZ.md)
 
 ---
 

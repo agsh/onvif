@@ -25,5 +25,5 @@
 [x] ModifyPresetTour
 [x] OperatePresetTour
 [x] RemovePresetTour
-[ ] GetCompatibleConfigurations
-[ ] MoveAndStartTracking
+[x] GetCompatibleConfigurations
+[x] MoveAndStartTracking
