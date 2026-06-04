@@ -69,6 +69,7 @@ I will be happy to answer any questions and hear your feedback.
 - Full PTZ [support](https://github.com/agsh/onvif/blob/v1/PTZ.md)
 - Full Replay [support](https://github.com/agsh/onvif/blob/v1/REPLAY.md)
 - Full Imaging [support](https://github.com/agsh/onvif/blob/v1/IMAGING.md)
+- Full DoorControl [support](https://github.com/agsh/onvif/blob/v1/DOORCONTROL.md)
 
 ---
 

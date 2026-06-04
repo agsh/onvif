@@ -7,5 +7,6 @@ export * from './ptz';
 export * from './replay';
 export * from './imaging';
 export * from './recording';
+export * from './doorcontrol';
 export * from './utils';
 // export * from './compatibility/cam'; // development frozen

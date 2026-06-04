@@ -22,6 +22,7 @@ import { Events, NotificationMessage } from './events';
 import { Replay } from './replay';
 import { Imaging } from './imaging';
 import { Recording } from './recording';
+import { DoorControl } from './doorcontrol';
 
 /**
  * Cam constructor options
@@ -61,6 +62,7 @@ export interface OnvifServices {
   receiver?: URL;
   recording?: URL;
   replay?: URL;
+  doorcontrol?: URL;
   search?: URL;
   [key: string]: URL | undefined;
 }
@@ -231,6 +233,7 @@ export class Onvif extends EventEmitter {
   public readonly replay: Replay;
   public readonly imaging: Imaging;
   public readonly recording: Recording;
+  public readonly doorControl: DoorControl;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -278,6 +281,7 @@ export class Onvif extends EventEmitter {
     this.replay = new Replay(this);
     this.imaging = new Imaging(this);
     this.recording = new Recording(this);
+    this.doorControl = new DoorControl(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
