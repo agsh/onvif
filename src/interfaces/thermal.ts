@@ -182,6 +182,7 @@ export interface SetConfiguration {
   /** Thermal Settings to be configured. */
   configuration: Configuration;
 }
+export interface SetConfigurationResponse {}
 export interface GetRadiometryConfigurationOptions {
   /** Reference token to the VideoSource for which the Thermal Radiometry Options are requested. */
   videoSourceToken: ReferenceToken;
@@ -204,3 +205,4 @@ export interface SetRadiometryConfiguration {
   /** Radiometry settings to be configured. */
   configuration: RadiometryConfiguration;
 }
+export interface SetRadiometryConfigurationResponse {}

@@ -34,6 +34,7 @@ export interface TermType {
   description?: string;
   term?: TermType[];
 }
+export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   capabilities: Capabilities;
 }

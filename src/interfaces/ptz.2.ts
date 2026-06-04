@@ -33,6 +33,7 @@ export interface GetServiceCapabilitiesResponse {
   /** The capabilities for the PTZ service is returned in the Capabilities element. */
   capabilities: Capabilities;
 }
+export interface GetNodes {}
 export interface GetNodesResponse {
   /** A list of the existing PTZ Nodes on the device. */
   PTZNode?: PTZNode[];
@@ -45,6 +46,7 @@ export interface GetNodeResponse {
   /** A requested PTZNode. */
   PTZNode: PTZNode;
 }
+export interface GetConfigurations {}
 export interface GetConfigurationsResponse {
   /** A list of all existing PTZConfigurations on the device. */
   PTZConfiguration?: PTZConfiguration[];
@@ -108,6 +110,7 @@ export interface RemovePreset {
   /** A requested preset token. */
   presetToken: ReferenceToken;
 }
+export interface RemovePresetResponse {}
 export interface GotoPreset {
   /** A reference to the MediaProfile where the operation should take place. */
   profileToken?: ReferenceToken;
@@ -116,6 +119,7 @@ export interface GotoPreset {
   /** A requested speed.The speed parameter can only be specified when Speed Spaces are available for the PTZ Node. */
   speed?: PTZSpeed;
 }
+export interface GotoPresetResponse {}
 export interface GetStatus {
   /** A reference to the MediaProfile where the PTZStatus should be requested. */
   profileToken?: ReferenceToken;

@@ -71,6 +71,7 @@ export interface SetImagingSettings {
   imagingSettings: ImagingSettings20;
   forcePersistence?: boolean;
 }
+export interface SetImagingSettingsResponse {}
 export interface GetOptions {
   /** Reference token to the VideoSource for which the imaging parameter options are requested. */
   videoSourceToken: ReferenceToken;

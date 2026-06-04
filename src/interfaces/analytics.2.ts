@@ -69,17 +69,20 @@ export interface CreateRules {
   configurationToken: ReferenceToken;
   rule: Config[];
 }
+export interface CreateRulesResponse {}
 export interface DeleteRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   /** References the specific rule to be deleted (e.g. "MyLineDetector"). */
   ruleName: string[];
 }
+export interface DeleteRulesResponse {}
 export interface ModifyRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   rule: Config[];
 }
+export interface ModifyRulesResponse {}
 export interface GetRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
@@ -109,17 +112,20 @@ export interface CreateAnalyticsModules {
   configurationToken: ReferenceToken;
   analyticsModule?: Config[];
 }
+export interface CreateAnalyticsModulesResponse {}
 export interface DeleteAnalyticsModules {
   /** Reference to an existing Video Analytics configuration. */
   configurationToken: ReferenceToken;
   /** Name of the AnalyticsModule to be deleted. */
   analyticsModuleName?: string[];
 }
+export interface DeleteAnalyticsModulesResponse {}
 export interface ModifyAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   analyticsModule?: Config[];
 }
+export interface ModifyAnalyticsModulesResponse {}
 export interface GetAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;

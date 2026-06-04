@@ -336,10 +336,12 @@ export interface RecordingActionConfiguration {
   recordConfig: TriggeredRecordingConfiguration;
   [key: string]: unknown;
 }
+export interface GetSupportedActions {}
 export interface GetSupportedActionsResponse {
   /** Array of supported Action types */
   supportedActions: SupportedActions;
 }
+export interface GetActions {}
 export interface GetActionsResponse {
   /** Array of current Action configurations */
   action?: Action[];
@@ -356,14 +358,18 @@ export interface DeleteActions {
   /** Array of tokens referencing existing Action configurations to be removed */
   token?: ReferenceToken[];
 }
+export interface DeleteActionsResponse {}
 export interface ModifyActions {
   /** Array of Action configurations to update the existing action configurations */
   action?: Action[];
 }
+export interface ModifyActionsResponse {}
+export interface GetServiceCapabilities {}
 export interface GetServiceCapabilitiesResponse {
   capabilities: ActionEngineCapabilities;
 }
 export interface Capabilities extends ActionEngineCapabilities {}
+export interface GetActionTriggers {}
 export interface GetActionTriggersResponse {
   /** Array of current Action Trigger configurations */
   actionTrigger?: ActionTrigger[];
@@ -380,7 +386,9 @@ export interface ModifyActionTriggers {
   /** Array of Action Trigger configurations to be updated. */
   actionTrigger?: ActionTrigger[];
 }
+export interface ModifyActionTriggersResponse {}
 export interface DeleteActionTriggers {
   /** Array of tokens referencing existing Action Trigger configurations to be removed */
   token?: ReferenceToken[];
 }
+export interface DeleteActionTriggersResponse {}
