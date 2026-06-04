@@ -1,0 +1,14 @@
+[x] GetServiceCapabilities
+[x] GetSupportedRules
+[x] CreateRules
+[x] DeleteRules
+[x] ModifyRules
+[x] GetRules
+[x] GetRuleOptions
+[x] GetSupportedAnalyticsModules
+[x] CreateAnalyticsModules
+[x] DeleteAnalyticsModules
+[x] ModifyAnalyticsModules
+[x] GetAnalyticsModules
+[x] GetAnalyticsModuleOptions
+[x] GetSupportedMetadataResponse

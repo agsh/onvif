@@ -23,6 +23,7 @@ import { Replay } from './replay';
 import { Imaging } from './imaging';
 import { Recording } from './recording';
 import { DoorControl } from './doorcontrol';
+import { Analytics } from './analytics';
 
 /**
  * Cam constructor options
@@ -51,6 +52,7 @@ export interface OnvifOptions {
 
 export interface OnvifServices {
   PTZ?: URL;
+  analytics?: URL;
   analyticsDevice?: URL;
   device?: URL;
   deviceIO?: URL;
@@ -234,6 +236,7 @@ export class Onvif extends EventEmitter {
   public readonly imaging: Imaging;
   public readonly recording: Recording;
   public readonly doorControl: DoorControl;
+  public readonly analytics: Analytics;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -282,6 +285,7 @@ export class Onvif extends EventEmitter {
     this.imaging = new Imaging(this);
     this.recording = new Recording(this);
     this.doorControl = new DoorControl(this);
+    this.analytics = new Analytics(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
