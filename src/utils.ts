@@ -25,7 +25,7 @@ export class OnvifError extends Error {
   }
 }
 
-interface LineraseOptions {
+export interface LineraseOptions {
   array: string[];
   rawXML?: string[];
   name?: string;
@@ -38,24 +38,26 @@ interface LineraseOptions {
  * @param options.array these tags will always be treated as arrays
  * @param options.rawXML values of these tags will be in xml2js format
  */
-export function linerase(xml: any, options: LineraseOptions = { array : [], rawXML : [] }): any {
-  if (options.rawXML === undefined) { options.rawXML = []; }
+export function linerase(xml: any, options: LineraseOptions = { array: [], rawXML: [] }): any {
+  if (options.rawXML === undefined) {
+    options.rawXML = [];
+  }
   /* if we have xs:any
     put it content to the Symbol.any
    */
   if (options.rawXML.includes(options.name!)) {
     if (options.array.includes(options.name!)) {
-      return xml.map((item: any) => linerase(item, { ...options, name : xsany, rawXML : [xsany] }));
+      return xml.map((item: any) => linerase(item, { ...options, name: xsany, rawXML: [xsany] }));
     }
     if (Array.isArray(xml)) {
       [xml] = xml;
     }
-    const rawXMLObject = linerase(xml, { ...options, rawXML : [] });
+    const rawXMLObject = linerase(xml, { ...options, rawXML: [] });
     Object.defineProperty(rawXMLObject, xsany, {
-      value        : xml,
-      writable     : true,
-      enumerable   : true, // false,
-      configurable : true,
+      value: xml,
+      writable: true,
+      enumerable: true, // false,
+      configurable: true,
     });
     return rawXMLObject;
   }
@@ -69,7 +71,10 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
      */
     xml = xml.filter((item) => !(typeof item === 'string' && item.trim() === ''));
 
-    if (xml.length === 1 && !options.array.includes(options.name!) /* do not simplify array if its key in array prop */) {
+    if (
+      xml.length === 1 &&
+      !options.array.includes(options.name!) /* do not simplify array if its key in array prop */
+    ) {
       [xml] = xml;
     } else {
       return xml.map((item: any) => linerase(item, options));
@@ -78,13 +83,14 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
   if (typeof xml === 'object') {
     let obj: any = {};
     Object.keys(xml).forEach((key) => {
-      if (key === '$') { // for the xml attributes
+      if (key === '$') {
+        // for the xml attributes
         obj = {
           ...obj,
           ...linerase(xml.$, options),
         };
       } else {
-        obj[camelCase(key)] = linerase(xml[key], { ...options, name : camelCase(key) });
+        obj[camelCase(key)] = linerase(xml[key], { ...options, name: camelCase(key) });
       }
     });
     return obj;
@@ -105,7 +111,6 @@ export function linerase(xml: any, options: LineraseOptions = { array : [], rawX
 }
 
 function s4() {
-  // eslint-disable-next-line no-bitwise
   return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
 }
 
@@ -114,7 +119,7 @@ function s4() {
  * @returns {string}
  */
 export function guid() {
-  return (`${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`);
+  return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 }
 
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
@@ -149,7 +154,6 @@ export async function parseSOAPString(xml: string): OnvifResponse {
   let prefix = '';
   const result = await xml2js.parseStringPromise(xml);
   try {
-    // eslint-disable-next-line
     for (const envelopeKey in result) {
       for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
         if (url === 'http://www.w3.org/2003/05/soap-envelope') {
@@ -216,9 +220,9 @@ export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<str
 }
 
 const builder = new xml2js.Builder({
-  headless   : true,
-  renderOpts : {
-    pretty : false,
+  headless: true,
+  renderOpts: {
+    pretty: false,
   },
 });
 
@@ -229,40 +233,36 @@ export function build(object: any) {
 export const toOnvifXMLSchemaObject = {
   multicastConfiguration(multicast: MulticastConfiguration) {
     return {
-      Address : {
-        Type : multicast.address.type,
-        ...(multicast.address.IPv4Address && { IPv4Address : multicast.address.IPv4Address }),
-        ...(multicast.address.IPv6Address && { IPv4Address : multicast.address.IPv6Address }),
+      Address: {
+        Type: multicast.address.type,
+        ...(multicast.address.IPv4Address && { IPv4Address: multicast.address.IPv4Address }),
+        ...(multicast.address.IPv6Address && { IPv4Address: multicast.address.IPv6Address }),
       },
-      Port      : multicast.port,
-      TTL       : multicast.TTL,
-      AutoStart : multicast.autoStart,
+      Port: multicast.port,
+      TTL: multicast.TTL,
+      AutoStart: multicast.autoStart,
     };
   },
   config(config: Config) {
     return {
-      $ : {
-        Name : config.name,
-        Type : config.type,
+      $: {
+        Name: config.name,
+        Type: config.type,
       },
-      Parameters : {
-        ...(config.parameters.simpleItem
-          && {
-            SimpleItem : config.parameters.simpleItem.map((simpleItem) => ({
-              $ : { Name : simpleItem.name, Value : simpleItem.value },
-            })),
-          }
-        ),
-        ...(config.parameters.elementItem
-          && {
-            // don't forget that we have proxy getter here to the `__any__` field
-            ElementItem : config.parameters.elementItem.map((elementItem) => ({
-              ...elementItem[xsany] as object,
-              Name : elementItem.name,
-            })),
-          }
-        ),
-        ...(config.parameters.extension && { Extension : config.parameters.extension }),
+      Parameters: {
+        ...(config.parameters.simpleItem && {
+          SimpleItem: config.parameters.simpleItem.map((simpleItem) => ({
+            $: { Name: simpleItem.name, Value: simpleItem.value },
+          })),
+        }),
+        ...(config.parameters.elementItem && {
+          // don't forget that we have proxy getter here to the `__any__` field
+          ElementItem: config.parameters.elementItem.map((elementItem) => ({
+            ...(elementItem[xsany] as object),
+            Name: elementItem.name,
+          })),
+        }),
+        ...(config.parameters.extension && { Extension: config.parameters.extension }),
       },
     };
   },

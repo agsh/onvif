@@ -4,8 +4,8 @@
  * @see https://www.onvif.org/ver20/imaging/wsdl/imaging.wsdl
  */
 
-import { Onvif } from './onvif';
-import { build, linerase } from './utils';
+import { Onvif, OnvifServices } from './onvif';
+import Service from './service';
 import { ReferenceToken } from './interfaces/common';
 import {
   BacklightCompensation20,
@@ -35,7 +35,6 @@ import {
   Stop,
 } from './interfaces/imaging.2';
 
-const IMAGING_XMLNS = 'http://www.onvif.org/ver20/imaging/wsdl';
 const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
 
 interface VideoSourceTokenExtended {
@@ -65,11 +64,9 @@ type SetCurrentPresetExtended = VideoSourceTokenExtended & Omit<SetCurrentPreset
  *   });
  * ```
  */
-export class Imaging {
-  private readonly onvif: Onvif;
-
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+export class Imaging extends Service {
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
@@ -183,13 +180,10 @@ export class Imaging {
    * Returns the capabilities of the imaging service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: { xmlns: IMAGING_XMLNS },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? {};
+    return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
   /**
@@ -197,14 +191,12 @@ export class Imaging {
    * @param options
    */
   async getImagingSettings({ videoSourceToken }: GetImagingSettingsExtended = {}): Promise<ImagingSettings20> {
-    const body = build({
+    const response = await this.request({
       GetImagingSettings: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getImagingSettingsResponse.imagingSettings;
+    return response.getImagingSettingsResponse.imagingSettings;
   }
 
   /**
@@ -216,15 +208,13 @@ export class Imaging {
     imagingSettings,
     forcePersistence,
   }: SetImagingSettingsExtended): Promise<void> {
-    const body = build({
+    await this.request({
       SetImagingSettings: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
         ImagingSettings: Imaging.imagingSettingsToBuild(imagingSettings),
         ...(forcePersistence && { ForcePersistence: forcePersistence }),
       },
     });
-    await this.onvif.request({ service: 'imaging', body });
   }
 
   /**
@@ -232,14 +222,12 @@ export class Imaging {
    * @param options
    */
   async getOptions({ videoSourceToken }: GetOptionsExtended = {}): Promise<ImagingOptions20> {
-    const body = build({
+    const response = await this.request({
       GetOptions: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getOptionsResponse.imagingOptions;
+    return response.getOptionsResponse.imagingOptions;
   }
 
   /**
@@ -247,14 +235,12 @@ export class Imaging {
    * @param options
    */
   async move({ videoSourceToken, focus }: MoveExtended): Promise<void> {
-    const body = build({
+    await this.request({
       Move: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
         Focus: Imaging.focusMoveToBuild(focus),
       },
     });
-    await this.onvif.request({ service: 'imaging', body });
   }
 
   /**
@@ -262,14 +248,12 @@ export class Imaging {
    * @param options
    */
   async getMoveOptions({ videoSourceToken }: GetMoveOptionsExtended = {}): Promise<MoveOptions20> {
-    const body = build({
+    const response = await this.request({
       GetMoveOptions: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getMoveOptionsResponse.moveOptions;
+    return response.getMoveOptionsResponse.moveOptions;
   }
 
   /**
@@ -277,13 +261,11 @@ export class Imaging {
    * @param options
    */
   async stop({ videoSourceToken }: StopExtended = {}): Promise<void> {
-    const body = build({
+    await this.request({
       Stop: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    await this.onvif.request({ service: 'imaging', body });
   }
 
   /**
@@ -291,14 +273,12 @@ export class Imaging {
    * @param options
    */
   async getStatus({ videoSourceToken }: GetStatusExtended = {}): Promise<ImagingStatus20> {
-    const body = build({
+    const response = await this.request({
       GetStatus: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getStatusResponse.status;
+    return response.getStatusResponse.status;
   }
 
   /**
@@ -306,14 +286,15 @@ export class Imaging {
    * @param options
    */
   async getPresets({ videoSourceToken }: GetPresetsExtended = {}): Promise<ImagingPreset[]> {
-    const body = build({
-      GetPresets: {
-        $: { xmlns: IMAGING_XMLNS },
-        VideoSourceToken: this.videoSourceToken(videoSourceToken),
+    const response = await this.request(
+      {
+        GetPresets: {
+          VideoSourceToken: this.videoSourceToken(videoSourceToken),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data, { array: ['preset'] }).getPresetsResponse.preset ?? [];
+      { array: ['preset'] },
+    );
+    return response.getPresetsResponse.preset ?? [];
   }
 
   /**
@@ -321,14 +302,12 @@ export class Imaging {
    * @param options
    */
   async getCurrentPreset({ videoSourceToken }: GetCurrentPresetExtended = {}): Promise<ImagingPreset> {
-    const body = build({
+    const response = await this.request({
       GetCurrentPreset: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
       },
     });
-    const [data] = await this.onvif.request({ service: 'imaging', body });
-    return linerase(data).getCurrentPresetResponse.preset;
+    return response.getCurrentPresetResponse.preset;
   }
 
   /**
@@ -336,13 +315,11 @@ export class Imaging {
    * @param options
    */
   async setCurrentPreset({ videoSourceToken, presetToken }: SetCurrentPresetExtended): Promise<void> {
-    const body = build({
+    await this.request({
       SetCurrentPreset: {
-        $: { xmlns: IMAGING_XMLNS },
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
         PresetToken: presetToken,
       },
     });
-    await this.onvif.request({ service: 'imaging', body });
   }
 }

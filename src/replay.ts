@@ -4,13 +4,12 @@
  * @see https://www.onvif.org/ver10/replay.wsdl
  */
 
-import { Onvif } from './onvif';
-import { build, linerase } from './utils';
+import { Onvif, OnvifServices } from './onvif';
 import { AnyURI } from './interfaces/basics';
 import { ReplayConfiguration, StreamSetup, StreamType, TransportProtocol } from './interfaces/onvif';
 import { Capabilities, GetReplayUri, SetReplayConfiguration } from './interfaces/replay';
+import Service from './service';
 
-const REPLAY_XMLNS = 'http://www.onvif.org/ver10/replay/wsdl';
 const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
 
 /**
@@ -27,11 +26,9 @@ export interface GetReplayUriOptions extends Omit<GetReplayUri, 'streamSetup'> {
 /**
  * Replay service
  */
-export class Replay {
-  private readonly onvif: Onvif;
-
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+export class Replay extends Service {
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   private static streamSetupToBuild({ stream, transport }: StreamSetup) {
@@ -66,13 +63,10 @@ export class Replay {
    * Returns the capabilities of the replay service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: { xmlns: REPLAY_XMLNS },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'replay', body });
-    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? {};
+    return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
   /**
@@ -80,28 +74,23 @@ export class Replay {
    * @param options
    */
   async getReplayUri(options: GetReplayUriOptions): Promise<AnyURI> {
-    const body = build({
+    const response = await this.request({
       GetReplayUri: {
-        $: { xmlns: REPLAY_XMLNS },
         StreamSetup: Replay.streamSetupToBuild(Replay.resolveStreamSetup(options)),
         RecordingToken: options.recordingToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'replay', body });
-    return linerase(data).getReplayUriResponse.uri;
+    return response.getReplayUriResponse.uri;
   }
 
   /**
    * Returns the current configuration of the replay service.
    */
   async getReplayConfiguration(): Promise<ReplayConfiguration> {
-    const body = build({
-      GetReplayConfiguration: {
-        $: { xmlns: REPLAY_XMLNS },
-      },
+    const response = await this.request({
+      GetReplayConfiguration: {},
     });
-    const [data] = await this.onvif.request({ service: 'replay', body });
-    return linerase(data).getReplayConfigurationResponse.configuration;
+    return response.getReplayConfigurationResponse.configuration;
   }
 
   /**
@@ -109,14 +98,12 @@ export class Replay {
    * @param options
    */
   async setReplayConfiguration({ configuration }: SetReplayConfiguration): Promise<void> {
-    const body = build({
+    return this.request({
       SetReplayConfiguration: {
-        $: { xmlns: REPLAY_XMLNS },
         Configuration: {
           SessionTimeout: configuration.sessionTimeout,
         },
       },
     });
-    await this.onvif.request({ service: 'replay', body });
   }
 }

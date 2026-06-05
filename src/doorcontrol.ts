@@ -4,8 +4,8 @@
  * @see https://www.onvif.org/ver10/pacs/doorcontrol.wsdl
  */
 
-import { Onvif } from './onvif';
-import { build, linerase } from './utils';
+import { Onvif, OnvifServices } from './onvif';
+import Service from './service';
 import { ReferenceToken } from './interfaces/common';
 import {
   AccessDoor,
@@ -39,8 +39,6 @@ import {
   UnlockDoor,
 } from './interfaces/doorcontrol';
 
-const DOORCONTROL_XMLNS = 'http://www.onvif.org/ver10/doorcontrol/wsdl';
-
 /**
  * DoorControl service
  * @example
@@ -52,11 +50,9 @@ const DOORCONTROL_XMLNS = 'http://www.onvif.org/ver10/doorcontrol/wsdl';
  *  console.log((await cam.doorControl.getDoorState({ token })).doorMode);
  * ```
  */
-export class DoorControl {
-  private readonly onvif: Onvif;
-
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+export class DoorControl extends Service {
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   private static tokensToBuild(tokens?: ReferenceToken[]) {
@@ -129,13 +125,10 @@ export class DoorControl {
    * Returns the capabilities of the door control service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: { xmlns: DOORCONTROL_XMLNS },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? {};
+    return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
   /**
@@ -143,15 +136,16 @@ export class DoorControl {
    * @param options
    */
   async getDoorInfoList(options: GetDoorInfoList = {}): Promise<GetDoorInfoListResponse> {
-    const body = build({
-      GetDoorInfoList: {
-        $: { xmlns: DOORCONTROL_XMLNS },
-        ...(options.limit !== undefined && { Limit: options.limit }),
-        ...(options.startReference && { StartReference: options.startReference }),
+    const response = await this.request(
+      {
+        GetDoorInfoList: {
+          ...(options.limit !== undefined && { Limit: options.limit }),
+          ...(options.startReference && { StartReference: options.startReference }),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data, { array: ['doorInfo'] }).getDoorInfoListResponse ?? {};
+      { array: ['doorInfo'] },
+    );
+    return response.getDoorInfoListResponse ?? {};
   }
 
   /**
@@ -159,14 +153,15 @@ export class DoorControl {
    * @param options
    */
   async getDoorInfo({ token }: GetDoorInfo): Promise<GetDoorInfoResponse> {
-    const body = build({
-      GetDoorInfo: {
-        $: { xmlns: DOORCONTROL_XMLNS },
-        Token: DoorControl.tokensToBuild(token),
+    const response = await this.request(
+      {
+        GetDoorInfo: {
+          Token: DoorControl.tokensToBuild(token),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data, { array: ['doorInfo'] }).getDoorInfoResponse ?? {};
+      { array: ['doorInfo'] },
+    );
+    return response.getDoorInfoResponse ?? {};
   }
 
   /**
@@ -174,15 +169,16 @@ export class DoorControl {
    * @param options
    */
   async getDoorList(options: GetDoorList = {}): Promise<GetDoorListResponse> {
-    const body = build({
-      GetDoorList: {
-        $: { xmlns: DOORCONTROL_XMLNS },
-        ...(options.limit && { Limit: options.limit }),
-        ...(options.startReference && { StartReference: options.startReference }),
+    const response = await this.request(
+      {
+        GetDoorList: {
+          ...(options.limit && { Limit: options.limit }),
+          ...(options.startReference && { StartReference: options.startReference }),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data, { array: ['door'] }).getDoorListResponse ?? {};
+      { array: ['door'] },
+    );
+    return response.getDoorListResponse ?? {};
   }
 
   /**
@@ -190,14 +186,15 @@ export class DoorControl {
    * @param options
    */
   async getDoors({ token }: GetDoors): Promise<GetDoorsResponse> {
-    const body = build({
-      GetDoors: {
-        $: { xmlns: DOORCONTROL_XMLNS },
-        Token: DoorControl.tokensToBuild(token),
+    const response = await this.request(
+      {
+        GetDoors: {
+          Token: DoorControl.tokensToBuild(token),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data, { array: ['door'] }).getDoorsResponse ?? {};
+      { array: ['door'] },
+    );
+    return response.getDoorsResponse ?? {};
   }
 
   /**
@@ -205,14 +202,12 @@ export class DoorControl {
    * @param options
    */
   async createDoor({ door }: CreateDoor): Promise<CreateDoorResponse['token']> {
-    const body = build({
+    const response = await this.request({
       CreateDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Door: DoorControl.doorToBuild(door),
       },
     });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data).createDoorResponse.token;
+    return response.createDoorResponse.token;
   }
 
   /**
@@ -220,13 +215,11 @@ export class DoorControl {
    * @param options
    */
   async setDoor({ door }: SetDoor): Promise<void> {
-    const body = build({
+    await this.request({
       SetDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Door: DoorControl.doorToBuild(door),
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -234,13 +227,11 @@ export class DoorControl {
    * @param options
    */
   async modifyDoor({ door }: ModifyDoor): Promise<void> {
-    const body = build({
+    await this.request({
       ModifyDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Door: DoorControl.doorToBuild(door),
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -248,13 +239,11 @@ export class DoorControl {
    * @param options
    */
   async deleteDoor({ token }: DeleteDoor): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -262,14 +251,12 @@ export class DoorControl {
    * @param options
    */
   async getDoorState({ token }: GetDoorState): Promise<DoorState> {
-    const body = build({
+    const response = await this.request({
       GetDoorState: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    const [data] = await this.onvif.request({ service: 'doorcontrol', body });
-    return linerase(data).getDoorStateResponse.doorState;
+    return response.getDoorStateResponse.doorState;
   }
 
   /**
@@ -277,9 +264,8 @@ export class DoorControl {
    * @param options
    */
   async accessDoor(options: AccessDoor): Promise<void> {
-    const body = build({
+    await this.request({
       AccessDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: options.token,
         ...(options.useExtendedTime && { UseExtendedTime: options.useExtendedTime }),
         ...(options.accessTime && { AccessTime: options.accessTime }),
@@ -288,7 +274,6 @@ export class DoorControl {
         ...(options.extension && { Extension: options.extension }),
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -296,13 +281,11 @@ export class DoorControl {
    * @param options
    */
   async lockDoor({ token }: LockDoor): Promise<void> {
-    const body = build({
+    await this.request({
       LockDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -310,13 +293,11 @@ export class DoorControl {
    * @param options
    */
   async unlockDoor({ token }: UnlockDoor): Promise<void> {
-    const body = build({
+    await this.request({
       UnlockDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -324,13 +305,11 @@ export class DoorControl {
    * @param options
    */
   async blockDoor({ token }: BlockDoor): Promise<void> {
-    const body = build({
+    await this.request({
       BlockDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -338,13 +317,11 @@ export class DoorControl {
    * @param options
    */
   async lockDownDoor({ token }: LockDownDoor): Promise<void> {
-    const body = build({
+    await this.request({
       LockDownDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -352,13 +329,11 @@ export class DoorControl {
    * @param options
    */
   async lockDownReleaseDoor({ token }: LockDownReleaseDoor): Promise<void> {
-    const body = build({
+    await this.request({
       LockDownReleaseDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -366,13 +341,11 @@ export class DoorControl {
    * @param options
    */
   async lockOpenDoor({ token }: LockOpenDoor): Promise<void> {
-    const body = build({
+    await this.request({
       LockOpenDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -380,13 +353,11 @@ export class DoorControl {
    * @param options
    */
   async lockOpenReleaseDoor({ token }: LockOpenReleaseDoor): Promise<void> {
-    const body = build({
+    await this.request({
       LockOpenReleaseDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 
   /**
@@ -394,12 +365,10 @@ export class DoorControl {
    * @param options
    */
   async doubleLockDoor({ token }: DoubleLockDoor): Promise<void> {
-    const body = build({
+    await this.request({
       DoubleLockDoor: {
-        $: { xmlns: DOORCONTROL_XMLNS },
         Token: token,
       },
     });
-    await this.onvif.request({ service: 'doorcontrol', body });
   }
 }

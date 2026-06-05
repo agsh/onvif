@@ -4,8 +4,9 @@
  * @see https://www.onvif.org/ver20/analytics/wsdl/analytics.wsdl
  */
 
-import { Onvif } from './onvif';
-import { build, linerase, toOnvifXMLSchemaObject } from './utils';
+import { Onvif, OnvifServices } from './onvif';
+import { toOnvifXMLSchemaObject } from './utils';
+import Service from './service';
 import { Config, SupportedAnalyticsModules, SupportedRules } from './interfaces/onvif';
 import {
   Capabilities,
@@ -27,16 +28,12 @@ import {
   ModifyRules,
 } from './interfaces/analytics.2';
 
-const ANALYTICS_XMLNS = 'http://www.onvif.org/ver20/analytics/wsdl';
-
 /**
  * Analytics service
  */
-export class Analytics {
-  private readonly onvif: Onvif;
-
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+export class Analytics extends Service {
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   private static configsToBuild(configs?: Config[]) {
@@ -58,13 +55,10 @@ export class Analytics {
    * Returns the capabilities of the analytics service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: { xmlns: ANALYTICS_XMLNS },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? {};
+    return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
   /**
@@ -72,14 +66,15 @@ export class Analytics {
    * @param options
    */
   async getSupportedRules({ configurationToken }: GetSupportedRules): Promise<SupportedRules> {
-    const body = build({
-      GetSupportedRules: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetSupportedRules: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['ruleDescription'] }).getSupportedRulesResponse.supportedRules;
+      { array: ['ruleDescription'] },
+    );
+    return response.getSupportedRulesResponse.supportedRules;
   }
 
   /**
@@ -87,14 +82,12 @@ export class Analytics {
    * @param options
    */
   async createRules({ configurationToken, rule }: CreateRules): Promise<void> {
-    const body = build({
+    await this.request({
       CreateRules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         Rule: Analytics.configsToBuild(rule),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -102,14 +95,12 @@ export class Analytics {
    * @param options
    */
   async deleteRules({ configurationToken, ruleName }: DeleteRules): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteRules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         RuleName: Analytics.namesToBuild(ruleName),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -117,14 +108,12 @@ export class Analytics {
    * @param options
    */
   async modifyRules({ configurationToken, rule }: ModifyRules): Promise<void> {
-    const body = build({
+    await this.request({
       ModifyRules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         Rule: Analytics.configsToBuild(rule),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -132,14 +121,15 @@ export class Analytics {
    * @param options
    */
   async getRules({ configurationToken }: GetRules): Promise<Config[]> {
-    const body = build({
-      GetRules: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetRules: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['rule'] }).getRulesResponse.rule ?? [];
+      { array: ['rule'] },
+    );
+    return response.getRulesResponse.rule ?? [];
   }
 
   /**
@@ -147,15 +137,16 @@ export class Analytics {
    * @param options
    */
   async getRuleOptions({ configurationToken, ruleType }: GetRuleOptions): Promise<ConfigOptions[]> {
-    const body = build({
-      GetRuleOptions: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
-        ...(ruleType !== undefined && { RuleType: ruleType }),
+    const response = await this.request(
+      {
+        GetRuleOptions: {
+          ConfigurationToken: configurationToken,
+          ...(ruleType !== undefined && { RuleType: ruleType }),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['ruleOptions'] }).getRuleOptionsResponse.ruleOptions ?? [];
+      { array: ['ruleOptions'] },
+    );
+    return response.getRuleOptionsResponse.ruleOptions ?? [];
   }
 
   /**
@@ -165,15 +156,15 @@ export class Analytics {
   async getSupportedAnalyticsModules({
     configurationToken,
   }: GetSupportedAnalyticsModules): Promise<SupportedAnalyticsModules> {
-    const body = build({
-      GetSupportedAnalyticsModules: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetSupportedAnalyticsModules: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['analyticsModuleDescription'] }).getSupportedAnalyticsModulesResponse
-      .supportedAnalyticsModules;
+      { array: ['analyticsModuleDescription'] },
+    );
+    return response.getSupportedAnalyticsModulesResponse.supportedAnalyticsModules;
   }
 
   /**
@@ -181,14 +172,12 @@ export class Analytics {
    * @param options
    */
   async createAnalyticsModules({ configurationToken, analyticsModule }: CreateAnalyticsModules): Promise<void> {
-    const body = build({
+    await this.request({
       CreateAnalyticsModules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         AnalyticsModule: Analytics.configsToBuild(analyticsModule),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -196,14 +185,12 @@ export class Analytics {
    * @param options
    */
   async deleteAnalyticsModules({ configurationToken, analyticsModuleName }: DeleteAnalyticsModules): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteAnalyticsModules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         AnalyticsModuleName: Analytics.namesToBuild(analyticsModuleName),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -211,14 +198,15 @@ export class Analytics {
    * @param options
    */
   async getAnalyticsModules({ configurationToken }: GetAnalyticsModules): Promise<Config[]> {
-    const body = build({
-      GetAnalyticsModules: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetAnalyticsModules: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['analyticsModule'] }).getAnalyticsModulesResponse.analyticsModule ?? [];
+      { array: ['analyticsModule'] },
+    );
+    return response.getAnalyticsModulesResponse.analyticsModule ?? [];
   }
 
   /**
@@ -226,14 +214,12 @@ export class Analytics {
    * @param options
    */
   async modifyAnalyticsModules({ configurationToken, analyticsModule }: ModifyAnalyticsModules): Promise<void> {
-    const body = build({
+    await this.request({
       ModifyAnalyticsModules: {
-        $: { xmlns: ANALYTICS_XMLNS },
         ConfigurationToken: configurationToken,
         AnalyticsModule: Analytics.configsToBuild(analyticsModule),
       },
     });
-    await this.onvif.request({ service: 'analytics', body });
   }
 
   /**
@@ -241,15 +227,16 @@ export class Analytics {
    * @param options
    */
   async getAnalyticsModuleOptions({ configurationToken, type }: GetAnalyticsModuleOptions): Promise<ConfigOptions[]> {
-    const body = build({
-      GetAnalyticsModuleOptions: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ConfigurationToken: configurationToken,
-        ...(type !== undefined && { Type: type }),
+    const response = await this.request(
+      {
+        GetAnalyticsModuleOptions: {
+          ConfigurationToken: configurationToken,
+          ...(type !== undefined && { Type: type }),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['options'] }).getAnalyticsModuleOptionsResponse.options ?? [];
+      { array: ['options'] },
+    );
+    return response.getAnalyticsModuleOptionsResponse.options ?? [];
   }
 
   /**
@@ -257,13 +244,14 @@ export class Analytics {
    * @param options
    */
   async getSupportedMetadata(options: GetSupportedMetadata = {}): Promise<MetadataInfo[]> {
-    const body = build({
-      GetSupportedMetadata: {
-        $: { xmlns: ANALYTICS_XMLNS },
-        ...(options.type !== undefined && { Type: options.type }),
+    const response = await this.request(
+      {
+        GetSupportedMetadata: {
+          ...(options.type !== undefined && { Type: options.type }),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'analytics', body });
-    return linerase(data, { array: ['analyticsModule'] }).getSupportedMetadataResponse?.analyticsModule ?? [];
+      { array: ['analyticsModule'] },
+    );
+    return response.getSupportedMetadataResponse?.analyticsModule ?? [];
   }
 }

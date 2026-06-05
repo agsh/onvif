@@ -276,16 +276,16 @@ export class Onvif extends EventEmitter {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this);
-    this.media = new Media(this);
-    this.media2 = new Media2(this);
-    this.ptz = new PTZ(this);
+    this.device = new Device(this, 'device');
+    this.media = new Media(this, 'media');
+    this.media2 = new Media2(this, 'media2');
+    this.ptz = new PTZ(this, 'PTZ');
     this.events = new Events(this);
-    this.replay = new Replay(this);
-    this.imaging = new Imaging(this);
-    this.recording = new Recording(this);
-    this.doorControl = new DoorControl(this);
-    this.analytics = new Analytics(this);
+    this.replay = new Replay(this, 'replay');
+    this.imaging = new Imaging(this, 'imaging');
+    this.recording = new Recording(this, 'recording');
+    this.doorControl = new DoorControl(this, 'doorcontrol');
+    this.analytics = new Analytics(this, 'analytics');
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {

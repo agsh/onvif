@@ -4,8 +4,8 @@
  * @see https://www.onvif.org/ver10/recording.wsdl
  */
 
-import { Onvif } from './onvif';
-import { build, linerase } from './utils';
+import { Onvif, OnvifServices } from './onvif';
+import Service from './service';
 import {
   GetRecordingsResponseItem,
   GetRecordingJobsResponseItem,
@@ -48,16 +48,12 @@ import {
   StopExportRecordedDataResponse,
 } from './interfaces/recording';
 
-const RECORDING_XMLNS = 'http://www.onvif.org/ver10/recording/wsdl';
-
 /**
  * Recording service
  */
-export class Recording {
-  private readonly onvif: Onvif;
-
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+export class Recording extends Service {
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   private static recordingSourceToBuild(source: RecordingSourceInformation) {
@@ -163,13 +159,10 @@ export class Recording {
    * Returns the capabilities of the recording service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: { xmlns: RECORDING_XMLNS },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getServiceCapabilitiesResponse?.capabilities ?? {};
+    return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
   /**
@@ -177,14 +170,12 @@ export class Recording {
    * @param options
    */
   async createRecording({ recordingConfiguration }: CreateRecording): Promise<ReferenceToken> {
-    const body = build({
+    const response = await this.request({
       CreateRecording: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingConfiguration: Recording.recordingConfigurationToBuild(recordingConfiguration),
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).createRecordingResponse.recordingToken;
+    return response.createRecordingResponse.recordingToken;
   }
 
   /**
@@ -192,26 +183,19 @@ export class Recording {
    * @param options
    */
   async deleteRecording({ recordingToken }: DeleteRecording): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteRecording: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
    * Return descriptions of all recordings on the device.
    */
   async getRecordings(): Promise<GetRecordingsResponseItem[]> {
-    const body = build({
-      GetRecordings: {
-        $: { xmlns: RECORDING_XMLNS },
-      },
-    });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data, { array: ['recordingItem', 'track'] }).getRecordingsResponse.recordingItem ?? [];
+    const response = await this.request({ GetRecordings: {} }, { array: ['recordingItem', 'track'] });
+    return response.getRecordingsResponse.recordingItem ?? [];
   }
 
   /**
@@ -222,14 +206,12 @@ export class Recording {
     recordingToken,
     recordingConfiguration,
   }: SetRecordingConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetRecordingConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
         RecordingConfiguration: Recording.recordingConfigurationToBuild(recordingConfiguration),
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
@@ -237,14 +219,12 @@ export class Recording {
    * @param options
    */
   async getRecordingConfiguration({ recordingToken }: GetRecordingConfiguration): Promise<RecordingConfiguration> {
-    const body = build({
+    const response = await this.request({
       GetRecordingConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getRecordingConfigurationResponse.recordingConfiguration;
+    return response.getRecordingConfigurationResponse.recordingConfiguration;
   }
 
   /**
@@ -252,14 +232,12 @@ export class Recording {
    * @param options
    */
   async getRecordingOptions({ recordingToken }: GetRecordingOptions): Promise<RecordingOptions> {
-    const body = build({
+    const response = await this.request({
       GetRecordingOptions: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getRecordingOptionsResponse.options;
+    return response.getRecordingOptionsResponse.options;
   }
 
   /**
@@ -267,15 +245,13 @@ export class Recording {
    * @param options
    */
   async createTrack({ recordingToken, trackConfiguration }: CreateTrack): Promise<ReferenceToken> {
-    const body = build({
+    const response = await this.request({
       CreateTrack: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
         TrackConfiguration: Recording.trackConfigurationToBuild(trackConfiguration),
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).createTrackResponse.trackToken;
+    return response.createTrackResponse.trackToken;
   }
 
   /**
@@ -283,14 +259,12 @@ export class Recording {
    * @param options
    */
   async deleteTrack({ recordingToken, trackToken }: DeleteTrack): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteTrack: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
         TrackToken: trackToken,
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
@@ -298,15 +272,13 @@ export class Recording {
    * @param options
    */
   async getTrackConfiguration({ recordingToken, trackToken }: GetTrackConfiguration): Promise<TrackConfiguration> {
-    const body = build({
+    const response = await this.request({
       GetTrackConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
         TrackToken: trackToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getTrackConfigurationResponse.trackConfiguration;
+    return response.getTrackConfigurationResponse.trackConfiguration;
   }
 
   /**
@@ -318,15 +290,13 @@ export class Recording {
     trackToken,
     trackConfiguration,
   }: SetTrackConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetTrackConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         RecordingToken: recordingToken,
         TrackToken: trackToken,
         TrackConfiguration: Recording.trackConfigurationToBuild(trackConfiguration),
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
@@ -334,14 +304,12 @@ export class Recording {
    * @param options
    */
   async createRecordingJob({ jobConfiguration }: CreateRecordingJob): Promise<CreateRecordingJobResponse> {
-    const body = build({
+    const response = await this.request({
       CreateRecordingJob: {
-        $: { xmlns: RECORDING_XMLNS },
         JobConfiguration: Recording.recordingJobConfigurationToBuild(jobConfiguration),
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).createRecordingJobResponse;
+    return response.createRecordingJobResponse;
   }
 
   /**
@@ -349,26 +317,19 @@ export class Recording {
    * @param options
    */
   async deleteRecordingJob({ jobToken }: DeleteRecordingJob): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteRecordingJob: {
-        $: { xmlns: RECORDING_XMLNS },
         JobToken: jobToken,
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
    * Return a list of all recording jobs on the device.
    */
   async getRecordingJobs(): Promise<GetRecordingJobsResponseItem[]> {
-    const body = build({
-      GetRecordingJobs: {
-        $: { xmlns: RECORDING_XMLNS },
-      },
-    });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data, { array: ['jobItem'] }).getRecordingJobsResponse.jobItem ?? [];
+    const response = await this.request({ GetRecordingJobs: {} }, { array: ['jobItem'] });
+    return response.getRecordingJobsResponse.jobItem ?? [];
   }
 
   /**
@@ -379,15 +340,13 @@ export class Recording {
     jobToken,
     jobConfiguration,
   }: SetRecordingJobConfiguration): Promise<SetRecordingJobConfigurationResponse> {
-    const body = build({
+    const response = await this.request({
       SetRecordingJobConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         JobToken: jobToken,
         JobConfiguration: Recording.recordingJobConfigurationToBuild(jobConfiguration),
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).setRecordingJobConfigurationResponse;
+    return response.setRecordingJobConfigurationResponse;
   }
 
   /**
@@ -395,14 +354,12 @@ export class Recording {
    * @param options
    */
   async getRecordingJobConfiguration({ jobToken }: GetRecordingJobConfiguration): Promise<RecordingJobConfiguration> {
-    const body = build({
+    const response = await this.request({
       GetRecordingJobConfiguration: {
-        $: { xmlns: RECORDING_XMLNS },
         JobToken: jobToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getRecordingJobConfigurationResponse.jobConfiguration;
+    return response.getRecordingJobConfigurationResponse.jobConfiguration;
   }
 
   /**
@@ -410,14 +367,12 @@ export class Recording {
    * @param options
    */
   async setRecordingJobMode({ jobToken, mode }: SetRecordingJobMode): Promise<void> {
-    const body = build({
+    await this.request({
       SetRecordingJobMode: {
-        $: { xmlns: RECORDING_XMLNS },
         JobToken: jobToken,
         Mode: mode,
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 
   /**
@@ -425,14 +380,12 @@ export class Recording {
    * @param options
    */
   async getRecordingJobState({ jobToken }: GetRecordingJobState) {
-    const body = build({
+    const response = await this.request({
       GetRecordingJobState: {
-        $: { xmlns: RECORDING_XMLNS },
         JobToken: jobToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getRecordingJobStateResponse.state;
+    return response.getRecordingJobStateResponse.state;
   }
 
   /**
@@ -440,22 +393,23 @@ export class Recording {
    * @param options
    */
   async exportRecordedData(options: ExportRecordedData): Promise<ExportRecordedDataResponse> {
-    const body = build({
-      ExportRecordedData: {
-        $: { xmlns: RECORDING_XMLNS },
-        ...(options.startPoint !== undefined && { StartPoint: options.startPoint }),
-        ...(options.endPoint !== undefined && { EndPoint: options.endPoint }),
-        SearchScope: Recording.searchScopeToBuild(options.searchScope),
-        FileFormat: options.fileFormat,
-        StorageDestination: Recording.storageDestinationToBuild(options.storageDestination),
+    const response = await this.request(
+      {
+        ExportRecordedData: {
+          ...(options.startPoint !== undefined && { StartPoint: options.startPoint }),
+          ...(options.endPoint !== undefined && { EndPoint: options.endPoint }),
+          SearchScope: Recording.searchScopeToBuild(options.searchScope),
+          FileFormat: options.fileFormat,
+          StorageDestination: Recording.storageDestinationToBuild(options.storageDestination),
+        },
       },
-    });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    const response = linerase(data, { array: ['fileNames'] }).exportRecordedDataResponse;
+      { array: ['fileNames'] },
+    );
+    const exportResponse = response.exportRecordedDataResponse;
     return {
-      operationToken: response.operationToken,
-      fileNames: response.fileNames,
-      extension: response.extension,
+      operationToken: exportResponse.operationToken,
+      fileNames: exportResponse.fileNames,
+      extension: exportResponse.extension,
     };
   }
 
@@ -464,14 +418,12 @@ export class Recording {
    * @param options
    */
   async stopExportRecordedData({ operationToken }: StopExportRecordedData): Promise<StopExportRecordedDataResponse> {
-    const body = build({
+    const response = await this.request({
       StopExportRecordedData: {
-        $: { xmlns: RECORDING_XMLNS },
         OperationToken: operationToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).stopExportRecordedDataResponse;
+    return response.stopExportRecordedDataResponse;
   }
 
   /**
@@ -481,14 +433,12 @@ export class Recording {
   async getExportRecordedDataState({
     operationToken,
   }: GetExportRecordedDataState): Promise<GetExportRecordedDataStateResponse> {
-    const body = build({
+    const response = await this.request({
       GetExportRecordedDataState: {
-        $: { xmlns: RECORDING_XMLNS },
         OperationToken: operationToken,
       },
     });
-    const [data] = await this.onvif.request({ service: 'recording', body });
-    return linerase(data).getExportRecordedDataStateResponse;
+    return response.getExportRecordedDataStateResponse;
   }
 
   /**
@@ -500,14 +450,12 @@ export class Recording {
     expiration,
     recordingConfiguration,
   }: OverrideSegmentDuration): Promise<void> {
-    const body = build({
+    await this.request({
       OverrideSegmentDuration: {
-        $: { xmlns: RECORDING_XMLNS },
         TargetSegmentDuration: targetSegmentDuration,
         Expiration: expiration,
         RecordingConfiguration: recordingConfiguration,
       },
     });
-    await this.onvif.request({ service: 'recording', body });
   }
 }

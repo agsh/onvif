@@ -6,13 +6,13 @@
 import {
   Onvif, OnvifServices, SetSystemDateAndTimeExtended,
 } from './onvif';
-import { linerase } from './utils';
+import Service from './service';
 import {
   DeviceServiceCapabilities,
   GetCapabilities, GetDeviceInformationResponse,
   GetServices,
   GetServicesResponse,
-  Service, SetDNS, SetNetworkInterfaces, SetNetworkInterfacesResponse,
+  Service as DeviceService, SetDNS, SetNetworkInterfaces, SetNetworkInterfacesResponse,
   SetNTP,
 } from './interfaces/devicemgmt';
 import {
@@ -23,12 +23,13 @@ import {
 } from './interfaces/onvif';
 import { AnyURI } from './interfaces/basics';
 
+const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
+
 /**
  * Device methods
  */
-export class Device {
-  private readonly onvif: Onvif;
-  #services: Service[] = [];
+export class Device extends Service {
+  #services: DeviceService[] = [];
   get services() {
     return this.#services;
   }
@@ -44,8 +45,8 @@ export class Device {
   #networkInterfaces?: NetworkInterface[];
   get networkInterfaces() { return this.#networkInterfaces; }
 
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   getSystemDateAndTime() {
@@ -60,12 +61,12 @@ export class Device {
    * Returns information about services of the device.
    */
   async getServices({ includeCapability }: GetServices = { includeCapability : true }): Promise<GetServicesResponse> {
-    const [data] = await this.onvif.request({
-      body : '<GetServices xmlns="http://www.onvif.org/ver10/device/wsdl">'
-          + `<IncludeCapability>${includeCapability}</IncludeCapability>`
-          + '</GetServices>',
+    const response = await this.request({
+      GetServices: {
+        IncludeCapability: includeCapability,
+      },
     });
-    const result = linerase(data).getServicesResponse;
+    const result = response.getServicesResponse;
     this.#services = result.service;
     // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
     // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
@@ -106,12 +107,12 @@ export class Device {
     if (!options || !options.category) {
       options = { category : ['All'] };
     }
-    const [data] = await this.onvif.request({
-      body : `<GetCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl">${
-        options.category!.map((category) => `<Category>${category}</Category>`).join('')
-      }</GetCapabilities>`,
+    const response = await this.request({
+      GetCapabilities: {
+        Category: options.category,
+      },
     });
-    this.onvif.capabilities = linerase(data).getCapabilitiesResponse.capabilities as Capabilities;
+    this.onvif.capabilities = response.getCapabilitiesResponse.capabilities as Capabilities;
     ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
@@ -143,8 +144,8 @@ export class Device {
    * Receive device information
    */
   async getDeviceInformation(): Promise<GetDeviceInformationResponse> {
-    const [data] = await this.onvif.request({ body : '<GetDeviceInformation xmlns="http://www.onvif.org/ver10/device/wsdl"/>' });
-    this.onvif.deviceInformation = linerase(data).getDeviceInformationResponse;
+    const response = await this.request({ GetDeviceInformation: {} });
+    this.onvif.deviceInformation = response.getDeviceInformationResponse;
     return this.onvif.deviceInformation!;
   }
 
@@ -152,20 +153,16 @@ export class Device {
    * Receive hostname information
    */
   async getHostname(): Promise<HostnameInformation> {
-    const [data] = await this.onvif.request({
-      body : '<GetHostname xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    });
-    return linerase(data).getHostnameResponse.hostnameInformation;
+    const response = await this.request({ GetHostname: {} });
+    return response.getHostnameResponse.hostnameInformation;
   }
 
   /**
    * Receive the scope parameters of a device
    */
   async getScopes(): Promise<Scope[]> {
-    const [data] = await this.onvif.request({
-      body : '<GetScopes xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    });
-    this.#scopes = linerase(data).getScopesResponse.scopes;
+    const response = await this.request({ GetScopes: {} });
+    this.#scopes = response.getScopesResponse.scopes;
     if (this.#scopes === undefined) {
       this.#scopes = [];
     } else if (!Array.isArray(this.#scopes)) {
@@ -179,12 +176,12 @@ export class Device {
    * @param scopes Array of scope's uris
    */
   async setScopes(scopes: AnyURI[]) {
-    const [data] = await this.onvif.request({
-      body : `<SetScopes xmlns="http://www.onvif.org/ver10/device/wsdl">${
-        scopes.map((uri) => `<Scopes>${uri}</Scopes>`).join('')
-      }</SetScopes>`,
+    const response = await this.request({
+      SetScopes: {
+        Scopes: scopes,
+      },
     });
-    if (linerase(data).setScopesResponse.length !== 0) {
+    if (response.setScopesResponse.length !== 0) {
       throw new Error('Wrong `SetScopes` response');
     }
     // get new scopes from device
@@ -195,10 +192,8 @@ export class Device {
    * Returns the capabilities of the device service. The result is returned in a typed answer
    */
   async getServiceCapabilities() {
-    const [data] = await this.onvif.request({
-      body : '<GetServiceCapabilities xmlns="http://www.onvif.org/ver10/device/wsdl" />',
-    });
-    const capabilitiesResponse = linerase(data).getServiceCapabilitiesResponse;
+    const response = await this.request({ GetServiceCapabilities: {} });
+    const capabilitiesResponse = response.getServiceCapabilitiesResponse;
     this.#serviceCapabilities = capabilitiesResponse.capabilities;
     if (capabilitiesResponse.capabilities?.misc?.auxiliaryCommands !== undefined) {
       this.#serviceCapabilities!.misc!.auxiliaryCommands = capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
@@ -210,10 +205,8 @@ export class Device {
    * This operation reboots the device
    */
   async systemReboot(): Promise<string> {
-    return this.onvif.request({
-      service : 'device', // or 'deviceIO' ?
-      body    : '<SystemReboot xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    }).then(([data]) => data[0].systemRebootResponse[0].message[0]);
+    const response = await this.request({ SystemReboot: {} });
+    return response.systemRebootResponse.message;
   }
 
   /**
@@ -221,11 +214,8 @@ export class Device {
    * NTP server settings through the GetNTP command.
    */
   async getNTP(): Promise<NTPInformation> {
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body    : '<GetNTP xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    });
-    this.#NTP = linerase(data).getNTPResponse.NTPInformation;
+    const response = await this.request({ GetNTP: {} });
+    this.#NTP = response.getNTPResponse.NTPInformation;
     if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) { this.#NTP.NTPManual = [this.#NTP.NTPManual]; }
     if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) { this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP]; }
     return this.#NTP!;
@@ -235,25 +225,31 @@ export class Device {
    * Set the NTP settings on a device
    */
   async setNTP(options: SetNTP): Promise<NTPInformation> {
-    let body = '<SetNTP xmlns="http://www.onvif.org/ver10/device/wsdl">'
-      + `<FromDHCP>${options.fromDHCP ?? false}</FromDHCP>`;
-    if (options.NTPManual && Array.isArray(options.NTPManual)) {
-      options.NTPManual.forEach((NTPManual) => {
-        body += (NTPManual.type ? '<NTPManual>'
-          + `<Type xmlns="http://www.onvif.org/ver10/schema">${NTPManual.type}</Type>${
-            NTPManual.IPv4Address ? `<IPv4Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv4Address}</IPv4Address>` : ''
-          }${NTPManual.IPv6Address ? `<IPv6Address xmlns="http://www.onvif.org/ver10/schema">${NTPManual.IPv6Address}</IPv6Address>` : ''
-          }${NTPManual.DNSname ? `<DNSname xmlns="http://www.onvif.org/ver10/schema">${NTPManual.DNSname}</DNSname>` : ''
-          }${NTPManual.extension ? `<Extension xmlns="http://www.onvif.org/ver10/schema">${NTPManual.extension}</Extension>` : ''
-          }</NTPManual>` : '');
-      });
-    }
-    body += '</SetNTP>';
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body,
+    const response = await this.request({
+      SetNTP: {
+        FromDHCP: options.fromDHCP ?? false,
+        ...(options.NTPManual && Array.isArray(options.NTPManual) && {
+          NTPManual: options.NTPManual
+            .filter((NTPManual) => NTPManual.type)
+            .map((NTPManual) => ({
+              Type: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.type },
+              ...(NTPManual.IPv4Address && {
+                IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.IPv4Address },
+              }),
+              ...(NTPManual.IPv6Address && {
+                IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.IPv6Address },
+              }),
+              ...(NTPManual.DNSname && {
+                DNSname: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.DNSname },
+              }),
+              ...(NTPManual.extension && {
+                Extension: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.extension },
+              }),
+            })),
+        }),
+      },
     });
-    if (data['tds:SetNTPResponse'][0] !== '') {
+    if (response.setNTPResponse.length !== 0) {
       throw new Error('Wrong `SetNTP` response');
     }
     return this.getNTP();
@@ -264,36 +260,36 @@ export class Device {
    * GetDNS command.
    */
   async getDNS(): Promise<DNSInformation> {
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body    : '<GetDNS xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    });
-    this.#DNS = linerase(data).getDNSResponse.DNSInformation;
+    const response = await this.request({ GetDNS: {} });
+    this.#DNS = response.getDNSResponse.DNSInformation;
     if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
     if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
     return this.#DNS!;
   }
 
   async setDNS(options: SetDNS): Promise<DNSInformation> {
-    let body = '<SetDNS xmlns="http://www.onvif.org/ver10/device/wsdl">'
-      + `<FromDHCP>\${!!options.fromDHCP}</FromDHCP>${
-        options.searchDomain && Array.isArray(options.searchDomain) ? options.searchDomain
-          .map((domain) => `<SearchDomain>${domain}</SearchDomain>`).join('') : ''}`;
-    if (options.DNSManual && Array.isArray(options.DNSManual)) {
-      options.DNSManual.forEach((DNSManual) => {
-        body += (DNSManual.type ? '<DNSManual>'
-          + `<Type xmlns="http://www.onvif.org/ver10/schema">${DNSManual.type}</Type>${
-            DNSManual.IPv4Address ? `<IPv4Address xmlns="http://www.onvif.org/ver10/schema">${DNSManual.IPv4Address}</IPv4Address>` : ''
-          }${DNSManual.IPv6Address ? `<IPv6Address xmlns="http://www.onvif.org/ver10/schema">${DNSManual.IPv6Address}</IPv6Address>` : ''
-          }</DNSManual>` : '');
-      });
-    }
-    body += '</SetDNS>';
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body,
+    const response = await this.request({
+      SetDNS: {
+        FromDHCP: !!options.fromDHCP,
+        ...(options.searchDomain && Array.isArray(options.searchDomain) && {
+          SearchDomain: options.searchDomain,
+        }),
+        ...(options.DNSManual && Array.isArray(options.DNSManual) && {
+          DNSManual: options.DNSManual
+            .filter((DNSManual) => DNSManual.type)
+            .map((DNSManual) => ({
+              Type: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.type },
+              ...(DNSManual.IPv4Address && {
+                IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv4Address },
+              }),
+              ...(DNSManual.IPv6Address && {
+                IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv6Address },
+              }),
+            })),
+        }),
+      },
     });
-    if (linerase(data).setDNSResponse.length !== 0) {
+    if (response.setDNSResponse.length !== 0) {
       throw new Error('Wrong `SetDNS` response');
     }
     return this.getDNS();
@@ -304,11 +300,8 @@ export class Device {
    * interface configuration settings as defined by the NetworkInterface type through the GetNetworkInterfaces command.
    */
   async getNetworkInterfaces(): Promise<NetworkInterface[]> {
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body    : '<GetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
-    });
-    const { networkInterfaces } = linerase(data, { array : ['networkInterfaces', 'manual'] }).getNetworkInterfacesResponse;
+    const response = await this.request({ GetNetworkInterfaces: {} }, { array : ['networkInterfaces', 'manual'] });
+    const { networkInterfaces } = response.getNetworkInterfacesResponse;
     this.#networkInterfaces = Array.isArray(networkInterfaces) ? networkInterfaces : [];
     return this.#networkInterfaces;
   }
@@ -321,42 +314,49 @@ export class Device {
     if (!networkInterface) {
       return { rebootNeeded : false };
     }
-    const body = '<SetNetworkInterfaces xmlns="http://www.onvif.org/ver10/device/wsdl">'
-      + `<InterfaceToken>${options.interfaceToken}</InterfaceToken>`
-      + '<NetworkInterface>'
-      + `<Enabled xmlns="http://www.onvif.org/ver10/schema">${networkInterface.enabled}</Enabled>${
-        networkInterface.link
-          ? '<Link xmlns="http://www.onvif.org/ver10/schema">'
-          + `<AutoNegotiation>${networkInterface.link.autoNegotiation}</AutoNegotiation>`
-          + `<Speed>${networkInterface.link.speed}</Speed>`
-          + `<Duplex>${networkInterface.link.duplex}</Duplex>`
-          + '</Link>'
-          : ''
-      }${!Number.isNaN(networkInterface.MTU) ? `<MTU xmlns="http://www.onvif.org/ver10/schema">${networkInterface.MTU}</MTU>` : ''
-      }${networkInterface.IPv4
-        ? '<IPv4 xmlns="http://www.onvif.org/ver10/schema">'
-        + `<Enabled>${networkInterface.IPv4.enabled}</Enabled>${
-          networkInterface.IPv4.manual ? networkInterface.IPv4.manual
-            .map((ipv4) => `<Manual><Address>${ipv4.address}</Address><PrefixLength>${ipv4.prefixLength}</PrefixLength></Manual>`).join('') : ''
-        }<DHCP>${networkInterface.IPv4.DHCP}</DHCP>`
-        + '</IPv4>'
-        : ''
-      }${networkInterface.IPv6
-        ? '<IPv6 xmlns="http://www.onvif.org/ver10/schema">'
-        + `<Enabled>${networkInterface.IPv6.enabled}</Enabled>`
-        + `<AcceptRouterAdvert >${networkInterface.IPv6.acceptRouterAdvert}</AcceptRouterAdvert>`
-        + `${networkInterface.IPv6.manual ? networkInterface.IPv6.manual
-          .map((ipv6) => `<Manual><Address>${ipv6.address}</Address><PrefixLength>${ipv6.prefixLength}</PrefixLength></Manual>`).join('') : ''}`
-        + `<DHCP>${networkInterface.IPv6.DHCP}</DHCP>`
-        + '</IPv6>'
-        : ''
-      }</NetworkInterface>`
-      + '</SetNetworkInterfaces>';
-    const [data] = await this.onvif.request({
-      service : 'device',
-      body,
+    const response = await this.request({
+      SetNetworkInterfaces: {
+        InterfaceToken: options.interfaceToken,
+        NetworkInterface: {
+          $: { xmlns: SCHEMA_XMLNS },
+          Enabled: networkInterface.enabled,
+          ...(networkInterface.link && {
+            Link: {
+              AutoNegotiation: networkInterface.link.autoNegotiation,
+              Speed: networkInterface.link.speed,
+              Duplex: networkInterface.link.duplex,
+            },
+          }),
+          ...(!Number.isNaN(networkInterface.MTU) && { MTU: networkInterface.MTU }),
+          ...(networkInterface.IPv4 && {
+            IPv4: {
+              Enabled: networkInterface.IPv4.enabled,
+              ...(networkInterface.IPv4.manual && {
+                Manual: networkInterface.IPv4.manual.map((ipv4) => ({
+                  Address: ipv4.address,
+                  PrefixLength: ipv4.prefixLength,
+                })),
+              }),
+              DHCP: networkInterface.IPv4.DHCP,
+            },
+          }),
+          ...(networkInterface.IPv6 && {
+            IPv6: {
+              Enabled: networkInterface.IPv6.enabled,
+              AcceptRouterAdvert: networkInterface.IPv6.acceptRouterAdvert,
+              ...(networkInterface.IPv6.manual && {
+                Manual: networkInterface.IPv6.manual.map((ipv6) => ({
+                  Address: ipv6.address,
+                  PrefixLength: ipv6.prefixLength,
+                })),
+              }),
+              DHCP: networkInterface.IPv6.DHCP,
+            },
+          }),
+        },
+      },
     });
-    const result = linerase(data).setNetworkInterfacesResponse;
+    const result = response.setNetworkInterfacesResponse;
     if (Array.isArray(networkInterface.IPv6?.manual) && networkInterface.IPv6.manual.length > 0) {
       this.onvif.hostname = networkInterface.IPv6.manual[0].address!;
     }

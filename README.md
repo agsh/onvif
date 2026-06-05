@@ -74,6 +74,38 @@ I will be happy to answer any questions and hear your feedback.
 
 ---
 
+# Connection
+
+Before you can use most library methods, call `connect()` on your `Onvif` instance. This method performs 
+the initial handshake with the device and fills internal state so later SOAP requests are authenticated and 
+routed to the correct service endpoints.
+
+`connect()` runs the following steps in order:
+
+1. **Time synchronization** — `getSystemDateAndTime()` is called first. ONVIF WS-Security authentication 
+includes a timestamp in the nonce digest, so the client must know the offset between its own clock and 
+the device clock (`timeShift`). The library tries an unauthenticated request first, as the ONVIF spec allows, 
+and retries with credentials when the device requires authentication (some Panasonic and Digital Barriers models 
+behave this way).
+2. **Service discovery** — the library tries `device.getServices()`, the modern ONVIF approach introduced 
+with Profile T. If that fails on older devices, it falls back to `device.getCapabilities()`. Both methods 
+populate `onvif.uri` with the URLs for media, PTZ, events, replay, and other services that subsequent requests use.
+3. **Media configuration** — `media.getProfiles()` and `media.getVideoSources()` run in parallel, 
+then `getActiveSources()` matches each video source to a suitable media profile. This sets `activeSource`, 
+`defaultProfile`, and `defaultProfiles`, including encoder settings and PTZ configuration, so you can start 
+streaming or controlling the camera without extra setup.
+
+On success, `connect()` emits a `connect` event and returns the `Onvif` instance. Pass `autoConnect: true` 
+in the constructor to run this automatically after instantiation.
+
+```ts
+const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+await onvif.connect();
+console.log(onvif.activeSource);
+```
+
+---
+
 # Interfaces
 
 Interfaces are generated according to the latest version of the [ONVIF specification](https://github.com/onvif/specs).

@@ -5,8 +5,9 @@
  * @see https://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf
  */
 
-import { Onvif } from './onvif';
-import { linerase, build, toOnvifXMLSchemaObject, xsany } from './utils';
+import { Onvif, OnvifServices } from './onvif';
+import Service from './service';
+import { toOnvifXMLSchemaObject, xsany } from './utils';
 import {
   AudioDecoderConfiguration,
   AudioDecoderConfigurationOptions,
@@ -181,30 +182,24 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
 /**
  * Media service, ver10 profile
  */
-export class Media {
-  private onvif: Onvif;
+export class Media extends Service {
   public profiles: Profile[] = [];
   public videoSources: VideoSource[] = [];
   public audioSources: AudioSource[] = [];
   private audioOutputs: AudioOutput[] = [];
 
-  constructor(onvif: Onvif) {
-    this.onvif = onvif;
+  constructor(onvif: Onvif, service: keyof OnvifServices) {
+    super(onvif, service);
   }
 
   /**
    * Returns the capabilities of the media service. The result is returned in a typed answer.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
-      GetServiceCapabilities: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
-      },
+    const response = await this.request({
+      GetServiceCapabilities: {},
     });
-    const [data] = await this.onvif.request({ service: 'media', body });
-    return linerase(data).getServiceCapabilitiesResponse.capabilities;
+    return response.getServiceCapabilitiesResponse.capabilities;
   }
 
   /**
@@ -215,11 +210,8 @@ export class Media {
    */
   async getProfiles(): Promise<Profile[]> {
     // Original ONVIF Media support (used in Profile S)
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.profiles = linerase(data, ConfigurationArraysAndExtensions).getProfilesResponse.profiles;
+    const response = await this.request({ GetProfiles: {} }, ConfigurationArraysAndExtensions);
+    this.profiles = response.getProfilesResponse.profiles;
     return this.profiles;
   }
 
@@ -229,11 +221,15 @@ export class Media {
    * @param options.profileToken
    */
   async getProfile({ profileToken }: GetProfile): Promise<Profile> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: `<GetProfile xmlns="http://www.onvif.org/ver10/media/wsdl"><ProfileToken>${profileToken}</ProfileToken></GetProfile>`,
-    });
-    return linerase(data, ConfigurationArraysAndExtensions).getProfileResponse.profile;
+    const response = await this.request(
+      {
+        GetProfile: {
+          ProfileToken: profileToken,
+        },
+      },
+      ConfigurationArraysAndExtensions,
+    );
+    return response.getProfileResponse.profile;
   }
 
   /**
@@ -245,13 +241,13 @@ export class Media {
    * @param options.token
    */
   async createProfile({ name, token }: CreateProfile): Promise<Profile> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body:
-        '<CreateProfile xmlns="http://www.onvif.org/ver10/media/wsdl">' +
-        `<Name>${name}</Name>${token ? `<Token>${token}</Token>` : ''}</CreateProfile>`,
+    const response = await this.request({
+      CreateProfile: {
+        Name: name,
+        ...(token && { Token: token }),
+      },
     });
-    return linerase(data).createProfileResponse.profile;
+    return response.createProfileResponse.profile;
   }
 
   /**
@@ -261,12 +257,10 @@ export class Media {
    * @param options.profileToken
    */
   async deleteProfile({ profileToken }: DeleteProfile): Promise<void> {
-    await this.onvif.request({
-      service: 'media',
-      body:
-        '<DeleteProfile xmlns="http://www.onvif.org/ver10/media/wsdl">' +
-        `<ProfileToken>${profileToken}</ProfileToken>` +
-        '</DeleteProfile>',
+    await this.request({
+      DeleteProfile: {
+        ProfileToken: profileToken,
+      },
     });
   }
 
@@ -274,16 +268,11 @@ export class Media {
    * Common function to add configuration
    */
   private async addConfiguration({ name, configurationToken, profileToken }: AddConfiguration) {
-    const body = build({
+    await this.request({
       [name]: {
-        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
         ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
         ConfigurationToken: configurationToken,
       },
-    });
-    await this.onvif.request({
-      service: 'media',
-      body,
     });
   }
 
@@ -422,12 +411,10 @@ export class Media {
    * Common function to remove configuration
    */
   private async removeConfiguration({ name, profileToken }: RemoveConfiguration) {
-    await this.onvif.request({
-      service: 'media',
-      body:
-        `<${name} xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-        `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
-        `</${name}>`,
+    await this.request({
+      [name]: {
+        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+      },
     });
   }
 
@@ -546,11 +533,8 @@ export class Media {
    * video sources through the GetVideoSources command
    */
   async getVideoSources(): Promise<VideoSource[]> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: '<GetVideoSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.videoSources = linerase(data, { array: ['videoSources'] }).getVideoSourcesResponse.videoSources;
+    const response = await this.request({ GetVideoSources: {} }, { array: ['videoSources'] });
+    this.videoSources = response.getVideoSourcesResponse.videoSources;
     return this.videoSources;
   }
 
@@ -559,11 +543,8 @@ export class Media {
    * device to client shall support listing of available audio sources through the GetAudioSources command.
    */
   async getAudioSources(): Promise<AudioSource[]> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: '<GetAudioSources xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.audioSources = linerase(data, { array: ['audioSources'] }).getAudioSourcesResponse.audioSources;
+    const response = await this.request({ GetAudioSources: {} }, { array: ['audioSources'] });
+    this.audioSources = response.getAudioSourcesResponse.audioSources;
     return this.audioSources;
   }
 
@@ -573,11 +554,8 @@ export class Media {
    * dioOutputs command.
    */
   async getAudioOutputs(): Promise<AudioOutput[]> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: '<GetAudioOutputs xmlns="http://www.onvif.org/ver10/media/wsdl"/>',
-    });
-    this.audioOutputs = linerase(data, { array: ['audioOutputs'] }).getAudioOutputsResponse.audioOutputs;
+    const response = await this.request({ GetAudioOutputs: {} }, { array: ['audioOutputs'] });
+    this.audioOutputs = response.getAudioOutputsResponse.audioOutputs;
     return this.audioOutputs;
   }
 
@@ -588,12 +566,13 @@ export class Media {
    * @param options.entityName
    */
   private async getConfigurations({ entityName }: { entityName: string }): Promise<ConfigurationExtended[]> {
-    const body = `<Get${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl"/>`;
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data, ConfigurationArraysAndExtensions)[`get${entityName}ConfigurationsResponse`].configurations;
+    const response = await this.request(
+      {
+        [`Get${entityName}Configurations`]: {},
+      },
+      ConfigurationArraysAndExtensions,
+    );
+    return response[`get${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -686,17 +665,15 @@ export class Media {
     entityName,
     profileToken,
   }: GetCompatibleConfigurations): Promise<ConfigurationExtended[]> {
-    const body =
-      `<GetCompatible${entityName}Configurations xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-      `<ProfileToken>${profileToken ?? this.onvif.activeSource?.profileToken}</ProfileToken>` +
-      `</GetCompatible${entityName}Configurations>`;
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data, { array: ['configurations', 'analyticsModule', 'rule'] })[
-      `getCompatible${entityName}ConfigurationsResponse`
-    ].configurations;
+    const response = await this.request(
+      {
+        [`GetCompatible${entityName}Configurations`]: {
+          ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        },
+      },
+      { array: ['configurations', 'analyticsModule', 'rule'] },
+    );
+    return response[`getCompatible${entityName}ConfigurationsResponse`].configurations;
   }
 
   /**
@@ -827,15 +804,15 @@ export class Media {
    * @param options.configurationToken
    */
   private async getConfiguration({ entityName, configurationToken }: GetConfiguration): Promise<ConfigurationExtended> {
-    const body =
-      `<Get${entityName}Configuration xmlns="http://www.onvif.org/ver10/media/wsdl">` +
-      `<ConfigurationToken>${configurationToken}</ConfigurationToken>` +
-      `</Get${entityName}Configuration>`;
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data, ConfigurationArraysAndExtensions)[`get${entityName}ConfigurationResponse`].configuration;
+    const response = await this.request(
+      {
+        [`Get${entityName}Configuration`]: {
+          ConfigurationToken: configurationToken,
+        },
+      },
+      ConfigurationArraysAndExtensions,
+    );
+    return response[`get${entityName}ConfigurationResponse`].configuration;
   }
 
   /**
@@ -941,26 +918,28 @@ export class Media {
     configurationToken,
     profileToken,
   }: GetConfigurationOptions): Promise<ConfigurationOptionsExtended> {
-    const body = `<Get${entityName}ConfigurationOptions xmlns="http://www.onvif.org/ver10/media/wsdl">${
-      configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
-    }${profileToken ? `<ProfileToken>${profileToken}</ProfileToken>` : ''}</Get${entityName}ConfigurationOptions>`;
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data[`trt:Get${entityName}ConfigurationOptionsResponse`][0]['trt:Options'], {
-      array: [
-        'videoSourceTokensAvailable',
-        'resolutionsAvailable',
-        'mpeg4ProfilesSupported',
-        'H264ProfilesSupported',
-        'inputTokensAvailable',
-        'options',
-        'compressionType',
-        'outputTokensAvailable',
-        'sendPrimacyOptions',
-      ],
-    });
+    const response = await this.request(
+      {
+        [`Get${entityName}ConfigurationOptions`]: {
+          ...(configurationToken && { ConfigurationToken: configurationToken }),
+          ...(profileToken && { ProfileToken: profileToken }),
+        },
+      },
+      {
+        array: [
+          'videoSourceTokensAvailable',
+          'resolutionsAvailable',
+          'mpeg4ProfilesSupported',
+          'H264ProfilesSupported',
+          'inputTokensAvailable',
+          // 'options',
+          'compressionType',
+          'outputTokensAvailable',
+          'sendPrimacyOptions',
+        ],
+      },
+    );
+    return response[`get${entityName}ConfigurationOptionsResponse`].options;
   }
 
   /**
@@ -1114,11 +1093,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setVideoSourceConfiguration({ configuration, forcePersistence }: SetVideoSourceConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetVideoSourceConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1174,10 +1150,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({
-      service: 'media',
-      body,
-    });
   }
 
   /**
@@ -1199,11 +1171,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setVideoEncoderConfiguration({ configuration, forcePersistence }: SetVideoEncoderConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetVideoEncoderConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1242,10 +1211,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({
-      service: 'media',
-      body,
-    });
   }
 
   /**
@@ -1258,9 +1223,12 @@ export class Media {
   async getGuaranteedNumberOfVideoEncoderInstances({
     configurationToken,
   }: GetGuaranteedNumberOfVideoEncoderInstances): Promise<GetGuaranteedNumberOfVideoEncoderInstancesResponse> {
-    const body = build({ GetGuaranteedNumberOfVideoEncoderInstances: { ConfigurationToken: configurationToken } });
-    const [data] = await this.onvif.request({ service: 'media', body });
-    return linerase(data).getGuaranteedNumberOfVideoEncoderInstancesResponse;
+    const response = await this.request({
+      GetGuaranteedNumberOfVideoEncoderInstances: {
+        ConfigurationToken: configurationToken,
+      },
+    });
+    return response.getGuaranteedNumberOfVideoEncoderInstancesResponse;
   }
 
   /**
@@ -1278,11 +1246,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setAudioSourceConfiguration({ configuration, forcePersistence }: SetAudioSourceConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetAudioSourceConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1294,7 +1259,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1310,11 +1274,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setAudioEncoderConfiguration({ configuration, forcePersistence }: SetAudioEncoderConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetAudioEncoderConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1330,7 +1291,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1348,11 +1308,8 @@ export class Media {
     configuration,
     forcePersistence,
   }: SetVideoAnalyticsConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetVideoAnalyticsConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1381,7 +1338,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1397,11 +1353,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setMetadataConfiguration({ configuration, forcePersistence }: SetMetadataConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetMetadataConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1445,7 +1398,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1458,11 +1410,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setAudioOutputConfiguration({ configuration, forcePersistence }: SetAudioOutputConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetAudioOutputConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1476,7 +1425,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1489,11 +1437,8 @@ export class Media {
    * @param options.forcePersistence
    */
   async setAudioDecoderConfiguration({ configuration, forcePersistence }: SetAudioDecoderConfiguration): Promise<void> {
-    const body = build({
+    await this.request({
       SetAudioDecoderConfiguration: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ForcePersistence: forcePersistence,
         Configuration: {
           $: {
@@ -1505,7 +1450,6 @@ export class Media {
         },
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1566,20 +1510,22 @@ export class Media {
       };
     }
     // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body:
-        '<GetStreamUri xmlns="http://www.onvif.org/ver10/media/wsdl">' +
-        '<StreamSetup>' +
-        `<Stream xmlns="http://www.onvif.org/ver10/schema">${stream}</Stream>` +
-        '<Transport xmlns="http://www.onvif.org/ver10/schema">' +
-        `<Protocol>${protocol || 'RTSP'}</Protocol>` +
-        '</Transport>' +
-        '</StreamSetup>' +
-        `<ProfileToken>${profileToken || this.onvif.activeSource!.profileToken}</ProfileToken>` +
-        '</GetStreamUri>',
+    const response = await this.request({
+      GetStreamUri: {
+        StreamSetup: {
+          Stream: {
+            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+            _: stream,
+          },
+          Transport: {
+            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+            Protocol: protocol || 'RTSP',
+          },
+        },
+        ProfileToken: profileToken || this.onvif.activeSource!.profileToken,
+      },
     });
-    return linerase(data).getStreamUriResponse.mediaUri;
+    return response.getStreamUriResponse.mediaUri;
   }
 
   /**
@@ -1603,19 +1549,12 @@ export class Media {
         },
       };
     }
-    const body = build({
+    const response = await this.request({
       GetSnapshotUri: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ProfileToken: profileToken,
       },
     });
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data).getSnapshotUriResponse;
+    return response.getSnapshotUriResponse;
   }
 
   /**
@@ -1627,15 +1566,11 @@ export class Media {
    */
   async startMulticastStreaming(options?: StartMulticastStreaming): Promise<void> {
     const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
-    const body = build({
+    await this.request({
       StartMulticastStreaming: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ProfileToken: profileToken,
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1644,15 +1579,11 @@ export class Media {
    */
   async stopMulticastStreaming(options?: StopMulticastStreaming): Promise<void> {
     const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
-    const body = build({
+    await this.request({
       StopMulticastStreaming: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ProfileToken: profileToken,
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   /**
@@ -1668,30 +1599,24 @@ export class Media {
    */
   async setSynchronizationPoint(options?: SetSynchronizationPoint): Promise<void> {
     const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
-    const body = build({
+    await this.request({
       SetSynchronizationPoint: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         ProfileToken: profileToken,
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
     const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
-    const body = build({
-      GetVideoSourceModes: {
-        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
-        VideoSourceToken: videoSourceToken,
+    const response = await this.request(
+      {
+        GetVideoSourceModes: {
+          VideoSourceToken: videoSourceToken,
+        },
       },
-    });
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    const modes = linerase(data, { array: ['videoSourceModes'] }).getVideoSourceModesResponse.videoSourceModes ?? [];
+      { array: ['videoSourceModes'] },
+    );
+    const modes = response.getVideoSourceModesResponse.videoSourceModes ?? [];
     return modes.map((mode: any) => ({ ...mode, encodings: mode.encodings.split(' ') }));
   }
 
@@ -1702,18 +1627,13 @@ export class Media {
    * @param options
    */
   async setVideoSourceMode(options: SetVideoSourceMode): Promise<SetVideoSourceModeResponse> {
-    const body = build({
+    const response = await this.request({
       SetVideoSourceMode: {
-        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
         VideoSourceToken: options.videoSourceToken,
         VideoSourceModeToken: options.videoSourceModeToken,
       },
     });
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body,
-    });
-    return linerase(data).setVideoSourceModeResponse;
+    return response.setVideoSourceModeResponse;
   }
 
   /**
@@ -1722,18 +1642,19 @@ export class Media {
    * @param OSDToken
    */
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<OSDConfiguration[]> {
-    const mediaService = this.onvif.device.media2Support ? 'media2' : 'media';
-    const mediaNS = this.onvif.device.media2Support
-      ? 'http://www.onvif.org/ver20/media/wsdl'
-      : 'http://www.onvif.org/ver10/media/wsdl';
-
-    const [data] = await this.onvif.request({
-      service: mediaService,
-      body: `<GetOSDs xmlns="${mediaNS}" >${
-        configurationToken ? `<ConfigurationToken>${configurationToken}</ConfigurationToken>` : ''
-      }${OSDToken ? `<OSDToken>${OSDToken}</OSDToken>` : ''}</GetOSDs>`,
-    });
-    return linerase(data, { array: ['OSDs'] }).getOSDsResponse.OSDs ?? [];
+    if (this.onvif.device.media2Support) {
+      return this.onvif.media2.getOSDs({ configurationToken, OSDToken });
+    }
+    const response = await this.request(
+      {
+        GetOSDs: {
+          ...(configurationToken && { ConfigurationToken: configurationToken }),
+          ...(OSDToken && { OSDToken }),
+        },
+      },
+      { array: ['OSDs'] },
+    );
+    return response.getOSDsResponse.OSDs ?? [];
   }
 
   /**
@@ -1741,11 +1662,12 @@ export class Media {
    * @param OSDToken
    */
   async getOSD({ OSDToken }: GetOSD): Promise<OSDConfiguration> {
-    const [data] = await this.onvif.request({
-      service: 'media',
-      body: `<GetOSD xmlns="http://www.onvif.org/ver10/media/wsdl" >${OSDToken ? `<OSDToken>${OSDToken}</OSDToken>` : ''}</GetOSD>`,
+    const response = await this.request({
+      GetOSD: {
+        ...(OSDToken && { OSDToken }),
+      },
     });
-    return linerase(data).getOSDResponse.OSD;
+    return response.getOSDResponse.OSD;
   }
 
   /**
@@ -1753,11 +1675,8 @@ export class Media {
    * @param options
    */
   async setOSD(options: OSDConfiguration) {
-    const body = build({
+    await this.request({
       SetOSD: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         OSD: {
           $: {
             token: options.token,
@@ -1801,10 +1720,6 @@ export class Media {
           Extension: options.extension,
         },
       },
-    });
-    await this.onvif.request({
-      service: 'media',
-      body,
     });
   }
 
@@ -1813,11 +1728,8 @@ export class Media {
    * @param options
    */
   async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
-    const body = build({
+    const response = await this.request({
       CreateOSD: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/media/wsdl',
-        },
         OSD: {
           $: {
             token: options.token,
@@ -1862,8 +1774,7 @@ export class Media {
         },
       },
     });
-    const [data] = await this.onvif.request({ service: 'media', body });
-    return linerase(data).createOSDResponse;
+    return response.createOSDResponse;
   }
 
   /**
@@ -1871,32 +1782,25 @@ export class Media {
    * @param OSDToken
    */
   async deleteOSD({ OSDToken }: DeleteOSD): Promise<void> {
-    const body = build({
+    await this.request({
       DeleteOSD: {
-        $: { xmlns: 'http://www.onvif.org/ver10/media/wsdl' },
         OSDToken,
       },
     });
-    await this.onvif.request({ service: 'media', body });
   }
 
   async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
-    const configurationToken =
-      options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
-    const mediaService = this.onvif.device.media2Support ? 'media2' : 'media';
-    const mediaNS = this.onvif.device.media2Support
-      ? 'http://www.onvif.org/ver20/media/wsdl'
-      : 'http://www.onvif.org/ver10/media/wsdl';
-
-    const [data] = await this.onvif.request({
-      service: mediaService,
-      body:
-        `<GetOSDOptions xmlns="${mediaNS}" >` +
-        `<ConfigurationToken>${configurationToken}</ConfigurationToken>` +
-        '</GetOSDOptions>',
+    const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
+    if (this.onvif.device.media2Support) {
+      const osdOptions = await this.onvif.media2.getOSDOptions({ configurationToken });
+      return { OSDOptions: osdOptions };
+    }
+    const response = await this.request({
+      GetOSDOptions: {
+        ConfigurationToken: configurationToken,
+      },
     });
-    const result = linerase(data).getOSDOptionsResponse;
-    return result;
+    return response.getOSDOptionsResponse;
   }
 }
 
