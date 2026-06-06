@@ -128,30 +128,30 @@ export function guid() {
  * @returns {[string]}
  */
 export function splitArgs(args: string): string[] {
-	let buffer = '';
-	const result = [];
-	let quoteOpen = false;
-	for (let i of args) {
-		if (quoteOpen) {
-			if (i === '"') {
-				quoteOpen = false;
-			}
-			buffer += i;
-			continue;
-		}
-		if (i === ',') {
-			result.push(buffer.trim());
-			buffer = '';
-		} else {
-			if (i === '"') {
-				quoteOpen = true;
-			}
-			buffer += i;
-		}
-	}
-	result.push(buffer.trim());
-	return result;
-};
+  let buffer = '';
+  const result = [];
+  let quoteOpen = false;
+  for (const i of args) {
+    if (quoteOpen) {
+      if (i === '"') {
+        quoteOpen = false;
+      }
+      buffer += i;
+      continue;
+    }
+    if (i === ',') {
+      result.push(buffer.trim());
+      buffer = '';
+    } else {
+      if (i === '"') {
+        quoteOpen = true;
+      }
+      buffer += i;
+    }
+  }
+  result.push(buffer.trim());
+  return result;
+}
 
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
 

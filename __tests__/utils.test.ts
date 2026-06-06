@@ -1,5 +1,5 @@
 import xml2js, { parseStringPromise } from 'xml2js';
-import { build, guid, linerase, parseSOAPString, struct, toOnvifXMLSchemaObject } from '../src/utils';
+import { build, guid, linerase, parseSOAPString, splitArgs, struct, toOnvifXMLSchemaObject } from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 
 describe('Linerase function', () => {
@@ -63,6 +63,43 @@ describe('Linerase function', () => {
       },
     });
     expect(result).toEqual({ a: { b: { c: 'text', d: 't', e: 'text' } } });
+  });
+});
+
+describe('splitArgs function', () => {
+  it('should return a single part when there are no commas', () => {
+    expect(splitArgs('realm="example.com"')).toEqual(['realm="example.com"']);
+  });
+
+  it('should split simple comma-separated parts', () => {
+    expect(splitArgs('realm="example.com", nonce="abc123", qop="auth"')).toEqual([
+      'realm="example.com"',
+      'nonce="abc123"',
+      'qop="auth"',
+    ]);
+  });
+
+  it('should not split on commas inside quoted values', () => {
+    expect(splitArgs('realm="example.com", nonce="abc,def", qop="auth"')).toEqual([
+      'realm="example.com"',
+      'nonce="abc,def"',
+      'qop="auth"',
+    ]);
+  });
+
+  it('should trim whitespace around parts', () => {
+    expect(splitArgs(' realm="example.com" ,  nonce="abc123" ')).toEqual([
+      'realm="example.com"',
+      'nonce="abc123"',
+    ]);
+  });
+
+  it('should handle unquoted values', () => {
+    expect(splitArgs('algorithm=MD5, stale=false')).toEqual(['algorithm=MD5', 'stale=false']);
+  });
+
+  it('should return an empty part for an empty string', () => {
+    expect(splitArgs('')).toEqual(['']);
   });
 });
 
