@@ -1,5 +1,6 @@
 /**
  * Created by Roger Hardiman <opensource@rjh.org.uk>
+ * Updated in 2026 to use the new V1 Library
  *
  * Brute force scan of the network looking for ONVIF devices
  * Displays the time and date of each device
@@ -12,143 +13,130 @@
  */
 
 var IP_RANGE_START = '192.168.1.1',
-	IP_RANGE_END = '192.168.1.1',
+	IP_RANGE_END = '192.168.1.100',
 	PORT_LIST = [80],
-	USERNAME = 'roger',
-	PASSWORD = 'roger1videosoft';
+	USERNAME = 'username',
+	PASSWORD = 'password';
 
-var Cam = require('../lib/onvif').Cam;
-var flow = require('nimble');
+var OnvifLib = require('../build/onvif');
 
-var ip_list = ['demo.videosoft.live']
-var port_list = [8080];
-//var ip_list = ['127.0.0.1'];
-//var port_list = [8900];
+let ip_list = generate_range(IP_RANGE_START, IP_RANGE_END);
+let port_list = PORT_LIST;
 
 // hide error messages
 console.error = function() {};
 
 // try each IP address and each Port
 ip_list.forEach(function(ip_entry) {
-	port_list.forEach(function(port_entry) {
+	port_list.forEach(async function(port_entry) {
 
 		console.log(ip_entry + ' ' + port_entry);
 
-		new Cam({
+		let cam_obj = new OnvifLib.Onvif({
 			hostname: ip_entry,
 			username: USERNAME,
 			password: PASSWORD,
 			port: port_entry,
 			timeout: 10000
-		}, function CamFunc(err) {
-			if (err)  {
-				if (err.message) {console.log(err.message);} else {console.log(err);}
-		        return;
-	        }
-
-			var cam_obj = this;
-
-			var got_date;
-			var got_info;
-			var got_live_stream_tcp;
-			var got_live_stream_udp;
-			var got_live_stream_multicast;
-			var got_recordings;
-			var got_replay_stream;
-
-			// Use Nimble to execute each ONVIF function in turn
-			// This is used so we can wait on all ONVIF replies before
-			// writing to the console
-			flow.series([
-				function(callback) {
-					cam_obj.getSystemDateAndTime(function(err, date, xml) {
-						if (!err) {got_date = date;}
-						callback();
-					});
-				},
-				function(callback) {
-					cam_obj.getDeviceInformation(function(err, info, xml) {
-						if (!err) {got_info = info;}
-						callback();
-					});
-				},
-				function(callback) {
-					try {
-						cam_obj.getStreamUri({
-							protocol: 'RTSP',
-							stream: 'RTP-Unicast'
-						}, function(err, stream, xml) {
-							if (!err) {got_live_stream_tcp = stream;}
-							callback();
-						});
-					} catch (err) {callback();}
-				},
-				function(callback) {
-					try {
-						cam_obj.getStreamUri({
-							protocol: 'UDP',
-							stream: 'RTP-Unicast'
-						}, function(err, stream, xml) {
-							if (!err) {got_live_stream_udp = stream;}
-							callback();
-						});
-					} catch (err) {callback();}
-				},
-				function(callback) {
-					try {
-						cam_obj.getStreamUri({
-							protocol: 'UDP',
-							stream: 'RTP-Multicast'
-						}, function(err, stream, xml) {
-							if (!err) {got_live_stream_multicast = stream;}
-							callback();
-						});
-					} catch (err) {callback();}
-				},
-				function(callback) {
-					cam_obj.getRecordings(function(err, recordings, xml) {
-						if (!err) {got_recordings = recordings;}
-						callback();
-					});
-				},
-				function(callback) {
-					// Get Recording URI for the first recording on the NVR
-					if (got_recordings) {
-						cam_obj.getReplayUri({
-							protocol: 'RTSP',
-							recordingToken: got_recordings[0].recordingToken
-						}, function(err, stream, xml) {
-							if (!err) {got_replay_stream = stream;}
-							callback();
-						});
-					} else {
-						callback();
-					}
-				},
-				function(callback) {
-					console.log('------------------------------');
-					console.log('Host: ' + ip_entry + ' Port: ' + port_entry);
-					console.log('Date: = ' + got_date);
-					console.log('Info: = ' + JSON.stringify(got_info));
-					if (got_live_stream_tcp) {
-						console.log('First Live TCP Stream: =       ' + got_live_stream_tcp.uri);
-					}
-					if (got_live_stream_udp) {
-						console.log('First Live UDP Stream: =       ' + got_live_stream_udp.uri);
-					}
-					if (got_live_stream_multicast) {
-						console.log('First Live Multicast Stream: = ' + got_live_stream_multicast.uri);
-					}
-					if (got_replay_stream) {
-						console.log('First Replay Stream: = ' + got_replay_stream.uri);
-					}
-					console.log('------------------------------');
-					callback();
-				},
-
-			]); // end flow
-
 		});
+		
+		try {
+			await cam_obj.connect();
+			console.log("ONVIF Device has connected");
+		} catch (err) {
+			console.log(err);
+			return;
+		}
+
+		let got_date;
+		let got_info;
+		let got_live_stream_tcp;
+		let got_live_stream_udp;
+		let got_live_stream_multicast;
+		let got_recordings;
+		let got_replay_stream;
+
+		// Use await to execute each ONVIF function in turn
+		// This is used so we can wait on all ONVIF replies before
+		// writing to the console
+		try {
+			got_date = await cam_obj.device.getSystemDateAndTime();
+		} catch {}
+
+		try {
+			got_info = await cam_obj.device.getDeviceInformation();
+		} catch {}
+
+		try {
+			got_live_stream_tcp = await cam_obj.media.getStreamUri({
+				protocol: 'RTSP',
+				stream: 'RTP-Unicast'
+			});
+		} catch {}
+
+		try {
+			got_live_stream_udp = await cam_obj.media.getStreamUri({
+				protocol: 'UDP',
+				stream: 'RTP-Unicast'
+			});
+		} catch {}
+
+		try {
+			got_live_stream_multicast = await cam_obj.media.getStreamUri({
+				protocol: 'UDP',
+				stream: 'RTP-Multicast'
+			});
+		} catch {}
+
+		try {
+			got_recordings = await cam_obj.media.getRecordings();
+		} catch {}
+
+		if (got_recordings) {
+			try {
+				got_replay_stream = await cam_obj.media.getReplayUri({
+					protocol: 'RTSP',
+					recordingToken: got_recordings[0].recordingToken
+				});
+			} catch {};
+		}
+
+		console.log('------------------------------');
+		console.log('Host: ' + ip_entry + ' Port: ' + port_entry);
+		console.log('Date: = ' + JSON.stringify(got_date));
+		console.log('Info: = ' + JSON.stringify(got_info));
+		if (got_live_stream_tcp) {
+			// Media(original) and Media2 return different Objects
+			let uri = '';
+			if ('mediaUri' in got_live_stream_tcp) uri = got_live_stream_tcp.mediaUri.uri;
+			else uri = got_live_stream_tcp.uri; 
+			console.log('First Live TCP Stream: =       ' + uri);
+		}
+		if (got_live_stream_udp) {
+			// Media(original) and Media2 return different Objects
+			let uri = '';
+			if ('mediaUri' in got_live_stream_udp) uri = got_live_stream_udp.mediaUri.uri;
+			else uri = got_live_stream_udp.uri; 
+			console.log('First Live UDP Stream: =       ' + uri);
+		}
+		if (got_live_stream_multicast) {
+			// Media(original) and Media2 return different Objects
+			let uri = '';
+			if ('mediaUri' in got_live_stream_multicast) uri = got_live_stream_multicast.mediaUri.uri;
+			else uri = got_live_stream_multicast.uri; 
+			console.log('First Live Multicast Stream: = ' + uri);
+		}
+
+		if (got_recordings) {
+			console.log('Recordings: = Yes');
+			if (got_replay_stream) {
+				console.log('First Replay Stream: = ' + got_replay_stream.uri);
+			}
+		} else {
+			console.log('Recordings: = No');
+		}
+
+		console.log('------------------------------');
 	}); // foreach
 }); // foreach
 
