@@ -10,7 +10,7 @@ import https, { Agent, RequestOptions } from 'https';
 import http from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { linerase, parseSOAPString } from './utils';
+import { linerase, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -528,7 +528,8 @@ export class Onvif extends EventEmitter {
   private parseChallenge(digest: string) {
     const prefix = 'Digest ';
     const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
-    const parts = challenge.split(',').map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
+	  const partsArray = splitArgs(challenge);
+    const parts = partsArray.map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
     return Object.fromEntries(parts);
   }
 
