@@ -1,0 +1,10 @@
+[x] GetServiceCapabilities
+[x] GetLayout
+[x] SetLayout
+[x] GetDisplayOptions
+[x] GetPaneConfigurations
+[x] GetPaneConfiguration
+[x] SetPaneConfigurations
+[x] SetPaneConfiguration
+[x] CreatePaneConfiguration
+[x] DeletePaneConfiguration

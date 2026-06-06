@@ -25,6 +25,7 @@ import { Recording } from './recording';
 import { DoorControl } from './doorcontrol';
 import { Analytics } from './analytics';
 import { DeviceIO } from './deviceio';
+import { Display } from './display';
 
 /**
  * Cam constructor options
@@ -239,6 +240,7 @@ export class Onvif extends EventEmitter {
   public readonly doorControl: DoorControl;
   public readonly analytics: Analytics;
   public readonly deviceIO: DeviceIO;
+  public readonly display: Display;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -289,6 +291,7 @@ export class Onvif extends EventEmitter {
     this.doorControl = new DoorControl(this, 'doorcontrol');
     this.analytics = new Analytics(this, 'analytics');
     this.deviceIO = new DeviceIO(this, 'deviceIO');
+    this.display = new Display(this, 'display');
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
