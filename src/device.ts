@@ -114,9 +114,12 @@ export class Device extends Service {
     });
     this.onvif.capabilities = response.getCapabilitiesResponse.capabilities as Capabilities;
     ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
-      const capabilityName = name as keyof Capabilities;
-      if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
-        this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr as string);
+      // All names in GetCapabilities are optional in the WSL spec. For example, my Pelco IMP1110-1 does not support Analytics.
+      if (name in this.onvif.capabilities) {
+        const capabilityName = name as keyof Capabilities;
+        if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
+          this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr as string);
+        }
       }
     });
     // extensions, eg. deviceIO
