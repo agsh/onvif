@@ -787,7 +787,7 @@ export class PTZ extends Service {
       throw new Error("'velocity' is required");
     }
     await this.request({
-      RelativeMove: {
+      ContinuousMove: {
         ProfileToken: profileToken,
         Velocity: PTZ.PTZVectorToXML(velocity),
         Timeout: typeof timeout === 'number' ? `PT${timeout / 1000}S` : timeout,
