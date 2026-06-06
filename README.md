@@ -73,6 +73,7 @@ I will be happy to answer any questions and hear your feedback.
 - Full Imaging [support](https://github.com/agsh/onvif/blob/v1/IMAGING.md)
 - Full DoorControl [support](https://github.com/agsh/onvif/blob/v1/DOORCONTROL.md)
 - Full Analytics [support](https://github.com/agsh/onvif/blob/v1/ANALYTICS.md)
+- Full DeviceIO [support](https://github.com/agsh/onvif/blob/v1/DEVICEIO.md)
 
 ---
 

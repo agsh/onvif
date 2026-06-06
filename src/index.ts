@@ -9,5 +9,6 @@ export * from './imaging';
 export * from './recording';
 export * from './doorcontrol';
 export * from './analytics';
+export * from './deviceio';
 export * from './utils';
 // export * from './compatibility/cam'; // development frozen
