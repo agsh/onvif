@@ -363,15 +363,16 @@ describe('Users', () => {
 
 describe('Remote user', () => {
   it('should return and update remote user settings', async () => {
-    const remoteUser = await cam.device.getRemoteUser();
-    expect(remoteUser?.username).toBe('admin');
-    expect(remoteUser?.useDerivedPassword).toBe(false);
-
+    // Happytime returns an empty GetRemoteUser response until remote user is configured.
     await expect(
       cam.device.setRemoteUser({
         remoteUser: { username: 'admin', useDerivedPassword: false },
       }),
     ).resolves.toBeUndefined();
+
+    const remoteUser = await cam.device.getRemoteUser();
+    expect(remoteUser?.username).toBe('admin');
+    expect(remoteUser?.useDerivedPassword).toBe(false);
   });
 });
 
