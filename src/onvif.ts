@@ -26,6 +26,7 @@ import { DoorControl } from './doorcontrol';
 import { Analytics } from './analytics';
 import { DeviceIO } from './deviceio';
 import { Display } from './display';
+import { ActionEngine } from './actionengine';
 
 /**
  * Cam constructor options
@@ -67,6 +68,7 @@ export interface OnvifServices {
   recording?: URL;
   replay?: URL;
   doorcontrol?: URL;
+  actionengine?: URL;
   search?: URL;
   [key: string]: URL | undefined;
 }
@@ -241,6 +243,7 @@ export class Onvif extends EventEmitter {
   public readonly analytics: Analytics;
   public readonly deviceIO: DeviceIO;
   public readonly display: Display;
+  public readonly actionEngine: ActionEngine;
   public useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
@@ -292,6 +295,7 @@ export class Onvif extends EventEmitter {
     this.analytics = new Analytics(this, 'analytics');
     this.deviceIO = new DeviceIO(this, 'deviceIO');
     this.display = new Display(this, 'display');
+    this.actionEngine = new ActionEngine(this, 'actionengine');
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
