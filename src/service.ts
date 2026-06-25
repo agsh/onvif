@@ -7,6 +7,7 @@ const XMLNS: Record<keyof OnvifServices, string> = {
   device: 'http://www.onvif.org/ver10/device/wsdl',
   deviceIO: 'http://www.onvif.org/ver10/deviceIO/wsdl',
   display: 'http://www.onvif.org/ver10/display/wsdl',
+  actionengine: 'http://www.onvif.org/ver10/actionengine/wsdl',
   events: 'http://www.onvif.org/ver10/events/wsdl',
   imaging: 'http://www.onvif.org/ver20/imaging/wsdl',
   media2: 'http://www.onvif.org/ver20/media/wsdl',
