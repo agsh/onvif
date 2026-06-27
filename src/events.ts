@@ -64,7 +64,7 @@ export interface EventMessage {
 
 export type PropertyOperation = 'Initialized' | 'Changed' | 'Deleted';
 
-const RETRY_ERROR_CODES = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENETUNREACH'];
+const RETRY_ERROR_CODES = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENETUNREACH', 'HPE_CLOSED_CONNECTION'] as const;
 const MAX_EVENT_RECONNECT_MS = 2 * 60 * 1000;
 
 function isSoapError(error: any): error is { code: string } {
@@ -153,7 +153,6 @@ export class Events {
         this.eventPull();
       }
     } else {
-      console.log('DELETE?1');
       await this.unsubscribe();
     }
   }
@@ -178,7 +177,6 @@ export class Events {
     const [data] = await this.onvif.request({ service: 'events', body });
     const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
     this.events.subscription = pullPointSubscription;
-    console.log('---- we createdpp-sub', JSON.stringify(pullPointSubscription, null, 2));
     return pullPointSubscription;
   }
 
@@ -196,7 +194,6 @@ export class Events {
         });
         delete this.events.eventReconnectMs;
         msgs.notificationMessage?.forEach((msg: NotificationMessage) => {
-          console.log(this.events.subscription?.subscriptionReference.address);
           this.onvif.emit('event', msg);
         });
         if (+msgs.terminationTime <= Date.now()) {
@@ -209,23 +206,20 @@ export class Events {
         }
         this.eventRequest(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
       } catch (error) {
-        console.error('ERROR!');
-        console.error(error);
         this.onvif.emit('eventsError', error);
         if (isSoapError(error)) {
-          // connection reset (request ended without messages) - restart Event loop for pullMessages request
+          // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
           this.restartEventRequest();
         } else {
           // there was an error pulling the message
           await this.unsubscribe();
+          // await this.renew();
           this.eventRequest();
         }
       }
 
       // TODO rest of the method
     } else {
-      console.log('DELETE2?');
-
       if (this.events.subscription) {
         await this.unsubscribe();
       }
@@ -243,7 +237,7 @@ export class Events {
         MessageLimit: options?.messageLimit ?? 10,
       },
     });
-    const [data, xml] = await this.onvif.request({
+    const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
       timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
@@ -286,8 +280,8 @@ export class Events {
   }
 
   /**
-   * The device shall provide the following Unsubscribe command for all SubscriptionManager endpoints returned by the
-   * CreatePullPointSubscription command.
+   * The device shall provide the following Unsubscribe command for all SubscriptionManager endpoints returned
+   * by the CreatePullPointSubscription command.
    * This command shall terminate the lifetime of a pull point.
    */
   async unsubscribe() {
@@ -305,7 +299,6 @@ export class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
     this.onvif.removeAllListeners('event');
-    console.log('DELETE3?');
     delete this.events.subscription;
   }
 
