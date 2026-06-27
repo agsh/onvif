@@ -7,10 +7,15 @@
 
 import { Onvif } from './onvif';
 import {
+  AddEventBroker,
   Capabilities,
   CreatePullPointSubscription,
+  DeleteEventBroker,
+  EventBrokerConfig,
+  GetEventBrokers,
   GetEventPropertiesResponse,
   PullMessages,
+  Seek,
 } from './interfaces/event';
 import { build, linerase } from './utils';
 import { AnyURI } from './interfaces/basics';
@@ -227,7 +232,9 @@ export class Events {
   }
 
   async pullMessages(options?: PullMessages): Promise<PullMessagesResponse> {
-    const subscriptionParams = this.getSubsctiptionUrlAndHeaders();
+    const subscriptionParams = this.getSubsctiptionUrlAndHeaders(
+      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
+    );
     const body = build({
       PullMessages: {
         $: {
@@ -243,11 +250,13 @@ export class Events {
       timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse;
+    return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
   }
 
   async renew(): Promise<TerminationTimeResponse> {
-    const subscriptionParams = this.getSubsctiptionUrlAndHeaders();
+    const subscriptionParams = this.getSubsctiptionUrlAndHeaders(
+      'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
+    );
     const body = build({
       Renew: {
         $: {
@@ -285,7 +294,9 @@ export class Events {
    * This command shall terminate the lifetime of a pull point.
    */
   async unsubscribe() {
-    const subscriptionParams = this.getSubsctiptionUrlAndHeaders();
+    const subscriptionParams = this.getSubsctiptionUrlAndHeaders(
+      'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
+    );
     const body = build({
       Unsubscribe: {
         $: {
@@ -311,7 +322,9 @@ export class Events {
    * update is transmitted via the notification transportation of the notification interface. This method is mandatory.
    */
   async setSynchronizationPoint(): Promise<void> {
-    const subscriptionParams = this.getSubsctiptionUrlAndHeaders();
+    const subscriptionParams = this.getSubsctiptionUrlAndHeaders(
+      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SetSynchronizationPointRequest',
+    );
     const body = build({
       SetSynchronizationPoint: {
         $: {
@@ -327,10 +340,88 @@ export class Events {
   }
 
   /**
+   * Seek to a specific point in the stored notification history.
+   */
+  async seek({ utcTime, reverse }: Seek): Promise<void> {
+    const subscriptionParams = this.getSubsctiptionUrlAndHeaders(
+      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SeekRequest',
+    );
+    const body = build({
+      Seek: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
+        },
+        UtcTime: utcTime,
+        ...(reverse && { Reverse: reverse }),
+      },
+    });
+    await this.onvif.request({
+      url: subscriptionParams.url,
+      body,
+      soapHeaders: subscriptionParams.additionalSoapHeaders,
+    });
+  }
+
+  private static eventBrokerToBuild(eventBroker: EventBrokerConfig) {
+    return {
+      Address: eventBroker.address,
+      TopicPrefix: eventBroker.topicPrefix,
+      ...(eventBroker.userName !== undefined && { UserName: eventBroker.userName }),
+      ...(eventBroker.password !== undefined && { Password: eventBroker.password }),
+      ...(eventBroker.certificateID !== undefined && { CertificateID: eventBroker.certificateID }),
+      ...(eventBroker.publishFilter !== undefined && { PublishFilter: eventBroker.publishFilter }),
+      ...(eventBroker.qoS !== undefined && { QoS: eventBroker.qoS }),
+      ...(eventBroker.certPathValidationPolicyID !== undefined && {
+        CertPathValidationPolicyID: eventBroker.certPathValidationPolicyID,
+      }),
+      ...(eventBroker.metadataFilter !== undefined && { MetadataFilter: eventBroker.metadataFilter }),
+    };
+  }
+
+  async addEventBroker({ eventBroker }: AddEventBroker): Promise<void> {
+    const body = build({
+      AddEventBroker: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
+        },
+        EventBroker: Events.eventBrokerToBuild(eventBroker),
+      },
+    });
+    await this.onvif.request({ service: 'events', body });
+  }
+
+  async deleteEventBroker({ address }: DeleteEventBroker): Promise<void> {
+    const body = build({
+      DeleteEventBroker: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
+        },
+        Address: address,
+      },
+    });
+    await this.onvif.request({ service: 'events', body });
+  }
+
+  async getEventBrokers({ address }: GetEventBrokers = {}): Promise<EventBrokerConfig[]> {
+    const body = build({
+      GetEventBrokers: {
+        $: {
+          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
+        },
+        ...(address !== undefined && { Address: address }),
+      },
+    });
+    const [data] = await this.onvif.request({ service: 'events', body });
+    return linerase(data, { array: ['eventBroker'] }).getEventBrokersResponse.eventBroker ?? [];
+  }
+
+  /**
    * Get params for concrete subscription
    * @private
    */
-  private getSubsctiptionUrlAndHeaders() {
+  private getSubsctiptionUrlAndHeaders(
+    soapAction = 'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
+  ) {
     if (!this.events.subscription?.subscriptionReference.address) {
       throw new Error(`You should have pull-point subscription. ${JSON.stringify(this.events.subscription)}`);
     }
@@ -338,7 +429,7 @@ export class Events {
     const axisSubscriptionId = this.events.subscription?.subscriptionReference.referenceParameters?.subscriptionId;
     const additionalSoapHeaders = `
 <a:To mustUnderstand="1">${url.href}</a:To>
-<a:Action s:mustUnderstand="1">http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest</a:Action>
+<a:Action s:mustUnderstand="1">${soapAction}</a:Action>
 ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">${axisSubscriptionId}</SubscriptionId>` : ''}
 `;
     return { url, axisSubscriptionId, additionalSoapHeaders };
