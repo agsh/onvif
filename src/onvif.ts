@@ -6,8 +6,8 @@
 
 import { EventEmitter } from 'events';
 import { SecureContextOptions } from 'tls';
-import https, { Agent, RequestOptions } from 'https';
-import http from 'http';
+import https, { Agent as HttpsAgent, RequestOptions } from 'https';
+import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { linerase, parseSOAPString, splitArgs } from './utils';
@@ -46,7 +46,7 @@ export interface OnvifOptions {
   timeout?: number;
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
-  agent?: Agent | boolean;
+  agent?: HttpsAgent | HttpAgent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
   preserveAddress?: boolean;
   /** Set false if the camera should not connect automatically, defaults false. */
@@ -155,6 +155,7 @@ type OnvifEvents = {
   [Onvif.RAW_RESPONSE]: string;
   [Onvif.WARN]: Error;
   [Onvif.ERROR]: Error;
+  [Onvif.EVENTS_ERROR]: Error;
   [Onvif.CONNECT]: void;
 };
 
@@ -184,7 +185,7 @@ export class Onvif extends EventEmitter {
   static readonly RAW_REQUEST = 'rawRequest';
 
   /**
-   * Indicates any errors
+   * Indicates any errors except events errors
    * @event error
    * @example
    * ```typescript
@@ -192,6 +193,16 @@ export class Onvif extends EventEmitter {
    * ```
    */
   static readonly ERROR = 'error';
+
+  /**
+   * Indicates events errors
+   * @event eventsError
+   * @example
+   * ```typescript
+   * onvif.on('eventsError', console.error);
+   * ```
+   */
+  static readonly EVENTS_ERROR = 'eventsError';
 
   /**
    * Indicates any event from Onvif device.
@@ -244,7 +255,7 @@ export class Onvif extends EventEmitter {
   public readonly deviceIO: DeviceIO;
   public readonly display: Display;
   public readonly actionEngine: ActionEngine;
-  public useSecure: boolean;
+  public readonly useSecure: boolean;
   public secureOptions: SecureContextOptions;
   public useWSSecurity: boolean;
   private nc: number = 0;
@@ -254,7 +265,7 @@ export class Onvif extends EventEmitter {
   public port: number;
   public path: string;
   public timeout: number;
-  public agent: Agent | boolean;
+  public agent: HttpsAgent | HttpAgent | boolean;
   public preserveAddress = false;
   public uri: OnvifServices;
   private timeShift?: number;
@@ -278,7 +289,8 @@ export class Onvif extends EventEmitter {
     this.path = options.path ?? '/onvif/device_service';
     this.timeout = options.timeout || 120000;
     this.urn = options.urn;
-    this.agent = options.agent ?? false;
+    const httpLibrary = this.useSecure ? https : http;
+    this.agent = options.agent ?? new httpLibrary.Agent({ keepAlive: true, keepAliveMsecs: 10000 });
     this.preserveAddress = options.preserveAddress ?? false;
     this.uri = {};
     this.capabilities = {};
@@ -306,6 +318,7 @@ export class Onvif extends EventEmitter {
         });
       }
     });
+
     if (options.autoConnect) {
       setImmediate(() => {
         this.connect().catch((error) => this.emit('error', error));
@@ -538,7 +551,7 @@ export class Onvif extends EventEmitter {
   private parseChallenge(digest: string) {
     const prefix = 'Digest ';
     const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
-	  const partsArray = splitArgs(challenge);
+    const partsArray = splitArgs(challenge);
     const parts = partsArray.map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
     return Object.fromEntries(parts);
   }
