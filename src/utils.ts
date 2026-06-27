@@ -298,3 +298,26 @@ export const toOnvifXMLSchemaObject = {
     };
   },
 };
+
+/**
+ * Convert milliseconds to ISO duration
+ * @param ms
+ */
+export function msToIsoDuration(ms: number) {
+  if (ms <= 0) return 'PT0S';
+
+  let totalSeconds = Math.floor(ms / 1000);
+
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  let result = 'PT';
+  if (hours > 0) result += `${hours}H`;
+  if (minutes > 0) result += `${minutes}M`;
+  if (seconds > 0 || result === 'PT') result += `${seconds}S`;
+
+  return result;
+}

@@ -9,3 +9,4 @@
 - [x] GetEventBrokers
 - [x] Renew
 - [x] Unsubscribe
+- [x] Subscribe

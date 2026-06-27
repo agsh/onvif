@@ -17,7 +17,7 @@ import {
   PullMessages,
   Seek,
 } from './interfaces/event';
-import { build, linerase } from './utils';
+import { build, linerase, msToIsoDuration } from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 
@@ -84,6 +84,15 @@ interface PullPointSubscription {
   subscriptionReference: { address: AnyURI; referenceParameters?: { subscriptionId: string } };
   currentTime: Date;
   terminationTime: Date;
+}
+
+interface SubscribeOptions {
+  /** URL of the event service */
+  url: string;
+  /** Subscription duration in milliseconds */
+  terminationTime?: number;
+  /** Renew subscription after the termination time */
+  renew?: boolean;
 }
 
 /**
@@ -433,5 +442,42 @@ export class Events {
 ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">${axisSubscriptionId}</SubscriptionId>` : ''}
 `;
     return { url, axisSubscriptionId, additionalSoapHeaders };
+  }
+
+  /**
+   * Subscribe to events using notification producer
+   * @param options
+   */
+  async subscribe(options: SubscribeOptions): Promise<PullPointSubscription> {
+    const initialTerminationTime = options.terminationTime ?? 2 * 60 * 1000;
+    const body = build({
+      Subscribe: {
+        $: {
+          xmlns: 'http://docs.oasis-open.org/wsn/b-2',
+          'xmlns:a': 'http://www.w3.org/2005/08/addressing',
+        },
+        ConsumerReference: {
+          'a:Address': options.url,
+        },
+        InitialTerminationTime: msToIsoDuration(initialTerminationTime),
+      },
+    });
+    const [data] = await this.onvif.request({
+      service: 'events',
+      body,
+      soapHeaders: `
+<a:Action s:mustUnderstand="1">http://docs.oasis-open.org/wsn/bw-2/NotificationProducer/SubscribeRequest</a:Action>
+<a:To s:mustUnderstand="1">${this.onvif.uri.events}</a:To>
+`,
+    });
+    this.events.subscription = linerase(data).subscribeResponse;
+    if (options.renew) {
+      setTimeout(() => {
+        if (this.events.subscription) {
+          this.subscribe(options);
+        }
+      }, initialTerminationTime);
+    }
+    return this.events.subscription!;
   }
 }
