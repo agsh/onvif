@@ -1,4 +1,5 @@
 export * from './onvif';
+export * from './events';
 export * from './device';
 export * from './media';
 export * from './media2';

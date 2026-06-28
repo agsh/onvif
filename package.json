@@ -53,6 +53,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.0",
     "@types/jest": "^29.5.14",
+    "@types/keypress": "^2.0.30",
     "@types/node": "^20.11.24",
     "@types/xml2js": "^0.4.14",
     "chalk": "^4.1.2",

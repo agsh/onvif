@@ -148,22 +148,19 @@ export interface SystemDateTimeExtended extends SystemDateTime {
   dateTime: Date;
 }
 
-type OnvifEvents = {
-  newListener: string; // private usage for event handling
-  [Onvif.EVENT]: NotificationMessage;
-  [Onvif.RAW_REQUEST]: string;
-  [Onvif.RAW_RESPONSE]: string;
-  [Onvif.WARN]: Error;
-  [Onvif.ERROR]: Error;
-  [Onvif.EVENTS_ERROR]: Error;
-  [Onvif.CONNECT]: void;
-};
+interface OnvifEvents {
+  [Onvif.EVENT]: [msg: NotificationMessage];
+  [Onvif.ERROR]: [error: Error];
+  [Onvif.CONNECT]: [];
+  [Onvif.RAW_REQUEST]: [xml: string, requestOptions: http.RequestOptions];
+  [Onvif.REQUEST_BODY]: [body: string];
+  [Onvif.RAW_RESPONSE]: [xml: string];
+  [Onvif.WARN]: [error: Error];
+  [Onvif.EVENTS_ERROR]: [error: Error];
+  newListener: [event: string, listener: (...args: any[]) => void];
+}
 
-export class Onvif extends EventEmitter {
-  on<K extends keyof OnvifEvents>(event: K, listener: (payload: OnvifEvents[K]) => void): this {
-    return super.on(event, listener);
-  }
-
+export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Indicates raw xml response from device.
    * @event rawResponse
@@ -183,6 +180,12 @@ export class Onvif extends EventEmitter {
    * ```
    */
   static readonly RAW_REQUEST = 'rawRequest';
+
+  /**
+   * Shows body of request
+   * @event
+   */
+  static readonly REQUEST_BODY = 'requestBody';
 
   /**
    * Indicates any errors except events errors
