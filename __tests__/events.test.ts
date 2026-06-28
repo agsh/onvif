@@ -85,6 +85,23 @@ describe('Events', () => {
       expect(subscription.terminationTime).toBeInstanceOf(Date);
       await cam.events.unsubscribe();
     });
+
+    it('should subscribe to cell motion events with a typed topic filter', async () => {
+      const subscription = await cam.events.createPullPointSubscription({
+        initialTerminationTime: 'PT2M',
+        filter: {
+          topicExpression: [
+            {
+              dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+              expression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+            },
+          ],
+        },
+      });
+
+      expect(subscription.subscriptionReference).toBeDefined();
+      await cam.events.unsubscribe();
+    });
   });
 
   describe('pullMessages', () => {

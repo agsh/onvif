@@ -33,21 +33,64 @@ interface OnvifEvents {
   eventReconnectMs?: number;
 }
 
-export type FilterDialects =
+/** ONVIF topic expression dialects from WS-Topics and [event.wsdl](https://www.onvif.org/ver10/events/wsdl/event.wsdl). */
+export type TopicExpressionDialect =
   | 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet'
+  | 'http://docs.oasis-open.org/wsn/t-1/TopicExpression/Concrete'
   | 'http://docs.oasis-open.org/wsn/t-1/TopicExpression/Full'
   | 'http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple';
 
+/**
+ * Popular ONVIF topic expressions (`tns1` = `http://www.onvif.org/ver10/topics`).
+ * Subtree patterns ending with `//.` are defined in ONVIF Core 9.6.3.
+ */
+export type OnvifTopicExpression =
+  | 'tns1:RuleEngine/CellMotionDetector/Motion'
+  | 'tns1:RuleEngine/LineDetector/Crossed'
+  | 'tns1:RuleEngine/FieldDetector/ObjectsInside'
+  | 'tns1:RuleEngine/TamperDetector/Tamper'
+  | 'tns1:RuleEngine/LineDetector//.'
+  | 'tns1:RuleEngine/FieldDetector//.'
+  | 'tns1:RuleEngine//.'
+  | 'tns1:VideoSource/MotionAlarm'
+  | 'tns1:VideoSource/GlobalSceneChange'
+  | 'tns1:VideoSource/ImageTooDark/ImagingService'
+  | 'tns1:VideoSource/ImageTooBright/ImagingService'
+  | 'tns1:VideoSource/ImageTooBlurry/ImagingService'
+  | 'tns1:VideoSource/ImageTooNoisy/ImagingService'
+  | 'tns1:VideoAnalytics//.'
+  | 'tns1:VideoAnalytics/tnsanalytics:CellMotionDetector'
+  | 'tns1:Device/Trigger/DigitalInput'
+  | 'tns1:Device/Trigger/Relay'
+  | 'tns1:Device/HardwareFailure/StorageFailure'
+  | 'tns1:Device/HardwareFailure/FanFailure'
+  | 'tns1:Device/HardwareFailure/PowerSupplyFailure'
+  | 'tns1:Device/HardwareFailure/TemperatureCritical'
+  | 'tns1:Monitoring/ProcessorUsage'
+  | 'tns1:Monitoring/OperatingTime/LastReset'
+  | 'tns1:Monitoring/OperatingTime/LastReboot'
+  | 'tns1:Monitoring/OperatingTime/LastClockSynchronization'
+  | 'tns1:RecordingConfig/RecordingJobState'
+  | 'tns1:RecordingConfig/TrackConfiguration'
+  | 'tns1:Media/ConfigurationChanged'
+  | 'tns1:Media/ProfileChanged'
+  /** Vendor-specific topics, e.g. `tns1:RuleEngine/MyRuleDetector/FaceDetect` */
+  | 'tns1:RuleEngine/PeopleDetector/People'
+  | (string & {});
+
 export interface TopicExpression {
-  dialect: FilterDialects;
-  expression: 'tns1:RuleEngine/CellMotionDetector/Motion';
+  dialect: TopicExpressionDialect;
+  expression: OnvifTopicExpression;
 }
 
-export interface CreatePullPointSubscriptionExtended extends CreatePullPointSubscription {
-  filter?: {
-    topicExpression?: TopicExpression[];
-    messageContent?: string;
-  };
+export interface PullPointSubscriptionFilter {
+  topicExpression?: TopicExpression[];
+  /** XPath for message content filtering (ItemFilter dialect). */
+  messageContent?: string;
+}
+
+export interface CreatePullPointSubscriptionExtended extends Omit<CreatePullPointSubscription, 'filter'> {
+  filter?: PullPointSubscriptionFilter;
 }
 
 export interface PullMessagesResponse {
@@ -61,18 +104,14 @@ export interface PullMessagesResponse {
 
 export interface NotificationMessage {
   topic: Topic;
-  subscriptionReference?: EndpointReference;
-  producerReference?: EndpointReference;
+  subscriptionReference?: { address?: any };
+  producerReference?: { address?: any };
   message: { message: EventMessage };
 }
 
 export interface Topic {
-  _: string; // ex. "tns1:RuleEngine/CellMotionDetector/Motion"
-  dialect?: string; // ex. "http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet"
-}
-
-export interface EndpointReference {
-  address?: any;
+  _: OnvifTopicExpression;
+  dialect?: TopicExpressionDialect;
 }
 
 export interface EventMessage {
@@ -169,7 +208,16 @@ export class Events {
       ) {
         // if there is no pull-point subscription or it has expired, create new subscription
         try {
-          await this.createPullPointSubscription();
+          await this.createPullPointSubscription({
+            // filter: {
+            //   topicExpression: [
+            //     {
+            //       expression: 'tns1:RuleEngine/PeopleDetector/People',
+            //       dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+            //     },
+            //   ],
+            // },
+          });
           await this.setSynchronizationPoint();
           delete this.events.eventReconnectMs;
           this.eventPull();
@@ -194,21 +242,43 @@ export class Events {
    * If no Filter is specified the pullpoint notifies all occurring events to the client.
    * This method is mandatory.
    */
+  private static filterToBuild(filter?: PullPointSubscriptionFilter) {
+    if (!filter) {
+      return undefined;
+    }
+
+    const built: Record<string, unknown> = {};
+
+    if (filter.topicExpression?.length) {
+      built['wsnt:TopicExpression'] = filter.topicExpression.map(({ dialect, expression }) => ({
+        $: { Dialect: dialect },
+        _: expression,
+      }));
+    }
+
+    if (filter.messageContent) {
+      built['wsnt:MessageContent'] = {
+        $: {
+          Dialect: 'http://www.onvif.org/ver10/tev/messageContentFilter/ItemFilter',
+        },
+        _: filter.messageContent,
+      };
+    }
+
+    return Object.keys(built).length ? built : undefined;
+  }
+
   async createPullPointSubscription(options?: CreatePullPointSubscriptionExtended): Promise<PullPointSubscription> {
+    const filter = Events.filterToBuild(options?.filter);
     const body = build({
       CreatePullPointSubscription: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
+          'xmlns:tns1': 'http://www.onvif.org/ver10/topics',
+          'xmlns:wsnt': 'http://docs.oasis-open.org/wsn/b-2',
         },
         InitialTerminationTime: options?.initialTerminationTime ?? 'PT2M',
-        Filter: {
-          TopicExpression: {
-            $: {
-              Dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
-            },
-            _: 'tns1:RuleEngine/CellMotionDetector/Motion',
-          },
-        },
+        ...(filter && { Filter: filter }),
         SubscriptionPolicy: options?.subscriptionPolicy,
       },
     });
