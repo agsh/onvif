@@ -33,6 +33,23 @@ interface OnvifEvents {
   eventReconnectMs?: number;
 }
 
+export type FilterDialects =
+  | 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet'
+  | 'http://docs.oasis-open.org/wsn/t-1/TopicExpression/Full'
+  | 'http://docs.oasis-open.org/wsn/t-1/TopicExpression/Simple';
+
+export interface TopicExpression {
+  dialect: FilterDialects;
+  expression: 'tns1:RuleEngine/CellMotionDetector/Motion';
+}
+
+export interface CreatePullPointSubscriptionExtended extends CreatePullPointSubscription {
+  filter?: {
+    topicExpression?: TopicExpression[];
+    messageContent?: string;
+  };
+}
+
 export interface PullMessagesResponse {
   /** The date and time when the messages have been delivered by the web server to the client. */
   currentTime: Date;
@@ -177,14 +194,21 @@ export class Events {
    * If no Filter is specified the pullpoint notifies all occurring events to the client.
    * This method is mandatory.
    */
-  async createPullPointSubscription(options?: CreatePullPointSubscription): Promise<PullPointSubscription> {
+  async createPullPointSubscription(options?: CreatePullPointSubscriptionExtended): Promise<PullPointSubscription> {
     const body = build({
       CreatePullPointSubscription: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
         InitialTerminationTime: options?.initialTerminationTime ?? 'PT2M',
-        Filter: options?.filter,
+        Filter: {
+          TopicExpression: {
+            $: {
+              Dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+            },
+            _: 'tns1:RuleEngine/CellMotionDetector/Motion',
+          },
+        },
         SubscriptionPolicy: options?.subscriptionPolicy,
       },
     });
@@ -480,4 +504,15 @@ ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a
     }
     return this.events.subscription!;
   }
+}
+
+type SubscriptionType = 'pullPoint' | 'notificationProducer';
+
+class Subscription {
+  private readonly onvif: Onvif;
+  constructor(onvif: Onvif) {
+    this.onvif = onvif;
+  }
+
+  async create(type: SubscriptionType, filter?: string) {}
 }
