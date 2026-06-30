@@ -23,6 +23,7 @@ import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
 import https, { Agent as HttpsAgent } from 'https';
 import http, { Agent as HttpAgent } from 'http';
+import ErrnoException = NodeJS.ErrnoException;
 
 interface TerminationTimeResponse {
   currentTime: Date;
@@ -224,7 +225,7 @@ export class Events {
           delete this.events.eventReconnectMs;
           this.eventPull();
         } catch (error) {
-          this.onvif.emit('eventsError', error as Error);
+          this.onvif.emit('eventsError', error as NodeJS.ErrnoException);
           if (isSoapError(error)) {
             // connection reset on creation - restart Event loop for pullMessages request
             this.restartEventRequest();
@@ -315,7 +316,7 @@ export class Events {
         }
         this.eventRequest(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
       } catch (error) {
-        this.onvif.emit('eventsError', error as Error);
+        this.onvif.emit('eventsError', error as NodeJS.ErrnoException);
         if (isSoapError(error)) {
           // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
           this.restartEventRequest();
@@ -577,7 +578,8 @@ type SubscriptionType = 'pullPoint' | 'basicNotification';
 
 interface SubscriptionEvents {
   data: [msg: NotificationMessage];
-  error: [error: Error];
+  error: [error: NodeJS.ErrnoException];
+  connectionError: [error: NodeJS.ErrnoException];
 }
 
 /**
@@ -618,7 +620,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * @event
    * @param error Error object
    */
-  declare error: (error: Error) => void;
+  declare error: (error: NodeJS.ErrnoException) => void;
+  declare connectionError: (error: NodeJS.ErrnoException) => void;
 
   constructor(onvif: Onvif, type?: SubscriptionType, options: CreatePullPointSubscriptionExtended = {}) {
     super({ captureRejections: true });
@@ -668,10 +671,11 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       } catch (error) {
         if (isSoapError(error)) {
           // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
+          this.emit('connectionError', error as ErrnoException);
           this.restartEventRequest();
         } else {
-          // there was an error pulling the message
-          this.emit('error', error as Error);
+          // there was an error pulling the message (device shut down, corrupted)
+          this.emit('error', error as NodeJS.ErrnoException);
           await this.unsubscribe();
           this.subscribe();
         }
@@ -699,7 +703,6 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         'tev:MessageLimit': options?.messageLimit ?? 10,
       },
     });
-    process.stdout.write(`${new Date().toLocaleTimeString()} start...`);
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -709,7 +712,6 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.onvif.events.agent,
     });
-    process.stdout.write(`end ${new Date().toLocaleTimeString()}\n`);
     return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
   }
 

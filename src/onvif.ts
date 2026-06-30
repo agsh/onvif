@@ -93,12 +93,6 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   soapHeaders?: string;
 }
 
-interface RequestError extends Error {
-  code: string;
-  errno: string;
-  syscall: string;
-}
-
 /**
  * Information about active video source
  */
@@ -470,16 +464,16 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         reject(new Error('Network timeout'));
       });
 
-      request.on('error', (error: RequestError) => {
+      request.on('error', (error: NodeJS.ErrnoException) => {
         if (alreadyReturned) {
           return;
         }
         alreadyReturned = true;
         /* address, port number or IPCam error */
-        if (error.code === 'ECONNREFUSED' && error.errno === 'ECONNREFUSED' && error.syscall === 'connect') {
+        if (error.code === 'ECONNREFUSED' && error.syscall === 'connect') {
           reject(error);
           /* network error */
-        } else if (error.code === 'ECONNRESET' && error.errno === 'ECONNRESET' && error.syscall === 'read') {
+        } else if (error.code === 'ECONNRESET' && error.syscall === 'read') {
           reject(error);
         } else {
           reject(error);
