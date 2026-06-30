@@ -1,5 +1,6 @@
 import xml2js from 'xml2js';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
+import { Duration } from './interfaces/basics';
 
 const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
@@ -320,4 +321,25 @@ export function msToIsoDuration(ms: number) {
   if (seconds > 0 || result === 'PT') result += `${seconds}S`;
 
   return result;
+}
+
+/**
+ * Converts an ISO Duration (H, M, S) to milliseconds.
+ * @param duration - The duration string (e.g., "PT5S", "PT1M", "PT1H30M")
+ */
+export function isoTimeToMs(duration: Duration) {
+  // Matches strict time duration: T followed by Hours, Minutes, and/or Seconds (including decimals)
+  const regex = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?$/;
+  const matches = duration.match(regex);
+
+  if (!matches) {
+    throw new Error(`Invalid ISO Time Duration format: ${duration}`);
+  }
+
+  const hours = parseInt(matches[1]) || 0;
+  const minutes = parseInt(matches[2]) || 0;
+  const seconds = parseInt(matches[3]) || 0;
+  const ms = matches[4] ? Math.round(parseFloat(`0.${matches[4]}`) * 1000) : 0;
+
+  return hours * 3600000 + minutes * 60000 + seconds * 1000 + ms;
 }

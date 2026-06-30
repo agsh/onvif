@@ -409,7 +409,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
                 : this.path,
               port: this.port,
             }),
-        agent: this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
+        agent: options.agent ?? this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
         timeout: this.timeout,
       };
       requestOptions.headers = {

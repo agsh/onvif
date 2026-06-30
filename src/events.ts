@@ -17,10 +17,12 @@ import {
   PullMessages,
   Seek,
 } from './interfaces/event';
-import { build, linerase, msToIsoDuration } from './utils';
+import { build, isoTimeToMs, linerase, msToIsoDuration } from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
+import https, { Agent as HttpsAgent } from 'https';
+import http, { Agent as HttpAgent } from 'http';
 
 interface TerminationTimeResponse {
   currentTime: Date;
@@ -130,6 +132,8 @@ const RETRY_ERROR_CODES = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENETUNREA
 const MAX_EVENT_RECONNECT_MS = 2 * 60 * 1000;
 const MIN_EVENT_RECONNECT_MS = 1000;
 const MESSAGE_LIMIT = 10;
+const PULL_TIMEOUT = 'PT1M';
+const PULL_TERMINATION_TIME = msToIsoDuration(isoTimeToMs(PULL_TIMEOUT) * 2);
 
 function isSoapError(error: any): error is { code: string } {
   return typeof error === 'object' && error !== null && 'code' in error && RETRY_ERROR_CODES.includes(error.code);
@@ -159,12 +163,16 @@ interface SubscribeOptions {
  */
 export class Events {
   private readonly onvif: Onvif;
-  private events: OnvifEvents = {
+  public events: OnvifEvents = {
     messageLimit: 10,
   };
+  public readonly agent: HttpsAgent | HttpAgent;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
+    // For events (PullMessages, Renew) we need to disable keep-alive and keep connection close
+    const httpLibrary = this.onvif.useSecure ? https : http;
+    this.agent = new httpLibrary.Agent({ keepAlive: false });
   }
 
   /**
@@ -211,7 +219,7 @@ export class Events {
       ) {
         // if there is no pull-point subscription, or it has expired, create new subscription
         try {
-          await this.createPullPointSubscription();
+          this.events.subscription = await this.createPullPointSubscription();
           await this.setSynchronizationPoint();
           delete this.events.eventReconnectMs;
           this.eventPull();
@@ -273,12 +281,11 @@ export class Events {
         },
         InitialTerminationTime: options?.initialTerminationTime ?? 'PT2M',
         ...(filter && { Filter: filter }),
-        SubscriptionPolicy: options?.subscriptionPolicy,
+        SubscriptionPolicy: options?.subscriptionPolicy ?? {},
       },
     });
     const [data] = await this.onvif.request({ service: 'events', body });
     const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
-    this.events.subscription = pullPointSubscription;
     return pullPointSubscription;
   }
 
@@ -625,33 +632,15 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   async subscribe() {
     switch (this.type) {
       case 'pullPoint':
-        await this.createPullPointSubscription(this.options);
+        this.subscription = await this.onvif.events.createPullPointSubscription({
+          initialTerminationTime: PULL_TERMINATION_TIME,
+          ...this.options,
+        });
         this.eventPull();
         return;
       case 'basicNotification':
         return; // this.createNotificationProducerSubscription(options);
     }
-  }
-
-  async createPullPointSubscription(options?: CreatePullPointSubscriptionExtended): Promise<PullPointSubscription> {
-    const filter = Events.filterToBuild(options?.filter);
-    const body = build({
-      CreatePullPointSubscription: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
-          'xmlns:tns1': 'http://www.onvif.org/ver10/topics',
-          'xmlns:wsnt': 'http://docs.oasis-open.org/wsn/b-2',
-        },
-        InitialTerminationTime: options?.initialTerminationTime ?? 'PT2M',
-        ...(filter && { Filter: filter }),
-        SubscriptionPolicy: options?.subscriptionPolicy,
-      },
-    });
-    const [data] = await this.onvif.request({ service: 'events', body });
-    const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
-    this.subscription = pullPointSubscription;
-    await this.setSynchronizationPoint();
-    return pullPointSubscription;
   }
 
   /**
@@ -662,7 +651,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       try {
         const msgs = await this.pullMessages({
           messageLimit: this.messageLimit,
-          timeout: 'PT1M',
+          timeout: PULL_TIMEOUT,
         });
         this.eventReconnectMs = MIN_EVENT_RECONNECT_MS;
         msgs.notificationMessage.forEach((msg: NotificationMessage) => {
@@ -677,12 +666,12 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         }
         this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
       } catch (error) {
-        // this.emit('error', error as Error);
         if (isSoapError(error)) {
           // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
           this.restartEventRequest();
         } else {
           // there was an error pulling the message
+          this.emit('error', error as Error);
           await this.unsubscribe();
           this.subscribe();
         }
@@ -698,19 +687,29 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
     );
+    // ONVIF Spec says cameras must support 1 Minute wait times. Ensure network socket has a replyTimeout that is larger than 1 minute
+    const timeout = options?.timeout ?? PULL_TIMEOUT;
     const body = build({
-      PullMessages: {
-        $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' },
-        Timeout: options?.timeout ?? 'PT2M', // ONVIF Spec says cameras must support 1 Minute wait times. Ensure network socket has a replyTimeout that is larger that 1 minute
-        MessageLimit: options?.messageLimit ?? 10,
+      'tev:PullMessages': {
+        $: {
+          'xmlns:wsnt': 'http://docs.oasis-open.org/wsn/b-2',
+          'xmlns:tev': 'http://www.onvif.org/ver10/events/wsdl',
+        },
+        'tev:Timeout': timeout,
+        'tev:MessageLimit': options?.messageLimit ?? 10,
       },
     });
+    process.stdout.write(`${new Date().toLocaleTimeString()} start...`);
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
-      timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
+      // timeout + 2 sec
+      // ensures the socket does not get closed too early while the camera has up to 1 minute to reply
+      timeout: isoTimeToMs(timeout) + 2 * 1000,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      agent: this.onvif.events.agent,
     });
+    process.stdout.write(`end ${new Date().toLocaleTimeString()}\n`);
     return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
   }
 
@@ -726,9 +725,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SetSynchronizationPointRequest',
     );
-    const body = build({
-      SetSynchronizationPoint: { $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' } },
-    });
+    const body = build({ SetSynchronizationPoint: { $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' } } });
     await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -743,16 +740,15 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
     );
+    // x2 larger than the pull timeout
+    const terminationTime = PULL_TERMINATION_TIME;
     const body = build({
-      Renew: {
-        $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' },
-        TerminationTime: 'PT2M', // 2 mins (larger than the 1 min Pull timeout)
-      },
+      Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: terminationTime },
     });
+    console.log(body);
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
-      timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
     return linerase(data).renewResponse;
@@ -764,6 +760,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * This command shall terminate the lifetime of a pull point.
    */
   async unsubscribe() {
+    if (!this.subscription) {
+      return;
+    }
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
     );
