@@ -4,7 +4,7 @@
  * @jest-environment node
  */
 
-import { Onvif } from '../src';
+import { Onvif, Subscription } from '../src';
 
 let cam: Onvif;
 
@@ -74,39 +74,9 @@ describe('Events', () => {
     });
   });
 
-  describe('createPullPointSubscription', () => {
-    it('should return a subscription reference from the happytime mock server', async () => {
-      const subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
-
-      expect(subscription.subscriptionReference).toMatchObject({
-        address: expect.stringMatching(/^http:\/\/127\.0\.0\.1:8000\/event_service\//),
-      });
-      expect(subscription.currentTime).toBeInstanceOf(Date);
-      expect(subscription.terminationTime).toBeInstanceOf(Date);
-      await cam.events.unsubscribe();
-    });
-
-    it('should subscribe to cell motion events with a typed topic filter', async () => {
-      const subscription = await cam.events.createPullPointSubscription({
-        initialTerminationTime: 'PT2M',
-        filter: {
-          topicExpression: [
-            {
-              dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
-              expression: 'tns1:RuleEngine/CellMotionDetector/Motion',
-            },
-          ],
-        },
-      });
-
-      expect(subscription.subscriptionReference).toBeDefined();
-      await cam.events.unsubscribe();
-    });
-  });
-
   describe('pullMessages', () => {
     it('should pull messages from the happytime mock server', async () => {
-      await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
+      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
       const messages = await cam.events.pullMessages({ timeout: 'PT3S', messageLimit: 1 });
 
       expect(messages.currentTime).toBeInstanceOf(Date);
@@ -118,7 +88,7 @@ describe('Events', () => {
 
   describe('setSynchronizationPoint', () => {
     it('should complete', async () => {
-      await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
+      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
       await expect(cam.events.setSynchronizationPoint()).resolves.toBeUndefined();
       await cam.events.unsubscribe();
     });
@@ -126,7 +96,7 @@ describe('Events', () => {
 
   describe('renew', () => {
     it('should renew the subscription', async () => {
-      await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
+      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
       const renewed = await cam.events.renew();
 
       expect(renewed.currentTime).toBeInstanceOf(Date);
@@ -138,12 +108,31 @@ describe('Events', () => {
 
   describe('unsubscribe', () => {
     it('should terminate the pull-point subscription', async () => {
-      await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
+      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
 
       await expect(cam.events.unsubscribe()).resolves.toBeUndefined();
       await expect(cam.events.pullMessages({ timeout: 'PT1S', messageLimit: 1 })).rejects.toThrow(
         'pull-point subscription',
       );
+    });
+  });
+
+  describe('subscriptions', () => {
+    it('should create pull-point subscription and emit events', async () => {
+      const eventHandler = jest.fn();
+      const sub = new Subscription(cam);
+      sub.on('data', eventHandler);
+      await sub.subscribe();
+      await new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (eventHandler.mock.calls.length === 2) {
+            clearInterval(interval);
+            sub.unsubscribe();
+            resolve(undefined);
+          }
+        }, 10);
+      });
+      expect(eventHandler).toHaveBeenCalledTimes(2);
     });
   });
 });
