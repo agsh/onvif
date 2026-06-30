@@ -113,6 +113,44 @@ console.log(onvif.activeSource);
 
 ---
 
+# Events
+
+## Subscription class
+
+If you need to subscribe to events, you can use the `Subscription` class. This class is for the specific subscriptions,
+for example, when we need to subscribe to events from the camera with the filters. or add some more subscriptions
+than the common one. It uses the pull-point or base subscription. It inherits from EventEmitter.
+And emits two events: `data` and `error`. To use it you need to call `subscribe()` method. And to stop the device
+subscription and remove all listeners you need to call `unsubscribe()` method.
+
+The first and the only one argument for `data` is the NotificationMessage object. And an `error` raised only when
+the connection to the device is lost.
+
+```ts
+await cam.connect();
+const sub = new Subscription(cam, 'pullPoint', {
+  filter: {
+    topicExpression: [
+      {
+        expression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+        dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+      },
+    ],
+  },
+});
+sub.on('data', async (data) => {
+  console.log(new Date().toLocaleTimeString(), 'motion', data.topic._, data.message.message.data);
+  await sub.unsubscribe();
+});
+console.log(await sub.subscribe());
+```
+
+For the example, please look at the [example](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) 
+
+This class is used internally by the `Onvif` class.
+
+---
+
 # Interfaces
 
 Interfaces are generated according to the latest version of the [ONVIF specification](https://github.com/onvif/specs).
