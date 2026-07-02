@@ -130,11 +130,11 @@ export interface EventMessage {
 export type PropertyOperation = 'Initialized' | 'Changed' | 'Deleted';
 
 const RETRY_ERROR_CODES = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENETUNREACH', 'HPE_CLOSED_CONNECTION'] as const;
-const MAX_EVENT_RECONNECT_MS = 2 * 60 * 1000;
+const PULL_TIMEOUT = 'PT1M';
+const MAX_EVENT_RECONNECT_MS = isoTimeToMs(PULL_TIMEOUT) * 2;
 const MIN_EVENT_RECONNECT_MS = 1000;
 const MESSAGE_LIMIT = 10;
-const PULL_TIMEOUT = 'PT1M';
-const PULL_TERMINATION_TIME = msToIsoDuration(isoTimeToMs(PULL_TIMEOUT) * 2);
+const PULL_TERMINATION_TIME = msToIsoDuration(isoTimeToMs(PULL_TIMEOUT) * 4);
 
 function isSoapError(error: any): error is { code: string } {
   return typeof error === 'object' && error !== null && 'code' in error && RETRY_ERROR_CODES.includes(error.code);
@@ -386,6 +386,8 @@ export class Events {
     setTimeout(this.eventRequest.bind(this), this.events.eventReconnectMs);
     if (this.events.eventReconnectMs < MAX_EVENT_RECONNECT_MS) {
       this.events.eventReconnectMs = 1.111 * this.events.eventReconnectMs;
+    } else {
+      this.events.eventReconnectMs = MAX_EVENT_RECONNECT_MS;
     }
   }
 
@@ -606,7 +608,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   private readonly onvif: Onvif;
   subscription?: PullPointSubscription;
   private readonly messageLimit: number;
-  private eventReconnectMs: number;
+  public eventReconnectMs: number;
   private readonly type: SubscriptionType;
   private readonly options: CreatePullPointSubscriptionExtended;
   /**
@@ -669,8 +671,18 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         }
         this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
       } catch (error) {
-        if (isSoapError(error)) {
-          // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
+        if (isSoapError(error) && +this.subscription.terminationTime > Date.now()) {
+          // connection reset (request ended without messages, closed connection) when we're still on the surrent
+          // subscription - restart Event loop for pullMessages request
+          try {
+            // force renew and resync
+            const renewData = await this.renew();
+            this.subscription.terminationTime = localTerminationTime(renewData);
+            await this.setSynchronizationPoint();
+          } catch (renewError) {
+            // do nothing, we're just trying not to lose subscription
+            this.emit('connectionError', renewError as ErrnoException);
+          }
           this.emit('connectionError', error as ErrnoException);
           this.restartEventRequest();
         } else {
@@ -747,7 +759,6 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const body = build({
       Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: terminationTime },
     });
-    console.log(body);
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -788,6 +799,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     setTimeout(this.eventPull.bind(this), this.eventReconnectMs);
     if (this.eventReconnectMs < MAX_EVENT_RECONNECT_MS) {
       this.eventReconnectMs = 1.111 * this.eventReconnectMs;
+    } else {
+      this.eventReconnectMs = MAX_EVENT_RECONNECT_MS;
     }
   }
 

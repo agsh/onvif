@@ -455,14 +455,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         return undefined;
       });
 
-      request.setTimeout(options.timeout ?? this.timeout, () => {
-        if (alreadyReturned) {
-          return;
-        }
-        alreadyReturned = true;
-        request.destroy();
-        reject(new Error('Network timeout'));
-      });
+      // request.setTimeout(options.timeout ?? this.timeout, () => {
+      //   if (alreadyReturned) {
+      //     return;
+      //   }
+      //   alreadyReturned = true;
+      //   request.destroy();
+      //   reject(new Error('Network timeout'));
+      // });
 
       request.on('error', (error: NodeJS.ErrnoException) => {
         if (alreadyReturned) {
