@@ -77,6 +77,8 @@ console.log('Ctrl+C - exit');
         sub.subscription?.subscriptionReference.address,
         eventCounter,
         tapoErrorCounter,
+        sub.subscription?.terminationTime.toLocaleTimeString(),
+        sub.eventReconnectMs,
       );
     }
   });
