@@ -1,4 +1,4 @@
-import { Onvif, Subscription } from '../src';
+import { NotificationMessage, Onvif, Subscription } from '../src';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const keypress = require('keypress');
 
@@ -17,6 +17,9 @@ const cam = new Onvif({
 // });
 
 console.log('Press:');
+console.log('--- Common sub ---');
+console.log('c - toggle common event handler');
+console.log('--- Pull-point sub ---');
 console.log('s - subscribe');
 console.log('u - unsubscribe');
 console.log('e - event info');
@@ -51,10 +54,23 @@ console.log('Ctrl+C - exit');
   process.stdin.setRawMode(true);
   process.stdin.resume();
 
+  const globalHandler = (msg: NotificationMessage) => {
+    console.log(new Date().toLocaleTimeString(), 'common', msg.topic._, msg.message.message.data);
+  };
+
   process.stdin.on('keypress', async (c, key) => {
     if (key.ctrl && key.name === 'c') {
       // eslint-disable-next-line n/no-process-exit
       process.exit();
+    }
+    if (key.name === 'c') {
+      if (cam.listeners('event').length === 0) {
+        console.log(new Date().toLocaleTimeString(), 'common sub started');
+        cam.on('event', globalHandler);
+      } else {
+        console.log(new Date().toLocaleTimeString(), 'common sub stopped');
+        cam.off('event', globalHandler);
+      }
     }
     if (key.name === 's') {
       sub.on('data', (data) => {
