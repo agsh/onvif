@@ -7,7 +7,7 @@ if (synthTest) {
 	serverMockup = require('../test/serverMockup');
 }
 
-describe('Imaging', () => {
+describe('PTZ', () => {
 	let cam = null;
 	before((done) => {
 		const options = {
@@ -27,19 +27,35 @@ describe('Imaging', () => {
 				// only token is required
 				typeof preset.$.token == 'string';
 		};
+		const assertPresetsShape = (data) => {
+			assert.ok(Object.keys(data).length > 0);
+			assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
+			assert.ok(cam.presets);
+			assert.ok(Object.keys(cam.presets).length > 0);
+			// cam.presets is keyed by token
+			Object.keys(cam.presets).forEach((token) => {
+				const preset = cam.presets[token];
+				assert.strictEqual(preset.$.token, token);
+				assert.ok(isValidPrest(preset));
+			});
+			// callback data is keyed by name (duplicate names overwrite — last wins)
+			Object.keys(data).forEach((name) => {
+				const preset = data[name];
+				assert.strictEqual(preset.name, name);
+				assert.strictEqual(cam.presets[preset.$.token], preset);
+			});
+		};
 		it('should return array of preset objects and sets them to #presets', (done) => {
 			cam.getPresets({}, (err, data) => {
 				assert.strictEqual(err, null);
-				assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
-				assert.strictEqual(cam.presets, data);
+				assertPresetsShape(data);
 				done();
 			});
 		});
 		it('should return array of preset objects and sets them to #presets without options', (done) => {
 			cam.getPresets((err, data) => {
 				assert.strictEqual(err, null);
-				assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
-				assert.strictEqual(cam.presets, data);
+				assertPresetsShape(data);
 				done();
 			});
 		});
@@ -48,8 +64,7 @@ describe('Imaging', () => {
 				serverMockup.conf.one = true;
 				cam.getPresets((err, data) => {
 					assert.strictEqual(err, null);
-					assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
-					assert.strictEqual(cam.presets, data);
+					assertPresetsShape(data);
 					delete serverMockup.conf.one;
 					done();
 				});
