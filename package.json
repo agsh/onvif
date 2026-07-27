@@ -10,6 +10,7 @@
     "lint": "eslint lib/*.js",
     "pretest": "npm run lint",
     "test": "nyc mocha",
+    "test-digest": "mocha --config .mocharc.digest.js",
     "mockserver": "node startServerMockup.js"
   },
   "contributors": [
@@ -58,7 +59,7 @@
     "eslint-plugin-node": "^11.1.0",
     "jsdoc": "^4.0.2",
     "keypress": "^0.2.1",
-    "mocha": "^10.0.0",
+    "mocha": "^11.7.6",
     "nimble": "^0.0.2",
     "nyc": "^15.1.0"
   }
