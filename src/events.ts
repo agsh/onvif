@@ -135,6 +135,7 @@ const MAX_EVENT_RECONNECT_MS = isoTimeToMs(PULL_TIMEOUT) * 2;
 const MIN_EVENT_RECONNECT_MS = 1000;
 const MESSAGE_LIMIT = 10;
 const PULL_TERMINATION_TIME = msToIsoDuration(isoTimeToMs(PULL_TIMEOUT) * 4);
+const PUSH_TERMINATION_TIME = 2 * 60 * 60 * 1000;
 
 function isSoapError(error: any): error is { code: string } {
   return typeof error === 'object' && error !== null && 'code' in error && RETRY_ERROR_CODES.includes(error.code);
@@ -164,16 +165,23 @@ interface SubscribeOptions {
  */
 export class Events {
   private readonly onvif: Onvif;
-  public events: OnvifEvents = {
+  /**
+   * @deprecated
+   * @private
+   */
+  private events: OnvifEvents = {
     messageLimit: 10,
   };
   public readonly agent: HttpsAgent | HttpAgent;
+  public globalSubscription: Subscription;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
     // For events (PullMessages, Renew) we need to disable keep-alive and keep connection close
     const httpLibrary = this.onvif.useSecure ? https : http;
     this.agent = new httpLibrary.Agent({ keepAlive: false });
+    this.globalSubscription = new Subscription(onvif);
+    this.globalSubscription.on('data', (msg) => onvif.emit('event', msg));
   }
 
   /**
@@ -208,6 +216,7 @@ export class Events {
 
   /**
    * Event loop for pullMessages request
+   * @deprecated Use Subscription class instead
    */
   async eventRequest() {
     if (this.onvif.listeners('event').length > 0) {
@@ -243,16 +252,13 @@ export class Events {
     if (!filter) {
       return undefined;
     }
-
     const built: Record<string, unknown> = {};
-
     if (filter.topicExpression?.length) {
       built['wsnt:TopicExpression'] = filter.topicExpression.map(({ dialect, expression }) => ({
         $: { Dialect: dialect },
         _: expression,
       }));
     }
-
     if (filter.messageContent) {
       built['wsnt:MessageContent'] = {
         $: {
@@ -261,7 +267,6 @@ export class Events {
         _: filter.messageContent,
       };
     }
-
     return Object.keys(built).length ? built : undefined;
   }
 
@@ -292,6 +297,7 @@ export class Events {
 
   /**
    * Event loop for pullMessages request
+   * @deprecated Use Subscription class instead
    * @private
    */
   async eventPull() {
@@ -336,6 +342,10 @@ export class Events {
     }
   }
 
+  /**
+   * @param options
+   * @deprecated Use Subscription class instead
+   */
   async pullMessages(options?: PullMessages): Promise<PullMessagesResponse> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
@@ -356,6 +366,9 @@ export class Events {
     return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
   }
 
+  /**
+   * @deprecated Use Subscription class instead
+   */
   async renew(): Promise<TerminationTimeResponse> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
@@ -377,6 +390,7 @@ export class Events {
 
   /**
    * Restart the event request with an increasing interval when the connection to the device is refused
+   * @deprecated Use Subscription class instead
    * @private
    */
   private restartEventRequest() {
@@ -395,6 +409,7 @@ export class Events {
    * The device shall provide the following Unsubscribe command for all SubscriptionManager endpoints returned
    * by the CreatePullPointSubscription command.
    * This command shall terminate the lifetime of a pull point.
+   * @deprecated Use Subscription class instead
    */
   async unsubscribe() {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
@@ -423,6 +438,7 @@ export class Events {
    * notifications is set to “Initialized”. The Synchronization Point is requested directly from the SubscriptionManager
    * which was returned in either the SubscriptionResponse or in the CreatePullPointSubscriptionResponse. The property
    * update is transmitted via the notification transportation of the notification interface. This method is mandatory.
+   * @deprecated Use Subscription class instead
    */
   async setSynchronizationPoint(): Promise<void> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
@@ -444,6 +460,7 @@ export class Events {
 
   /**
    * Seek to a specific point in the stored notification history.
+   * @deprecated Use Subscription class instead
    */
   async seek({ utcTime, reverse }: Seek): Promise<void> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
@@ -520,6 +537,7 @@ export class Events {
 
   /**
    * Get params for concrete subscription
+   * @deprecated Use Subscription class instead
    * @private
    */
   private getSubscriptionUrlAndHeaders(
@@ -540,10 +558,11 @@ ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a
 
   /**
    * Subscribe to events using notification producer
+   * TODO
    * @param options
    */
   async subscribe(options: SubscribeOptions): Promise<PullPointSubscription> {
-    const initialTerminationTime = options.terminationTime ?? 2 * 60 * 1000;
+    const initialTerminationTime = options.terminationTime ?? PUSH_TERMINATION_TIME;
     const body = build({
       Subscribe: {
         $: {
@@ -564,15 +583,13 @@ ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a
 <a:To s:mustUnderstand="1">${this.onvif.uri.events}</a:To>
 `,
     });
-    this.events.subscription = linerase(data).subscribeResponse;
+    this.events.subscription = linerase(data).subscribeResponse; // TODO
     if (options.renew) {
       setTimeout(() => {
-        if (this.events.subscription) {
-          this.subscribe(options);
-        }
+        this.subscribe(options);
       }, initialTerminationTime);
     }
-    return this.events.subscription!;
+    return this.events.subscription!; // TODO
   }
 }
 
@@ -787,7 +804,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    this.removeAllListeners();
+    // this.removeAllListeners();
     delete this.subscription;
   }
 

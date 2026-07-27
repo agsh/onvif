@@ -152,6 +152,7 @@ interface OnvifEvents {
   [Onvif.WARN]: [error: Error];
   [Onvif.EVENTS_ERROR]: [error: Error];
   newListener: [event: string, listener: (...args: any[]) => void];
+  removeListener: [event: string, listener: (...args: any[]) => void];
 }
 
 export class Onvif extends EventEmitter<OnvifEvents> {
@@ -310,9 +311,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        setImmediate(() => {
-          this.events.eventRequest();
-        });
+        this.events.globalSubscription.subscribe();
+      }
+    });
+    this.on('removeListener', (name) => {
+      if (name === 'event' && this.listeners(name).length === 0) {
+        this.events.globalSubscription.unsubscribe();
       }
     });
 
@@ -455,14 +459,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         return undefined;
       });
 
-      // request.setTimeout(options.timeout ?? this.timeout, () => {
-      //   if (alreadyReturned) {
-      //     return;
-      //   }
-      //   alreadyReturned = true;
-      //   request.destroy();
-      //   reject(new Error('Network timeout'));
-      // });
+      // let handle timeout by itself and produce network error to catch below
+      request.setTimeout(options.timeout ?? this.timeout, () => {
+        const err = new Error('Network timeout') as NodeJS.ErrnoException;
+        err.code = 'ETIMEDOUT';
+        err.syscall = 'connect';
+        request.destroy(err);
+      });
 
       request.on('error', (error: NodeJS.ErrnoException) => {
         if (alreadyReturned) {
