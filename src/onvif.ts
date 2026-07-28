@@ -311,12 +311,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.subscribe();
+        this.events.globalSubscription.subscribe().catch((error) => this.emit('error', error));
       }
     });
     this.on('removeListener', (name) => {
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.unsubscribe();
+        this.events.globalSubscription.unsubscribe().catch((error) => this.emit('error', error));
       }
     });
 
@@ -723,19 +723,36 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * @private
    */
   private async getActiveSources() {
+    if (!this.media.videoSources?.length) {
+      return;
+    }
+
     this.media.videoSources.forEach(({ token: videoSrcToken }, idx) => {
       // let's choose first appropriate profile for our video source and make it default
-      const appropriateProfiles = this.media.profiles.filter(
+      let appropriateProfiles = this.media.profiles.filter(
         (profile) =>
           profile.videoSourceConfiguration?.sourceToken === videoSrcToken &&
           profile.videoEncoderConfiguration !== undefined,
       );
+
+      // Happytime and some devices return profiles without VideoSourceConfiguration.
+      // Fall back to any profile that has an encoder, then to any profile at all.
+      if (appropriateProfiles.length === 0) {
+        appropriateProfiles = this.media.profiles.filter(
+          (profile) => profile.videoEncoderConfiguration !== undefined,
+        );
+      }
+      if (appropriateProfiles.length === 0) {
+        appropriateProfiles = [...this.media.profiles];
+      }
       if (appropriateProfiles.length === 0) {
         if (idx === 0) {
-          throw new Error('Unrecognized configuration');
-        } else {
-          return;
+          this.emit(
+            Onvif.WARN,
+            new Error('Unrecognized configuration: no media profiles available for video sources'),
+          );
         }
+        return;
       }
 
       if (idx === 0) {
@@ -747,7 +764,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.activeSources[idx] = {
         sourceToken: videoSrcToken,
         profileToken: this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration!.token,
+        videoSourceConfigurationToken:
+          this.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
         videoSourceToken: videoSrcToken,
       };
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {

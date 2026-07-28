@@ -165,23 +165,33 @@ interface SubscribeOptions {
  */
 export class Events {
   private readonly onvif: Onvif;
-  /**
-   * @deprecated
-   * @private
-   */
-  private events: OnvifEvents = {
-    messageLimit: 10,
-  };
-  public readonly agent: HttpsAgent | HttpAgent;
+  public agent: HttpsAgent | HttpAgent;
   public globalSubscription: Subscription;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
     // For events (PullMessages, Renew) we need to disable keep-alive and keep connection close
-    const httpLibrary = this.onvif.useSecure ? https : http;
-    this.agent = new httpLibrary.Agent({ keepAlive: false });
+    this.agent = this.createAgent();
     this.globalSubscription = new Subscription(onvif);
     this.globalSubscription.on('data', (msg) => onvif.emit('event', msg));
+  }
+
+  private createAgent(): HttpsAgent | HttpAgent {
+    const httpLibrary = this.onvif.useSecure ? https : http;
+    return new httpLibrary.Agent({ keepAlive: false });
+  }
+
+  /**
+   * Drop in-flight PullMessages sockets (long-poll up to PULL_TIMEOUT) so unsubscribe
+   * does not leave Happytime / cameras stuck with an open request.
+   */
+  resetAgent() {
+    try {
+      this.agent.destroy();
+    } catch {
+      // ignore
+    }
+    this.agent = this.createAgent();
   }
 
   /**
@@ -212,40 +222,6 @@ export class Events {
     });
     const [data] = await this.onvif.request({ service: 'events', body });
     return linerase(data).getServiceCapabilitiesResponse.capabilities;
-  }
-
-  /**
-   * Event loop for pullMessages request
-   * @deprecated Use Subscription class instead
-   */
-  async eventRequest() {
-    if (this.onvif.listeners('event').length > 0) {
-      // check for event listeners, if zero, stop pulling
-      this.events.messageLimit = this.events.messageLimit ?? 10; // setting message limit
-      if (
-        !this.events.subscription ||
-        !this.events.subscription?.terminationTime ||
-        Date.now() > +this.events.subscription?.terminationTime
-      ) {
-        // if there is no pull-point subscription, or it has expired, create new subscription
-        try {
-          this.events.subscription = await this.createPullPointSubscription();
-          await this.setSynchronizationPoint();
-          delete this.events.eventReconnectMs;
-          this.eventPull();
-        } catch (error) {
-          this.onvif.emit('eventsError', error as NodeJS.ErrnoException);
-          if (isSoapError(error)) {
-            // connection reset on creation - restart Event loop for pullMessages request
-            this.restartEventRequest();
-          }
-        }
-      } else {
-        this.eventPull();
-      }
-    } else {
-      await this.unsubscribe();
-    }
   }
 
   static filterToBuild(filter?: PullPointSubscriptionFilter) {
@@ -293,193 +269,6 @@ export class Events {
     const [data] = await this.onvif.request({ service: 'events', body });
     const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
     return pullPointSubscription;
-  }
-
-  /**
-   * Event loop for pullMessages request
-   * @deprecated Use Subscription class instead
-   * @private
-   */
-  async eventPull() {
-    // check for event listeners, if zero, or no subscription then stop pulling
-    if (this.onvif.listeners('event').length && this.events.subscription) {
-      try {
-        const msgs = await this.pullMessages({
-          messageLimit: this.events.messageLimit,
-          timeout: 'PT1M',
-        });
-        delete this.events.eventReconnectMs;
-        msgs.notificationMessage?.forEach((msg: NotificationMessage) => {
-          this.onvif.emit('event', msg);
-        });
-        if (+msgs.terminationTime <= Date.now()) {
-          // this.events.subscription.terminationTime = localTerminationTime(msgs); // Account for camera clock skew when the reported termination time looks expired.
-          // Axis cameras require us to Rewew the Pull Point Subscription
-          const renewData = await this.renew();
-          this.events.subscription.terminationTime = localTerminationTime(renewData);
-        } else {
-          this.events.subscription.terminationTime = msgs.terminationTime;
-        }
-        this.eventRequest(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
-      } catch (error) {
-        this.onvif.emit('eventsError', error as NodeJS.ErrnoException);
-        if (isSoapError(error)) {
-          // connection reset (request ended without messages, closed connection) - restart Event loop for pullMessages request
-          this.restartEventRequest();
-        } else {
-          // there was an error pulling the message
-          await this.unsubscribe();
-          // await this.renew();
-          this.eventRequest();
-        }
-      }
-
-      // TODO rest of the method
-    } else {
-      if (this.events.subscription) {
-        await this.unsubscribe();
-      }
-    }
-  }
-
-  /**
-   * @param options
-   * @deprecated Use Subscription class instead
-   */
-  async pullMessages(options?: PullMessages): Promise<PullMessagesResponse> {
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
-    );
-    const body = build({
-      PullMessages: {
-        $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' },
-        Timeout: options?.timeout ?? 'PT2M', // ONVIF Spec says cameras must support 1 Minute wait times. Ensure network socket has a replyTimeout that is larger that 1 minute
-        MessageLimit: options?.messageLimit ?? 10,
-      },
-    });
-    const [data] = await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
-    return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
-  }
-
-  /**
-   * @deprecated Use Subscription class instead
-   */
-  async renew(): Promise<TerminationTimeResponse> {
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
-    );
-    const body = build({
-      Renew: {
-        $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' },
-        TerminationTime: 'PT2M', // 2 mins (larger than the 1 min Pull timeout)
-      },
-    });
-    const [data] = await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      timeout: 80 * 1000, // 80 seconds - ensures the socket does not get closed too early while the camera has up to 1 minute to reply
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
-    return linerase(data).renewResponse;
-  }
-
-  /**
-   * Restart the event request with an increasing interval when the connection to the device is refused
-   * @deprecated Use Subscription class instead
-   * @private
-   */
-  private restartEventRequest() {
-    if (!this.events.eventReconnectMs) {
-      this.events.eventReconnectMs = 10;
-    }
-    setTimeout(this.eventRequest.bind(this), this.events.eventReconnectMs);
-    if (this.events.eventReconnectMs < MAX_EVENT_RECONNECT_MS) {
-      this.events.eventReconnectMs = 1.111 * this.events.eventReconnectMs;
-    } else {
-      this.events.eventReconnectMs = MAX_EVENT_RECONNECT_MS;
-    }
-  }
-
-  /**
-   * The device shall provide the following Unsubscribe command for all SubscriptionManager endpoints returned
-   * by the CreatePullPointSubscription command.
-   * This command shall terminate the lifetime of a pull point.
-   * @deprecated Use Subscription class instead
-   */
-  async unsubscribe() {
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
-    );
-    const body = build({
-      Unsubscribe: {
-        $: {
-          xmlns: 'http://docs.oasis-open.org/wsn/b-2',
-        },
-      },
-    });
-    await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
-    this.onvif.removeAllListeners('event');
-    delete this.events.subscription;
-  }
-
-  /**
-   * Properties inform a client about property creation, changes and deletion in a uniform way. When a client wants to
-   * synchronize its properties with the properties of the device, it can request a synchronization point which repeats
-   * the current status of all properties to which a client has subscribed. The PropertyOperation of all produced
-   * notifications is set to “Initialized”. The Synchronization Point is requested directly from the SubscriptionManager
-   * which was returned in either the SubscriptionResponse or in the CreatePullPointSubscriptionResponse. The property
-   * update is transmitted via the notification transportation of the notification interface. This method is mandatory.
-   * @deprecated Use Subscription class instead
-   */
-  async setSynchronizationPoint(): Promise<void> {
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SetSynchronizationPointRequest',
-    );
-    const body = build({
-      SetSynchronizationPoint: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
-        },
-      },
-    });
-    await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
-  }
-
-  /**
-   * Seek to a specific point in the stored notification history.
-   * @deprecated Use Subscription class instead
-   */
-  async seek({ utcTime, reverse }: Seek): Promise<void> {
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SeekRequest',
-    );
-    const body = build({
-      Seek: {
-        $: {
-          xmlns: 'http://www.onvif.org/ver10/events/wsdl',
-        },
-        UtcTime: utcTime,
-        ...(reverse && { Reverse: reverse }),
-      },
-    });
-    await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
   }
 
   private static eventBrokerToBuild(eventBroker: EventBrokerConfig) {
@@ -536,27 +325,6 @@ export class Events {
   }
 
   /**
-   * Get params for concrete subscription
-   * @deprecated Use Subscription class instead
-   * @private
-   */
-  private getSubscriptionUrlAndHeaders(
-    soapAction = 'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
-  ) {
-    if (!this.events.subscription?.subscriptionReference.address) {
-      throw new Error(`You should have pull-point subscription. ${JSON.stringify(this.events.subscription)}`);
-    }
-    const url = new URL(this.events.subscription.subscriptionReference.address);
-    const axisSubscriptionId = this.events.subscription?.subscriptionReference.referenceParameters?.subscriptionId;
-    const additionalSoapHeaders = `
-<a:To mustUnderstand="1">${url.href}</a:To>
-<a:Action s:mustUnderstand="1">${soapAction}</a:Action>
-${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a:IsReferenceParameter="true">${axisSubscriptionId}</SubscriptionId>` : ''}
-`;
-    return { url, axisSubscriptionId, additionalSoapHeaders };
-  }
-
-  /**
    * Subscribe to events using notification producer
    * TODO
    * @param options
@@ -583,17 +351,16 @@ ${axisSubscriptionId ? `<SubscriptionId xmlns="http://www.axis.com/2009/event" a
 <a:To s:mustUnderstand="1">${this.onvif.uri.events}</a:To>
 `,
     });
-    this.events.subscription = linerase(data).subscribeResponse; // TODO
+    // this.events.subscription = linerase(data).subscribeResponse; // TODO
     if (options.renew) {
       setTimeout(() => {
         this.subscribe(options);
       }, initialTerminationTime);
     }
-    return this.events.subscription!; // TODO
+    return linerase(data).subscribeResponse;
+    // return this.events.subscription!; // TODO
   }
 }
-
-type SubscriptionType = 'pullPoint' | 'basicNotification';
 
 interface SubscriptionEvents {
   data: [msg: NotificationMessage];
@@ -626,7 +393,6 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   subscription?: PullPointSubscription;
   private readonly messageLimit: number;
   public eventReconnectMs: number;
-  private readonly type: SubscriptionType;
   private readonly options: CreatePullPointSubscriptionExtended;
   /**
    * Event received from subscription
@@ -642,71 +408,86 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   declare error: (error: NodeJS.ErrnoException) => void;
   declare connectionError: (error: NodeJS.ErrnoException) => void;
 
-  constructor(onvif: Onvif, type?: SubscriptionType, options: CreatePullPointSubscriptionExtended = {}) {
+  constructor(onvif: Onvif, options: CreatePullPointSubscriptionExtended = {}) {
     super({ captureRejections: true });
     this.messageLimit = MESSAGE_LIMIT;
     this.eventReconnectMs = MIN_EVENT_RECONNECT_MS;
     this.onvif = onvif;
-    this.type = type ?? 'pullPoint';
     this.options = options;
   }
 
+  /** When false, in-flight pull loops must not renew or auto-resubscribe. */
+  private pulling = false;
+
   async subscribe() {
-    switch (this.type) {
-      case 'pullPoint':
-        this.subscription = await this.onvif.events.createPullPointSubscription({
-          initialTerminationTime: PULL_TERMINATION_TIME,
-          ...this.options,
-        });
-        this.eventPull();
-        return;
-      case 'basicNotification':
-        return; // this.createNotificationProducerSubscription(options);
-    }
+    this.subscription = await this.onvif.events.createPullPointSubscription({
+      initialTerminationTime: PULL_TERMINATION_TIME,
+      ...this.options,
+    });
+    this.pulling = true;
+    this.eventPull();
   }
 
   /**
    * Loop events from the subscription
    */
   async eventPull() {
-    if (this.subscription) {
-      try {
-        const msgs = await this.pullMessages({
-          messageLimit: this.messageLimit,
-          timeout: PULL_TIMEOUT,
-        });
-        this.eventReconnectMs = MIN_EVENT_RECONNECT_MS;
-        msgs.notificationMessage.forEach((msg: NotificationMessage) => {
-          this.emit('data', msg);
-        });
-        if (+msgs.terminationTime <= Date.now()) {
-          // Axis cameras require us to Rewew the Pull Point Subscription
-          const renewData = await this.renew();
-          this.subscription.terminationTime = localTerminationTime(renewData);
-        } else {
-          this.subscription.terminationTime = msgs.terminationTime;
+    if (!this.pulling || !this.subscription) {
+      return;
+    }
+    try {
+      const msgs = await this.pullMessages({
+        messageLimit: this.messageLimit,
+        timeout: PULL_TIMEOUT,
+      });
+      if (!this.pulling || !this.subscription) {
+        return;
+      }
+      this.eventReconnectMs = MIN_EVENT_RECONNECT_MS;
+      msgs.notificationMessage.forEach((msg: NotificationMessage) => {
+        this.emit('data', msg);
+      });
+      if (+msgs.terminationTime <= Date.now()) {
+        // Axis cameras require us to Rewew the Pull Point Subscription
+        const renewData = await this.renew();
+        if (!this.pulling || !this.subscription) {
+          return;
         }
-        this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
-      } catch (error) {
-        if (isSoapError(error) && +this.subscription.terminationTime > Date.now()) {
-          // connection reset (request ended without messages, closed connection) when we're still on the surrent
-          // subscription - restart Event loop for pullMessages request
-          try {
-            // force renew and resync
-            const renewData = await this.renew();
+        this.subscription.terminationTime = localTerminationTime(renewData);
+      } else {
+        this.subscription.terminationTime = msgs.terminationTime;
+      }
+      this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
+    } catch (error) {
+      if (!this.pulling || !this.subscription) {
+        return;
+      }
+      if (isSoapError(error) && +this.subscription.terminationTime > Date.now()) {
+        // connection reset (request ended without messages, closed connection) when we're still on the surrent
+        // subscription - restart Event loop for pullMessages request
+        try {
+          // force renew and resync
+          const renewData = await this.renew();
+          if (this.pulling && this.subscription) {
             this.subscription.terminationTime = localTerminationTime(renewData);
             await this.setSynchronizationPoint();
-          } catch (renewError) {
-            // do nothing, we're just trying not to lose subscription
-            this.emit('connectionError', renewError as ErrnoException);
           }
-          this.emit('connectionError', error as ErrnoException);
-          this.restartEventRequest();
-        } else {
-          // there was an error pulling the message (device shut down, corrupted)
-          this.emit('error', error as NodeJS.ErrnoException);
-          await this.unsubscribe();
-          this.subscribe();
+        } catch (renewError) {
+          // do nothing, we're just trying not to lose subscription
+          this.emit('connectionError', renewError as ErrnoException);
+        }
+        if (!this.pulling) {
+          return;
+        }
+        this.emit('connectionError', error as ErrnoException);
+        this.restartEventRequest();
+      } else {
+        // there was an error pulling the message (device shut down, corrupted)
+        this.emit('error', error as NodeJS.ErrnoException);
+        const shouldResubscribe = this.pulling;
+        await this.unsubscribe();
+        if (shouldResubscribe) {
+          await this.subscribe();
         }
       }
     }
@@ -790,6 +571,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * This command shall terminate the lifetime of a pull point.
    */
   async unsubscribe() {
+    this.pulling = false;
     if (!this.subscription) {
       return;
     }
@@ -799,13 +581,19 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const body = build({
       Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
     });
-    await this.onvif.request({
-      url: subscriptionParams.url,
-      body,
-      soapHeaders: subscriptionParams.additionalSoapHeaders,
-    });
-    // this.removeAllListeners();
+    // Drop local state first so an in-flight eventPull cannot auto-resubscribe after a race.
     delete this.subscription;
+    // Abort long-poll PullMessages before/while sending Unsubscribe.
+    this.onvif.events.resetAgent();
+    try {
+      await this.onvif.request({
+        url: subscriptionParams.url,
+        body,
+        soapHeaders: subscriptionParams.additionalSoapHeaders,
+      });
+    } catch {
+      // Subscription may already be gone on the device; local state is cleared.
+    }
   }
 
   /**
@@ -813,7 +601,14 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * @private
    */
   private restartEventRequest() {
-    setTimeout(this.eventPull.bind(this), this.eventReconnectMs);
+    if (!this.pulling) {
+      return;
+    }
+    setTimeout(() => {
+      if (this.pulling) {
+        this.eventPull();
+      }
+    }, this.eventReconnectMs);
     if (this.eventReconnectMs < MAX_EVENT_RECONNECT_MS) {
       this.eventReconnectMs = 1.111 * this.eventReconnectMs;
     } else {

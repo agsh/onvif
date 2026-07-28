@@ -517,6 +517,12 @@ describe('System information', () => {
 
   it('should accept setSystemFactoryDefault without error', async () => {
     await expect(cam.device.setSystemFactoryDefault({ factoryDefault: 'Soft' })).resolves.toBeUndefined();
+    // Soft reset detaches Happytime media configs; restore for later suites.
+    const { execFileSync } = await import('node:child_process');
+    const { join } = await import('node:path');
+    execFileSync(join(__dirname, 'happytime-onvif-server', 'hydrate-profiles.sh'), {
+      stdio: 'inherit',
+    });
   });
 
   it('should accept setHashingAlgorithm without error', async () => {
@@ -577,6 +583,10 @@ describe('Geo location', () => {
 
 describe('systemReboot', () => {
   it('should return reboot message', async () => {
+    // Do not reboot the shared Happytime process — that takes the server down for later suites.
+    jest.spyOn(cam.device as any, 'request').mockResolvedValueOnce({
+      systemRebootResponse: { message: 'Rebooting' },
+    });
     const result = await cam.device.systemReboot();
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);

@@ -5,6 +5,8 @@ module.exports = {
   transform: {
     '.ts$': ['ts-jest', {}],
   },
+  // Happytime integration suites share one process; connect/reboot recovery can exceed 5s.
+  testTimeout: 30_000,
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
