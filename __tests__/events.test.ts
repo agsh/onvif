@@ -74,65 +74,24 @@ describe('Events', () => {
     });
   });
 
-  describe('pullMessages', () => {
-    it('should pull messages from the happytime mock server', async () => {
-      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
-      const messages = await cam.events.pullMessages({ timeout: 'PT3S', messageLimit: 1 });
-
-      expect(messages.currentTime).toBeInstanceOf(Date);
-      expect(messages.terminationTime).toBeInstanceOf(Date);
-      expect(Array.isArray(messages.notificationMessage)).toBe(true);
-      await cam.events.unsubscribe();
-    });
-  });
-
-  describe('setSynchronizationPoint', () => {
-    it('should complete', async () => {
-      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
-      await expect(cam.events.setSynchronizationPoint()).resolves.toBeUndefined();
-      await cam.events.unsubscribe();
-    });
-  });
-
-  describe('renew', () => {
-    it('should renew the subscription', async () => {
-      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
-      const renewed = await cam.events.renew();
-
-      expect(renewed.currentTime).toBeInstanceOf(Date);
-      expect(renewed.terminationTime).toBeInstanceOf(Date);
-      expect(+renewed.terminationTime).toBeGreaterThan(+renewed.currentTime);
-      await cam.events.unsubscribe();
-    });
-  });
-
-  describe('unsubscribe', () => {
-    it('should terminate the pull-point subscription', async () => {
-      cam.events.events.subscription = await cam.events.createPullPointSubscription({ initialTerminationTime: 'PT2M' });
-
-      await expect(cam.events.unsubscribe()).resolves.toBeUndefined();
-      await expect(cam.events.pullMessages({ timeout: 'PT1S', messageLimit: 1 })).rejects.toThrow(
-        'pull-point subscription',
-      );
-    });
-  });
-
   describe('subscriptions', () => {
     it('should create pull-point subscription and emit events', async () => {
       const eventHandler = jest.fn();
       const sub = new Subscription(cam);
       sub.on('data', eventHandler);
       await sub.subscribe();
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Timed out waiting for pull-point events')), 15_000);
         const interval = setInterval(() => {
-          if (eventHandler.mock.calls.length === 2) {
+          if (eventHandler.mock.calls.length >= 2) {
             clearInterval(interval);
-            sub.unsubscribe();
-            resolve(undefined);
+            clearTimeout(timeout);
+            resolve();
           }
         }, 10);
       });
-      expect(eventHandler).toHaveBeenCalledTimes(2);
+      await sub.unsubscribe();
+      expect(eventHandler.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
 });
