@@ -11,7 +11,7 @@ It will also allow you to get information about your NVR (network video recorder
 
 The library uses NodeJS. And works on the server-side.
 
-[![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
+[![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
 ## Troubleshooting
 The library is tested on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x Panasonic, 2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S, Profile G and Profile T devices.
