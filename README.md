@@ -133,7 +133,7 @@ onvif.on('event', eventHandler);
 
 If you need to subscribe to events, you can use the `Subscription` class. This class is for the specific subscriptions,
 for example, when we need to subscribe to events from the camera with the filters. or add some more subscriptions
-than the common one. It uses the pull-point or base subscription. It inherits from EventEmitter.
+than the common one. It uses the pull-point subscription. It inherits from EventEmitter.
 And emits two events: `data` and `error`. To use it you need to call `subscribe()` method. And to stop the device
 subscription and remove all listeners you need to call `unsubscribe()` method.
 
@@ -142,7 +142,7 @@ the connection to the device is lost.
 
 ```ts
 await cam.connect();
-const sub = new Subscription(cam, 'pullPoint', {
+const sub = new Subscription(cam, {
   filter: {
     topicExpression: [
       {
@@ -156,14 +156,18 @@ sub.on('data', async (data) => {
   console.log(new Date().toLocaleTimeString(), 'motion', data.topic._, data.message.message.data);
   await sub.unsubscribe();
 });
-console.log(await sub.subscribe());
+await sub.subscribe();
 ```
 
-For the example, please look at the [example](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) 
+For a full interactive example, see [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts).
 
-This class is used internally by the `Onvif` class.
+This class is used internally by the `Onvif` class for the common `event` listener.
 
-## Base subscription
+## Push WS-BaseNotification
+
+With push (WS-BaseNotification), the camera sends event notifications to an HTTP endpoint you host, instead of you polling the device.
+
+To use it: start an HTTP server reachable from the camera, call `subscribe` with that URL as the consumer reference, keep the subscription alive with `renew` before it expires, and call `unsubscribe` when you are done. Method signatures are in the [`Events` class documentation](https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/classes/Events.html). A working flow is shown in [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) — the HTTP server at lines 50–65, and subscribe / unsubscribe at lines 143–164.
 
 ---
 
