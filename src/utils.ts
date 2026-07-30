@@ -1,4 +1,5 @@
 import xml2js from 'xml2js';
+import { XMLBuilder } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
 
@@ -266,6 +267,19 @@ const builder = new xml2js.Builder({
 
 export function build(object: any) {
   return builder.buildObject(object);
+}
+
+const newBuilder = new XMLBuilder({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  textNodeName: '#text',
+  cdataPropName: '#cdata',
+  format: true,
+  indentBy: '  ',
+});
+
+export function build2(object: any) {
+  return newBuilder.build(object);
 }
 
 export const toOnvifXMLSchemaObject = {
