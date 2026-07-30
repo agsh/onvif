@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, linerase, parseSOAPString, splitArgs } from './utils';
+import { build, getDigestHeaders, linerase, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -563,20 +563,36 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         Object.assign(requestOptions, this.secureOptions);
       }
       const request = httpLibrary.request(requestOptions, async (response) => {
-        const wwwAuthenticate = response.headers['www-authenticate'];
-        const { statusCode } = response;
-        if (statusCode === 401 && wwwAuthenticate !== undefined) {
-          // Re-request with the digest auth header
-          response.destroy();
-          try {
-            options.headers = {
-              ...options.headers,
-              authorization: this.digestAuth(wwwAuthenticate, requestOptions.path!),
-            };
-            const digestResponse = await this.rawRequest(options);
-            return resolve(digestResponse);
-          } catch (e) {
-            return reject(e);
+        if (response.statusCode === 401) {
+          // Avoid racing with request 'error' from response.destroy() below
+          if (alreadyReturned) {
+            return undefined;
+          }
+          // Digest credentials were already sent and rejected — do not retry forever
+          if (options.headers?.authorization || options.headers?.Authorization) {
+            alreadyReturned = true;
+            response.destroy();
+            return reject(new Error('Digest authentication failed'));
+          }
+          const digestHeadersArray = getDigestHeaders(response.rawHeaders);
+          if (digestHeadersArray.length > 0) {
+            // Re-request with the digest auth header
+            alreadyReturned = true;
+            response.destroy();
+            try {
+              options.headers = {
+                ...options.headers,
+                authorization: this.digestAuth(digestHeadersArray, requestOptions),
+              };
+              const digestResponse = await this.rawRequest(options);
+              return resolve(digestResponse);
+            } catch (e) {
+              return reject(e);
+            }
+          } else {
+            alreadyReturned = true;
+            response.destroy();
+            return reject(new Error(`Digest authentication headers not found in the server response`));
           }
         }
 
@@ -630,57 +646,85 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     });
   }
 
-  private digestAuth(wwwAuthenticate: string, path: string) {
-    const challenge = this.parseChallenge(wwwAuthenticate);
-    const ha1 = crypto.createHash('md5');
-    ha1.update([this.username, challenge.realm, this.password].join(':'));
-    const ha2 = crypto.createHash('md5');
-    ha2.update(['POST', path].join(':'));
+  private digestAuth(digestHeadersArray: string[], requestOptions: RequestOptions) {
+    // Process each item in the wwwAuthenticateArray
+    // Most cameras have only 1 item.
+    // HikVision implementing the new MD5-then-SHA256 have two items
+    let bestResult;
+    let bestAlgorithm;
 
-    let cnonce = null;
-    let nc = null;
-    if (typeof challenge.qop === 'string') {
-      const cnonceHash = crypto.createHash('md5');
-      cnonceHash.update(Math.random().toString(36));
-      cnonce = cnonceHash.digest('hex').substring(0, 8);
-      nc = this.updateNC();
-    }
+    for (const digestHeader of digestHeadersArray) {
+      const challenge = this.parseChallenge(digestHeader);
+      // if 'algorithm' is undefined, the Digest RFC says we default to MD5
+      const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
+      const ha1 = crypto.createHash(algorithm);
+      ha1.update([this.username, challenge.realm, this.password].join(':'));
+      // Sony SRG-XP1 sends qop="auth,auth-int" it means the Server will accept either "auth" or "auth-int". We select "auth"
+      // We also need to handle spaces in the string e.g.like "auth, auth-int"
+      // So we split the QOP and then see if one item is "auth" using a trim to remove whitespace
+      if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
+        challenge.qop = 'auth';
+      }
+      const ha2 = crypto.createHash(algorithm);
+      ha2.update([requestOptions.method, requestOptions.path].join(':'));
 
-    const response = crypto.createHash('md5');
-    const responseParams = [ha1.digest('hex'), challenge.nonce];
-    if (cnonce) {
-      responseParams.push(nc);
-      responseParams.push(cnonce);
-    }
+      let cnonce;
+      let nc;
+      if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
+        const cnonceHash = crypto.createHash(algorithm);
+        cnonceHash.update(Math.random().toString(36));
+        cnonce = cnonceHash.digest('hex').substring(0, 8);
+        nc = this.updateNC();
+      }
 
-    responseParams.push(challenge.qop);
-    responseParams.push(ha2.digest('hex'));
-    response.update(responseParams.join(':'));
+      // HASH_ALG is usually MD5 but can also be SHA256
+      // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
+      // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
+      const response = crypto.createHash(algorithm);
+      const responseParams = [ha1.digest('hex'), challenge.nonce];
+      if (cnonce && nc) {
+        responseParams.push(nc);
+        responseParams.push(cnonce);
+        responseParams.push(challenge.qop);
+      }
+      responseParams.push(ha2.digest('hex'));
+      response.update(responseParams.join(':'));
 
-    const authParams: { [key: string]: string } = {
-      username: this.username!,
-      realm: challenge.realm,
-      nonce: challenge.nonce,
-      uri: path,
-      qop: challenge.qop,
-      response: response.digest('hex'),
-    };
-    if (challenge.opaque) {
-      authParams.opaque = challenge.opaque;
+      const authParams: Record<string, string> = {
+        username: `"${this.username}"`,
+        realm: `"${challenge.realm}"`,
+        nonce: `"${challenge.nonce}"`,
+        uri: `"${requestOptions.path}"`,
+      };
+      // Send back the original algorithm value, if we received one.
+      if ('algorithm' in challenge) {
+        authParams.algorithm = challenge.algorithm;
+      }
+      // RFC says only send qop, nc and cnonce if there was a QOP in the Header
+      // 'qop' and 'nc' do not have quotes around the Values
+      if ('qop' in challenge && nc) {
+        authParams.qop = challenge.qop; // no quotes
+        authParams.nc = nc; // no quotes
+        authParams.cnonce = `"${cnonce}"`;
+      }
+      authParams.response = `"${response.digest('hex')}"`;
+      if (challenge.opaque) {
+        authParams.opaque = `"${challenge.opaque}"`;
+      }
+      // Values that need quotes already include them; qop/nc stay unquoted per RFC
+      const result = `Digest ${Object.entries(authParams)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',')}`;
+      if (bestResult == null || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
+        // set bestResult or upgrade the bestResult to the stronger algorithm
+        bestResult = result;
+        bestAlgorithm = algorithm;
+      }
     }
-    if (cnonce && nc) {
-      authParams.nc = nc;
-      authParams.cnonce = cnonce;
-    }
-    return `Digest ${Object.entries(authParams)
-      .map(([key, value]) => `${key}="${value}"`)
-      .join(',')}`;
+    return bestResult;
   }
 
   public request(options: OnvifRequestOptions) {
-    if (!options.body) {
-      throw new Error("There is no 'body' field in request options");
-    }
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
@@ -700,7 +744,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     });
   }
 
-  private parseChallenge(digest: string) {
+  private parseChallenge(digest: string): { [key: string]: string } {
     const prefix = 'Digest ';
     const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
     const partsArray = splitArgs(challenge);

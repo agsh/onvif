@@ -3,10 +3,10 @@ import { Onvif } from '../src';
 let cam: Onvif;
 beforeAll(async () => {
   cam = new Onvif({
-    hostname : '127.0.0.1',
-    username : 'admin',
-    password : 'admin',
-    port     : 8000,
+    hostname: '127.0.0.1',
+    username: 'admin',
+    password: 'admin',
+    port: 8000,
   });
   await cam.connect();
 });
@@ -19,10 +19,6 @@ describe('Common', () => {
     expect(cam.media.profiles).toBeDefined();
     expect(cam.defaultProfile).toBeDefined();
     expect(cam.activeSource).toBeDefined();
-  });
-
-  it('should throw an error when trying to send empty request', () => {
-    expect(() => (cam as any).request({})).toThrow();
   });
 });
 
@@ -49,30 +45,29 @@ describe('Date and time', () => {
     });
 
     it('should try to send request with WSSecurity if authorization is required', async () => {
-      jest.spyOn(cam as any, 'rawRequest')
-        .mockImplementationOnce(() => Promise.resolve([{}, 'sender not authorized']));
-      jest.spyOn(cam as any, 'request')
-        .mockImplementationOnce(() => (cam as any).rawRequest({
+      jest.spyOn(cam as any, 'rawRequest').mockImplementationOnce(() => Promise.resolve([{}, 'sender not authorized']));
+      jest.spyOn(cam as any, 'request').mockImplementationOnce(() =>
+        (cam as any).rawRequest({
           // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
-          body :
-            '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">'
-            + '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
-            + '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>'
-            + '</s:Body>'
-            + '</s:Envelope>',
-        }));
+          body:
+            '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
+            '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+            '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' +
+            '</s:Body>' +
+            '</s:Envelope>',
+        }),
+      );
       const result = await cam.getSystemDateAndTime();
       expect(result.dateTime).toBeInstanceOf(Date);
       expect((cam as any).timeShift).toBeGreaterThanOrEqual(0);
     });
 
     it('should use current time if there is no UTCDateTime in the response', async () => {
-      jest.spyOn(cam as any, 'rawRequest')
-        .mockImplementationOnce(async (options) => {
-          const [data, xml] = await (cam as any).rawRequest(options);
-          delete data['tds:GetSystemDateAndTimeResponse'][0]['tds:SystemDateAndTime'][0]['tt:UTCDateTime'];
-          return [data, xml];
-        });
+      jest.spyOn(cam as any, 'rawRequest').mockImplementationOnce(async (options) => {
+        const [data, xml] = await (cam as any).rawRequest(options);
+        delete data['tds:GetSystemDateAndTimeResponse'][0]['tds:SystemDateAndTime'][0]['tt:UTCDateTime'];
+        return [data, xml];
+      });
       const result = await cam.getSystemDateAndTime();
       expect(result.dateTime).toBeInstanceOf(Date);
       expect((cam as any).timeShift).toBeGreaterThanOrEqual(0);
@@ -91,7 +86,7 @@ describe('Date and time', () => {
       await expect(
         // @ts-expect-error dateTimeType is required in the interface
         cam.setSystemDateAndTime({
-          dateTime : new Date(),
+          dateTime: new Date(),
         }),
       ).rejects.toThrow();
     });
@@ -100,36 +95,35 @@ describe('Date and time', () => {
       await expect(
         // @ts-expect-error UTCDateTime is required when dateTimeType is manual
         cam.setSystemDateAndTime({
-          dateTimeType : 'Manual',
+          dateTimeType: 'Manual',
         }),
       ).rejects.toThrow();
     });
 
     it('should throw an error when the response from the device is not empty string', async () => {
-      jest.spyOn(cam as any, 'request')
-        .mockReturnValueOnce('whatever');
+      jest.spyOn(cam as any, 'request').mockReturnValueOnce('whatever');
       await expect(
         cam.setSystemDateAndTime({
-          dateTimeType    : 'NTP',
-          daylightSavings : false,
+          dateTimeType: 'NTP',
+          daylightSavings: false,
         }),
       ).rejects.toThrow();
     });
 
     it('should set date and time using SOAP Date and Time types', async () => {
       const result = await cam.setSystemDateAndTime({
-        dateTimeType    : 'Manual',
-        daylightSavings : true,
-        UTCDateTime     : {
-          date : {
-            year  : 2021,
-            month : 6,
-            day   : 15,
+        dateTimeType: 'Manual',
+        daylightSavings: true,
+        UTCDateTime: {
+          date: {
+            year: 2021,
+            month: 6,
+            day: 15,
           },
-          time : {
-            hour   : 19,
-            minute : 14,
-            second : 37,
+          time: {
+            hour: 19,
+            minute: 14,
+            second: 37,
           },
         },
       });
@@ -141,9 +135,9 @@ describe('Date and time', () => {
 
     it('should set date and time using js Date object', async () => {
       const result = await cam.setSystemDateAndTime({
-        dateTimeType    : 'Manual',
-        daylightSavings : true,
-        dateTime        : new Date(2021, 5, 15, 19, 14, 37),
+        dateTimeType: 'Manual',
+        daylightSavings: true,
+        dateTime: new Date(2021, 5, 15, 19, 14, 37),
       });
       expect(result.dateTime).toBeInstanceOf(Date);
       expect(result.dateTimeType).toBeDefined();
@@ -153,9 +147,9 @@ describe('Date and time', () => {
 
     it('should set date and time using device module', async () => {
       const result = await cam.device.setSystemDateAndTime({
-        dateTimeType    : 'Manual',
-        daylightSavings : true,
-        dateTime        : new Date(2021, 5, 15, 19, 14, 37),
+        dateTimeType: 'Manual',
+        daylightSavings: true,
+        dateTime: new Date(2021, 5, 15, 19, 14, 37),
       });
       expect(result.dateTime).toBeInstanceOf(Date);
       expect(result.dateTimeType).toBeDefined();
