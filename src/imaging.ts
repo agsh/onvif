@@ -65,8 +65,8 @@ type SetCurrentPresetExtended = VideoSourceTokenExtended & Omit<SetCurrentPreset
  * ```
  */
 export class Imaging extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'imaging');
   }
 
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {

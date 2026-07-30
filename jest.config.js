@@ -3,7 +3,15 @@ module.exports = {
   testEnvironment: 'node',
   testRegex: '/__tests__/.*.test.ts$',
   transform: {
-    '.ts$': ['ts-jest', {}],
+    '.ts$': [
+      'ts-jest',
+      {
+        // TypeScript 7 defaults `types` to []; tests still need Jest globals.
+        tsconfig: {
+          types: ['node', 'jest'],
+        },
+      },
+    ],
   },
   // Happytime integration suites share one process; connect/reboot recovery can exceed 5s.
   testTimeout: 30_000,

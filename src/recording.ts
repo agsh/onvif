@@ -52,8 +52,8 @@ import {
  * Recording service
  */
 export class Recording extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'recording');
   }
 
   private static recordingSourceToBuild(source: RecordingSourceInformation) {

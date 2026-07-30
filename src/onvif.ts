@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, linerase, parseSOAPString, splitArgs } from './utils';
+import { build, getDigestHeaders, linerase, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -23,6 +23,7 @@ import { Replay } from './replay';
 import { Imaging } from './imaging';
 import { Recording } from './recording';
 import { DoorControl } from './doorcontrol';
+import { Thermal } from './thermal';
 import { Analytics } from './analytics';
 import { DeviceIO } from './deviceio';
 import { Display } from './display';
@@ -68,6 +69,7 @@ export interface OnvifServices {
   recording?: URL;
   replay?: URL;
   doorcontrol?: URL;
+  thermal?: URL;
   actionengine?: URL;
   search?: URL;
   [key: string]: URL | undefined;
@@ -237,26 +239,157 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * ```
    */
   public readonly device: Device;
+  /**
+   * Media namespace for media v1.0 methods
+   * @example
+   * ```typescript
+   * const profiles = await onvif.media.getProfiles();
+   * console.log(profiles);
+   * ```
+   */
   public readonly media: Media;
+  /**
+   * Media2 namespace for media2 v1.0 methods
+   * @example
+   * ```typescript
+   * const profiles = await onvif.media2.getProfiles();
+   * console.log(profiles);
+   * ```
+   */
   public readonly media2: Media2;
+  /**
+   * PTZ namespace for ptz v1.0 methods
+   * @example
+   * ```typescript
+   * const ptz = await onvif.ptz.getPTZStatus();
+   * console.log(ptz);
+   * ```
+   */
   public readonly ptz: PTZ;
+  /**
+   * Events namespace for events v1.0 methods
+   * @example
+   * ```typescript
+   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * ```
+   */
   public readonly events: Events;
+  /**
+   * Replay namespace for replay v1.0 methods
+   * @example
+   * ```typescript
+   * const replay = await onvif.replay.getReplayConfiguration();
+   * console.log(replay);
+   * ```
+   */
   public readonly replay: Replay;
+  /**
+   * Imaging namespace for imaging v1.0 methods
+   * @example
+   * ```typescript
+   * const imaging = await onvif.imaging.getImagingSettings();
+   * console.log(imaging);
+   * ```
+   */
   public readonly imaging: Imaging;
+  /**
+   * Recording namespace for recording v1.0 methods
+   * @example
+   * ```typescript
+   * const recording = await onvif.recording.getRecordingConfiguration();
+   * console.log(recording);
+   * ```
+   */
   public readonly recording: Recording;
+  /**
+   * DoorControl namespace for doorcontrol v1.0 methods
+   * @example
+   * ```typescript
+   * const doorControl = await onvif.doorControl.getDoorControlConfiguration();
+   * console.log(doorControl);
+   * ```
+   */
   public readonly doorControl: DoorControl;
+  /**
+   * Thermal namespace for thermal v1.0 methods
+   * @example
+   * ```typescript
+   * const thermal = await onvif.thermal.getConfigurations();
+   * console.log(thermal);
+   * ```
+   */
+  public readonly thermal: Thermal;
+  /**
+   * Analytics namespace for analytics v1.0 methods
+   * @example
+   * ```typescript
+   * const analytics = await onvif.analytics.getAnalyticsConfiguration();
+   * console.log(analytics);
+   * ```
+   */
   public readonly analytics: Analytics;
+  /**
+   * DeviceIO namespace for deviceio v1.0 methods
+   * @example
+   * ```typescript
+   * const deviceIO = await onvif.deviceIO.getDeviceIOConfiguration();
+   * console.log(deviceIO);
+   * ```
+   */
   public readonly deviceIO: DeviceIO;
+  /**
+   * Display namespace for display v1.0 methods
+   * @example
+   * ```typescript
+   * const display = await onvif.display.getDisplayConfiguration();
+   * console.log(display);
+   * ```
+   */
   public readonly display: Display;
+  /**
+   * ActionEngine namespace for actionengine v1.0 methods
+   * @example
+   * ```typescript
+   * const actionEngine = await onvif.actionEngine.getActionEngineConfiguration();
+   * console.log(actionEngine);
+   * ```
+   */
   public readonly actionEngine: ActionEngine;
+  /**
+   * Indicates if the device is using secure connection
+   */
   public readonly useSecure: boolean;
+  /**
+   * Secure options for the connection
+   */
   public secureOptions: SecureContextOptions;
+  /**
+   * Use WS-Security for the connection (this is the default and adds security headers in the SOAP messages)
+   */
   public useWSSecurity: boolean;
+  /**
+   * Nonce for the connection
+   */
   private nc: number = 0;
+  /**
+   * Hostname of the ONVIF device
+   */
   public hostname: string;
+  /**
+   * Username for the connection
+   */
   public username?: string;
+  /**
+   * Password for the connection
+   */
   public password?: string;
+  /**
+   * Port for the connection
+   */
   public port: number;
+  /**
+   * Path for the connection
+   */
   public path: string;
   public timeout: number;
   public agent: HttpsAgent | HttpAgent | boolean;
@@ -289,19 +422,20 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this, 'device');
-    this.media = new Media(this, 'media');
-    this.media2 = new Media2(this, 'media2');
-    this.ptz = new PTZ(this, 'PTZ');
+    this.device = new Device(this);
+    this.media = new Media(this);
+    this.media2 = new Media2(this);
+    this.ptz = new PTZ(this);
     this.events = new Events(this);
-    this.replay = new Replay(this, 'replay');
-    this.imaging = new Imaging(this, 'imaging');
-    this.recording = new Recording(this, 'recording');
-    this.doorControl = new DoorControl(this, 'doorcontrol');
-    this.analytics = new Analytics(this, 'analytics');
-    this.deviceIO = new DeviceIO(this, 'deviceIO');
-    this.display = new Display(this, 'display');
-    this.actionEngine = new ActionEngine(this, 'actionengine');
+    this.replay = new Replay(this);
+    this.imaging = new Imaging(this);
+    this.recording = new Recording(this);
+    this.doorControl = new DoorControl(this);
+    this.thermal = new Thermal(this);
+    this.analytics = new Analytics(this);
+    this.deviceIO = new DeviceIO(this);
+    this.display = new Display(this);
+    this.actionEngine = new ActionEngine(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
@@ -323,7 +457,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  body(body: string) {
+  envelopeBody() {
     return {
       $: {
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -333,7 +467,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
-  header(options?: OnvifRequestOptions) {
+  /**
+   * Envelope header for all SOAP messages
+   * @param options
+   * @private
+   */
+  envelopeHeader(options?: OnvifRequestOptions) {
     const pd = this.useWSSecurity && this.username && this.password ? this.passwordDigest() : null;
     return {
       ...(pd && {
@@ -368,48 +507,6 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         ...options?.soapHeaders,
       }),
     };
-  }
-
-  /**
-   * Envelope header for all SOAP messages
-   * @param options
-   * @private
-   */
-  envelopeHeader(options?: OnvifRequestOptions) {
-    if (typeof options?.soapHeaders === 'object') {
-      return this.header(options);
-    }
-    let header =
-      '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">' +
-      '<s:Header>';
-    // Only insert Security if there is a username and password
-    if (this.useWSSecurity && this.username && this.password) {
-      const req = this.passwordDigest();
-      header +=
-        '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">' +
-        '<UsernameToken>' +
-        `<Username>${this.username}</Username>` +
-        `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passDigest}</Password>` +
-        `<Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${req.nonce}</Nonce>` +
-        `<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${req.timestamp}</Created>` +
-        '</UsernameToken>' +
-        '</Security>';
-    }
-    if (options?.soapHeaders) {
-      header += options.soapHeaders;
-    }
-    header +=
-      '</s:Header>' +
-      '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
-    return header;
-  }
-
-  /**
-   * Envelope footer for all SOAP messages
-   * @private
-   */
-  private envelopeFooter() {
-    return '</s:Body>' + '</s:Envelope>';
   }
 
   private passwordDigest() {
@@ -466,20 +563,36 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         Object.assign(requestOptions, this.secureOptions);
       }
       const request = httpLibrary.request(requestOptions, async (response) => {
-        const wwwAuthenticate = response.headers['www-authenticate'];
-        const { statusCode } = response;
-        if (statusCode === 401 && wwwAuthenticate !== undefined) {
-          // Re-request with the digest auth header
-          response.destroy();
-          try {
-            options.headers = {
-              ...options.headers,
-              authorization: this.digestAuth(wwwAuthenticate, requestOptions.path!),
-            };
-            const digestResponse = await this.rawRequest(options);
-            return resolve(digestResponse);
-          } catch (e) {
-            return reject(e);
+        if (response.statusCode === 401) {
+          // Avoid racing with request 'error' from response.destroy() below
+          if (alreadyReturned) {
+            return undefined;
+          }
+          // Digest credentials were already sent and rejected — do not retry forever
+          if (options.headers?.authorization || options.headers?.Authorization) {
+            alreadyReturned = true;
+            response.destroy();
+            return reject(new Error('Digest authentication failed'));
+          }
+          const digestHeadersArray = getDigestHeaders(response.rawHeaders);
+          if (digestHeadersArray.length > 0) {
+            // Re-request with the digest auth header
+            alreadyReturned = true;
+            response.destroy();
+            try {
+              options.headers = {
+                ...options.headers,
+                authorization: this.digestAuth(digestHeadersArray, requestOptions),
+              };
+              const digestResponse = await this.rawRequest(options);
+              return resolve(digestResponse);
+            } catch (e) {
+              return reject(e);
+            }
+          } else {
+            alreadyReturned = true;
+            response.destroy();
+            return reject(new Error(`Digest authentication headers not found in the server response`));
           }
         }
 
@@ -533,58 +646,85 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     });
   }
 
-  private digestAuth(wwwAuthenticate: string, path: string) {
-    const challenge = this.parseChallenge(wwwAuthenticate);
-    const ha1 = crypto.createHash('md5');
-    ha1.update([this.username, challenge.realm, this.password].join(':'));
-    const ha2 = crypto.createHash('md5');
-    ha2.update(['POST', path].join(':'));
+  private digestAuth(digestHeadersArray: string[], requestOptions: RequestOptions) {
+    // Process each item in the wwwAuthenticateArray
+    // Most cameras have only 1 item.
+    // HikVision implementing the new MD5-then-SHA256 have two items
+    let bestResult;
+    let bestAlgorithm;
 
-    let cnonce = null;
-    let nc = null;
-    if (typeof challenge.qop === 'string') {
-      const cnonceHash = crypto.createHash('md5');
-      cnonceHash.update(Math.random().toString(36));
-      cnonce = cnonceHash.digest('hex').substring(0, 8);
-      nc = this.updateNC();
-    }
+    for (const digestHeader of digestHeadersArray) {
+      const challenge = this.parseChallenge(digestHeader);
+      // if 'algorithm' is undefined, the Digest RFC says we default to MD5
+      const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
+      const ha1 = crypto.createHash(algorithm);
+      ha1.update([this.username, challenge.realm, this.password].join(':'));
+      // Sony SRG-XP1 sends qop="auth,auth-int" it means the Server will accept either "auth" or "auth-int". We select "auth"
+      // We also need to handle spaces in the string e.g.like "auth, auth-int"
+      // So we split the QOP and then see if one item is "auth" using a trim to remove whitespace
+      if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
+        challenge.qop = 'auth';
+      }
+      const ha2 = crypto.createHash(algorithm);
+      ha2.update([requestOptions.method, requestOptions.path].join(':'));
 
-    const response = crypto.createHash('md5');
-    const responseParams = [ha1.digest('hex'), challenge.nonce];
-    if (cnonce) {
-      responseParams.push(nc);
-      responseParams.push(cnonce);
-    }
+      let cnonce;
+      let nc;
+      if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
+        const cnonceHash = crypto.createHash(algorithm);
+        cnonceHash.update(Math.random().toString(36));
+        cnonce = cnonceHash.digest('hex').substring(0, 8);
+        nc = this.updateNC();
+      }
 
-    responseParams.push(challenge.qop);
-    responseParams.push(ha2.digest('hex'));
-    response.update(responseParams.join(':'));
+      // HASH_ALG is usually MD5 but can also be SHA256
+      // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
+      // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
+      const response = crypto.createHash(algorithm);
+      const responseParams = [ha1.digest('hex'), challenge.nonce];
+      if (cnonce && nc) {
+        responseParams.push(nc);
+        responseParams.push(cnonce);
+        responseParams.push(challenge.qop);
+      }
+      responseParams.push(ha2.digest('hex'));
+      response.update(responseParams.join(':'));
 
-    const authParams: { [key: string]: string } = {
-      username: this.username!,
-      realm: challenge.realm,
-      nonce: challenge.nonce,
-      uri: path,
-      qop: challenge.qop,
-      response: response.digest('hex'),
-    };
-    if (challenge.opaque) {
-      authParams.opaque = challenge.opaque;
+      const authParams: Record<string, string> = {
+        username: `"${this.username}"`,
+        realm: `"${challenge.realm}"`,
+        nonce: `"${challenge.nonce}"`,
+        uri: `"${requestOptions.path}"`,
+      };
+      // Send back the original algorithm value, if we received one.
+      if ('algorithm' in challenge) {
+        authParams.algorithm = challenge.algorithm;
+      }
+      // RFC says only send qop, nc and cnonce if there was a QOP in the Header
+      // 'qop' and 'nc' do not have quotes around the Values
+      if ('qop' in challenge && nc) {
+        authParams.qop = challenge.qop; // no quotes
+        authParams.nc = nc; // no quotes
+        authParams.cnonce = `"${cnonce}"`;
+      }
+      authParams.response = `"${response.digest('hex')}"`;
+      if (challenge.opaque) {
+        authParams.opaque = `"${challenge.opaque}"`;
+      }
+      // Values that need quotes already include them; qop/nc stay unquoted per RFC
+      const result = `Digest ${Object.entries(authParams)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',')}`;
+      if (bestResult == null || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
+        // set bestResult or upgrade the bestResult to the stronger algorithm
+        bestResult = result;
+        bestAlgorithm = algorithm;
+      }
     }
-    if (cnonce && nc) {
-      authParams.nc = nc;
-      authParams.cnonce = cnonce;
-    }
-    return `Digest ${Object.entries(authParams)
-      .map(([key, value]) => `${key}="${value}"`)
-      .join(',')}`;
+    return bestResult;
   }
 
   public request(options: OnvifRequestOptions) {
-    if (!options.body) {
-      throw new Error("There is no 'body' field in request options");
-    }
-    this.emit('requestBody', options.body);
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
@@ -592,19 +732,19 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
           'xmlns:a': 'http://www.w3.org/2005/08/addressing',
         },
-        's:Header': this.header(options),
-        's:Body': this.body(options.body),
+        's:Header': this.envelopeHeader(options),
+        's:Body': this.envelopeBody(),
       },
     };
     const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
+    this.emit('requestBody', body);
     return this.rawRequest({
       ...options,
-      //body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
       body,
     });
   }
 
-  private parseChallenge(digest: string) {
+  private parseChallenge(digest: string): { [key: string]: string } {
     const prefix = 'Digest ';
     const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
     const partsArray = splitArgs(challenge);

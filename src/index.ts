@@ -9,6 +9,7 @@ export * from './replay';
 export * from './imaging';
 export * from './recording';
 export * from './doorcontrol';
+export * from './thermal';
 export * from './analytics';
 export * from './deviceio';
 export * from './display';

@@ -27,8 +27,8 @@ export interface GetReplayUriOptions extends Omit<GetReplayUri, 'streamSetup'> {
  * Replay service
  */
 export class Replay extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'replay');
   }
 
   private static streamSetupToBuild({ stream, transport }: StreamSetup) {
