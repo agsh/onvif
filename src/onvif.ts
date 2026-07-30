@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { linerase, parseSOAPString, splitArgs } from './utils';
+import { build, linerase, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -85,12 +85,8 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   ptz?: boolean;
   /** Timeout for pull-point event requests */
   timeout?: number;
-  /** Keep header open
-   * @deprecated
-   */
-  openHeader?: boolean;
   /** Additional SOAP-headers */
-  soapHeaders?: string;
+  soapHeaders?: Record<string, any>;
 }
 
 /**
@@ -327,12 +323,62 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
+  body(body: string) {
+    return {
+      $: {
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+      },
+      _: 'RAW_XML_PLACEHOLDER',
+    };
+  }
+
+  header(options?: OnvifRequestOptions) {
+    const pd = this.useWSSecurity && this.username && this.password ? this.passwordDigest() : null;
+    return {
+      ...(pd && {
+        Security: {
+          $: {
+            's:mustUnderstand': '1',
+            xmlns: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+          },
+          UsernameToken: {
+            Username: this.username,
+            Password: {
+              $: {
+                Type: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest',
+              },
+              _: pd.passDigest,
+            },
+            Nonce: {
+              $: {
+                EncodingType:
+                  'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
+              },
+              _: pd.nonce,
+            },
+            Created: {
+              $: {
+                xmlns: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+              },
+              _: pd.timestamp,
+            },
+          },
+        },
+        ...options?.soapHeaders,
+      }),
+    };
+  }
+
   /**
    * Envelope header for all SOAP messages
    * @param options
    * @private
    */
   envelopeHeader(options?: OnvifRequestOptions) {
+    if (typeof options?.soapHeaders === 'object') {
+      return this.header(options);
+    }
     let header =
       '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">' +
       '<s:Header>';
@@ -352,11 +398,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     if (options?.soapHeaders) {
       header += options.soapHeaders;
     }
-    if (options?.openHeader !== true) {
-      header +=
-        '</s:Header>' +
-        '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
-    }
+    header +=
+      '</s:Header>' +
+      '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
     return header;
   }
 
@@ -542,9 +586,21 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
     this.emit('requestBody', options.body);
     options.headers = options.headers ?? {};
+    const bodyObject = {
+      's:Envelope': {
+        $: {
+          'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
+          'xmlns:a': 'http://www.w3.org/2005/08/addressing',
+        },
+        's:Header': this.header(options),
+        's:Body': this.body(options.body),
+      },
+    };
+    const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
     return this.rawRequest({
       ...options,
-      body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
+      //body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
+      body,
     });
   }
 
@@ -738,19 +794,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       // Happytime and some devices return profiles without VideoSourceConfiguration.
       // Fall back to any profile that has an encoder, then to any profile at all.
       if (appropriateProfiles.length === 0) {
-        appropriateProfiles = this.media.profiles.filter(
-          (profile) => profile.videoEncoderConfiguration !== undefined,
-        );
+        appropriateProfiles = this.media.profiles.filter((profile) => profile.videoEncoderConfiguration !== undefined);
       }
       if (appropriateProfiles.length === 0) {
         appropriateProfiles = [...this.media.profiles];
       }
       if (appropriateProfiles.length === 0) {
         if (idx === 0) {
-          this.emit(
-            Onvif.WARN,
-            new Error('Unrecognized configuration: no media profiles available for video sources'),
-          );
+          this.emit(Onvif.WARN, new Error('Unrecognized configuration: no media profiles available for video sources'));
         }
         return;
       }
@@ -764,8 +815,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.activeSources[idx] = {
         sourceToken: videoSrcToken,
         profileToken: this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken:
-          this.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
+        videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
         videoSourceToken: videoSrcToken,
       };
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {

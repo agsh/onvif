@@ -2,9 +2,10 @@ import xml2js from 'xml2js';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
 
-const numberRE = /^-?([1-9]\d*|0)(\.\d*)?$/;
-const dateRE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
-const prefixMatch = /(?!xmlns)^.*:/;
+const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
+const PREFIX_MATCH_RE = /(?!xmlns)^.*:/;
+const ISO_DURATION_RE = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d+)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
 
 interface OnvifErrorOptions {
   /**
@@ -12,6 +13,11 @@ interface OnvifErrorOptions {
    */
   xml?: string;
 }
+
+/**
+ * Type for common duration values, ISO duration or milliseconds
+ */
+export type CommonDuration = string | number;
 
 export const xsany = '__any__';
 
@@ -102,10 +108,10 @@ export function linerase(xml: any, options: LineraseOptions = { array: [], rawXM
   if (xml === 'false') {
     return false;
   }
-  if (numberRE.test(xml)) {
+  if (NUMBER_RE.test(xml)) {
     return parseFloat(xml);
   }
-  if (dateRE.test(xml)) {
+  if (DATE_RE.test(xml)) {
     return new Date(xml);
   }
   return xml;
@@ -160,7 +166,7 @@ export type OnvifResponse = Promise<[Record<string, any>, string]>;
  * @param tagName
  */
 export function camelCase(tagName: string) {
-  const str = tagName.replace(prefixMatch, '');
+  const str = tagName.replace(PREFIX_MATCH_RE, '');
   if (str.length === 1) {
     return str.toLowerCase();
   }
@@ -172,7 +178,7 @@ export function camelCase(tagName: string) {
 }
 
 function stripPrefix(tagName: string) {
-  return tagName.replace(prefixMatch, '');
+  return tagName.replace(PREFIX_MATCH_RE, '');
 }
 
 /**
@@ -301,17 +307,22 @@ export const toOnvifXMLSchemaObject = {
 };
 
 /**
- * Convert milliseconds to ISO duration
- * @param ms
+ * Use ISO duration or convert milliseconds to ISO duration
+ * @param duration
  */
-export function msToIsoDuration(ms: number) {
-  if (ms <= 0) return 'PT0S';
+export function toIsoDuration(duration: CommonDuration): Duration {
+  if (typeof duration === 'string') {
+    if (!ISO_DURATION_RE.test(duration)) {
+      throw new Error(`"${duration}" is not a valid ISO duration value`);
+    }
+    return duration;
+  }
 
-  let totalSeconds = Math.floor(ms / 1000);
+  if (duration <= 0) return 'PT0S';
 
+  let totalSeconds = Math.floor(duration / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   totalSeconds %= 3600;
-
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
@@ -327,7 +338,10 @@ export function msToIsoDuration(ms: number) {
  * Converts an ISO Duration (H, M, S) to milliseconds.
  * @param duration - The duration string (e.g., "PT5S", "PT1M", "PT1H30M")
  */
-export function isoTimeToMs(duration: Duration) {
+export function toMs(duration: CommonDuration): number {
+  if (typeof duration === 'number') {
+    return duration;
+  }
   // Matches strict time duration: T followed by Hours, Minutes, and/or Seconds (including decimals)
   const regex = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?$/;
   const matches = duration.match(regex);
