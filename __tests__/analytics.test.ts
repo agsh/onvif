@@ -112,15 +112,14 @@ describe('Analytics', () => {
       const rule = rules.find((item) => item.name === 'MyCellMotionDetector');
       expect(rule).toBeDefined();
 
-      const modified = structuredClone(rule!);
-      const minCount = modified.parameters.simpleItem?.find((item) => item.name === 'MinCount');
+      const minCount = rule!.parameters.simpleItem?.find((item) => item.name === 'MinCount');
       expect(minCount).toBeDefined();
       const newValue = String(minCount!.value) === '5' ? '6' : '5';
       minCount!.value = newValue;
 
       await cam.analytics.modifyRules({
         configurationToken: CONFIGURATION_TOKEN,
-        rule: [modified],
+        rule: [rule!],
       });
 
       const updated = await cam.analytics.getRules({ configurationToken: CONFIGURATION_TOKEN });

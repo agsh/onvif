@@ -4,17 +4,19 @@
     "target": "ES2022",
     "sourceMap": true,
     "strict": true,
+    "rootDir": "./src",
     "outDir": "build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
     // "watch": true,
     "declaration": true,
-    "inlineSources": true
+    "inlineSources": true,
+    "types": ["node", "jest"]
   },
   "exclude": ["node_modules", "__test__"],
   "include": ["src/**/*"]
