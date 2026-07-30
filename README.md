@@ -27,7 +27,7 @@ This is a wrapper for the ONVIF protocol that allows you to:
 
 The library runs on Node.js and works server-side.
 
-[![ONVIF](https://www.onvif.org/wp-content/themes/onvif-public/images/logo.png)](http://onvif.org)
+[![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
 ## About
 

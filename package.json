@@ -34,6 +34,7 @@
     "url": "https://github.com/agsh/onvif.git"
   },
   "dependencies": {
+    "fast-xml-parser": "^5.10.1",
     "xml2js": "^0.6.2"
   },
   "keywords": [
@@ -76,5 +77,8 @@
     "typedoc-plugin-missing-exports": "^4.1.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.65.0"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true
   }
 }

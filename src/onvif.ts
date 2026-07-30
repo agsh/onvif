@@ -205,7 +205,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * @event event
    * @example
    * ```typescript
-   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * onvif.on('event', (msg) => { console.log(new Date().toLocaleTimeString(), 'new event', msg); });
    * ```
    */
   static readonly EVENT = 'event';
