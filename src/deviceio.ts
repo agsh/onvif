@@ -66,8 +66,8 @@ import {
  * ```
  */
 export class DeviceIO extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'deviceIO');
   }
 
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {

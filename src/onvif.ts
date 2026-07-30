@@ -23,6 +23,7 @@ import { Replay } from './replay';
 import { Imaging } from './imaging';
 import { Recording } from './recording';
 import { DoorControl } from './doorcontrol';
+import { Thermal } from './thermal';
 import { Analytics } from './analytics';
 import { DeviceIO } from './deviceio';
 import { Display } from './display';
@@ -68,6 +69,7 @@ export interface OnvifServices {
   recording?: URL;
   replay?: URL;
   doorcontrol?: URL;
+  thermal?: URL;
   actionengine?: URL;
   search?: URL;
   [key: string]: URL | undefined;
@@ -309,6 +311,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly doorControl: DoorControl;
   /**
+   * Thermal namespace for thermal v1.0 methods
+   * @example
+   * ```typescript
+   * const thermal = await onvif.thermal.getConfigurations();
+   * console.log(thermal);
+   * ```
+   */
+  public readonly thermal: Thermal;
+  /**
    * Analytics namespace for analytics v1.0 methods
    * @example
    * ```typescript
@@ -411,19 +422,20 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this, 'device');
-    this.media = new Media(this, 'media');
-    this.media2 = new Media2(this, 'media2');
-    this.ptz = new PTZ(this, 'PTZ');
+    this.device = new Device(this);
+    this.media = new Media(this);
+    this.media2 = new Media2(this);
+    this.ptz = new PTZ(this);
     this.events = new Events(this);
-    this.replay = new Replay(this, 'replay');
-    this.imaging = new Imaging(this, 'imaging');
-    this.recording = new Recording(this, 'recording');
-    this.doorControl = new DoorControl(this, 'doorcontrol');
-    this.analytics = new Analytics(this, 'analytics');
-    this.deviceIO = new DeviceIO(this, 'deviceIO');
-    this.display = new Display(this, 'display');
-    this.actionEngine = new ActionEngine(this, 'actionengine');
+    this.replay = new Replay(this);
+    this.imaging = new Imaging(this);
+    this.recording = new Recording(this);
+    this.doorControl = new DoorControl(this);
+    this.thermal = new Thermal(this);
+    this.analytics = new Analytics(this);
+    this.deviceIO = new DeviceIO(this);
+    this.display = new Display(this);
+    this.actionEngine = new ActionEngine(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {

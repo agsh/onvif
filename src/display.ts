@@ -7,12 +7,7 @@
 import { Onvif, OnvifServices } from './onvif';
 import Service from './service';
 import { toOnvifXMLSchemaObject } from './utils';
-import {
-  AudioEncoderConfiguration,
-  Layout,
-  PaneConfiguration,
-  PaneLayout,
-} from './interfaces/onvif';
+import { AudioEncoderConfiguration, Layout, PaneConfiguration, PaneLayout } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import {
   Capabilities,
@@ -32,8 +27,8 @@ import {
  * Display service
  */
 export class Display extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'display');
   }
 
   private static paneLayoutToBuild(paneLayout: PaneLayout) {
@@ -51,9 +46,7 @@ export class Display extends Service {
   }
 
   private static layoutToBuild(layout: Layout) {
-    const paneLayout = layout.paneLayout
-      ? layout.paneLayout.map((item) => Display.paneLayoutToBuild(item))
-      : undefined;
+    const paneLayout = layout.paneLayout ? layout.paneLayout.map((item) => Display.paneLayoutToBuild(item)) : undefined;
 
     return {
       ...(paneLayout && { PaneLayout: paneLayout.length === 1 ? paneLayout[0] : paneLayout }),
@@ -93,9 +86,7 @@ export class Display extends Service {
     if (!paneConfigurations?.length) {
       return undefined;
     }
-    const built = paneConfigurations.map((paneConfiguration) =>
-      Display.paneConfigurationToBuild(paneConfiguration),
-    );
+    const built = paneConfigurations.map((paneConfiguration) => Display.paneConfigurationToBuild(paneConfiguration));
     return built.length === 1 ? built[0] : built;
   }
 
@@ -174,10 +165,7 @@ export class Display extends Service {
    * Returns a pane configuration for a video output.
    * @param options
    */
-  async getPaneConfiguration({
-    videoOutput,
-    pane,
-  }: GetPaneConfiguration): Promise<PaneConfiguration> {
+  async getPaneConfiguration({ videoOutput, pane }: GetPaneConfiguration): Promise<PaneConfiguration> {
     const response = await this.request({
       GetPaneConfiguration: {
         VideoOutput: videoOutput,
@@ -217,10 +205,7 @@ export class Display extends Service {
    * Creates a pane configuration on a video output.
    * @param options
    */
-  async createPaneConfiguration({
-    videoOutput,
-    paneConfiguration,
-  }: CreatePaneConfiguration): Promise<ReferenceToken> {
+  async createPaneConfiguration({ videoOutput, paneConfiguration }: CreatePaneConfiguration): Promise<ReferenceToken> {
     const response = await this.request({
       CreatePaneConfiguration: {
         VideoOutput: videoOutput,

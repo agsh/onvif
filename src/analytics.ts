@@ -32,8 +32,8 @@ import {
  * Analytics service
  */
 export class Analytics extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'analytics');
   }
 
   private static configsToBuild(configs?: Config[]) {
