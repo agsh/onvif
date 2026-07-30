@@ -357,3 +357,17 @@ export function toMs(duration: CommonDuration): number {
 
   return hours * 3600000 + minutes * 60000 + seconds * 1000 + ms;
 }
+
+/**
+ * Get Digest headers from headers array
+ * @param headersArray
+ */
+export function getDigestHeaders(headersArray: string[]) {
+  const wwwAuthenticateArray = [];
+  for (let x = 0; x < headersArray.length; x = x + 2) {
+    if (headersArray[x].toLowerCase() === 'www-authenticate' && headersArray[x + 1].startsWith('Digest')) {
+      wwwAuthenticateArray.push(headersArray[x + 1]);
+    }
+  }
+  return wwwAuthenticateArray;
+}

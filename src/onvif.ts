@@ -237,26 +237,148 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * ```
    */
   public readonly device: Device;
+  /**
+   * Media namespace for media v1.0 methods
+   * @example
+   * ```typescript
+   * const profiles = await onvif.media.getProfiles();
+   * console.log(profiles);
+   * ```
+   */
   public readonly media: Media;
+  /**
+   * Media2 namespace for media2 v1.0 methods
+   * @example
+   * ```typescript
+   * const profiles = await onvif.media2.getProfiles();
+   * console.log(profiles);
+   * ```
+   */
   public readonly media2: Media2;
+  /**
+   * PTZ namespace for ptz v1.0 methods
+   * @example
+   * ```typescript
+   * const ptz = await onvif.ptz.getPTZStatus();
+   * console.log(ptz);
+   * ```
+   */
   public readonly ptz: PTZ;
+  /**
+   * Events namespace for events v1.0 methods
+   * @example
+   * ```typescript
+   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * ```
+   */
   public readonly events: Events;
+  /**
+   * Replay namespace for replay v1.0 methods
+   * @example
+   * ```typescript
+   * const replay = await onvif.replay.getReplayConfiguration();
+   * console.log(replay);
+   * ```
+   */
   public readonly replay: Replay;
+  /**
+   * Imaging namespace for imaging v1.0 methods
+   * @example
+   * ```typescript
+   * const imaging = await onvif.imaging.getImagingSettings();
+   * console.log(imaging);
+   * ```
+   */
   public readonly imaging: Imaging;
+  /**
+   * Recording namespace for recording v1.0 methods
+   * @example
+   * ```typescript
+   * const recording = await onvif.recording.getRecordingConfiguration();
+   * console.log(recording);
+   * ```
+   */
   public readonly recording: Recording;
+  /**
+   * DoorControl namespace for doorcontrol v1.0 methods
+   * @example
+   * ```typescript
+   * const doorControl = await onvif.doorControl.getDoorControlConfiguration();
+   * console.log(doorControl);
+   * ```
+   */
   public readonly doorControl: DoorControl;
+  /**
+   * Analytics namespace for analytics v1.0 methods
+   * @example
+   * ```typescript
+   * const analytics = await onvif.analytics.getAnalyticsConfiguration();
+   * console.log(analytics);
+   * ```
+   */
   public readonly analytics: Analytics;
+  /**
+   * DeviceIO namespace for deviceio v1.0 methods
+   * @example
+   * ```typescript
+   * const deviceIO = await onvif.deviceIO.getDeviceIOConfiguration();
+   * console.log(deviceIO);
+   * ```
+   */
   public readonly deviceIO: DeviceIO;
+  /**
+   * Display namespace for display v1.0 methods
+   * @example
+   * ```typescript
+   * const display = await onvif.display.getDisplayConfiguration();
+   * console.log(display);
+   * ```
+   */
   public readonly display: Display;
+  /**
+   * ActionEngine namespace for actionengine v1.0 methods
+   * @example
+   * ```typescript
+   * const actionEngine = await onvif.actionEngine.getActionEngineConfiguration();
+   * console.log(actionEngine);
+   * ```
+   */
   public readonly actionEngine: ActionEngine;
+  /**
+   * Indicates if the device is using secure connection
+   */
   public readonly useSecure: boolean;
+  /**
+   * Secure options for the connection
+   */
   public secureOptions: SecureContextOptions;
+  /**
+   * Use WS-Security for the connection (this is the default and adds security headers in the SOAP messages)
+   */
   public useWSSecurity: boolean;
+  /**
+   * Nonce for the connection
+   */
   private nc: number = 0;
+  /**
+   * Hostname of the ONVIF device
+   */
   public hostname: string;
+  /**
+   * Username for the connection
+   */
   public username?: string;
+  /**
+   * Password for the connection
+   */
   public password?: string;
+  /**
+   * Port for the connection
+   */
   public port: number;
+  /**
+   * Path for the connection
+   */
   public path: string;
   public timeout: number;
   public agent: HttpsAgent | HttpAgent | boolean;
@@ -323,7 +445,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  body(body: string) {
+  envelopeBody() {
     return {
       $: {
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -333,7 +455,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
-  header(options?: OnvifRequestOptions) {
+  /**
+   * Envelope header for all SOAP messages
+   * @param options
+   * @private
+   */
+  envelopeHeader(options?: OnvifRequestOptions) {
     const pd = this.useWSSecurity && this.username && this.password ? this.passwordDigest() : null;
     return {
       ...(pd && {
@@ -368,48 +495,6 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         ...options?.soapHeaders,
       }),
     };
-  }
-
-  /**
-   * Envelope header for all SOAP messages
-   * @param options
-   * @private
-   */
-  envelopeHeader(options?: OnvifRequestOptions) {
-    if (typeof options?.soapHeaders === 'object') {
-      return this.header(options);
-    }
-    let header =
-      '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">' +
-      '<s:Header>';
-    // Only insert Security if there is a username and password
-    if (this.useWSSecurity && this.username && this.password) {
-      const req = this.passwordDigest();
-      header +=
-        '<Security s:mustUnderstand="1" xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">' +
-        '<UsernameToken>' +
-        `<Username>${this.username}</Username>` +
-        `<Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${req.passDigest}</Password>` +
-        `<Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${req.nonce}</Nonce>` +
-        `<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${req.timestamp}</Created>` +
-        '</UsernameToken>' +
-        '</Security>';
-    }
-    if (options?.soapHeaders) {
-      header += options.soapHeaders;
-    }
-    header +=
-      '</s:Header>' +
-      '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
-    return header;
-  }
-
-  /**
-   * Envelope footer for all SOAP messages
-   * @private
-   */
-  private envelopeFooter() {
-    return '</s:Body>' + '</s:Envelope>';
   }
 
   private passwordDigest() {
@@ -584,7 +669,6 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     if (!options.body) {
       throw new Error("There is no 'body' field in request options");
     }
-    this.emit('requestBody', options.body);
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
@@ -592,14 +676,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
           'xmlns:a': 'http://www.w3.org/2005/08/addressing',
         },
-        's:Header': this.header(options),
-        's:Body': this.body(options.body),
+        's:Header': this.envelopeHeader(options),
+        's:Body': this.envelopeBody(),
       },
     };
     const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
+    this.emit('requestBody', body);
     return this.rawRequest({
       ...options,
-      //body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
       body,
     });
   }
