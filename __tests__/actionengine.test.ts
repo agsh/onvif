@@ -79,12 +79,11 @@ describe('ActionEngine (mocked)', () => {
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'actionengine',
-          body: expect.stringContaining('GetServiceCapabilities'),
-        }),
-      );
-      expect(cam.request).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.stringContaining(ACTIONENGINE_XMLNS),
+          body: {
+            GetServiceCapabilities: {
+              $: { xmlns: ACTIONENGINE_XMLNS },
+            },
+          },
         }),
       );
     });
@@ -152,11 +151,17 @@ describe('ActionEngine (mocked)', () => {
       expect(actions[0].token).toBe(ACTION_TOKEN);
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('CreateActions');
-      expect(body).toContain('Name="RelayOn"');
-      expect(body).toContain('Type="tt:RelayOutput"');
-      expect(body).toContain('Name="RelayToken"');
-      expect(body).toContain('Value="RelayOutputToken_1"');
+      expect(body).toEqual({
+        CreateActions: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          Action: {
+            $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
+            Parameters: {
+              SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+            },
+          },
+        },
+      });
     });
 
     it('should modify actions with token and configuration', async () => {
@@ -165,9 +170,20 @@ describe('ActionEngine (mocked)', () => {
       await cam.actionEngine.modifyActions({ action: [mockAction] });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('ModifyActions');
-      expect(body).toContain(`token="${ACTION_TOKEN}"`);
-      expect(body).toContain('Name="RelayOn"');
+      expect(body).toEqual({
+        ModifyActions: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          Action: {
+            $: { token: ACTION_TOKEN },
+            Configuration: {
+              $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
+              Parameters: {
+                SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+              },
+            },
+          },
+        },
+      });
     });
 
     it('should delete actions by token', async () => {
@@ -176,8 +192,12 @@ describe('ActionEngine (mocked)', () => {
       await cam.actionEngine.deleteActions({ token: [ACTION_TOKEN] });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('DeleteActions');
-      expect(body).toContain(`<Token>${ACTION_TOKEN}</Token>`);
+      expect(body).toEqual({
+        DeleteActions: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          Token: ACTION_TOKEN,
+        },
+      });
     });
   });
 
@@ -203,9 +223,15 @@ describe('ActionEngine (mocked)', () => {
       expect(triggers[0].token).toBe(TRIGGER_TOKEN);
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('CreateActionTriggers');
-      expect(body).toContain('<TopicExpression>tns1:RuleEngine/CellMotionDetector/Motion</TopicExpression>');
-      expect(body).toContain(`<ActionToken>${ACTION_TOKEN}</ActionToken>`);
+      expect(body).toEqual({
+        CreateActionTriggers: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          ActionTrigger: {
+            TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+            ActionToken: ACTION_TOKEN,
+          },
+        },
+      });
     });
 
     it('should modify action triggers with token and configuration', async () => {
@@ -214,9 +240,18 @@ describe('ActionEngine (mocked)', () => {
       await cam.actionEngine.modifyActionTriggers({ actionTrigger: [mockActionTrigger] });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('ModifyActionTriggers');
-      expect(body).toContain(`token="${TRIGGER_TOKEN}"`);
-      expect(body).toContain('<TopicExpression>tns1:RuleEngine/CellMotionDetector/Motion</TopicExpression>');
+      expect(body).toEqual({
+        ModifyActionTriggers: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          ActionTrigger: {
+            $: { token: TRIGGER_TOKEN },
+            Configuration: {
+              TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+              ActionToken: ACTION_TOKEN,
+            },
+          },
+        },
+      });
     });
 
     it('should delete action triggers by token', async () => {
@@ -225,8 +260,12 @@ describe('ActionEngine (mocked)', () => {
       await cam.actionEngine.deleteActionTriggers({ token: [TRIGGER_TOKEN] });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('DeleteActionTriggers');
-      expect(body).toContain(`<Token>${TRIGGER_TOKEN}</Token>`);
+      expect(body).toEqual({
+        DeleteActionTriggers: {
+          $: { xmlns: ACTIONENGINE_XMLNS },
+          Token: TRIGGER_TOKEN,
+        },
+      });
     });
   });
 

@@ -61,12 +61,11 @@ describe('Display (mocked)', () => {
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'display',
-          body: expect.stringContaining('GetServiceCapabilities'),
-        }),
-      );
-      expect(cam.request).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.stringContaining(DISPLAY_XMLNS),
+          body: {
+            GetServiceCapabilities: {
+              $: { xmlns: DISPLAY_XMLNS },
+            },
+          },
         }),
       );
     });
@@ -92,7 +91,12 @@ describe('Display (mocked)', () => {
       expect(layout.paneLayout![0].pane).toBe(PANE_TOKEN);
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.stringContaining(`<VideoOutput>${VIDEO_OUTPUT_TOKEN}</VideoOutput>`),
+          body: {
+            GetLayout: {
+              $: { xmlns: DISPLAY_XMLNS },
+              VideoOutput: VIDEO_OUTPUT_TOKEN,
+            },
+          },
         }),
       );
     });
@@ -106,11 +110,20 @@ describe('Display (mocked)', () => {
       });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('SetLayout');
-      expect(body).toContain(`<VideoOutput>${VIDEO_OUTPUT_TOKEN}</VideoOutput>`);
-      expect(body).toContain(`<Pane>${PANE_TOKEN}</Pane>`);
-      expect(body).toContain('bottom="-1"');
-      expect(body).toContain('top="1"');
+      expect(body).toEqual({
+        SetLayout: {
+          $: { xmlns: DISPLAY_XMLNS },
+          VideoOutput: VIDEO_OUTPUT_TOKEN,
+          Layout: {
+            PaneLayout: {
+              Pane: PANE_TOKEN,
+              Area: {
+                $: { bottom: -1, top: 1, right: 1, left: -1 },
+              },
+            },
+          },
+        },
+      });
     });
   });
 
@@ -174,7 +187,13 @@ describe('Display (mocked)', () => {
       expect(configuration.token).toBe(PANE_TOKEN);
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.stringContaining(`<Pane>${PANE_TOKEN}</Pane>`),
+          body: {
+            GetPaneConfiguration: {
+              $: { xmlns: DISPLAY_XMLNS },
+              VideoOutput: VIDEO_OUTPUT_TOKEN,
+              Pane: PANE_TOKEN,
+            },
+          },
         }),
       );
     });
@@ -188,10 +207,17 @@ describe('Display (mocked)', () => {
       });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('SetPaneConfiguration');
-      expect(body).toContain(`token="${PANE_TOKEN}"`);
-      expect(body).toContain('<PaneName>MainPane</PaneName>');
-      expect(body).toContain(`<ReceiverToken>${mockPane.receiverToken}</ReceiverToken>`);
+      expect(body).toEqual({
+        SetPaneConfiguration: {
+          $: { xmlns: DISPLAY_XMLNS },
+          VideoOutput: VIDEO_OUTPUT_TOKEN,
+          PaneConfiguration: {
+            $: { token: PANE_TOKEN },
+            PaneName: 'MainPane',
+            ReceiverToken: mockPane.receiverToken,
+          },
+        },
+      });
     });
 
     it('should send SetPaneConfigurations for multiple panes', async () => {
@@ -208,9 +234,23 @@ describe('Display (mocked)', () => {
       });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('SetPaneConfigurations');
-      expect(body).toContain(`token="${PANE_TOKEN}"`);
-      expect(body).toContain(`token="PaneToken_2"`);
+      expect(body).toEqual({
+        SetPaneConfigurations: {
+          $: { xmlns: DISPLAY_XMLNS },
+          VideoOutput: VIDEO_OUTPUT_TOKEN,
+          PaneConfiguration: [
+            {
+              $: { token: PANE_TOKEN },
+              PaneName: 'MainPane',
+              ReceiverToken: mockPane.receiverToken,
+            },
+            {
+              $: { token: 'PaneToken_2' },
+              PaneName: 'SecondPane',
+            },
+          ],
+        },
+      });
     });
 
     it('should return a pane token from createPaneConfiguration', async () => {
@@ -227,7 +267,17 @@ describe('Display (mocked)', () => {
       expect(paneToken).toBe('PaneToken_New');
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.stringContaining('CreatePaneConfiguration'),
+          body: {
+            CreatePaneConfiguration: {
+              $: { xmlns: DISPLAY_XMLNS },
+              VideoOutput: VIDEO_OUTPUT_TOKEN,
+              PaneConfiguration: {
+                $: { token: PANE_TOKEN },
+                PaneName: 'MainPane',
+                ReceiverToken: mockPane.receiverToken,
+              },
+            },
+          },
         }),
       );
     });
@@ -241,8 +291,13 @@ describe('Display (mocked)', () => {
       });
 
       const { body } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(body).toContain('DeletePaneConfiguration');
-      expect(body).toContain(`<PaneToken>${PANE_TOKEN}</PaneToken>`);
+      expect(body).toEqual({
+        DeletePaneConfiguration: {
+          $: { xmlns: DISPLAY_XMLNS },
+          VideoOutput: VIDEO_OUTPUT_TOKEN,
+          PaneToken: PANE_TOKEN,
+        },
+      });
     });
   });
 
