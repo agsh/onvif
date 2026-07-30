@@ -150,7 +150,7 @@ export class Media2 extends Service {
       {
         GetProfiles: {
           ...(token !== undefined && { Token: token }),
-          Type: type !== undefined ? type.join(' ') : 'All',
+          Type: type !== undefined ? type : 'All',
         },
       },
       { array: ['profiles'] },

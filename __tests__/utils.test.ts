@@ -1,5 +1,15 @@
 import xml2js, { parseStringPromise } from 'xml2js';
-import { build, guid, linerase, parseSOAPString, splitArgs, struct, toOnvifXMLSchemaObject } from '../src/utils';
+import {
+  build,
+  guid,
+  linerase,
+  parseSOAPString,
+  splitArgs,
+  struct,
+  toIsoDuration,
+  toMs,
+  toOnvifXMLSchemaObject,
+} from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 
 describe('Linerase function', () => {
@@ -100,6 +110,53 @@ describe('splitArgs function', () => {
 
   it('should return an empty part for an empty string', () => {
     expect(splitArgs('')).toEqual(['']);
+  });
+});
+
+describe('toIsoDuration', () => {
+  it('should return valid ISO duration strings as is', () => {
+    expect(toIsoDuration('PT1H2M3S')).toBe('PT1H2M3S');
+    expect(toIsoDuration('P1D')).toBe('P1D');
+  });
+
+  it('should convert non-positive durations to zero seconds', () => {
+    expect(toIsoDuration(0)).toBe('PT0S');
+    expect(toIsoDuration(-1)).toBe('PT0S');
+  });
+
+  it('should convert milliseconds to ISO duration with truncated milliseconds', () => {
+    expect(toIsoDuration(1500)).toBe('PT1S');
+    expect(toIsoDuration(65000)).toBe('PT1M5S');
+    expect(toIsoDuration(3661000)).toBe('PT1H1M1S');
+    expect(toIsoDuration(3600000)).toBe('PT1H');
+  });
+
+  it('should throw for invalid ISO duration strings', () => {
+    expect(() => toIsoDuration('hello')).toThrow('"hello" is not a valid ISO duration value');
+    expect(() => toIsoDuration('PT')).toThrow('"PT" is not a valid ISO duration value');
+  });
+});
+
+describe('toMs', () => {
+  it('should return numbers as is', () => {
+    expect(toMs(1234)).toBe(1234);
+  });
+
+  it('should convert ISO durations to milliseconds', () => {
+    expect(toMs('PT5S')).toBe(5000);
+    expect(toMs('PT1M')).toBe(60000);
+    expect(toMs('PT1H30M')).toBe(5400000);
+    expect(toMs('PT1H2M3.456S')).toBe(3723456);
+  });
+
+  it('should support fractional seconds rounding to milliseconds', () => {
+    expect(toMs('PT0.4S')).toBe(400);
+    expect(toMs('PT0.005S')).toBe(5);
+  });
+
+  it('should throw for invalid ISO time duration strings', () => {
+    expect(() => toMs('P1D')).toThrow('Invalid ISO Time Duration format: P1D');
+    expect(() => toMs('1H')).toThrow('Invalid ISO Time Duration format: 1H');
   });
 });
 

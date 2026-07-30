@@ -9,8 +9,8 @@
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "eslint . --no-warn-ignored",
     "pretest": "npm run lint",
-    "test-local": "jest --env=node --runInBand --colors --coverage test",
-    "test": "./__tests__/happytime-onvif-server/start.sh & jest --env=node --runInBand --colors --coverageReporters=\"json-summary\" --coverage test && ./__tests__/happytime-onvif-server/stop.sh"
+    "test-local": "jest --env=node --runInBand --colors --coverage --forceExit",
+    "test": "sh -c './__tests__/happytime-onvif-server/stop.sh; ./__tests__/happytime-onvif-server/start.sh & ./__tests__/happytime-onvif-server/wait-ready.sh && ./__tests__/happytime-onvif-server/hydrate-profiles.sh && jest --env=node --runInBand --colors --coverageReporters=json-summary --coverage --forceExit; code=$?; ./__tests__/happytime-onvif-server/stop.sh; exit $code'"
   },
   "contributors": [
     {
@@ -53,6 +53,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.0",
     "@types/jest": "^29.5.14",
+    "@types/keypress": "^2.0.30",
     "@types/node": "^20.11.24",
     "@types/xml2js": "^0.4.14",
     "chalk": "^4.1.2",

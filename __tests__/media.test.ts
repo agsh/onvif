@@ -56,19 +56,22 @@ describe('Profiles', () => {
 
     it('should return media profiles ver10', async () => {
       cam.device.media2Support = false;
-      const result = await cam.media.getProfiles();
-      expect(result.length).toBeGreaterThan(0);
-      expect(result[0]).toHaveProperty('token');
-      expect(result[0]).toHaveProperty('fixed');
-      expect(result[0]).toHaveProperty('name');
-      expect(result[0]).toHaveProperty('videoSourceConfiguration');
-      expect(result[0]).toHaveProperty('audioSourceConfiguration');
-      expect(result[0]).toHaveProperty('videoEncoderConfiguration');
-      expect(result[0]).toHaveProperty('audioEncoderConfiguration');
-      expect(result[0]).toHaveProperty('videoAnalyticsConfiguration');
-      expect(result[0]).toHaveProperty('PTZConfiguration');
-      expect(result[0]).toHaveProperty('metadataConfiguration');
-      cam.device.media2Support = true;
+      try {
+        const result = await cam.media.getProfiles();
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0]).toHaveProperty('token');
+        expect(result[0]).toHaveProperty('fixed');
+        expect(result[0]).toHaveProperty('name');
+        expect(result[0]).toHaveProperty('videoSourceConfiguration');
+        expect(result[0]).toHaveProperty('audioSourceConfiguration');
+        expect(result[0]).toHaveProperty('videoEncoderConfiguration');
+        expect(result[0]).toHaveProperty('audioEncoderConfiguration');
+        expect(result[0]).toHaveProperty('videoAnalyticsConfiguration');
+        expect(result[0]).toHaveProperty('PTZConfiguration');
+        expect(result[0]).toHaveProperty('metadataConfiguration');
+      } finally {
+        cam.device.media2Support = true;
+      }
     });
   });
 
@@ -96,9 +99,12 @@ describe('Profiles', () => {
 
     it('should return the profile ver10 by its token', async () => {
       cam.device.media2Support = false;
-      const result = await cam.media.getProfile({ profileToken: newProfileToken });
-      expect(result.fixed).toBe(false);
-      cam.device.media2Support = true;
+      try {
+        const result = await cam.media.getProfile({ profileToken: newProfileToken });
+        expect(result.fixed).toBe(false);
+      } finally {
+        cam.device.media2Support = true;
+      }
     });
   });
 
@@ -435,10 +441,18 @@ describe('Add/remove configurations to the profile', () => {
 
   configurationNames.forEach((configurationName) => {
     describe(`remove${configurationName}`, () => {
-      it('should not throw an error if profile token empty and use active source', async () => {
-        await expect(
-          mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({}),
-        ).resolves.toBeUndefined();
+      it('should default to activeSource profile when profile token is omitted', async () => {
+        const previous = cam.activeSource;
+        // Point activeSource at the disposable test profile so we do not strip the
+        // shared Happytime ProfileToken_1 used by later suites.
+        cam.activeSource = { ...previous!, profileToken };
+        try {
+          await expect(
+            mediaTestCallable(cam.media)[`remove${configurationName}Configuration`]({}),
+          ).resolves.toBeUndefined();
+        } finally {
+          cam.activeSource = previous;
+        }
       });
 
       it('should throw an error if profile token does not exist', async () => {
@@ -463,7 +477,7 @@ describe('Add/remove configurations to the profile', () => {
 
   describe('Shutdown', () => {
     it('should remove test profile', async () => {
-      await cam.media.deleteProfile({ profileToken });
+      expect(await cam.media.deleteProfile({ profileToken })).toBeUndefined();
     });
   });
 });
@@ -830,6 +844,7 @@ describe('Configurations', () => {
             name: 'profile',
           })
         ).token;
+        expect(profileToken).toBeDefined();
       });
 
       Object.keys(configurationEntityFields).forEach((configurationName) => {
@@ -847,6 +862,7 @@ describe('Configurations', () => {
 
       it('should have all configurations', async () => {
         profile = await cam.media.getProfile({ profileToken });
+        expect(profile).toBeDefined();
         // TODO finish
         // console.log(util.inspect(profile, { colors : true, depth : 100 }));
       });
@@ -1047,7 +1063,7 @@ describe('Configurations', () => {
 
     describe('Finalize', () => {
       it('Remove testing profile', async () => {
-        await cam.media.deleteProfile({ profileToken });
+        expect(await cam.media.deleteProfile({ profileToken })).toBeUndefined();
       });
     });
   });

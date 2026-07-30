@@ -3,9 +3,7 @@
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  */
 
-import {
-  Onvif, OnvifServices, SetSystemDateAndTimeExtended,
-} from './onvif';
+import { Onvif, OnvifServices, SetSystemDateAndTimeExtended } from './onvif';
 import Service from './service';
 import {
   AddIPAddressFilter,
@@ -124,15 +122,25 @@ export class Device extends Service {
   }
   public media2Support = false;
   #scopes: Scope[] = [];
-  get scopes() { return this.#scopes; }
+  get scopes() {
+    return this.#scopes;
+  }
   #serviceCapabilities?: DeviceServiceCapabilities;
-  get serviceCapabilities() { return this.#serviceCapabilities; }
+  get serviceCapabilities() {
+    return this.#serviceCapabilities;
+  }
   #NTP?: NTPInformation;
-  get NTP() { return this.#NTP; }
+  get NTP() {
+    return this.#NTP;
+  }
   #DNS?: DNSInformation;
-  get DNS() { return this.#DNS; }
+  get DNS() {
+    return this.#DNS;
+  }
   #networkInterfaces?: NetworkInterface[];
-  get networkInterfaces() { return this.#networkInterfaces; }
+  get networkInterfaces() {
+    return this.#networkInterfaces;
+  }
 
   constructor(onvif: Onvif, service: keyof OnvifServices) {
     super(onvif, service);
@@ -382,7 +390,7 @@ export class Device extends Service {
   /**
    * Returns information about services of the device.
    */
-  async getServices({ includeCapability }: GetServices = { includeCapability : true }): Promise<GetServicesResponse> {
+  async getServices({ includeCapability }: GetServices = { includeCapability: true }): Promise<GetServicesResponse> {
     const response = await this.request({
       GetServices: {
         IncludeCapability: includeCapability,
@@ -396,7 +404,10 @@ export class Device extends Service {
     // fill Cam#uri property
     this.#services.forEach((service) => {
       // Look for services with namespaces and XAddr values
-      if (Object.prototype.hasOwnProperty.call(service, 'namespace') && Object.prototype.hasOwnProperty.call(service, 'XAddr')) {
+      if (
+        Object.prototype.hasOwnProperty.call(service, 'namespace') &&
+        Object.prototype.hasOwnProperty.call(service, 'XAddr')
+      ) {
         // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
         if (!service.namespace || !service.XAddr) {
           return;
@@ -427,7 +438,7 @@ export class Device extends Service {
    */
   async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
     if (!options || !options.category) {
-      options = { category : ['All'] };
+      options = { category: ['All'] };
     }
     const response = await this.request({
       GetCapabilities: {
@@ -440,7 +451,9 @@ export class Device extends Service {
       if (name in this.onvif.capabilities) {
         const capabilityName = name as keyof Capabilities;
         if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
-          this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(this.onvif.capabilities[capabilityName]!.XAddr as string);
+          this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(
+            this.onvif.capabilities[capabilityName]!.XAddr as string,
+          );
         }
       }
     });
@@ -449,8 +462,9 @@ export class Device extends Service {
       Object.keys(this.onvif.capabilities.extension).forEach((ext) => {
         const extensionName = ext as keyof CapabilitiesExtension;
         // TODO think about complex extensions like `telexCapabilities` and `scdlCapabilities`
-        if ('XAddr' in this.onvif.capabilities.extension![extensionName]!
-          && this.onvif.capabilities.extension![extensionName]!.XAddr
+        if (
+          'XAddr' in this.onvif.capabilities.extension![extensionName]! &&
+          this.onvif.capabilities.extension![extensionName]!.XAddr
         ) {
           this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr as string);
         }
@@ -458,7 +472,7 @@ export class Device extends Service {
       // HACK for a Profile G NVR that has 'replay' but did not have 'recording' in GetCapabilities
       if (this.onvif.uri.replay && !this.onvif.uri.recording) {
         const tempRecorderXaddr = this.onvif.uri.replay.href.replace('replay', 'recording');
-        this.onvif.emit('warn', `Adding ${tempRecorderXaddr} for bad Profile G device`);
+        this.onvif.emit('warn', new Error(`Adding ${tempRecorderXaddr} for bad Profile G device`));
         this.onvif.uri.recording = new URL(tempRecorderXaddr);
       }
     }
@@ -521,7 +535,8 @@ export class Device extends Service {
     const capabilitiesResponse = response.getServiceCapabilitiesResponse;
     this.#serviceCapabilities = capabilitiesResponse.capabilities;
     if (capabilitiesResponse.capabilities?.misc?.auxiliaryCommands !== undefined) {
-      this.#serviceCapabilities!.misc!.auxiliaryCommands = capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
+      this.#serviceCapabilities!.misc!.auxiliaryCommands =
+        capabilitiesResponse.capabilities.misc.auxiliaryCommands.split(' ');
     }
     return this.#serviceCapabilities!;
   }
@@ -541,8 +556,12 @@ export class Device extends Service {
   async getNTP(): Promise<NTPInformation> {
     const response = await this.request({ GetNTP: {} });
     this.#NTP = response.getNTPResponse.NTPInformation;
-    if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) { this.#NTP.NTPManual = [this.#NTP.NTPManual]; }
-    if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) { this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP]; }
+    if (this.#NTP?.NTPManual && !Array.isArray(this.#NTP.NTPManual)) {
+      this.#NTP.NTPManual = [this.#NTP.NTPManual];
+    }
+    if (this.#NTP?.NTPFromDHCP && !Array.isArray(this.#NTP.NTPFromDHCP)) {
+      this.#NTP.NTPFromDHCP = [this.#NTP.NTPFromDHCP];
+    }
     return this.#NTP!;
   }
 
@@ -553,10 +572,9 @@ export class Device extends Service {
     const response = await this.request({
       SetNTP: {
         FromDHCP: options.fromDHCP ?? false,
-        ...(options.NTPManual && Array.isArray(options.NTPManual) && {
-          NTPManual: options.NTPManual
-            .filter((NTPManual) => NTPManual.type)
-            .map((NTPManual) => ({
+        ...(options.NTPManual &&
+          Array.isArray(options.NTPManual) && {
+            NTPManual: options.NTPManual.filter((NTPManual) => NTPManual.type).map((NTPManual) => ({
               Type: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.type },
               ...(NTPManual.IPv4Address && {
                 IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.IPv4Address },
@@ -571,7 +589,7 @@ export class Device extends Service {
                 Extension: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.extension },
               }),
             })),
-        }),
+          }),
       },
     });
     if (response.setNTPResponse.length !== 0) {
@@ -587,8 +605,12 @@ export class Device extends Service {
   async getDNS(): Promise<DNSInformation> {
     const response = await this.request({ GetDNS: {} });
     this.#DNS = response.getDNSResponse.DNSInformation;
-    if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) { this.#DNS.DNSManual = [this.#DNS.DNSManual]; }
-    if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) { this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP]; }
+    if (this.#DNS?.DNSManual && !Array.isArray(this.#DNS.DNSManual)) {
+      this.#DNS.DNSManual = [this.#DNS.DNSManual];
+    }
+    if (this.#DNS?.DNSFromDHCP && !Array.isArray(this.#DNS.DNSFromDHCP)) {
+      this.#DNS.DNSFromDHCP = [this.#DNS.DNSFromDHCP];
+    }
     return this.#DNS!;
   }
 
@@ -596,13 +618,13 @@ export class Device extends Service {
     const response = await this.request({
       SetDNS: {
         FromDHCP: !!options.fromDHCP,
-        ...(options.searchDomain && Array.isArray(options.searchDomain) && {
-          SearchDomain: options.searchDomain,
-        }),
-        ...(options.DNSManual && Array.isArray(options.DNSManual) && {
-          DNSManual: options.DNSManual
-            .filter((DNSManual) => DNSManual.type)
-            .map((DNSManual) => ({
+        ...(options.searchDomain &&
+          Array.isArray(options.searchDomain) && {
+            SearchDomain: options.searchDomain,
+          }),
+        ...(options.DNSManual &&
+          Array.isArray(options.DNSManual) && {
+            DNSManual: options.DNSManual.filter((DNSManual) => DNSManual.type).map((DNSManual) => ({
               Type: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.type },
               ...(DNSManual.IPv4Address && {
                 IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv4Address },
@@ -611,7 +633,7 @@ export class Device extends Service {
                 IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv6Address },
               }),
             })),
-        }),
+          }),
       },
     });
     if (response.setDNSResponse.length !== 0) {
@@ -625,7 +647,7 @@ export class Device extends Service {
    * interface configuration settings as defined by the NetworkInterface type through the GetNetworkInterfaces command.
    */
   async getNetworkInterfaces(): Promise<NetworkInterface[]> {
-    const response = await this.request({ GetNetworkInterfaces: {} }, { array : ['networkInterfaces', 'manual'] });
+    const response = await this.request({ GetNetworkInterfaces: {} }, { array: ['networkInterfaces', 'manual'] });
     const { networkInterfaces } = response.getNetworkInterfacesResponse;
     this.#networkInterfaces = Array.isArray(networkInterfaces) ? networkInterfaces : [];
     return this.#networkInterfaces;
@@ -637,7 +659,7 @@ export class Device extends Service {
   async setNetworkInterfaces(options: SetNetworkInterfaces): Promise<SetNetworkInterfacesResponse> {
     const { networkInterface } = options;
     if (!networkInterface) {
-      return { rebootNeeded : false };
+      return { rebootNeeded: false };
     }
     const response = await this.request({
       SetNetworkInterfaces: {
@@ -784,11 +806,14 @@ export class Device extends Service {
   }
 
   async getUserRoles(options: GetUserRoles = {}) {
-    const response = await this.request({
-      GetUserRoles: {
-        ...(options.userRole !== undefined && { UserRole: options.userRole }),
+    const response = await this.request(
+      {
+        GetUserRoles: {
+          ...(options.userRole !== undefined && { UserRole: options.userRole }),
+        },
       },
-    }, { array: ['userRole'] });
+      { array: ['userRole'] },
+    );
     return response.getUserRolesResponse.userRole ?? [];
   }
 
@@ -1187,9 +1212,12 @@ export class Device extends Service {
   }
 
   async scanAvailableDot11Networks({ interfaceToken }: ScanAvailableDot11Networks) {
-    const response = await this.request({
-      ScanAvailableDot11Networks: { InterfaceToken: interfaceToken },
-    }, { array: ['networks'] });
+    const response = await this.request(
+      {
+        ScanAvailableDot11Networks: { InterfaceToken: interfaceToken },
+      },
+      { array: ['networks'] },
+    );
     return response.scanAvailableDot11NetworksResponse.networks ?? [];
   }
 

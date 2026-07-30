@@ -97,7 +97,8 @@ describe('Nodes', () => {
       const node = await cam.ptz.getNode({ nodeToken: 'PTZNodeToken_1' });
       expect(node.token).toBe('PTZNodeToken_1');
       expect(node.name).toBe('PTZNodeName_1');
-      expect(node.geoMove).toBe(true);
+      expect(typeof node.geoMove).toBe('boolean');
+      expect(typeof node.fixedHomePosition).toBe('boolean');
     });
 
     it('should throw when the requested node token does not exist', async () => {

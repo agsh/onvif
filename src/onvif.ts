@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { linerase, parseSOAPString, splitArgs } from './utils';
+import { build, linerase, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -85,18 +85,8 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   ptz?: boolean;
   /** Timeout for pull-point event requests */
   timeout?: number;
-  /** Keep header open
-   * @deprecated
-   */
-  openHeader?: boolean;
   /** Additional SOAP-headers */
-  soapHeaders?: string;
-}
-
-interface RequestError extends Error {
-  code: string;
-  errno: string;
-  syscall: string;
+  soapHeaders?: Record<string, any>;
 }
 
 /**
@@ -148,22 +138,20 @@ export interface SystemDateTimeExtended extends SystemDateTime {
   dateTime: Date;
 }
 
-type OnvifEvents = {
-  newListener: string; // private usage for event handling
-  [Onvif.EVENT]: NotificationMessage;
-  [Onvif.RAW_REQUEST]: string;
-  [Onvif.RAW_RESPONSE]: string;
-  [Onvif.WARN]: Error;
-  [Onvif.ERROR]: Error;
-  [Onvif.EVENTS_ERROR]: Error;
-  [Onvif.CONNECT]: void;
-};
+interface OnvifEvents {
+  [Onvif.EVENT]: [msg: NotificationMessage];
+  [Onvif.ERROR]: [error: Error];
+  [Onvif.CONNECT]: [];
+  [Onvif.RAW_REQUEST]: [xml: string, requestOptions: http.RequestOptions];
+  [Onvif.REQUEST_BODY]: [body: string];
+  [Onvif.RAW_RESPONSE]: [xml: string];
+  [Onvif.WARN]: [error: Error];
+  [Onvif.EVENTS_ERROR]: [error: Error];
+  newListener: [event: string, listener: (...args: any[]) => void];
+  removeListener: [event: string, listener: (...args: any[]) => void];
+}
 
-export class Onvif extends EventEmitter {
-  on<K extends keyof OnvifEvents>(event: K, listener: (payload: OnvifEvents[K]) => void): this {
-    return super.on(event, listener);
-  }
-
+export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Indicates raw xml response from device.
    * @event rawResponse
@@ -183,6 +171,12 @@ export class Onvif extends EventEmitter {
    * ```
    */
   static readonly RAW_REQUEST = 'rawRequest';
+
+  /**
+   * Shows body of request
+   * @event
+   */
+  static readonly REQUEST_BODY = 'requestBody';
 
   /**
    * Indicates any errors except events errors
@@ -313,9 +307,12 @@ export class Onvif extends EventEmitter {
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        setImmediate(() => {
-          this.events.eventRequest();
-        });
+        this.events.globalSubscription.subscribe().catch((error) => this.emit('error', error));
+      }
+    });
+    this.on('removeListener', (name) => {
+      if (name === 'event' && this.listeners(name).length === 0) {
+        this.events.globalSubscription.unsubscribe().catch((error) => this.emit('error', error));
       }
     });
 
@@ -326,12 +323,62 @@ export class Onvif extends EventEmitter {
     }
   }
 
+  body(body: string) {
+    return {
+      $: {
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+      },
+      _: 'RAW_XML_PLACEHOLDER',
+    };
+  }
+
+  header(options?: OnvifRequestOptions) {
+    const pd = this.useWSSecurity && this.username && this.password ? this.passwordDigest() : null;
+    return {
+      ...(pd && {
+        Security: {
+          $: {
+            's:mustUnderstand': '1',
+            xmlns: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+          },
+          UsernameToken: {
+            Username: this.username,
+            Password: {
+              $: {
+                Type: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest',
+              },
+              _: pd.passDigest,
+            },
+            Nonce: {
+              $: {
+                EncodingType:
+                  'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
+              },
+              _: pd.nonce,
+            },
+            Created: {
+              $: {
+                xmlns: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+              },
+              _: pd.timestamp,
+            },
+          },
+        },
+        ...options?.soapHeaders,
+      }),
+    };
+  }
+
   /**
    * Envelope header for all SOAP messages
    * @param options
    * @private
    */
   envelopeHeader(options?: OnvifRequestOptions) {
+    if (typeof options?.soapHeaders === 'object') {
+      return this.header(options);
+    }
     let header =
       '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing">' +
       '<s:Header>';
@@ -351,11 +398,9 @@ export class Onvif extends EventEmitter {
     if (options?.soapHeaders) {
       header += options.soapHeaders;
     }
-    if (options?.openHeader !== true) {
-      header +=
-        '</s:Header>' +
-        '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
-    }
+    header +=
+      '</s:Header>' +
+      '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">';
     return header;
   }
 
@@ -406,7 +451,7 @@ export class Onvif extends EventEmitter {
                 : this.path,
               port: this.port,
             }),
-        agent: this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
+        agent: options.agent ?? this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
         timeout: this.timeout,
       };
       requestOptions.headers = {
@@ -458,25 +503,24 @@ export class Onvif extends EventEmitter {
         return undefined;
       });
 
+      // let handle timeout by itself and produce network error to catch below
       request.setTimeout(options.timeout ?? this.timeout, () => {
-        if (alreadyReturned) {
-          return;
-        }
-        alreadyReturned = true;
-        request.destroy();
-        reject(new Error('Network timeout'));
+        const err = new Error('Network timeout') as NodeJS.ErrnoException;
+        err.code = 'ETIMEDOUT';
+        err.syscall = 'connect';
+        request.destroy(err);
       });
 
-      request.on('error', (error: RequestError) => {
+      request.on('error', (error: NodeJS.ErrnoException) => {
         if (alreadyReturned) {
           return;
         }
         alreadyReturned = true;
         /* address, port number or IPCam error */
-        if (error.code === 'ECONNREFUSED' && error.errno === 'ECONNREFUSED' && error.syscall === 'connect') {
+        if (error.code === 'ECONNREFUSED' && error.syscall === 'connect') {
           reject(error);
           /* network error */
-        } else if (error.code === 'ECONNRESET' && error.errno === 'ECONNRESET' && error.syscall === 'read') {
+        } else if (error.code === 'ECONNRESET' && error.syscall === 'read') {
           reject(error);
         } else {
           reject(error);
@@ -542,9 +586,21 @@ export class Onvif extends EventEmitter {
     }
     this.emit('requestBody', options.body);
     options.headers = options.headers ?? {};
+    const bodyObject = {
+      's:Envelope': {
+        $: {
+          'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
+          'xmlns:a': 'http://www.w3.org/2005/08/addressing',
+        },
+        's:Header': this.header(options),
+        's:Body': this.body(options.body),
+      },
+    };
+    const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
     return this.rawRequest({
       ...options,
-      body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
+      //body: `${this.envelopeHeader(options)}${options.body}${this.envelopeFooter()}`,
+      body,
     });
   }
 
@@ -723,19 +779,31 @@ export class Onvif extends EventEmitter {
    * @private
    */
   private async getActiveSources() {
+    if (!this.media.videoSources?.length) {
+      return;
+    }
+
     this.media.videoSources.forEach(({ token: videoSrcToken }, idx) => {
       // let's choose first appropriate profile for our video source and make it default
-      const appropriateProfiles = this.media.profiles.filter(
+      let appropriateProfiles = this.media.profiles.filter(
         (profile) =>
           profile.videoSourceConfiguration?.sourceToken === videoSrcToken &&
           profile.videoEncoderConfiguration !== undefined,
       );
+
+      // Happytime and some devices return profiles without VideoSourceConfiguration.
+      // Fall back to any profile that has an encoder, then to any profile at all.
+      if (appropriateProfiles.length === 0) {
+        appropriateProfiles = this.media.profiles.filter((profile) => profile.videoEncoderConfiguration !== undefined);
+      }
+      if (appropriateProfiles.length === 0) {
+        appropriateProfiles = [...this.media.profiles];
+      }
       if (appropriateProfiles.length === 0) {
         if (idx === 0) {
-          throw new Error('Unrecognized configuration');
-        } else {
-          return;
+          this.emit(Onvif.WARN, new Error('Unrecognized configuration: no media profiles available for video sources'));
         }
+        return;
       }
 
       if (idx === 0) {
@@ -747,7 +815,7 @@ export class Onvif extends EventEmitter {
       this.activeSources[idx] = {
         sourceToken: videoSrcToken,
         profileToken: this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration!.token,
+        videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
         videoSourceToken: videoSrcToken,
       };
       if (this.defaultProfiles[idx].videoEncoderConfiguration) {
