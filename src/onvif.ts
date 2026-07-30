@@ -80,7 +80,7 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
-  body: string;
+  body: string | Record<string, any>;
   /** Defines another url to request */
   url?: URL;
   /** Make request to PTZ uri or not */
@@ -457,14 +457,24 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  envelopeBody() {
-    return {
-      $: {
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
-      },
-      _: 'RAW_XML_PLACEHOLDER',
-    };
+  envelopeBody(body: Record<string, any> | string) {
+    if (typeof body === 'string') {
+      return {
+        $: {
+          'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+          'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+        },
+        _: 'RAW_XML_PLACEHOLDER',
+      };
+    } else {
+      return {
+        $: {
+          'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+          'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+        },
+        ...body,
+      };
+    }
   }
 
   /**
@@ -528,6 +538,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
     return new Promise((resolve, reject) => {
+      if (typeof options.body !== 'string') {
+        return reject(new Error('Request body in rawRequest must be a string'));
+      }
       let alreadyReturned = false;
       const requestOptions: RequestOptions = {
         ...options,
@@ -733,10 +746,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           'xmlns:a': 'http://www.w3.org/2005/08/addressing',
         },
         's:Header': this.envelopeHeader(options),
-        's:Body': this.envelopeBody(),
+        's:Body': this.envelopeBody(options.body),
       },
     };
-    const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
+    const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', typeof options.body === 'string' ? options.body : '');
+
     this.emit('requestBody', body);
     return this.rawRequest({
       ...options,

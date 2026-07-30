@@ -44,7 +44,7 @@ export default class Service {
     const body = build(query);
     const [data] = await this.onvif.request({
       service: this.service,
-      body,
+      body: query,
     });
     return linerase(data, options);
   }
