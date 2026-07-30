@@ -51,8 +51,8 @@ import {
  * ```
  */
 export class DoorControl extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'doorcontrol');
   }
 
   private static tokensToBuild(tokens?: ReferenceToken[]) {

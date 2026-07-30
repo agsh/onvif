@@ -40,8 +40,8 @@ import {
  * ```
  */
 export class ActionEngine extends Service {
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'actionengine');
   }
 
   private static tokensToBuild(tokens?: ReferenceToken[]) {
@@ -114,10 +114,7 @@ export class ActionEngine extends Service {
    * Returns the capabilities of the action engine service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const response = await this.request(
-      { GetServiceCapabilities: {} },
-      { array: ['actionCapabilities'] },
-    );
+    const response = await this.request({ GetServiceCapabilities: {} }, { array: ['actionCapabilities'] });
     return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
@@ -192,10 +189,7 @@ export class ActionEngine extends Service {
     const response = await this.request(
       {
         CreateActionTriggers: {
-          ActionTrigger: ActionEngine.oneOrMany(
-            actionTrigger ?? [],
-            ActionEngine.actionTriggerConfigurationToBuild,
-          ),
+          ActionTrigger: ActionEngine.oneOrMany(actionTrigger ?? [], ActionEngine.actionTriggerConfigurationToBuild),
         },
       },
       { array: ['actionTrigger'] },

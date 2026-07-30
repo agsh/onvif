@@ -188,8 +188,8 @@ export class Media extends Service {
   public audioSources: AudioSource[] = [];
   private audioOutputs: AudioOutput[] = [];
 
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'media');
   }
 
   /**

@@ -1,0 +1,203 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Capabilities | onvif</title><meta name="description" content="Documentation for onvif"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">onvif</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/Onvif_specs.html">Onvif specs</a></li>
+<li><a href="" aria-current="page">Capabilities</a></li></ul>
+<h1>Interface Capabilities</h1></div>
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#aftereventlimit">afterEventLimit</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#asymmetricencryptionsupported">asymmetricEncryptionSupported</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#beforeeventlimit">beforeEventLimit</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#dynamicrecordings">dynamicRecordings</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#dynamictracks">dynamicTracks</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encoding">encoding</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringList.html" class="tsd-signature-type tsd-kind-type-alias">StringList</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#encryptionentrylimit">encryptionEntryLimit</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#eventrecording">eventRecording</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxrate">maxRate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxrecordingjobs">maxRecordingJobs</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxrecordings">maxRecordings</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxtotalrate">maxTotalRate</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#metadatarecording">metadataRecording</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#options">options</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#overridesegmentduration">overrideSegmentDuration</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#supportedencryptionmodes">supportedEncryptionModes</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#supportedexportfileformats">supportedExportFileFormats</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#supportedtargetformats">supportedTargetFormats</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<section class="tsd-panel">
+<h4 class="tsd-before-signature">Indexable</h4>
+<ul class="tsd-signatures">
+<li class="tsd-index-signature">
+<div class="tsd-signature"><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span></div></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L22">interfaces/recording.ts:22</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#aftereventlimit" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>after<wbr/>Event<wbr/>Limit?</span></a>
+<a href="#asymmetricencryptionsupported" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>asymmetric<wbr/>Encryption<wbr/>Supported?</span></a>
+<a href="#beforeeventlimit" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>before<wbr/>Event<wbr/>Limit?</span></a>
+<a href="#dynamicrecordings" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dynamic<wbr/>Recordings?</span></a>
+<a href="#dynamictracks" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dynamic<wbr/>Tracks?</span></a>
+<a href="#encoding" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encoding?</span></a>
+<a href="#encryptionentrylimit" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encryption<wbr/>Entry<wbr/>Limit?</span></a>
+<a href="#eventrecording" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>event<wbr/>Recording?</span></a>
+<a href="#maxrate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Rate?</span></a>
+<a href="#maxrecordingjobs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Recording<wbr/>Jobs?</span></a>
+<a href="#maxrecordings" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Recordings?</span></a>
+<a href="#maxtotalrate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Total<wbr/>Rate?</span></a>
+<a href="#metadatarecording" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata<wbr/>Recording?</span></a>
+<a href="#options" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>options?</span></a>
+<a href="#overridesegmentduration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>override<wbr/>Segment<wbr/>Duration?</span></a>
+<a href="#supportedencryptionmodes" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Encryption<wbr/>Modes?</span></a>
+<a href="#supportedexportfileformats" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Export<wbr/>File<wbr/>Formats?</span></a>
+<a href="#supportedtargetformats" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Target<wbr/>Formats?</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="aftereventlimit"><code class="tsd-tag">Optional</code><span>after<wbr/>Event<wbr/>Limit</span><a href="#aftereventlimit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">afterEventLimit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>If present a device shall support configuring after event durations up to the given value.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L52">interfaces/recording.ts:52</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="asymmetricencryptionsupported"><code class="tsd-tag">Optional</code><span>asymmetric<wbr/>Encryption<wbr/>Supported</span><a href="#asymmetricencryptionsupported" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">asymmetricEncryptionSupported</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates if the device supports asymmetric encryption.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L71">interfaces/recording.ts:71</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="beforeeventlimit"><code class="tsd-tag">Optional</code><span>before<wbr/>Event<wbr/>Limit</span><a href="#beforeeventlimit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">beforeEventLimit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>If present a device shall support configuring before event durations up to the given value.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L50">interfaces/recording.ts:50</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="dynamicrecordings"><code class="tsd-tag">Optional</code><span>dynamic<wbr/>Recordings</span><a href="#dynamicrecordings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">dynamicRecordings</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication if the device supports dynamic creation and deletion of recordings</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L24">interfaces/recording.ts:24</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="dynamictracks"><code class="tsd-tag">Optional</code><span>dynamic<wbr/>Tracks</span><a href="#dynamictracks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">dynamicTracks</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication if the device supports dynamic creation and deletion of tracks</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L26">interfaces/recording.ts:26</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="encoding"><code class="tsd-tag">Optional</code><span>encoding</span><a href="#encoding" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">encoding</span><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringList.html" class="tsd-signature-type tsd-kind-type-alias">StringList</a></div>
+<div class="tsd-comment tsd-typography"><p>Indication which encodings are supported for recording. The list may contain one or more enumeration values of tt:VideoEncoding and tt:AudioEncoding. For encodings that are neither defined in tt:VideoEncoding nor tt:AudioEncoding the device shall use the IANA defintions. Note, that a device without audio support shall not return audio encodings.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L28">interfaces/recording.ts:28</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="encryptionentrylimit"><code class="tsd-tag">Optional</code><span>encryption<wbr/>Entry<wbr/>Limit</span><a href="#encryptionentrylimit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">encryptionEntryLimit</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Number of encryption entries supported per recording.
+By specifying multiple encryption entries per recording, different tracks can be encrypted with different configurations.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L62">interfaces/recording.ts:62</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="eventrecording"><code class="tsd-tag">Optional</code><span>event<wbr/>Recording</span><a href="#eventrecording" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">eventRecording</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication that the device supports event triggered recording.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L48">interfaces/recording.ts:48</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxrate"><code class="tsd-tag">Optional</code><span>max<wbr/>Rate</span><a href="#maxrate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxRate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum supported bit rate for all tracks of a recording in kBit/s.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L30">interfaces/recording.ts:30</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxrecordingjobs"><code class="tsd-tag">Optional</code><span>max<wbr/>Recording<wbr/>Jobs</span><a href="#maxrecordingjobs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxRecordingJobs</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum total number of supported recording jobs by the device.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L36">interfaces/recording.ts:36</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxrecordings"><code class="tsd-tag">Optional</code><span>max<wbr/>Recordings</span><a href="#maxrecordings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxRecordings</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum number of recordings supported. (Integer values only.)</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L34">interfaces/recording.ts:34</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxtotalrate"><code class="tsd-tag">Optional</code><span>max<wbr/>Total<wbr/>Rate</span><a href="#maxtotalrate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxTotalRate</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum supported bit rate for all recordings in kBit/s.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L32">interfaces/recording.ts:32</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="metadatarecording"><code class="tsd-tag">Optional</code><span>metadata<wbr/>Recording</span><a href="#metadatarecording" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">metadataRecording</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication if the device supports recording metadata.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L40">interfaces/recording.ts:40</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="options"><code class="tsd-tag">Optional</code><span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication if the device supports the GetRecordingOptions command.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L38">interfaces/recording.ts:38</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="overridesegmentduration"><code class="tsd-tag">Optional</code><span>override<wbr/>Segment<wbr/>Duration</span><a href="#overridesegmentduration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">overrideSegmentDuration</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates if the device supports the OverrideSegmentDuration command.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L69">interfaces/recording.ts:69</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="supportedencryptionmodes"><code class="tsd-tag">Optional</code><span>supported<wbr/>Encryption<wbr/>Modes</span><a href="#supportedencryptionmodes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">supportedEncryptionModes</span><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a></div>
+<div class="tsd-comment tsd-typography"><p>Indicates supported encryption modes.
+See tt:EncryptionMode for a list of definitions.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L67">interfaces/recording.ts:67</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="supportedexportfileformats"><code class="tsd-tag">Optional</code><span>supported<wbr/>Export<wbr/>File<wbr/>Formats</span><a href="#supportedexportfileformats" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">supportedExportFileFormats</span><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a></div>
+<div class="tsd-comment tsd-typography"><p>Indication that the device supports ExportRecordedData command for the listed export file formats.
+The list shall return at least one export file format value. The value of 'ONVIF' refers to
+ONVIF Export File Format specification.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L46">interfaces/recording.ts:46</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="supportedtargetformats"><code class="tsd-tag">Optional</code><span>supported<wbr/>Target<wbr/>Formats</span><a href="#supportedtargetformats" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">supportedTargetFormats</span><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.StringAttrList.html" class="tsd-signature-type tsd-kind-type-alias">StringAttrList</a></div>
+<div class="tsd-comment tsd-typography"><p>List of formats supported by the device for recording to an external target.
+See tt:TargetFormat for a list of definitions.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/07790e85d220518ac3a523301b096cbcf3a22ae8/src/interfaces/recording.ts#L57">interfaces/recording.ts:57</a></li></ul></aside></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#aftereventlimit"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>after<wbr/>Event<wbr/>Limit</span></a><a href="#asymmetricencryptionsupported"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>asymmetric<wbr/>Encryption<wbr/>Supported</span></a><a href="#beforeeventlimit"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>before<wbr/>Event<wbr/>Limit</span></a><a href="#dynamicrecordings"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dynamic<wbr/>Recordings</span></a><a href="#dynamictracks"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dynamic<wbr/>Tracks</span></a><a href="#encoding"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encoding</span></a><a href="#encryptionentrylimit"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>encryption<wbr/>Entry<wbr/>Limit</span></a><a href="#eventrecording"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>event<wbr/>Recording</span></a><a href="#maxrate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Rate</span></a><a href="#maxrecordingjobs"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Recording<wbr/>Jobs</span></a><a href="#maxrecordings"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Recordings</span></a><a href="#maxtotalrate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Total<wbr/>Rate</span></a><a href="#metadatarecording"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata<wbr/>Recording</span></a><a href="#options"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>options</span></a><a href="#overridesegmentduration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>override<wbr/>Segment<wbr/>Duration</span></a><a href="#supportedencryptionmodes"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Encryption<wbr/>Modes</span></a><a href="#supportedexportfileformats"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Export<wbr/>File<wbr/>Formats</span></a><a href="#supportedtargetformats"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>supported<wbr/>Target<wbr/>Formats</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">onvif</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

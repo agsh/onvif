@@ -169,8 +169,8 @@ export class PTZ extends Service {
     return this.#presets;
   }
 
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'PTZ');
   }
 
   /**

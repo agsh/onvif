@@ -142,8 +142,8 @@ export class Device extends Service {
     return this.#networkInterfaces;
   }
 
-  constructor(onvif: Onvif, service: keyof OnvifServices) {
-    super(onvif, service);
+  constructor(onvif: Onvif) {
+    super(onvif, 'device');
   }
 
   private static namesToBuild(names?: string[]) {
