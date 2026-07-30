@@ -45,14 +45,8 @@ function expectedDigestResponse(
   },
 ): string {
   const hashName = algorithm === 'sha256' ? 'sha256' : 'md5';
-  const ha1 = crypto
-    .createHash(hashName)
-    .update([opts.username, opts.realm, opts.password].join(':'))
-    .digest('hex');
-  const ha2 = crypto
-    .createHash(hashName)
-    .update([opts.method, opts.path].join(':'))
-    .digest('hex');
+  const ha1 = crypto.createHash(hashName).update([opts.username, opts.realm, opts.password].join(':')).digest('hex');
+  const ha2 = crypto.createHash(hashName).update([opts.method, opts.path].join(':')).digest('hex');
   const parts = [ha1, opts.nonce];
   if (opts.qop) {
     parts.push(opts.nc!, opts.cnonce!, opts.qop);
@@ -98,10 +92,7 @@ function closeServer(server: http.Server): Promise<void> {
  * Mock server that either returns 200 immediately, or 401 with Digest challenge(s)
  * then 200 after a valid Authorization retry.
  */
-function startDigestMockServer(options: {
-  challenges?: string | string[];
-  requireDigest?: boolean;
-}): Promise<{
+function startDigestMockServer(options: { challenges?: string | string[]; requireDigest?: boolean }): Promise<{
   server: http.Server;
   port: number;
   captured: { authHeader?: string; requestCount: number };
@@ -148,7 +139,7 @@ function startDigestMockServer(options: {
 
 async function requestGetSystemDateAndTime(cam: Onvif) {
   return cam.request({
-    body: '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>',
+    body: { GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } } },
   });
 }
 
@@ -203,8 +194,7 @@ describe('Digest authentication (mock server)', () => {
     });
 
     it('should produce MD5 response when algorithm=MD5 is explicit', async () => {
-      const challenge =
-        'Digest qop="auth", realm="IP Camera", nonce="abc123nonce", algorithm="MD5", stale="FALSE"';
+      const challenge = 'Digest qop="auth", realm="IP Camera", nonce="abc123nonce", algorithm="MD5", stale="FALSE"';
       const mock = await startDigestMockServer({ challenges: challenge });
       try {
         const cam = createCam(mock.port);
