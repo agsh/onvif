@@ -35,17 +35,16 @@ export default class Service {
     this.xmlns = XMLNS[this.service];
   }
 
-  async request(query: Record<string, any>, options?: LineraseOptions) {
-    const root = Object.keys(query)[0];
-    query[root].$ = {
+  async request<T = any>(body: Record<string, any>, options?: LineraseOptions): Promise<T> {
+    const root = Object.keys(body)[0];
+    body[root].$ = {
       xmlns: this.xmlns,
-      ...query[root].$,
+      ...body[root].$,
     };
-    const body = build(query);
     const [data] = await this.onvif.request({
       service: this.service,
-      body: query,
+      body,
     });
-    return linerase(data, options);
+    return linerase<T>(data, options);
   }
 }

@@ -99,6 +99,7 @@ import {
   GetOSD,
   GetVideoSourceConfigurationOptions,
   CreateOSDResponse,
+  GetProfilesResponse,
 } from './interfaces/media';
 import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
 
@@ -210,8 +211,11 @@ export class Media extends Service {
    */
   async getProfiles(): Promise<Profile[]> {
     // Original ONVIF Media support (used in Profile S)
-    const response = await this.request({ GetProfiles: {} }, ConfigurationArraysAndExtensions);
-    this.profiles = response.getProfilesResponse.profiles;
+    const response = await this.request<{ getProfilesResponse: GetProfilesResponse }>(
+      { GetProfiles: {} },
+      ConfigurationArraysAndExtensions,
+    );
+    this.profiles = response.getProfilesResponse.profiles ?? [];
     return this.profiles;
   }
 

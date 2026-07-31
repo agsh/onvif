@@ -526,7 +526,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
-  private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
+  private async rawRequest<T>(options: OnvifRequestOptions): Promise<[T, string]> {
     return new Promise((resolve, reject) => {
       if (typeof options.body !== 'string') {
         return reject(new Error('Request body in rawRequest must be a string'));
@@ -587,7 +587,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
                 ...options.headers,
                 authorization: this.digestAuth(digestHeadersArray, requestOptions),
               };
-              const digestResponse = await this.rawRequest(options);
+              const digestResponse = await this.rawRequest<T>(options);
               return resolve(digestResponse);
             } catch (e) {
               return reject(e);
