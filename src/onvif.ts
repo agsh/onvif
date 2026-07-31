@@ -674,9 +674,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       let cnonce;
       let nc;
       if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
-        const cnonceHash = crypto.createHash(algorithm);
-        cnonceHash.update(Math.random().toString(36));
-        cnonce = cnonceHash.digest('hex').substring(0, 8);
+        cnonce = crypto.randomBytes(4).toString('hex');
         nc = this.updateNC();
       }
 
