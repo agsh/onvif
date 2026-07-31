@@ -1,5 +1,5 @@
 import xml2js from 'xml2js';
-import { XMLBuilder } from 'fast-xml-parser';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
 
@@ -7,6 +7,26 @@ const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const PREFIX_MATCH_RE = /(?!xmlns)^.*:/;
 const ISO_DURATION_RE = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d+)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
+
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '',
+  attributesGroupName: '$',
+  textNodeName: '_',
+  /**
+   * Strip namespace prefix and lowercase first letter.
+   *
+   * @param tag - The XML tag name to transform
+   */
+  transformTagName: (tag: string) => {
+    const str = tag.replace(PREFIX_MATCH_RE, '');
+    const secondLetter = str.charAt(1);
+    if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+      return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+    return str;
+  },
+});
 
 interface OnvifErrorOptions {
   /**
@@ -46,7 +66,7 @@ export interface LineraseOptions {
  * @param options.array these tags will always be treated as arrays
  * @param options.rawXML values of these tags will be in xml2js format
  */
-export function linerase(xml: any, options: LineraseOptions = { array: [], rawXML: [] }): any {
+export function linerase<T = any>(xml: any, options: LineraseOptions = { array: [], rawXML: [] }): T {
   if (options.rawXML === undefined) {
     options.rawXML = [];
   }
@@ -60,7 +80,7 @@ export function linerase(xml: any, options: LineraseOptions = { array: [], rawXM
     if (Array.isArray(xml)) {
       [xml] = xml;
     }
-    const rawXMLObject = linerase(xml, { ...options, rawXML: [] });
+    const rawXMLObject = linerase<T>(xml, { ...options, rawXML: [] });
     Object.defineProperty(rawXMLObject, xsany, {
       value: xml,
       writable: true,
@@ -104,18 +124,18 @@ export function linerase(xml: any, options: LineraseOptions = { array: [], rawXM
     return obj;
   }
   if (xml === 'true') {
-    return true;
+    return true as T;
   }
   if (xml === 'false') {
-    return false;
+    return false as T;
   }
   if (NUMBER_RE.test(xml)) {
-    return parseFloat(xml);
+    return parseFloat(xml) as T;
   }
   if (DATE_RE.test(xml)) {
-    return new Date(xml);
+    return new Date(xml) as T;
   }
-  return xml;
+  return xml as T;
 }
 
 function s4() {
@@ -186,12 +206,13 @@ function stripPrefix(tagName: string) {
  * Parse SOAP response
  * @param xml
  */
-export async function parseSOAPString(xml: string): OnvifResponse {
+export async function parseSOAPString<T>(xml: string): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
   let prefix = '';
   const result = await xml2js.parseStringPromise(xml);
+  const result2 = await parser.parse(xml);
   try {
     for (const envelopeKey in result) {
       for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
