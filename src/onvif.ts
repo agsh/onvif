@@ -80,7 +80,7 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
-  body: string | Record<string, any>;
+  body: Record<string, any>;
   /** Defines another url to request */
   url?: URL;
   /** Make request to PTZ uri or not */
@@ -89,6 +89,15 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   timeout?: number;
   /** Additional SOAP-headers */
   soapHeaders?: Record<string, any>;
+  /** Tags that should be forced to be arrays */
+  array?: string[];
+  /** Values of these tags will be in xml2js format */
+  rawXML?: string[]; // TODO
+}
+
+export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'> {
+  /** SOAP body */
+  body: string;
 }
 
 /**
@@ -526,11 +535,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
-  private async rawRequest<T>(options: OnvifRequestOptions): Promise<[T, string]> {
+  private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
     return new Promise((resolve, reject) => {
-      if (typeof options.body !== 'string') {
-        return reject(new Error('Request body in rawRequest must be a string'));
-      }
       let alreadyReturned = false;
       const requestOptions: RequestOptions = {
         ...options,
@@ -614,7 +620,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           alreadyReturned = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
           this.emit('rawResponse', xml);
-          resolve(parseSOAPString(xml));
+          resolve(parseSOAPString(xml, options));
         });
         return undefined;
       });
@@ -725,7 +731,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return bestResult;
   }
 
-  public request(options: Omit<OnvifRequestOptions, 'body'> & { body: Record<string, any> }) {
+  public request(options: OnvifRequestOptions) {
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {

@@ -2,31 +2,12 @@ import xml2js from 'xml2js';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
+import { OnvifRawRequestOptions } from './onvif';
 
 const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const PREFIX_MATCH_RE = /(?!xmlns)^.*:/;
 const ISO_DURATION_RE = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d+)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
-
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '',
-  attributesGroupName: '$',
-  textNodeName: '_',
-  /**
-   * Strip namespace prefix and lowercase first letter.
-   *
-   * @param tag - The XML tag name to transform
-   */
-  transformTagName: (tag: string) => {
-    const str = tag.replace(PREFIX_MATCH_RE, '');
-    const secondLetter = str.charAt(1);
-    if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
-      return str.charAt(0).toLowerCase() + str.slice(1);
-    }
-    return str;
-  },
-});
 
 interface OnvifErrorOptions {
   /**
@@ -205,14 +186,64 @@ function stripPrefix(tagName: string) {
 /**
  * Parse SOAP response
  * @param xml
+ * @param options
  */
-export async function parseSOAPString<T>(xml: string): Promise<[T, string]> {
+export async function parseSOAPString<T>(xml: string, options?: OnvifRawRequestOptions): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
   let prefix = '';
-  const result = await xml2js.parseStringPromise(xml);
-  const result2 = await parser.parse(xml);
+  let result;
+  if (options !== undefined && options.array !== undefined) {
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: '',
+      textNodeName: '_',
+      parseTagValue: false,
+      parseAttributeValue: false,
+      trimValues: false,
+      isArray: (tagName) => options.array!.includes(tagName),
+      transformTagName: (tag) => {
+        const secondLetter = tag.charAt(1);
+        if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+          return tag.charAt(0).toLowerCase() + tag.slice(1);
+        }
+        return tag;
+      },
+      removeNSPrefix: true,
+    });
+    result = parser.parse(xml);
+    formatXMLValues(result);
+    const body = result.envelope.body;
+
+    if (body.fault) {
+      const fault = body.fault;
+      let reason = '';
+      let detail = '';
+
+      try {
+        const text = fault.reason.text;
+        reason = (typeof text === 'object' ? text._ : text) || JSON.stringify(linerase(fault.code));
+      } catch (_e) {
+        // Ignore error if reason extraction fails
+      }
+
+      try {
+        [detail] = fault.detail.text;
+      } catch (_e) {
+        // Ignore error if detail extraction fails
+      }
+
+      throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
+    }
+
+    //new parser marker: do not to use linerase
+    body.__linerase = false;
+    return [body, xml];
+  } else {
+    result = await xml2js.parseStringPromise(xml);
+  }
+
   try {
     for (const envelopeKey in result) {
       for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
@@ -405,4 +436,35 @@ export function getDigestHeaders(headersArray: string[]) {
     }
   }
   return wwwAuthenticateArray;
+}
+
+/**
+ * Mutable function to convert string values to their appropriate types
+ * @param xml
+ */
+export function formatXMLValues(xml: any) {
+  if (Array.isArray(xml)) {
+    return xml.forEach((item) => formatXMLValues(item));
+  }
+  if (typeof xml === 'object' && xml !== null) {
+    for (const [key, value] of Object.entries(xml)) {
+      if (value === 'true') {
+        xml[key] = true;
+      }
+      if (value === 'false') {
+        xml[key] = false;
+      }
+      if (typeof value === 'string') {
+        if (NUMBER_RE.test(value)) {
+          xml[key] = Number.parseFloat(value);
+        }
+        if (DATE_RE.test(value)) {
+          xml[key] = new Date(value);
+        }
+      }
+      if (typeof value === 'object') {
+        formatXMLValues(value);
+      }
+    }
+  }
 }

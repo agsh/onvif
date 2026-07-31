@@ -44,7 +44,12 @@ export default class Service {
     const [data] = await this.onvif.request({
       service: this.service,
       body,
+      array: options?.array,
     });
+    // TODO make array everywhere!
+    if (options?.array !== undefined) {
+      return data as T;
+    }
     return linerase<T>(data, options);
   }
 }
