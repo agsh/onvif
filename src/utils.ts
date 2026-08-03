@@ -183,6 +183,14 @@ function stripPrefix(tagName: string) {
   return tagName.replace(PREFIX_MATCH_RE, '');
 }
 
+function toCamelCase(name: string) {
+  const secondLetter = name.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    return name.charAt(0).toLowerCase() + name.slice(1);
+  }
+  return name;
+}
+
 /**
  * Parse SOAP response
  * @param xml
@@ -201,15 +209,10 @@ export async function parseSOAPString<T>(xml: string, options?: OnvifRawRequestO
       textNodeName: '_',
       parseTagValue: false,
       parseAttributeValue: false,
-      trimValues: false,
+      trimValues: true,
       isArray: (tagName) => options.array!.includes(tagName),
-      transformTagName: (tag) => {
-        const secondLetter = tag.charAt(1);
-        if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
-          return tag.charAt(0).toLowerCase() + tag.slice(1);
-        }
-        return tag;
-      },
+      transformTagName: toCamelCase,
+      transformAttributeName: toCamelCase,
       removeNSPrefix: true,
     });
     result = parser.parse(xml);
