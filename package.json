@@ -5,6 +5,14 @@
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
   "types": "index.d.ts",
+  "files": [
+    "lib",
+    "promises",
+    "index.d.ts",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
