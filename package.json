@@ -4,6 +4,7 @@
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF NVT devices Profile S: cameras",
   "main": "lib/onvif.js",
+  "types": "index.d.ts",
   "scripts": {
     "jsdoc": "jsdoc ./lib/*.js --readme ./README.md --destination ./docs",
     "gh-pages": "jsdoc ./lib/*.js --readme ./README.md --destination ./",
@@ -58,7 +59,7 @@
     "eslint-plugin-node": "^11.1.0",
     "jsdoc": "^4.0.2",
     "keypress": "^0.2.1",
-    "mocha": "^10.0.0",
+    "mocha": "^11.7.6",
     "nimble": "^0.0.2",
     "nyc": "^15.1.0"
   }
