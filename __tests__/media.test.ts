@@ -939,15 +939,18 @@ describe('Configurations', () => {
                         },
                       },
                       __any__: {
-                        name: 'Layout',
-                        cellLayout: {
-                          columns: '13',
-                          rows: '18',
-                          transformation: {
-                            translate: { x: '-1.000000', y: '-1.000000' },
-                            scale: { x: '0.090909', y: '0.111111' },
+                        $: { Name: 'Layout' },
+                        'tt:CellLayout': [
+                          {
+                            $: { Columns: '13', Rows: '18' }, // yep, it must be '13' 😈
+                            'tt:Transformation': [
+                              {
+                                'tt:Translate': [{ $: { x: '-1.000000', y: '-1.000000' } }],
+                                'tt:Scale': [{ $: { x: '0.090909', y: '0.111111' } }],
+                              },
+                            ],
                           },
-                        },
+                        ],
                       },
                     },
                   ],
@@ -1003,9 +1006,13 @@ describe('Configurations', () => {
                 dialect: '',
               },
               __any__: {
-                topicExpression: {
-                  dialect: '',
-                },
+                'wsnt:TopicExpression': [
+                  {
+                    $: {
+                      Dialect: '',
+                    },
+                  },
+                ],
               },
             },
           },
