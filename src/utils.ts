@@ -2,7 +2,6 @@ import xml2js from 'xml2js';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
-import { OnvifRawRequestOptions } from './onvif';
 
 const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
@@ -191,32 +190,57 @@ function toCamelCase(name: string) {
   return name;
 }
 
+interface ParseSOAPStringOptions {
+  array?: string[];
+  rawXML?: string[];
+}
+
+function parse(xml: string, options?: ParseSOAPStringOptions) {
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '',
+    textNodeName: '_',
+    parseTagValue: false,
+    parseAttributeValue: false,
+    trimValues: true,
+    isArray: (tagName) => !!options?.array?.includes(tagName),
+    transformTagName: toCamelCase,
+    transformAttributeName: toCamelCase,
+    removeNSPrefix: true,
+    stopNodes: options?.rawXML?.map((tag) => `..${tag}`),
+  });
+  return parser.parse(xml);
+}
+
+function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
+  if (Array.isArray(value)) {
+    return value.map((item) => hydrateStopNode(item, options));
+  }
+  const parsed = parse(`<root>${value._ ?? value}</root>`, { array: options.array }).root || {};
+  if (typeof value === 'object') {
+    Object.assign(parsed, value);
+    delete parsed._;
+  }
+  const raw = JSON.parse(JSON.stringify(parsed));
+  formatXMLValues(parsed, { array: options.array });
+  parsed[xsany] = raw;
+  return parsed;
+}
+
 /**
  * Parse SOAP response
  * @param xml
  * @param options
  */
-export async function parseSOAPString<T>(xml: string, options?: OnvifRawRequestOptions): Promise<[T, string]> {
+export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringOptions): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
 
   let prefix = '';
   let result;
   if (options !== undefined && options.array !== undefined) {
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: '',
-      textNodeName: '_',
-      parseTagValue: false,
-      parseAttributeValue: false,
-      trimValues: true,
-      isArray: (tagName) => options.array!.includes(tagName),
-      transformTagName: toCamelCase,
-      transformAttributeName: toCamelCase,
-      removeNSPrefix: true,
-    });
-    result = parser.parse(xml);
-    formatXMLValues(result);
+    const result = parse(xml, options);
+    formatXMLValues(result, options);
     const body = result.envelope.body;
 
     if (body.fault) {
@@ -241,7 +265,7 @@ export async function parseSOAPString<T>(xml: string, options?: OnvifRawRequestO
     }
 
     //new parser marker: do not to use linerase
-    body.__linerase = false;
+    // body.__linerase = false;
     return [body, xml];
   } else {
     result = await xml2js.parseStringPromise(xml);
@@ -326,9 +350,9 @@ export function build(object: any) {
 
 const newBuilder = new XMLBuilder({
   ignoreAttributes: false,
-  attributeNamePrefix: '@_',
-  textNodeName: '#text',
-  cdataPropName: '#cdata',
+  attributesGroupName: '$',
+  attributeNamePrefix: '',
+  textNodeName: '_',
   format: true,
   indentBy: '  ',
 });
@@ -363,11 +387,7 @@ export const toOnvifXMLSchemaObject = {
           })),
         }),
         ...(config.parameters.elementItem && {
-          // don't forget that we have proxy getter here to the `__any__` field
-          ElementItem: config.parameters.elementItem.map((elementItem) => ({
-            ...(elementItem[xsany] as object),
-            Name: elementItem.name,
-          })),
+          ElementItem: config.parameters.elementItem.map((elementItem) => elementItem[xsany]),
         }),
         ...(config.parameters.extension && { Extension: config.parameters.extension }),
       },
@@ -442,15 +462,23 @@ export function getDigestHeaders(headersArray: string[]) {
 }
 
 /**
- * Mutable function to convert string values to their appropriate types
- * @param xml
+ * Mutable function to convert string values to their appropriate types.
+ * Tags in `rawXML` are re-parsed and get `__any__` as the XMLBuilder-ready object.
  */
-export function formatXMLValues(xml: any) {
+export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
+  const rawXML = options.rawXML ?? [];
   if (Array.isArray(xml)) {
-    return xml.forEach((item) => formatXMLValues(item));
+    return xml.forEach((item) => formatXMLValues(item, options));
   }
   if (typeof xml === 'object' && xml !== null) {
     for (const [key, value] of Object.entries(xml)) {
+      if (key === xsany) {
+        continue;
+      }
+      if (rawXML.includes(key)) {
+        xml[key] = hydrateStopNode(value, options);
+        continue;
+      }
       if (value === 'true') {
         xml[key] = true;
       }
@@ -466,7 +494,7 @@ export function formatXMLValues(xml: any) {
         }
       }
       if (typeof value === 'object') {
-        formatXMLValues(value);
+        formatXMLValues(value, options);
       }
     }
   }

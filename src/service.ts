@@ -45,6 +45,7 @@ export default class Service {
       service: this.service,
       body,
       array: options?.array,
+      rawXML: options?.rawXML,
     });
     // TODO make array everywhere!
     if (options?.array !== undefined) {

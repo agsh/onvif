@@ -98,10 +98,7 @@ describe('splitArgs function', () => {
   });
 
   it('should trim whitespace around parts', () => {
-    expect(splitArgs(' realm="example.com" ,  nonce="abc123" ')).toEqual([
-      'realm="example.com"',
-      'nonce="abc123"',
-    ]);
+    expect(splitArgs(' realm="example.com" ,  nonce="abc123" ')).toEqual(['realm="example.com"', 'nonce="abc123"']);
   });
 
   it('should handle unquoted values', () => {
@@ -178,7 +175,7 @@ const SOAPResponse = `
                 <tt:TimeZone>
                     <tt:TZ>MoroccoStandardTime0</tt:TZ>
                 </tt:TimeZone>
-                <tt:UTCDateTime>
+                <tt:UTCDateTime ZONE="Earth">
                     <tt:Time>
                         <tt:Hour>19</tt:Hour>
                         <tt:Minute>14</tt:Minute>
@@ -198,7 +195,7 @@ const SOAPResponse = `
 
 describe('ParseSOAPString', () => {
   it('should parse a SOAP response', async () => {
-    const [result, xml] = await parseSOAPString(SOAPResponse);
+    const [result, xml] = await parseSOAPString(SOAPResponse, { array: ['a'] });
     expect(xml).toMatch('xmlns');
     const prettyResult = linerase(result);
     expect(prettyResult).toEqual({
@@ -208,6 +205,7 @@ describe('ParseSOAPString', () => {
           daylightSavings: true,
           timeZone: { TZ: 'MoroccoStandardTime0' },
           UTCDateTime: {
+            ZONE: 'Earth',
             time: { hour: 19, minute: 14, second: 37 },
             date: { year: 2014, month: 12, day: 24 },
           },
@@ -238,6 +236,64 @@ describe('struct', () => {
 });
 
 describe('xs:any', () => {
+  it('parseSOAPString attaches XMLBuilder-ready __any__ for rawXML tags', async () => {
+    const soap = `<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2">
+  <SOAP-ENV:Body>
+    <GetVideoAnalyticsConfigurationsResponse>
+      <Configurations>
+        <AnalyticsEngineConfiguration>
+          <AnalyticsModule Name="WhyCellMotionEngine" Type="tt:CellMotionEngine">
+            <Parameters>
+              <ElementItem Name="Layout">
+                <tt:CellLayout Columns="13" Rows="18">
+                  <tt:Transformation>
+                    <tt:Translate x="-1.000000" y="-1.000000"/>
+                    <tt:Scale x="0.090909" y="0.111111"/>
+                  </tt:Transformation>
+                </tt:CellLayout>
+              </ElementItem>
+            </Parameters>
+          </AnalyticsModule>
+        </AnalyticsEngineConfiguration>
+        <Events>
+          <Filter>
+            <wsnt:TopicExpression Dialect=""></wsnt:TopicExpression>
+          </Filter>
+        </Events>
+      </Configurations>
+    </GetVideoAnalyticsConfigurationsResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>`;
+    const [body] = await parseSOAPString<any>(soap, {
+      array: ['elementItem', 'analyticsModule'],
+      rawXML: ['elementItem', 'filter'],
+    });
+    const elementItem =
+      body.getVideoAnalyticsConfigurationsResponse.configurations.analyticsEngineConfiguration.analyticsModule[0]
+        .parameters.elementItem[0];
+    expect(elementItem.name).toBe('Layout');
+    expect(elementItem.cellLayout.columns).toBe(13);
+    expect(elementItem.cellLayout.rows).toBe(18);
+    expect(elementItem.__any__).toEqual({
+      name: 'Layout',
+      cellLayout: {
+        columns: '13',
+        rows: '18',
+        transformation: {
+          translate: { x: '-1.000000', y: '-1.000000' },
+          scale: { x: '0.090909', y: '0.111111' },
+        },
+      },
+    });
+
+    const filter = body.getVideoAnalyticsConfigurationsResponse.configurations.events.filter;
+    expect(filter.topicExpression.dialect).toBe('');
+    expect(filter.__any__).toEqual({
+      topicExpression: { dialect: '' },
+    });
+  });
+
   it('any item is an object', async () => {
     const xmlLD = build({
       Lens: {
