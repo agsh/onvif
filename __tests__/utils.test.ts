@@ -236,7 +236,7 @@ describe('struct', () => {
 });
 
 describe('xs:any', () => {
-  it('parseSOAPString attaches XMLBuilder-ready __any__ for rawXML tags', async () => {
+  it('parseSOAPString attaches xml2js __any__ for rawXML tags', async () => {
     const soap = `<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2">
   <SOAP-ENV:Body>
@@ -276,21 +276,28 @@ describe('xs:any', () => {
     expect(elementItem.cellLayout.columns).toBe(13);
     expect(elementItem.cellLayout.rows).toBe(18);
     expect(elementItem.__any__).toEqual({
-      name: 'Layout',
-      cellLayout: {
-        columns: '13',
-        rows: '18',
-        transformation: {
-          translate: { x: '-1.000000', y: '-1.000000' },
-          scale: { x: '0.090909', y: '0.111111' },
+      $: { Name: 'Layout' },
+      'tt:CellLayout': [
+        {
+          $: { Columns: '13', Rows: '18' },
+          'tt:Transformation': [
+            {
+              'tt:Translate': [{ $: { x: '-1.000000', y: '-1.000000' } }],
+              'tt:Scale': [{ $: { x: '0.090909', y: '0.111111' } }],
+            },
+          ],
         },
-      },
+      ],
     });
 
     const filter = body.getVideoAnalyticsConfigurationsResponse.configurations.events.filter;
     expect(filter.topicExpression.dialect).toBe('');
     expect(filter.__any__).toEqual({
-      topicExpression: { dialect: '' },
+      'wsnt:TopicExpression': [
+        {
+          $: { Dialect: '' },
+        },
+      ],
     });
   });
 
@@ -332,11 +339,11 @@ describe('xs:any', () => {
         Parameters: {
           ElementItem: [
             {
-              Name: 'elementItem1',
+              $: { Name: 'elementItem1' },
               Param1: 'param1',
             },
             {
-              Name: 'elementItem2',
+              $: { Name: 'elementItem2' },
               Param2: 'param2',
             },
           ],

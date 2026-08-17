@@ -190,23 +190,39 @@ function toCamelCase(name: string) {
   return name;
 }
 
+function toPascalCase(name: string) {
+  const secondLetter = name.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  return name;
+}
+
 interface ParseSOAPStringOptions {
   array?: string[];
   rawXML?: string[];
+  attributesGroupName?: string;
+  attributeNamePrefix?: string;
 }
 
 function parse(xml: string, options?: ParseSOAPStringOptions) {
+  const xml2jsMode = options?.attributesGroupName === '$';
   const parser = new XMLParser({
     ignoreAttributes: false,
-    attributeNamePrefix: '',
+    attributesGroupName: options?.attributesGroupName,
+    attributeNamePrefix: options?.attributeNamePrefix ?? '',
     textNodeName: '_',
     parseTagValue: false,
     parseAttributeValue: false,
     trimValues: true,
-    isArray: (tagName) => !!options?.array?.includes(tagName),
-    transformTagName: toCamelCase,
-    transformAttributeName: toCamelCase,
-    removeNSPrefix: true,
+    isArray: xml2jsMode
+      ? (_tagName, _jPath, _isLeafNode, isAttribute) => !isAttribute
+      : (tagName) => !!options?.array?.includes(tagName),
+    removeNSPrefix: !xml2jsMode,
+    ...(!xml2jsMode && {
+      transformTagName: toCamelCase,
+      transformAttributeName: toCamelCase,
+    }),
     stopNodes: options?.rawXML?.map((tag) => `..${tag}`),
   });
   return parser.parse(xml);
@@ -216,14 +232,28 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
   if (Array.isArray(value)) {
     return value.map((item) => hydrateStopNode(item, options));
   }
-  const parsed = parse(`<root>${value._ ?? value}</root>`, { array: options.array }).root || {};
+  const xmlToParse = `<root>${value._ ?? value}</root>`;
+  const parsed = parse(xmlToParse, { array: options.array }).root || {};
+  const wrapped = parse(xmlToParse, { attributesGroupName: '$' }).root;
+  let xsAnyParsed = (Array.isArray(wrapped) ? wrapped[0] : wrapped) || {};
   if (typeof value === 'object') {
     Object.assign(parsed, value);
     delete parsed._;
+    if (typeof xsAnyParsed !== 'object') {
+      xsAnyParsed = { _: xsAnyParsed };
+    }
+    const $: Record<string, unknown> = {};
+    for (const [key, attrValue] of Object.entries(value)) {
+      if (key !== '_') {
+        $[toPascalCase(key)] = attrValue;
+      }
+    }
+    if (Object.keys($).length) {
+      xsAnyParsed.$ = { ...$, ...xsAnyParsed.$ };
+    }
   }
-  const raw = JSON.parse(JSON.stringify(parsed));
   formatXMLValues(parsed, { array: options.array });
-  parsed[xsany] = raw;
+  parsed[xsany] = xsAnyParsed;
   return parsed;
 }
 
@@ -387,7 +417,13 @@ export const toOnvifXMLSchemaObject = {
           })),
         }),
         ...(config.parameters.elementItem && {
-          ElementItem: config.parameters.elementItem.map((elementItem) => elementItem[xsany]),
+          ElementItem: config.parameters.elementItem.map((elementItem) => {
+            const anyXml = (elementItem[xsany] ?? {}) as Record<string, any>;
+            return {
+              ...anyXml,
+              $: { Name: elementItem.name, ...anyXml.$ },
+            };
+          }),
         }),
         ...(config.parameters.extension && { Extension: config.parameters.extension }),
       },
@@ -463,7 +499,7 @@ export function getDigestHeaders(headersArray: string[]) {
 
 /**
  * Mutable function to convert string values to their appropriate types.
- * Tags in `rawXML` are re-parsed and get `__any__` as the XMLBuilder-ready object.
+ * Tags in `rawXML` are re-parsed and get `__any__` as the xml2js object.
  */
 export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
   const rawXML = options.rawXML ?? [];
