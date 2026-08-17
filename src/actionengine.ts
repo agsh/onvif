@@ -67,10 +67,7 @@ export class ActionEngine extends Service {
         })),
       }),
       ...(itemList.elementItem && {
-        ElementItem: itemList.elementItem.map((elementItem) => ({
-          ...(elementItem[xsany] as object),
-          Name: elementItem.name,
-        })),
+        ElementItem: itemList.elementItem.map((elementItem) => elementItem[xsany]),
       }),
       ...(itemList.extension && { Extension: itemList.extension }),
     };
