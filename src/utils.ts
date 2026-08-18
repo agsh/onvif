@@ -1,4 +1,4 @@
-import xml2js from 'xml2js';
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
 
@@ -45,7 +45,7 @@ export interface LineraseOptions {
  * @param options.array these tags will always be treated as arrays
  * @param options.rawXML values of these tags will be in xml2js format
  */
-export function linerase(xml: any, options: LineraseOptions = { array: [], rawXML: [] }): any {
+export function linerase<T = any>(xml: any, options: LineraseOptions = { array: [], rawXML: [] }): T {
   if (options.rawXML === undefined) {
     options.rawXML = [];
   }
@@ -59,7 +59,7 @@ export function linerase(xml: any, options: LineraseOptions = { array: [], rawXM
     if (Array.isArray(xml)) {
       [xml] = xml;
     }
-    const rawXMLObject = linerase(xml, { ...options, rawXML: [] });
+    const rawXMLObject = linerase<T>(xml, { ...options, rawXML: [] });
     Object.defineProperty(rawXMLObject, xsany, {
       value: xml,
       writable: true,
@@ -103,18 +103,18 @@ export function linerase(xml: any, options: LineraseOptions = { array: [], rawXM
     return obj;
   }
   if (xml === 'true') {
-    return true;
+    return true as T;
   }
   if (xml === 'false') {
-    return false;
+    return false as T;
   }
   if (NUMBER_RE.test(xml)) {
-    return parseFloat(xml);
+    return parseFloat(xml) as T;
   }
   if (DATE_RE.test(xml)) {
-    return new Date(xml);
+    return new Date(xml) as T;
   }
-  return xml;
+  return xml as T;
 }
 
 function s4() {
@@ -123,7 +123,6 @@ function s4() {
 
 /**
  * Generate GUID
- * @returns {string}
  */
 export function guid() {
   return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
@@ -131,8 +130,6 @@ export function guid() {
 
 /**
  * Split Digest authentication string
- * @param {string} args
- * @returns {[string]}
  */
 export function splitArgs(args: string): string[] {
   let buffer = '';
@@ -177,72 +174,116 @@ export function camelCase(tagName: string) {
   return str;
 }
 
-function stripPrefix(tagName: string) {
-  return tagName.replace(PREFIX_MATCH_RE, '');
+function toCamelCase(name: string) {
+  const secondLetter = name.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    return name.charAt(0).toLowerCase() + name.slice(1);
+  }
+  return name;
+}
+
+function toPascalCase(name: string) {
+  const secondLetter = name.charAt(1);
+  if (secondLetter && secondLetter.toUpperCase() !== secondLetter) {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  return name;
+}
+
+interface ParseSOAPStringOptions {
+  array?: string[];
+  rawXML?: string[];
+  attributesGroupName?: string;
+  attributeNamePrefix?: string;
+}
+
+function parse(xml: string, options?: ParseSOAPStringOptions) {
+  const xml2jsMode = options?.attributesGroupName === '$';
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributesGroupName: options?.attributesGroupName,
+    attributeNamePrefix: options?.attributeNamePrefix ?? '',
+    textNodeName: '_',
+    parseTagValue: false,
+    parseAttributeValue: false,
+    trimValues: true,
+    isArray: xml2jsMode
+      ? (_tagName, _jPath, _isLeafNode, isAttribute) => !isAttribute
+      : (tagName) => !!options?.array?.includes(tagName),
+    removeNSPrefix: !xml2jsMode,
+    ...(!xml2jsMode && {
+      transformTagName: toCamelCase,
+      transformAttributeName: toCamelCase,
+    }),
+    stopNodes: options?.rawXML?.map((tag) => `..${tag}`),
+  });
+  return parser.parse(xml);
+}
+
+function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
+  if (Array.isArray(value)) {
+    return value.map((item) => hydrateStopNode(item, options));
+  }
+  const xmlToParse = `<root>${value._ ?? value}</root>`;
+  const parsed = parse(xmlToParse, { array: options.array }).root || {};
+  const wrapped = parse(xmlToParse, { attributesGroupName: '$' }).root;
+  let xsAnyParsed = (Array.isArray(wrapped) ? wrapped[0] : wrapped) || {};
+  if (typeof value === 'object') {
+    Object.assign(parsed, value);
+    delete parsed._;
+    if (typeof xsAnyParsed !== 'object') {
+      xsAnyParsed = { _: xsAnyParsed };
+    }
+    const $: Record<string, unknown> = {};
+    for (const [key, attrValue] of Object.entries(value)) {
+      if (key !== '_') {
+        $[toPascalCase(key)] = attrValue;
+      }
+    }
+    if (Object.keys($).length) {
+      xsAnyParsed.$ = { ...$, ...xsAnyParsed.$ };
+    }
+  }
+  formatXMLValues(parsed, { array: options.array });
+  parsed[xsany] = xsAnyParsed;
+  return parsed;
 }
 
 /**
  * Parse SOAP response
  * @param xml
+ * @param options
  */
-export async function parseSOAPString(xml: string): OnvifResponse {
+export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringOptions): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
-
-  let prefix = '';
-  const result = await xml2js.parseStringPromise(xml);
-  try {
-    for (const envelopeKey in result) {
-      for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
-        if (url === 'http://www.w3.org/2003/05/soap-envelope') {
-          prefix = `${xmlns.slice(6)}:`;
-          break;
-        }
-      }
-      break;
-    }
-  } catch (e) {
-    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message', {
+  const result = parse(xml, options);
+  formatXMLValues(result, options);
+  const body = result.envelope?.body;
+  if (!body) {
+    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected', {
       xml,
     });
   }
+  if (body.fault) {
+    const fault = body.fault;
+    let reason = '';
+    let detail = '';
 
-  if (!result[`${prefix}Envelope`]?.[`${prefix}Body`]) {
-    throw new OnvifError('Wrong ONVIF SOAP response, envelope and body are expected', {
-      xml,
-    });
-  }
-  const body = result[`${prefix}Envelope`][`${prefix}Body`][0];
-  // SOAP Fault Element
-  // https://www.w3.org/2003/05/soap-envelope/
-  // https://www.w3schools.com/xml/xml_soap.asp
-  if (body[`${prefix}Fault`]) {
-    const fault = body[`${prefix}Fault`][0];
-    let reason;
     try {
-      if (fault[`${prefix}Reason`][0][`${prefix}Text`][0]._) {
-        reason = fault[`${prefix}Reason`][0][`${prefix}Text`][0]._;
-      }
-    } catch (e) {
-      reason = '';
-    }
-    if (!reason) {
-      try {
-        reason = JSON.stringify(linerase(fault.code[0]));
-      } catch (e) {
-        reason = '';
-      }
-    }
-    let detail;
-    try {
-      [detail] = fault[`${prefix}Detail`][0][`${prefix}Text`];
-    } catch (e) {
-      detail = '';
+      const text = fault.reason.text;
+      reason = (typeof text === 'object' ? text._ : text) || JSON.stringify(fault.code);
+    } catch (_e) {
+      // Ignore error if reason extraction fails
     }
 
-    throw new OnvifError(`${reason}${detail}`, {
-      xml,
-    });
+    try {
+      [detail] = fault.detail.text;
+    } catch (_e) {
+      // Ignore error if detail extraction fails
+    }
+
+    throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
   }
   return [body, xml];
 }
@@ -257,15 +298,29 @@ export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<str
   return Object.fromEntries(list.map((item) => [item[groupKey], item]));
 }
 
-const builder = new xml2js.Builder({
-  headless: true,
-  renderOpts: {
-    pretty: false,
-  },
+// old builder with xml2js library
+// const builder = new xml2js.Builder({
+//   headless: true,
+//   renderOpts: {
+//     pretty: false,
+//   },
+// });
+//
+// export function build(object: any) {
+//   return builder.buildObject(object);
+// }
+
+const newBuilder = new XMLBuilder({
+  ignoreAttributes: false,
+  attributesGroupName: '$',
+  attributeNamePrefix: '',
+  textNodeName: '_',
+  format: true,
+  indentBy: '  ',
 });
 
 export function build(object: any) {
-  return builder.buildObject(object);
+  return newBuilder.build(object);
 }
 
 export const toOnvifXMLSchemaObject = {
@@ -294,11 +349,13 @@ export const toOnvifXMLSchemaObject = {
           })),
         }),
         ...(config.parameters.elementItem && {
-          // don't forget that we have proxy getter here to the `__any__` field
-          ElementItem: config.parameters.elementItem.map((elementItem) => ({
-            ...(elementItem[xsany] as object),
-            Name: elementItem.name,
-          })),
+          ElementItem: config.parameters.elementItem.map((elementItem) => {
+            const anyXml = (elementItem[xsany] ?? {}) as Record<string, any>;
+            return {
+              ...anyXml,
+              $: { Name: elementItem.name, ...anyXml.$ },
+            };
+          }),
         }),
         ...(config.parameters.extension && { Extension: config.parameters.extension }),
       },
@@ -370,4 +427,43 @@ export function getDigestHeaders(headersArray: string[]) {
     }
   }
   return wwwAuthenticateArray;
+}
+
+/**
+ * Mutable function to convert string values to their appropriate types.
+ * Tags in `rawXML` are re-parsed and get `__any__` as the xml2js object.
+ */
+export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
+  const rawXML = options.rawXML ?? [];
+  if (Array.isArray(xml)) {
+    return xml.forEach((item) => formatXMLValues(item, options));
+  }
+  if (typeof xml === 'object' && xml !== null) {
+    for (const [key, value] of Object.entries(xml)) {
+      if (key === xsany) {
+        continue;
+      }
+      if (rawXML.includes(key)) {
+        xml[key] = hydrateStopNode(value, options);
+        continue;
+      }
+      if (value === 'true') {
+        xml[key] = true;
+      }
+      if (value === 'false') {
+        xml[key] = false;
+      }
+      if (typeof value === 'string') {
+        if (NUMBER_RE.test(value)) {
+          xml[key] = Number.parseFloat(value);
+        }
+        if (DATE_RE.test(value)) {
+          xml[key] = new Date(value);
+        }
+      }
+      if (typeof value === 'object') {
+        formatXMLValues(value, options);
+      }
+    }
+  }
 }

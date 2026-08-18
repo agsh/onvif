@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, getDigestHeaders, linerase, parseSOAPString, splitArgs } from './utils';
+import { build, getDigestHeaders, linerase, OnvifResponse, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -80,7 +80,7 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
-  body: string;
+  body: Record<string, any>;
   /** Defines another url to request */
   url?: URL;
   /** Make request to PTZ uri or not */
@@ -89,6 +89,15 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   timeout?: number;
   /** Additional SOAP-headers */
   soapHeaders?: Record<string, any>;
+  /** Tags that should be forced to be arrays */
+  array?: string[];
+  /** Values of these tags will be in xml2js format */
+  rawXML?: string[]; // TODO
+}
+
+export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'> {
+  /** SOAP body */
+  body: string;
 }
 
 /**
@@ -205,7 +214,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * @event event
    * @example
    * ```typescript
-   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
+   * onvif.on('event', (msg) => { console.log(new Date().toLocaleTimeString(), 'new event', msg); });
    * ```
    */
   static readonly EVENT = 'event';
@@ -457,13 +466,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  envelopeBody() {
+  envelopeBody(body: Record<string, any>) {
     return {
       $: {
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
         'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
       },
-      _: 'RAW_XML_PLACEHOLDER',
+      ...body,
     };
   }
 
@@ -526,7 +535,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
-  private async rawRequest(options: OnvifRequestOptions): Promise<[Record<string, any>, string]> {
+  private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
       const requestOptions: RequestOptions = {
@@ -584,7 +593,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
                 ...options.headers,
                 authorization: this.digestAuth(digestHeadersArray, requestOptions),
               };
-              const digestResponse = await this.rawRequest(options);
+              const digestResponse = await this.rawRequest<T>(options);
               return resolve(digestResponse);
             } catch (e) {
               return reject(e);
@@ -611,7 +620,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           alreadyReturned = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
           this.emit('rawResponse', xml);
-          resolve(parseSOAPString(xml));
+          resolve(parseSOAPString(xml, options));
         });
         return undefined;
       });
@@ -671,9 +680,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       let cnonce;
       let nc;
       if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
-        const cnonceHash = crypto.createHash(algorithm);
-        cnonceHash.update(Math.random().toString(36));
-        cnonce = cnonceHash.digest('hex').substring(0, 8);
+        cnonce = crypto.randomBytes(4).toString('hex');
         nc = this.updateNC();
       }
 
@@ -724,7 +731,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return bestResult;
   }
 
-  public request(options: OnvifRequestOptions) {
+  public request(options: OnvifRequestOptions): OnvifResponse {
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
@@ -733,10 +740,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           'xmlns:a': 'http://www.w3.org/2005/08/addressing',
         },
         's:Header': this.envelopeHeader(options),
-        's:Body': this.envelopeBody(),
+        's:Body': this.envelopeBody(options.body),
       },
     };
-    const body = build(bodyObject).replace('RAW_XML_PLACEHOLDER', options.body);
+    const body = build(bodyObject);
+
     this.emit('requestBody', body);
     return this.rawRequest({
       ...options,
@@ -807,7 +815,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       if (xml && xml.toLowerCase().includes('sender not authorized')) {
         // Try again with a Username and Password
         const [data] = await this.request({
-          body: '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>}',
+          body: {
+            GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } },
+          },
         });
         return this.setupSystemDateAndTime(data);
       }
@@ -865,49 +875,59 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     if (options.dateTimeType === 'Manual' && !options.dateTime && !options.UTCDateTime) {
       throw new Error('`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`');
     }
-    const body =
-      '<SetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl">' +
-      `<DateTimeType>${options.dateTimeType}</DateTimeType>` +
-      `<DaylightSavings>${!!options.daylightSavings}</DaylightSavings>${
-        options.timezone !== undefined || options.timeZone?.TZ !== undefined
-          ? '<TimeZone>' +
-            `<TZ xmlns="http://www.onvif.org/ver10/schema">${options.timezone || options.timeZone?.TZ}</TZ>` +
-            '</TimeZone>'
-          : ''
-      }${
-        options.dateTime !== undefined && options.dateTime instanceof Date
-          ? '<UTCDateTime>' +
-            '<Time xmlns="http://www.onvif.org/ver10/schema">' +
-            `<Hour>${options.dateTime.getUTCHours()}</Hour>` +
-            `<Minute>${options.dateTime.getUTCMinutes()}</Minute>` +
-            `<Second>${options.dateTime.getUTCSeconds()}</Second>` +
-            '</Time>' +
-            '<Date xmlns="http://www.onvif.org/ver10/schema">' +
-            `<Year>${options.dateTime.getUTCFullYear()}</Year>` +
-            `<Month>${options.dateTime.getUTCMonth() + 1}</Month>` +
-            `<Day>${options.dateTime.getUTCDate()}</Day>` +
-            '</Date>' +
-            '</UTCDateTime>'
-          : options.UTCDateTime !== undefined
-            ? '<UTCDateTime>' +
-              '<Time xmlns="http://www.onvif.org/ver10/schema">' +
-              `<Hour>${options.UTCDateTime?.time?.hour}</Hour>` +
-              `<Minute>${options.UTCDateTime?.time?.minute}</Minute>` +
-              `<Second>${options.UTCDateTime?.time?.second}</Second>` +
-              '</Time>' +
-              '<Date xmlns="http://www.onvif.org/ver10/schema">' +
-              `<Year>${options.UTCDateTime?.date?.year}</Year>` +
-              `<Month>${options.UTCDateTime?.date?.month}</Month>` +
-              `<Day>${options.UTCDateTime?.date?.day}</Day>` +
-              '</Date>' +
-              '</UTCDateTime>'
-            : ''
-      }</SetSystemDateAndTime>`;
+    const body = {
+      SetSystemDateAndTime: {
+        $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' },
+        DateTimeType: options.dateTimeType,
+        DaylightSavings: !!options.daylightSavings,
+        ...((options.timezone !== undefined || options.timeZone?.TZ !== undefined) && {
+          TimeZone: {
+            TZ: {
+              $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+              _: options.timezone || options.timeZone?.TZ,
+            },
+          },
+        }),
+        ...(options.dateTime !== undefined && options.dateTime instanceof Date
+          ? {
+              UTCDateTime: {
+                Time: {
+                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+                  Hour: options.dateTime.getUTCHours(),
+                  Minute: options.dateTime.getUTCMinutes(),
+                  Second: options.dateTime.getUTCSeconds(),
+                },
+                Date: {
+                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+                  Year: options.dateTime.getUTCFullYear(),
+                  Month: options.dateTime.getUTCMonth() + 1,
+                  Day: options.dateTime.getUTCDate(),
+                },
+              },
+            }
+          : {
+              UTCDateTime: {
+                Time: {
+                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+                  Hour: options.UTCDateTime?.time?.hour,
+                  Minute: options.UTCDateTime?.time?.minute,
+                  Second: options.UTCDateTime?.time?.second,
+                },
+                Date: {
+                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+                  Year: options.UTCDateTime?.date?.year,
+                  Month: options.UTCDateTime?.date?.month,
+                  Day: options.UTCDateTime?.date?.day,
+                },
+              },
+            }),
+      },
+    };
     const [data] = await this.request({
       // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
       body,
     });
-    if (linerase(data).setSystemDateAndTimeResponse.length !== 0) {
+    if (data.setSystemDateAndTimeResponse.length !== 0) {
       throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
     }
     // get new system time from device

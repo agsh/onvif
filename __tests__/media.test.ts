@@ -2,7 +2,6 @@ import { camelCase, Onvif, Media } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
 import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
 import { OSDConfiguration, Profile } from '../src/interfaces/onvif';
-import { clean } from './utils.test';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
 function mediaTestCallable(media: Media): Record<string, (...args: unknown[]) => Promise<unknown>> {
@@ -1068,3 +1067,17 @@ describe('Configurations', () => {
     });
   });
 });
+
+function clean(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(clean);
+  }
+  if (typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([k]) => !(typeof obj[k] === 'object' && obj[k].__clean__))
+        .map(([k, v]) => [k, clean(v)]),
+    );
+  }
+  return obj;
+}

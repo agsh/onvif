@@ -16,7 +16,7 @@ import {
   GetEventPropertiesResponse,
   PullMessages,
 } from './interfaces/event';
-import { build, CommonDuration, toMs, linerase, toIsoDuration } from './utils';
+import { CommonDuration, toMs, toIsoDuration } from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
@@ -212,27 +212,27 @@ export class Events {
    * and topics supported by the device.
    */
   async getEventProperties(): Promise<GetEventPropertiesResponse> {
-    const body = build({
+    const body = {
       GetEventProperties: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
       },
-    });
+    };
     const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data).getEventPropertiesResponse;
+    return data.getEventPropertiesResponse;
   }
 
   async getServiceCapabilities(): Promise<Capabilities> {
-    const body = build({
+    const body = {
       GetServiceCapabilities: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
       },
-    });
+    };
     const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data).getServiceCapabilitiesResponse.capabilities;
+    return data.getServiceCapabilitiesResponse.capabilities;
   }
 
   static filterToBuild(filter?: PullPointSubscriptionFilter) {
@@ -265,7 +265,7 @@ export class Events {
    */
   async createPullPointSubscription(options?: CreatePullPointSubscriptionExtended): Promise<PullPointSubscription> {
     const filter = Events.filterToBuild(options?.filter);
-    const body = build({
+    const body = {
       CreatePullPointSubscription: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
@@ -276,9 +276,9 @@ export class Events {
         ...(filter && { Filter: filter }),
         SubscriptionPolicy: options?.subscriptionPolicy ?? {},
       },
-    });
+    };
     const [data] = await this.onvif.request({ service: 'events', body });
-    const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
+    const pullPointSubscription: PullPointSubscription = data.createPullPointSubscriptionResponse;
     return pullPointSubscription;
   }
 
@@ -299,40 +299,40 @@ export class Events {
   }
 
   async addEventBroker({ eventBroker }: AddEventBroker): Promise<void> {
-    const body = build({
+    const body = {
       AddEventBroker: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
         EventBroker: Events.eventBrokerToBuild(eventBroker),
       },
-    });
+    };
     await this.onvif.request({ service: 'events', body });
   }
 
   async deleteEventBroker({ address }: DeleteEventBroker): Promise<void> {
-    const body = build({
+    const body = {
       DeleteEventBroker: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
         Address: address,
       },
-    });
+    };
     await this.onvif.request({ service: 'events', body });
   }
 
   async getEventBrokers({ address }: GetEventBrokers = {}): Promise<EventBrokerConfig[]> {
-    const body = build({
+    const body = {
       GetEventBrokers: {
         $: {
           xmlns: 'http://www.onvif.org/ver10/events/wsdl',
         },
         ...(address !== undefined && { Address: address }),
       },
-    });
-    const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data, { array: ['eventBroker'] }).getEventBrokersResponse.eventBroker ?? [];
+    };
+    const [data] = await this.onvif.request({ service: 'events', body, array: ['eventBroker'] });
+    return data.getEventBrokersResponse.eventBroker ?? [];
   }
 
   /**
@@ -342,7 +342,7 @@ export class Events {
   async subscribe(options: SubscribeOptions): Promise<PullPointSubscription> {
     const initialTerminationTime = options.terminationTime ?? PUSH_TERMINATION_TIME;
     const filter = Events.filterToBuild(options?.filter);
-    const body = build({
+    const body = {
       Subscribe: {
         $: {
           xmlns: 'http://docs.oasis-open.org/wsn/b-2',
@@ -354,7 +354,7 @@ export class Events {
         InitialTerminationTime: toIsoDuration(initialTerminationTime),
         ...(filter && { Filter: filter }),
       },
-    });
+    };
     const [data] = await this.onvif.request({
       service: 'events',
       body,
@@ -374,7 +374,7 @@ export class Events {
         this.subscribe(options);
       }, toMs(initialTerminationTime));
     }
-    return linerase(data).subscribeResponse;
+    return data.subscribeResponse;
   }
 
   /**
@@ -385,9 +385,9 @@ export class Events {
       subscription,
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
     );
-    const body = build({
+    const body = {
       Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
-    });
+    };
     await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -405,15 +405,15 @@ export class Events {
       subscription,
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
     );
-    const body = build({
+    const body = {
       Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: toIsoDuration(terminationTime) },
-    });
+    };
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).renewResponse;
+    return data.renewResponse;
   }
 
   /**
@@ -424,15 +424,15 @@ export class Events {
       subscription,
       'http://docs.oasis-open.org/wsn/bw-2/GetStatusRequest',
     );
-    const body = build({
+    const body = {
       GetStatus: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
-    });
+    };
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).getStatusResponse;
+    return data.getStatusResponse;
   }
 }
 
@@ -577,7 +577,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     );
     // ONVIF Spec says cameras must support 1 Minute wait times. Ensure network socket has a replyTimeout that is larger than 1 minute
     const timeout = options?.timeout ?? PULL_TIMEOUT;
-    const body = build({
+    const body = {
       'tev:PullMessages': {
         $: {
           'xmlns:wsnt': 'http://docs.oasis-open.org/wsn/b-2',
@@ -586,7 +586,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         'tev:Timeout': timeout,
         'tev:MessageLimit': options?.messageLimit ?? 10,
       },
-    });
+    };
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -595,8 +595,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       timeout: toMs(timeout) + 2 * 1000,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.onvif.events.agent,
+      array: ['notificationMessage'],
     });
-    return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
+    return { notificationMessage: [], ...data.pullMessagesResponse };
   }
 
   /**
@@ -611,7 +612,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/SetSynchronizationPointRequest',
     );
-    const body = build({ SetSynchronizationPoint: { $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' } } });
+    const body = { SetSynchronizationPoint: { $: { xmlns: 'http://www.onvif.org/ver10/events/wsdl' } } };
     await this.onvif.request({
       url: subscriptionParams.url,
       body,
@@ -628,15 +629,15 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     );
     // x2 larger than the pull timeout
     const terminationTime = PULL_TERMINATION_TIME;
-    const body = build({
+    const body = {
       Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: terminationTime },
-    });
+    };
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).renewResponse;
+    return data.renewResponse;
   }
 
   /**
@@ -652,9 +653,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
     );
-    const body = build({
+    const body = {
       Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
-    });
+    };
     // Drop local state first so an in-flight eventPull cannot auto-resubscribe after a race.
     delete this.subscription;
     // Abort long-poll PullMessages before/while sending Unsubscribe.
