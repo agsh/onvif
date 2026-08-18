@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, getDigestHeaders, linerase, parseSOAPString, splitArgs } from './utils';
+import { build, getDigestHeaders, linerase, OnvifResponse, parseSOAPString, splitArgs } from './utils';
 import { Device } from './device';
 import { Media } from './media';
 import { Media2 } from './media2';
@@ -731,7 +731,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return bestResult;
   }
 
-  public request(options: OnvifRequestOptions) {
+  public request(options: OnvifRequestOptions): OnvifResponse {
     options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
@@ -927,7 +927,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
       body,
     });
-    if (linerase(data).setSystemDateAndTimeResponse.length !== 0) {
+    if (data.setSystemDateAndTimeResponse.length !== 0) {
       throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
     }
     // get new system time from device

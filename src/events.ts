@@ -16,7 +16,7 @@ import {
   GetEventPropertiesResponse,
   PullMessages,
 } from './interfaces/event';
-import { build, CommonDuration, toMs, linerase, toIsoDuration } from './utils';
+import { CommonDuration, toMs, toIsoDuration } from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
@@ -220,7 +220,7 @@ export class Events {
       },
     };
     const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data).getEventPropertiesResponse;
+    return data.getEventPropertiesResponse;
   }
 
   async getServiceCapabilities(): Promise<Capabilities> {
@@ -232,7 +232,7 @@ export class Events {
       },
     };
     const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data).getServiceCapabilitiesResponse.capabilities;
+    return data.getServiceCapabilitiesResponse.capabilities;
   }
 
   static filterToBuild(filter?: PullPointSubscriptionFilter) {
@@ -278,7 +278,7 @@ export class Events {
       },
     };
     const [data] = await this.onvif.request({ service: 'events', body });
-    const pullPointSubscription: PullPointSubscription = linerase(data).createPullPointSubscriptionResponse;
+    const pullPointSubscription: PullPointSubscription = data.createPullPointSubscriptionResponse;
     return pullPointSubscription;
   }
 
@@ -331,8 +331,8 @@ export class Events {
         ...(address !== undefined && { Address: address }),
       },
     };
-    const [data] = await this.onvif.request({ service: 'events', body });
-    return linerase(data, { array: ['eventBroker'] }).getEventBrokersResponse.eventBroker ?? [];
+    const [data] = await this.onvif.request({ service: 'events', body, array: ['eventBroker'] });
+    return data.getEventBrokersResponse.eventBroker ?? [];
   }
 
   /**
@@ -374,7 +374,7 @@ export class Events {
         this.subscribe(options);
       }, toMs(initialTerminationTime));
     }
-    return linerase(data).subscribeResponse;
+    return data.subscribeResponse;
   }
 
   /**
@@ -413,7 +413,7 @@ export class Events {
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).renewResponse;
+    return data.renewResponse;
   }
 
   /**
@@ -432,7 +432,7 @@ export class Events {
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).getStatusResponse;
+    return data.getStatusResponse;
   }
 }
 
@@ -595,8 +595,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       timeout: toMs(timeout) + 2 * 1000,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.onvif.events.agent,
+      array: ['notificationMessage'],
     });
-    return { notificationMessage: [], ...linerase(data, { array: ['notificationMessage'] }).pullMessagesResponse };
+    return { notificationMessage: [], ...data.pullMessagesResponse };
   }
 
   /**
@@ -636,7 +637,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
     });
-    return linerase(data).renewResponse;
+    return data.renewResponse;
   }
 
   /**

@@ -1,4 +1,3 @@
-import xml2js from 'xml2js';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
@@ -124,7 +123,6 @@ function s4() {
 
 /**
  * Generate GUID
- * @returns {string}
  */
 export function guid() {
   return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
@@ -132,8 +130,6 @@ export function guid() {
 
 /**
  * Split Digest authentication string
- * @param {string} args
- * @returns {[string]}
  */
 export function splitArgs(args: string): string[] {
   let buffer = '';
@@ -176,10 +172,6 @@ export function camelCase(tagName: string) {
     return str.charAt(0).toLowerCase() + str.slice(1);
   }
   return str;
-}
-
-function stripPrefix(tagName: string) {
-  return tagName.replace(PREFIX_MATCH_RE, '');
 }
 
 function toCamelCase(name: string) {
@@ -265,94 +257,33 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
 export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringOptions): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
-
-  let prefix = '';
-  let result;
-  if (options !== undefined && options.array !== undefined) {
-    const result = parse(xml, options);
-    formatXMLValues(result, options);
-    const body = result.envelope.body;
-
-    if (body.fault) {
-      const fault = body.fault;
-      let reason = '';
-      let detail = '';
-
-      try {
-        const text = fault.reason.text;
-        reason = (typeof text === 'object' ? text._ : text) || JSON.stringify(linerase(fault.code));
-      } catch (_e) {
-        // Ignore error if reason extraction fails
-      }
-
-      try {
-        [detail] = fault.detail.text;
-      } catch (_e) {
-        // Ignore error if detail extraction fails
-      }
-
-      throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
-    }
-
-    //new parser marker: do not to use linerase
-    // body.__linerase = false;
-    return [body, xml];
-  } else {
-    result = await xml2js.parseStringPromise(xml);
-  }
-
-  try {
-    for (const envelopeKey in result) {
-      for (const [xmlns, url] of Object.entries(result[envelopeKey].$)) {
-        if (url === 'http://www.w3.org/2003/05/soap-envelope') {
-          prefix = `${xmlns.slice(6)}:`;
-          break;
-        }
-      }
-      break;
-    }
-  } catch (e) {
-    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message', {
+  const result = parse(xml, options);
+  formatXMLValues(result, options);
+  const body = result.envelope?.body;
+  if (!body) {
+    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected', {
       xml,
     });
   }
+  if (body.fault) {
+    const fault = body.fault;
+    let reason = '';
+    let detail = '';
 
-  if (!result[`${prefix}Envelope`]?.[`${prefix}Body`]) {
-    throw new OnvifError('Wrong ONVIF SOAP response, envelope and body are expected', {
-      xml,
-    });
-  }
-  const body = result[`${prefix}Envelope`][`${prefix}Body`][0];
-  // SOAP Fault Element
-  // https://www.w3.org/2003/05/soap-envelope/
-  // https://www.w3schools.com/xml/xml_soap.asp
-  if (body[`${prefix}Fault`]) {
-    const fault = body[`${prefix}Fault`][0];
-    let reason;
     try {
-      if (fault[`${prefix}Reason`][0][`${prefix}Text`][0]._) {
-        reason = fault[`${prefix}Reason`][0][`${prefix}Text`][0]._;
-      }
-    } catch (e) {
-      reason = '';
-    }
-    if (!reason) {
-      try {
-        reason = JSON.stringify(linerase(fault.code[0]));
-      } catch (e) {
-        reason = '';
-      }
-    }
-    let detail;
-    try {
-      [detail] = fault[`${prefix}Detail`][0][`${prefix}Text`];
-    } catch (e) {
-      detail = '';
+      const text = fault.reason.text;
+      reason = (typeof text === 'object' ? text._ : text) || JSON.stringify(fault.code);
+    } catch (_e) {
+      // Ignore error if reason extraction fails
     }
 
-    throw new OnvifError(`${reason}${detail}`, {
-      xml,
-    });
+    try {
+      [detail] = fault.detail.text;
+    } catch (_e) {
+      // Ignore error if detail extraction fails
+    }
+
+    throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
   }
   return [body, xml];
 }
@@ -367,16 +298,17 @@ export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<str
   return Object.fromEntries(list.map((item) => [item[groupKey], item]));
 }
 
-const builder = new xml2js.Builder({
-  headless: true,
-  renderOpts: {
-    pretty: false,
-  },
-});
-
-export function build(object: any) {
-  return builder.buildObject(object);
-}
+// old builder with xml2js library
+// const builder = new xml2js.Builder({
+//   headless: true,
+//   renderOpts: {
+//     pretty: false,
+//   },
+// });
+//
+// export function build(object: any) {
+//   return builder.buildObject(object);
+// }
 
 const newBuilder = new XMLBuilder({
   ignoreAttributes: false,
@@ -387,7 +319,7 @@ const newBuilder = new XMLBuilder({
   indentBy: '  ',
 });
 
-export function build2(object: any) {
+export function build(object: any) {
   return newBuilder.build(object);
 }
 

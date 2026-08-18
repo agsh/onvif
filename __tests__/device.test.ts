@@ -63,7 +63,7 @@ describe('getCapabilities', () => {
   it('should reassign recording uri when profile G device has only replay uri', async () => {
     jest.spyOn(cam as any, 'request').mockImplementationOnce(async (options) => {
       const [data, xml] = await (cam as any).request(options);
-      delete data['tds:GetCapabilitiesResponse'][0]['tds:Capabilities'][0]['tt:Extension'][0]['tt:Recording'];
+      delete data.getCapabilitiesResponse.capabilities.extension.recording;
       return [data, xml];
     });
     delete cam.uri.recording;
