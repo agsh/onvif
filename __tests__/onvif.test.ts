@@ -65,7 +65,7 @@ describe('Date and time', () => {
     it('should use current time if there is no UTCDateTime in the response', async () => {
       jest.spyOn(cam as any, 'rawRequest').mockImplementationOnce(async (options) => {
         const [data, xml] = await (cam as any).rawRequest(options);
-        delete data['tds:GetSystemDateAndTimeResponse'][0]['tds:SystemDateAndTime'][0]['tt:UTCDateTime'];
+        delete data.getSystemDateAndTimeResponse.systemDateAndTime.UTCDateTime;
         return [data, xml];
       });
       const result = await cam.getSystemDateAndTime();

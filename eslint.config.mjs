@@ -45,15 +45,18 @@ const commonRules = {
   'class-methods-use-this': 'off',
   'no-nested-ternary': 'off',
   'no-use-before-define': 'off',
-  'key-spacing': ['error', {
-    afterColon: true,
-    beforeColon: true,
-    align: {
-      beforeColon: true,
+  'key-spacing': [
+    'error',
+    {
       afterColon: true,
-      on: 'colon',
+      beforeColon: true,
+      align: {
+        beforeColon: true,
+        afterColon: true,
+        on: 'colon',
+      },
     },
-  }],
+  ],
   'import/no-extraneous-dependencies': 'off',
   'object-curly-newline': ['error', { multiline: true, consistent: true }],
 };
@@ -63,23 +66,22 @@ const tsOnlyRules = {
   '@typescript-eslint/no-non-null-assertion': 'off',
   '@typescript-eslint/no-explicit-any': 'off',
   '@typescript-eslint/ban-ts-comment': 'off',
-  '@typescript-eslint/no-empty-object-type': [
-    'error',
-    { allowInterfaces: 'always' },
+  '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'always' }],
+  '@typescript-eslint/no-unused-vars': [
+    'warn',
+    {
+      varsIgnorePattern: '^_',
+      argsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_',
+      destructuredArrayIgnorePattern: '^_',
+    },
   ],
   'n/no-missing-import': 'off',
 };
 
 export default tseslint.config(
   {
-    ignores: [
-      '**/node_modules/**',
-      'build/**',
-      'coverage/**',
-      '**/*.js',
-      '**/*.cjs',
-      '**/*.mjs',
-    ],
+    ignores: ['**/node_modules/**', 'build/**', 'coverage/**', '**/*.js', '**/*.cjs', '**/*.mjs'],
   },
   {
     files: ['**/*.{ts,mts,cts}'],

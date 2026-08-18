@@ -216,13 +216,13 @@ describe('ParseSOAPString', () => {
 
   it('should throw an error when it is not a SOAP message', async () => {
     await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects.toThrow(
-      'Wrong ONVIF SOAP response, not a SOAP message',
+      'Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected',
     );
   });
 
   it('should throw an error with the wrong SOAP message', async () => {
     await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi a="1"></hi>')).rejects.toThrow(
-      'Wrong ONVIF SOAP response, envelope and body are expected',
+      'Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected',
     );
   });
 });
@@ -358,18 +358,3 @@ describe('xs:any', () => {
     expect(newConfig).toStrictEqual(jsConfig);
   });
 });
-
-// eslint-disable-next-line jest/no-export
-export function clean(obj: any): any {
-  if (Array.isArray(obj)) {
-    return obj.map(clean);
-  }
-  if (typeof obj === 'object') {
-    return Object.fromEntries(
-      Object.entries(obj)
-        .filter(([k]) => !(typeof obj[k] === 'object' && obj[k].__clean__))
-        .map(([k, v]) => [k, clean(v)]),
-    );
-  }
-  return obj;
-}
