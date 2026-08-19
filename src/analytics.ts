@@ -4,8 +4,7 @@
  * @see https://www.onvif.org/ver20/analytics/wsdl/analytics.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
-import { toOnvifXMLSchemaObject } from './utils';
+import { Onvif } from './onvif';
 import Service from './service';
 import { Config, SupportedAnalyticsModules, SupportedRules } from './interfaces/onvif';
 import {
@@ -27,6 +26,7 @@ import {
   ModifyAnalyticsModules,
   ModifyRules,
 } from './interfaces/analytics.2';
+import { config } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Analytics service
@@ -40,7 +40,7 @@ export class Analytics extends Service {
     if (!configs?.length) {
       return undefined;
     }
-    const built = configs.map((config) => toOnvifXMLSchemaObject.config(config));
+    const built = configs.map((cfg) => config(cfg));
     return built.length === 1 ? built[0] : built;
   }
 

@@ -4,9 +4,8 @@
  * @see https://www.onvif.org/ver10/display.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
-import { toOnvifXMLSchemaObject } from './utils';
 import { AudioEncoderConfiguration, Layout, PaneConfiguration, PaneLayout } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import {
@@ -22,6 +21,7 @@ import {
   SetPaneConfiguration,
   SetPaneConfigurations,
 } from './interfaces/display';
+import { multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Display service
@@ -62,7 +62,7 @@ export class Display extends Service {
       Encoding: configuration.encoding,
       Bitrate: configuration.bitrate,
       SampleRate: configuration.sampleRate,
-      Multicast: toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
+      Multicast: multicastConfiguration(configuration.multicast),
       SessionTimeout: configuration.sessionTimeout,
     };
   }

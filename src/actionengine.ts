@@ -4,10 +4,8 @@
  * @see https://www.onvif.org/ver10/actionengine.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
-import { xsany } from './utils';
-import { ItemList } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import {
   Action,
@@ -27,6 +25,7 @@ import {
   ModifyActions,
   SupportedActions,
 } from './interfaces/actionengine';
+import { itemList } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Action Engine service
@@ -51,38 +50,10 @@ export class ActionEngine extends Service {
     return tokens.length === 1 ? tokens[0] : tokens;
   }
 
-  private static oneOrMany<T>(items: T[] | undefined, builder: (item: T) => unknown) {
-    if (!items?.length) {
-      return undefined;
-    }
-    const built = items.map((item) => builder(item));
-    return built.length === 1 ? built[0] : built;
-  }
-
-  private static itemListToBuild(itemList: ItemList) {
-    return {
-      ...(itemList.simpleItem && {
-        SimpleItem: itemList.simpleItem.map((item) => ({
-          $: { Name: item.name, Value: item.value },
-        })),
-      }),
-      ...(itemList.elementItem && {
-        ElementItem: itemList.elementItem.map((elementItem) => {
-          const anyXml = (elementItem[xsany] ?? {}) as Record<string, any>;
-          return {
-            ...anyXml,
-            $: { Name: elementItem.name, ...anyXml.$ },
-          };
-        }),
-      }),
-      ...(itemList.extension && { Extension: itemList.extension }),
-    };
-  }
-
   private static actionConfigurationToBuild(configuration: ActionConfiguration) {
     return {
       $: { Name: configuration.name, Type: configuration.type },
-      Parameters: ActionEngine.itemListToBuild(configuration.parameters),
+      Parameters: itemList(configuration.parameters),
     };
   }
 
@@ -143,13 +114,9 @@ export class ActionEngine extends Service {
   /**
    * Creates one or more actions.
    */
-  async createActions({ action }: CreateActions): Promise<Action[]> {
+  async createActions({ action = [] }: CreateActions): Promise<Action[]> {
     const response = await this.request(
-      {
-        CreateActions: {
-          Action: ActionEngine.oneOrMany(action ?? [], ActionEngine.actionConfigurationToBuild),
-        },
-      },
+      { CreateActions: { Action: action.map(ActionEngine.actionConfigurationToBuild) } },
       { array: ['action'] },
     );
     return response.createActionsResponse.action ?? [];
@@ -169,12 +136,8 @@ export class ActionEngine extends Service {
   /**
    * Modifies one or more actions.
    */
-  async modifyActions({ action }: ModifyActions): Promise<void> {
-    await this.request({
-      ModifyActions: {
-        Action: ActionEngine.oneOrMany(action ?? [], ActionEngine.actionToBuild),
-      },
-    });
+  async modifyActions({ action = [] }: ModifyActions): Promise<void> {
+    await this.request({ ModifyActions: { Action: action.map(ActionEngine.actionToBuild) } });
   }
 
   /**
@@ -188,13 +151,9 @@ export class ActionEngine extends Service {
   /**
    * Creates one or more action triggers.
    */
-  async createActionTriggers({ actionTrigger }: CreateActionTriggers): Promise<ActionTrigger[]> {
+  async createActionTriggers({ actionTrigger = [] }: CreateActionTriggers): Promise<ActionTrigger[]> {
     const response = await this.request(
-      {
-        CreateActionTriggers: {
-          ActionTrigger: ActionEngine.oneOrMany(actionTrigger ?? [], ActionEngine.actionTriggerConfigurationToBuild),
-        },
-      },
+      { CreateActionTriggers: { ActionTrigger: actionTrigger?.map(ActionEngine.actionTriggerConfigurationToBuild) } },
       { array: ['actionTrigger'] },
     );
     return response.createActionTriggersResponse.actionTrigger ?? [];
@@ -203,11 +162,9 @@ export class ActionEngine extends Service {
   /**
    * Modifies one or more action triggers.
    */
-  async modifyActionTriggers({ actionTrigger }: ModifyActionTriggers): Promise<void> {
+  async modifyActionTriggers({ actionTrigger = [] }: ModifyActionTriggers): Promise<void> {
     await this.request({
-      ModifyActionTriggers: {
-        ActionTrigger: ActionEngine.oneOrMany(actionTrigger ?? [], ActionEngine.actionTriggerToBuild),
-      },
+      ModifyActionTriggers: { ActionTrigger: actionTrigger.map(ActionEngine.actionTriggerToBuild) },
     });
   }
 

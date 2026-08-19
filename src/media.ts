@@ -5,9 +5,8 @@
  * @see https://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
-import { toOnvifXMLSchemaObject, xsany } from './utils';
 import {
   AudioDecoderConfiguration,
   AudioDecoderConfigurationOptions,
@@ -102,6 +101,7 @@ import {
   GetProfilesResponse,
 } from './interfaces/media';
 import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
+import { config, multicastConfiguration, xsany } from './utils/toOnvifXMLSchemaObject';
 
 const ConfigurationArraysAndExtensions = {
   array: [
@@ -1210,7 +1210,7 @@ export class Media extends Service {
               H264Profile: configuration.H264.H264Profile,
             },
           }),
-          Multicast: toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
+          Multicast: multicastConfiguration(configuration.multicast),
           SessionTimeout: configuration.sessionTimeout,
         },
       },
@@ -1290,7 +1290,7 @@ export class Media extends Service {
           Encoding: configuration.encoding,
           Bitrate: configuration.bitrate,
           SampleRate: configuration.sampleRate,
-          Multicast: toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
+          Multicast: multicastConfiguration(configuration.multicast),
           SessionTimeout: configuration.sessionTimeout,
         },
       },
@@ -1323,9 +1323,7 @@ export class Media extends Service {
           UseCount: configuration.useCount,
           AnalyticsEngineConfiguration: {
             ...(configuration.analyticsEngineConfiguration.analyticsModule && {
-              AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(
-                toOnvifXMLSchemaObject.config,
-              ),
+              AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(config),
             }),
             ...(configuration.analyticsEngineConfiguration.extension && {
               Extension: configuration.analyticsEngineConfiguration.extension,
@@ -1333,7 +1331,7 @@ export class Media extends Service {
           },
           RuleEngineConfiguration: {
             ...(configuration.ruleEngineConfiguration.rule && {
-              Rule: configuration.ruleEngineConfiguration.rule.map(toOnvifXMLSchemaObject.config),
+              Rule: configuration.ruleEngineConfiguration.rule.map(config),
             }),
             ...(configuration.ruleEngineConfiguration.extension && {
               Extension: configuration.ruleEngineConfiguration.extension,
@@ -1385,19 +1383,20 @@ export class Media extends Service {
             },
           }),
           Analytics: configuration.analytics,
-          Multicast: toOnvifXMLSchemaObject.multicastConfiguration(configuration.multicast),
+          Multicast: multicastConfiguration(configuration.multicast),
           SessionTimeout: configuration.sessionTimeout,
           ...(configuration.analyticsEngineConfiguration && {
             AnalyticsEngineConfiguration: {
               ...(configuration.analyticsEngineConfiguration.analyticsModule && {
-                AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(
-                  toOnvifXMLSchemaObject.config,
-                ),
+                AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(config),
               }),
               ...(configuration.analyticsEngineConfiguration.extension && {
                 Extension: configuration.analyticsEngineConfiguration.extension,
               }),
             },
+          }),
+          ...(configuration.extension && {
+            Extension: configuration.extension,
           }),
         },
       },
