@@ -86,13 +86,12 @@ export class DeviceIO extends Service {
   }
 
   private static digitalInputsToBuild(digitalInputs: DigitalInput[]) {
-    const built = digitalInputs.map((digitalInput) => ({
+    return digitalInputs.map((digitalInput) => ({
       $: {
         token: digitalInput.token,
         ...(digitalInput.idleState !== undefined && { IdleState: digitalInput.idleState }),
       },
     }));
-    return built.length === 1 ? built[0] : built;
   }
 
   private static serialPortConfigurationToBuild(configuration: SerialPortConfiguration) {
