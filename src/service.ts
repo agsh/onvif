@@ -53,10 +53,64 @@ export default class Service {
       array: options?.array,
       rawXML: options?.rawXML,
     });
-    // TODO make array everywhere!
-    if (options?.array !== undefined) {
-      return data as T;
-    }
-    return linerase<T>(data, options);
+    return data as T;
   }
+}
+
+export function createLazy<T extends object>(
+  onvif: Onvif,
+  loader: () => Promise<{ default: new (onvif: Onvif) => T }>,
+): T {
+  let instance: T | undefined;
+  let loading: Promise<T> | undefined;
+
+  const load = (): Promise<T> => {
+    if (instance) {
+      return Promise.resolve(instance);
+    }
+
+    return (loading ??= loader().then(({ default: Service }) => {
+      instance = new Service(onvif);
+      return instance;
+    }));
+  };
+
+  const resolveProperty = (service: T, property: string | symbol, args: unknown[]) => {
+    const value = Reflect.get(service, property, service);
+    if (typeof value === 'function') {
+      return Reflect.apply(value, service, args);
+    }
+    if (args.length > 0) {
+      throw new TypeError(`${String(property)} is not a method`);
+    }
+    return value;
+  };
+
+  return new Proxy(
+    {},
+    {
+      get(_target, property) {
+        if (instance) {
+          const value = Reflect.get(instance, property, instance);
+          if (typeof value === 'function') {
+            return (...args: unknown[]) => Reflect.apply(value, instance!, args);
+          }
+          return value;
+        }
+        return (...args: unknown[]) => load().then((service) => resolveProperty(service, property, args));
+      },
+      set(_target, property, value) {
+        if (!instance) {
+          throw new Error(`Cannot set ${String(property)} before class is loaded`);
+        }
+        return Reflect.set(instance, property, value, instance);
+      },
+      has(_target, property) {
+        if (instance) {
+          return Reflect.has(instance, property);
+        }
+        return false;
+      },
+    },
+  ) as T;
 }

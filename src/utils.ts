@@ -393,9 +393,9 @@ export function getDigestHeaders(headersArray: string[]) {
  */
 export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
   const rawXML = options.rawXML ?? [];
-  if (Array.isArray(xml)) {
-    return xml.forEach((item) => formatXMLValues(item, options));
-  }
+  // if (Array.isArray(xml)) {
+  //   return xml.forEach((item) => formatXMLValues(item, options));
+  // }
   if (typeof xml === 'object' && xml !== null) {
     for (const [key, value] of Object.entries(xml)) {
       if (key === xsany) {

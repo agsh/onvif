@@ -11,10 +11,10 @@ import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { build, getDigestHeaders, linerase, OnvifResponse, parseSOAPString, splitArgs } from './utils';
-import { Device } from './device';
-import { Media } from './media';
-import { Media2 } from './media2';
-import { PTZ } from './ptz';
+import Device from './device';
+import type Media from './media';
+import type Media2 from './media2';
+import type PTZ from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
@@ -31,6 +31,7 @@ import { ActionEngine } from './actionengine';
 import { Search } from './search';
 import { AnalyticsDevice } from './analyticsdevice';
 import { Receiver } from './receiver';
+import { createLazy } from './service';
 
 /**
  * Cam constructor options
@@ -461,10 +462,10 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this);
-    this.media = new Media(this);
-    this.media2 = new Media2(this);
-    this.ptz = new PTZ(this);
+    this.device = new Device(this); // createLazy<Device>(this, () => import('./device'));
+    this.media = createLazy<Media>(this, () => import('./media'));
+    this.media2 = createLazy<Media2>(this, () => import('./media2'));
+    this.ptz = createLazy<PTZ>(this, () => import('./ptz'));
     this.events = new Events(this);
     this.replay = new Replay(this);
     this.imaging = new Imaging(this);
@@ -912,7 +913,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       SetSystemDateAndTime: {
         $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' },
         DateTimeType: options.dateTimeType,
-        DaylightSavings: !!options.daylightSavings,
+        DaylightSavings: options.daylightSavings,
         ...((options.timezone !== undefined || options.timeZone?.TZ !== undefined) && {
           TimeZone: {
             TZ: options.timezone || options.timeZone?.TZ,
