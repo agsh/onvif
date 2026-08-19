@@ -184,7 +184,7 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
 /**
  * Media service, ver10 profile
  */
-export class Media extends Service {
+export default class Media extends Service {
   public profiles: Profile[] = [];
   public videoSources: VideoSource[] = [];
   public audioSources: AudioSource[] = [];
