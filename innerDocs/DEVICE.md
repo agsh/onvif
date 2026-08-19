@@ -4,7 +4,7 @@ Legend:
 
 | Column | Meaning |
 |--------|---------|
-| **Code** | Implemented in `src/device.ts` |
+| **Code** | Implemented in `../src/device.ts` |
 | **Happytime** | Supported by `__tests__/happytime-onvif-server` |
 | **Tests** | Covered in `__tests__/device.test.ts` (or noted otherwise) |
 
