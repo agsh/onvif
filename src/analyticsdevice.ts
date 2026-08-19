@@ -17,7 +17,6 @@ import {
   EngineConfiguration,
   MetadataInput,
   SourceIdentification,
-  StreamSetup,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
 } from './interfaces/onvif';
@@ -39,9 +38,7 @@ import {
   SetAnalyticsEngineInput,
   SetVideoAnalyticsConfiguration,
 } from './interfaces/analyticsdevice';
-import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
-
-const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
+import { config, multicastConfiguration, streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Analytics Device service
@@ -207,24 +204,6 @@ export class AnalyticsDevice extends Service {
       Subscription: config(configuration.subscription),
       Mode: configuration.mode,
       ...(configuration.extension !== undefined ? { Extension: configuration.extension } : {}),
-    };
-  }
-
-  private static streamSetupToBuild({ stream, transport }: StreamSetup) {
-    return {
-      Stream: {
-        $: { xmlns: SCHEMA_XMLNS },
-        _: stream,
-      },
-      Transport: {
-        $: { xmlns: SCHEMA_XMLNS },
-        Protocol: transport.protocol,
-        ...(transport.tunnel && {
-          Tunnel: {
-            Protocol: transport.tunnel.protocol,
-          },
-        }),
-      },
     };
   }
 
@@ -401,7 +380,7 @@ export class AnalyticsDevice extends Service {
   }: GetAnalyticsDeviceStreamUri): Promise<AnyURI> {
     const response = await this.request({
       GetAnalyticsDeviceStreamUri: {
-        StreamSetup: AnalyticsDevice.streamSetupToBuild(streamSetup),
+        StreamSetup: streamSetupToBuild(streamSetup),
         AnalyticsEngineControlToken: analyticsEngineControlToken,
       },
     });

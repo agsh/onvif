@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver20/imaging/wsdl/imaging.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import { ReferenceToken } from './interfaces/common';
 import {
@@ -34,8 +34,6 @@ import {
   SetImagingSettings,
   Stop,
 } from './interfaces/imaging.2';
-
-const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
 
 interface VideoSourceTokenExtended {
   videoSourceToken?: ReferenceToken;
@@ -133,7 +131,6 @@ export class Imaging extends Service {
 
   private static imagingSettingsToBuild(settings: ImagingSettings20) {
     return {
-      $: { xmlns: SCHEMA_XMLNS },
       ...(settings.backlightCompensation && {
         BacklightCompensation: Imaging.backlightCompensationToBuild(settings.backlightCompensation),
       }),

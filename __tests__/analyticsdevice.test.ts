@@ -385,12 +385,8 @@ describe('AnalyticsDevice (mocked)', () => {
       expect(body.GetAnalyticsDeviceStreamUri).toEqual({
         $: { xmlns: ANALYTICS_DEVICE_XMLNS },
         StreamSetup: {
-          Stream: {
-            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
-            _: 'RTP-Unicast',
-          },
+          Stream: 'RTP-Unicast',
           Transport: {
-            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
             Protocol: 'RTSP',
           },
         },

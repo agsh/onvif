@@ -30,6 +30,7 @@ import { Display } from './display';
 import { ActionEngine } from './actionengine';
 import { Search } from './search';
 import { AnalyticsDevice } from './analyticsdevice';
+import { Receiver } from './receiver';
 
 /**
  * Cam constructor options
@@ -385,6 +386,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly analyticsDevice: AnalyticsDevice;
   /**
+   * Receiver namespace for receiver v1.0 methods
+   * @example
+   * ```typescript
+   * const receivers = await onvif.receiver.getReceivers();
+   * console.log(receivers);
+   * ```
+   */
+  public readonly receiver: Receiver;
+  /**
    * Indicates if the device is using secure connection
    */
   public readonly useSecure: boolean;
@@ -467,6 +477,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.actionEngine = new ActionEngine(this);
     this.search = new Search(this);
     this.analyticsDevice = new AnalyticsDevice(this);
+    this.receiver = new Receiver(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
@@ -904,23 +915,18 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         DaylightSavings: !!options.daylightSavings,
         ...((options.timezone !== undefined || options.timeZone?.TZ !== undefined) && {
           TimeZone: {
-            TZ: {
-              $: { xmlns: 'http://www.onvif.org/ver10/schema' },
-              _: options.timezone || options.timeZone?.TZ,
-            },
+            TZ: options.timezone || options.timeZone?.TZ,
           },
         }),
         ...(options.dateTime !== undefined && options.dateTime instanceof Date
           ? {
               UTCDateTime: {
                 Time: {
-                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
                   Hour: options.dateTime.getUTCHours(),
                   Minute: options.dateTime.getUTCMinutes(),
                   Second: options.dateTime.getUTCSeconds(),
                 },
                 Date: {
-                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
                   Year: options.dateTime.getUTCFullYear(),
                   Month: options.dateTime.getUTCMonth() + 1,
                   Day: options.dateTime.getUTCDate(),
@@ -930,13 +936,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           : {
               UTCDateTime: {
                 Time: {
-                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
                   Hour: options.UTCDateTime?.time?.hour,
                   Minute: options.UTCDateTime?.time?.minute,
                   Second: options.UTCDateTime?.time?.second,
                 },
                 Date: {
-                  $: { xmlns: 'http://www.onvif.org/ver10/schema' },
                   Year: options.UTCDateTime?.date?.year,
                   Month: options.UTCDateTime?.date?.month,
                   Day: options.UTCDateTime?.date?.day,

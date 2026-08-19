@@ -8,6 +8,7 @@
 import { Onvif, OnvifServices } from './onvif';
 import Service from './service';
 import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
+import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 import {
   AuxiliaryData,
   PTZConfiguration,
@@ -640,30 +641,7 @@ export class PTZ extends Service {
       return undefined;
     }
     const vector: PTZVector = 'x' in input || 'pan' in input ? PTZ.formatPTZSimpleVector(input) : (input as PTZVector);
-    // return (
-    //   (vector.panTilt
-    //     ? `<PanTilt x="${vector.panTilt.x}" y="${vector.panTilt.y}" xmlns="http://www.onvif.org/ver10/schema"/>`
-    //     : '') + (vector.zoom ? `<Zoom x="${vector.zoom.x}" xmlns="http://www.onvif.org/ver10/schema"/>` : '')
-    // );
-    return {
-      ...(vector.panTilt && {
-        PanTilt: {
-          $: {
-            xmlns: 'http://www.onvif.org/ver10/schema',
-            x: vector.panTilt.x,
-            y: vector.panTilt.y,
-          },
-        },
-      }),
-      ...(vector.zoom && {
-        Zoom: {
-          $: {
-            xmlns: 'http://www.onvif.org/ver10/schema',
-            x: vector.zoom.x,
-          },
-        },
-      }),
-    };
+    return ptzVectorToBuild(vector);
   }
 
   /**
