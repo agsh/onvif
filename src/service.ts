@@ -1,8 +1,8 @@
 import { Onvif, OnvifServices } from './onvif';
-import { build, linerase, LineraseOptions } from './utils';
+import { linerase, LineraseOptions } from './utils';
 
 const XMLNS: Record<keyof OnvifServices, string> = {
-  PTZ: 'http://www.onvif.org/ver20/ptz/wsdl',
+  ptz: 'http://www.onvif.org/ver20/ptz/wsdl',
   analytics: 'http://www.onvif.org/ver20/analytics/wsdl',
   device: 'http://www.onvif.org/ver10/device/wsdl',
   deviceIO: 'http://www.onvif.org/ver10/deviceIO/wsdl',
@@ -18,7 +18,7 @@ const XMLNS: Record<keyof OnvifServices, string> = {
   doorcontrol: 'http://www.onvif.org/ver10/doorcontrol/wsdl',
   thermal: 'http://www.onvif.org/ver10/thermal/wsdl',
   search: 'http://www.onvif.org/ver10/search/wsdl',
-  analyticsDevice: 'http://www.onvif.org/ver10/analyticsDevice/wsdl',
+  analyticsdevice: 'http://www.onvif.org/ver10/analyticsdevice/wsdl',
 };
 
 /**

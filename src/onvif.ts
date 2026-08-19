@@ -29,6 +29,7 @@ import { DeviceIO } from './deviceio';
 import { Display } from './display';
 import { ActionEngine } from './actionengine';
 import { Search } from './search';
+import { AnalyticsDevice } from './analyticsdevice';
 
 /**
  * Cam constructor options
@@ -56,9 +57,9 @@ export interface OnvifOptions {
 }
 
 export interface OnvifServices {
-  PTZ?: URL;
+  ptz?: URL;
   analytics?: URL;
-  analyticsDevice?: URL;
+  analyticsdevice?: URL;
   device?: URL;
   deviceIO?: URL;
   display?: URL;
@@ -375,6 +376,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly search: Search;
   /**
+   * AnalyticsDevice namespace for analytics device v1.0 methods
+   * @example
+   * ```typescript
+   * const controls = await onvif.analyticsDevice.getAnalyticsEngineControls();
+   * console.log(controls);
+   * ```
+   */
+  public readonly analyticsDevice: AnalyticsDevice;
+  /**
    * Indicates if the device is using secure connection
    */
   public readonly useSecure: boolean;
@@ -456,6 +466,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.display = new Display(this);
     this.actionEngine = new ActionEngine(this);
     this.search = new Search(this);
+    this.analyticsDevice = new AnalyticsDevice(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
