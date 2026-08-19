@@ -40,8 +40,7 @@ export class Analytics extends Service {
     if (!configs?.length) {
       return undefined;
     }
-    const built = configs.map((cfg) => config(cfg));
-    return built.length === 1 ? built[0] : built;
+    return configs.map((cfg) => config(cfg));
   }
 
   private static namesToBuild(names?: string[]) {

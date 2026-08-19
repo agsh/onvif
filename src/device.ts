@@ -168,11 +168,10 @@ export class Device extends Service {
   }
 
   private static backupFilesToBuild(files: BackupFile[]) {
-    const built = files.map((file) => ({
+    return files.map((file) => ({
       Name: file.name,
       Data: Device.attachmentDataToBuild(file.data),
     }));
-    return built.length === 1 ? built[0] : built;
   }
 
   private static networkHostToBuild(host: NetworkHost) {
@@ -197,8 +196,7 @@ export class Device extends Service {
     if (!hosts?.length) {
       return undefined;
     }
-    const built = hosts.map((host) => Device.networkHostToBuild(host));
-    return built.length === 1 ? built[0] : built;
+    return hosts.map((host) => Device.networkHostToBuild(host));
   }
 
   private static prefixedIPv4ToBuild(ipv4: PrefixedIPv4Address) {
@@ -239,11 +237,6 @@ export class Device extends Service {
     };
   }
 
-  private static usersToBuild(users: User[]) {
-    const built = users.map((user) => Device.userToBuild(user));
-    return built.length === 1 ? built[0] : built;
-  }
-
   private static userRoleToBuild(role: UserRole) {
     const functions = Device.namesToBuild(role.functions);
     return {
@@ -268,8 +261,7 @@ export class Device extends Service {
   }
 
   private static certificatesToBuild(certs: Certificate[]) {
-    const built = certs.map((cert) => Device.certificateToBuild(cert));
-    return built.length === 1 ? built[0] : built;
+    return certs.map((cert) => Device.certificateToBuild(cert));
   }
 
   private static certificateStatusToBuild(status: CertificateStatus) {
@@ -365,7 +357,7 @@ export class Device extends Service {
     if (!locations?.length) {
       return undefined;
     }
-    const built = locations.map((location) => ({
+    return locations.map((location) => ({
       ...(location.entity !== undefined && { Entity: location.entity }),
       ...(location.token !== undefined && { token: location.token }),
       ...(location.fixed !== undefined && { Fixed: location.fixed }),
@@ -376,7 +368,6 @@ export class Device extends Service {
       ...(location.localLocation && { LocalLocation: location.localLocation }),
       ...(location.localOrientation && { LocalOrientation: location.localOrientation }),
     }));
-    return built.length === 1 ? built[0] : built;
   }
 
   getSystemDateAndTime() {
@@ -848,9 +839,7 @@ export class Device extends Service {
   }
 
   async createUsers({ user }: CreateUsers): Promise<void> {
-    await this.request({
-      CreateUsers: { User: Device.usersToBuild(user) },
-    });
+    await this.request({ CreateUsers: { User: user.map((user) => Device.userToBuild(user)) } });
   }
 
   async deleteUsers({ username }: DeleteUsers): Promise<void> {
@@ -861,7 +850,7 @@ export class Device extends Service {
 
   async setUser({ user }: SetUser): Promise<void> {
     await this.request({
-      SetUser: { User: Device.usersToBuild(user) },
+      SetUser: { User: user.map((user) => Device.userToBuild(user)) },
     });
   }
 
@@ -965,10 +954,9 @@ export class Device extends Service {
   }
 
   async setNetworkProtocols({ networkProtocols }: SetNetworkProtocols): Promise<void> {
-    const built = networkProtocols.map((protocol) => Device.networkProtocolToBuild(protocol));
     await this.request({
       SetNetworkProtocols: {
-        NetworkProtocols: built.length === 1 ? built[0] : built,
+        NetworkProtocols: networkProtocols.map((protocol) => Device.networkProtocolToBuild(protocol)),
       },
     });
   }
@@ -1064,10 +1052,11 @@ export class Device extends Service {
   }
 
   async setCertificatesStatus({ certificateStatus }: SetCertificatesStatus): Promise<void> {
-    const built = certificateStatus?.map((status) => Device.certificateStatusToBuild(status));
     await this.request({
       SetCertificatesStatus: {
-        ...(built && { CertificateStatus: built.length === 1 ? built[0] : built }),
+        ...(certificateStatus && {
+          CertificateStatus: certificateStatus.map((status) => Device.certificateStatusToBuild(status)),
+        }),
       },
     });
   }
@@ -1112,10 +1101,11 @@ export class Device extends Service {
   }
 
   async loadCertificateWithPrivateKey({ certificateWithPrivateKey }: LoadCertificateWithPrivateKey): Promise<void> {
-    const built = certificateWithPrivateKey.map((item) => Device.certificateWithPrivateKeyToBuild(item));
     await this.request({
       LoadCertificateWithPrivateKey: {
-        CertificateWithPrivateKey: built.length === 1 ? built[0] : built,
+        CertificateWithPrivateKey: certificateWithPrivateKey.map((item) =>
+          Device.certificateWithPrivateKeyToBuild(item),
+        ),
       },
     });
   }

@@ -86,8 +86,7 @@ export class Display extends Service {
     if (!paneConfigurations?.length) {
       return undefined;
     }
-    const built = paneConfigurations.map((paneConfiguration) => Display.paneConfigurationToBuild(paneConfiguration));
-    return built.length === 1 ? built[0] : built;
+    return paneConfigurations.map((paneConfiguration) => Display.paneConfigurationToBuild(paneConfiguration));
   }
 
   /**
