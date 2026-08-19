@@ -9,8 +9,7 @@ import { AnyURI } from './interfaces/basics';
 import { ReplayConfiguration, StreamSetup, StreamType, TransportProtocol } from './interfaces/onvif';
 import { Capabilities, GetReplayUri, SetReplayConfiguration } from './interfaces/replay';
 import Service from './service';
-
-const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
+import { streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * GetReplayUri with optional stream and transport protocol shortcuts.
@@ -29,24 +28,6 @@ export interface GetReplayUriOptions extends Omit<GetReplayUri, 'streamSetup'> {
 export class Replay extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'replay');
-  }
-
-  private static streamSetupToBuild({ stream, transport }: StreamSetup) {
-    return {
-      Stream: {
-        $: { xmlns: SCHEMA_XMLNS },
-        _: stream,
-      },
-      Transport: {
-        $: { xmlns: SCHEMA_XMLNS },
-        Protocol: transport.protocol,
-        ...(transport.tunnel && {
-          Tunnel: {
-            Protocol: transport.tunnel.protocol,
-          },
-        }),
-      },
-    };
   }
 
   private static resolveStreamSetup(options: GetReplayUriOptions): StreamSetup {
@@ -76,7 +57,7 @@ export class Replay extends Service {
   async getReplayUri(options: GetReplayUriOptions): Promise<AnyURI> {
     const response = await this.request({
       GetReplayUri: {
-        StreamSetup: Replay.streamSetupToBuild(Replay.resolveStreamSetup(options)),
+        StreamSetup: streamSetupToBuild(Replay.resolveStreamSetup(options)),
         RecordingToken: options.recordingToken,
       },
     });

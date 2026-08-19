@@ -1,3 +1,9 @@
+/**
+ * Service module for all ONVIF services
+ * @author Andrew D.Laptev <a.d.laptev@gmail.com>
+ * @see https://www.onvif.org/profiles/specifications/
+ */
+
 import { Onvif, OnvifServices } from './onvif';
 import { linerase, LineraseOptions } from './utils';
 

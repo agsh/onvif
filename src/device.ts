@@ -110,8 +110,6 @@ import {
 import { AnyURI } from './interfaces/basics';
 import { LocationEntity, ReferenceToken } from './interfaces/common';
 
-const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
-
 /**
  * Device methods
  */
@@ -176,19 +174,11 @@ export class Device extends Service {
 
   private static networkHostToBuild(host: NetworkHost) {
     return {
-      Type: { $: { xmlns: SCHEMA_XMLNS }, _: host.type },
-      ...(host.IPv4Address && {
-        IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: host.IPv4Address },
-      }),
-      ...(host.IPv6Address && {
-        IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: host.IPv6Address },
-      }),
-      ...(host.DNSname && {
-        DNSname: { $: { xmlns: SCHEMA_XMLNS }, _: host.DNSname },
-      }),
-      ...(host.extension && {
-        Extension: { $: { xmlns: SCHEMA_XMLNS }, _: host.extension },
-      }),
+      Type: host.type,
+      ...(host.IPv4Address && { IPv4Address: host.IPv4Address }),
+      ...(host.IPv6Address && { IPv6Address: host.IPv6Address }),
+      ...(host.DNSname && { DNSname: host.DNSname }),
+      ...(host.extension && { Extension: host.extension }),
     };
   }
 
@@ -565,21 +555,9 @@ export class Device extends Service {
         FromDHCP: options.fromDHCP ?? false,
         ...(options.NTPManual &&
           Array.isArray(options.NTPManual) && {
-            NTPManual: options.NTPManual.filter((NTPManual) => NTPManual.type).map((NTPManual) => ({
-              Type: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.type },
-              ...(NTPManual.IPv4Address && {
-                IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.IPv4Address },
-              }),
-              ...(NTPManual.IPv6Address && {
-                IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.IPv6Address },
-              }),
-              ...(NTPManual.DNSname && {
-                DNSname: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.DNSname },
-              }),
-              ...(NTPManual.extension && {
-                Extension: { $: { xmlns: SCHEMA_XMLNS }, _: NTPManual.extension },
-              }),
-            })),
+            NTPManual: options.NTPManual.filter((NTPManual) => NTPManual.type).map((NTPManual) =>
+              Device.networkHostToBuild(NTPManual),
+            ),
           }),
       },
     });
@@ -615,15 +593,9 @@ export class Device extends Service {
           }),
         ...(options.DNSManual &&
           Array.isArray(options.DNSManual) && {
-            DNSManual: options.DNSManual.filter((DNSManual) => DNSManual.type).map((DNSManual) => ({
-              Type: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.type },
-              ...(DNSManual.IPv4Address && {
-                IPv4Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv4Address },
-              }),
-              ...(DNSManual.IPv6Address && {
-                IPv6Address: { $: { xmlns: SCHEMA_XMLNS }, _: DNSManual.IPv6Address },
-              }),
-            })),
+            DNSManual: options.DNSManual.filter((DNSManual) => DNSManual.type).map((DNSManual) =>
+              Device.networkHostToBuild(DNSManual),
+            ),
           }),
       },
     });
@@ -656,7 +628,6 @@ export class Device extends Service {
       SetNetworkInterfaces: {
         InterfaceToken: options.interfaceToken,
         NetworkInterface: {
-          $: { xmlns: SCHEMA_XMLNS },
           Enabled: networkInterface.enabled,
           ...(networkInterface.link && {
             Link: {
