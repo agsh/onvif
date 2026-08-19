@@ -5,7 +5,7 @@
  * @see http://www.onvif.org/ver20/media/wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import {
   MediaProfile,
@@ -49,7 +49,6 @@ import {
   DeleteMask,
   Capabilities2,
 } from './interfaces/media.2';
-import { toOnvifXMLSchemaObject } from './utils';
 import { ReferenceToken } from './interfaces/common';
 import {
   AudioDecoderConfiguration,
@@ -70,6 +69,7 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
+import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Configurations as defined by tr2:ConfigurationEnumeration
@@ -468,16 +468,7 @@ export class Media2 extends Service {
             },
           }),
           ...(configuration.multicast && {
-            Multicast: {
-              Address: {
-                Type: configuration.multicast.address.type,
-                IPv4Address: configuration.multicast.address.IPv4Address,
-                IPv6Address: configuration.multicast.address.IPv6Address,
-              },
-              Port: configuration.multicast.port,
-              TTL: configuration.multicast.TTL,
-              AutoStart: configuration.multicast.autoStart,
-            },
+            Multicast: multicastConfiguration(configuration.multicast),
           }),
           Quality: configuration.quality,
         },
@@ -571,16 +562,7 @@ export class Media2 extends Service {
           UseCount: configuration.useCount,
           Encoding: configuration.encoding,
           ...(configuration.multicast && {
-            Multicast: {
-              Address: {
-                Type: configuration.multicast.address.type,
-                IPv4Address: configuration.multicast.address.IPv4Address,
-                IPv6Address: configuration.multicast.address.IPv6Address,
-              },
-              Port: configuration.multicast.port,
-              TTL: configuration.multicast.TTL,
-              AutoStart: configuration.multicast.autoStart,
-            },
+            Multicast: multicastConfiguration(configuration.multicast),
           }),
           Bitrate: configuration.bitrate,
           SampleRate: configuration.sampleRate,
@@ -647,24 +629,13 @@ export class Media2 extends Service {
           }),
           Analytics: configuration.analytics,
           ...(configuration.multicast && {
-            Multicast: {
-              Address: {
-                Type: configuration.multicast.address.type,
-                IPv4Address: configuration.multicast.address.IPv4Address,
-                IPv6Address: configuration.multicast.address.IPv6Address,
-              },
-              Port: configuration.multicast.port,
-              TTL: configuration.multicast.TTL,
-              AutoStart: configuration.multicast.autoStart,
-            },
+            Multicast: multicastConfiguration(configuration.multicast),
           }),
           SessionTimeout: configuration.sessionTimeout,
           ...(configuration.analyticsEngineConfiguration && {
             AnalyticsEngineConfiguration: {
               ...(configuration.analyticsEngineConfiguration.analyticsModule && {
-                AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(
-                  toOnvifXMLSchemaObject.config,
-                ),
+                AnalyticsModule: configuration.analyticsEngineConfiguration.analyticsModule.map(config),
               }),
               ...(configuration.analyticsEngineConfiguration.extension && {
                 Extension: configuration.analyticsEngineConfiguration.extension,

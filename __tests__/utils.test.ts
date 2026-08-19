@@ -1,16 +1,7 @@
 import xml2js, { parseStringPromise } from 'xml2js';
-import {
-  build,
-  guid,
-  linerase,
-  parseSOAPString,
-  splitArgs,
-  struct,
-  toIsoDuration,
-  toMs,
-  toOnvifXMLSchemaObject,
-} from '../src/utils';
+import { build, guid, linerase, parseSOAPString, splitArgs, struct, toIsoDuration, toMs } from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
+import { config } from '../src/utils/toOnvifXMLSchemaObject';
 
 describe('Linerase function', () => {
   it('should handle tag', async () => {
@@ -353,7 +344,7 @@ describe('xs:any', () => {
     const Config = await xml2js.parseStringPromise(jsConfig);
     const result: Config = linerase(Config, { array: ['elementItem'], rawXML: ['elementItem'] }).analyticsModule;
     const newConfig = build({
-      AnalyticsModule: toOnvifXMLSchemaObject.config(result),
+      AnalyticsModule: config(result),
     });
     expect(newConfig).toStrictEqual(jsConfig);
   });

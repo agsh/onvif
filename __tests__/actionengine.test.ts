@@ -6,12 +6,7 @@
 
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
-import {
-  Action,
-  ActionConfiguration,
-  ActionTrigger,
-  ActionTriggerConfiguration,
-} from '../src/interfaces/actionengine';
+import { Action, ActionConfiguration, ActionTrigger, ActionTriggerConfiguration } from '../src/interfaces/actionengine';
 
 const ACTION_TOKEN = 'ActionToken_1';
 const TRIGGER_TOKEN = 'ActionTriggerToken_1';
@@ -154,12 +149,14 @@ describe('ActionEngine (mocked)', () => {
       expect(body).toEqual({
         CreateActions: {
           $: { xmlns: ACTIONENGINE_XMLNS },
-          Action: {
-            $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
-            Parameters: {
-              SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+          Action: [
+            {
+              $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
+              Parameters: {
+                SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+              },
             },
-          },
+          ],
         },
       });
     });
@@ -173,15 +170,17 @@ describe('ActionEngine (mocked)', () => {
       expect(body).toEqual({
         ModifyActions: {
           $: { xmlns: ACTIONENGINE_XMLNS },
-          Action: {
-            $: { token: ACTION_TOKEN },
-            Configuration: {
-              $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
-              Parameters: {
-                SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+          Action: [
+            {
+              $: { token: ACTION_TOKEN },
+              Configuration: {
+                $: { Name: 'RelayOn', Type: 'tt:RelayOutput' },
+                Parameters: {
+                  SimpleItem: [{ $: { Name: 'RelayToken', Value: 'RelayOutputToken_1' } }],
+                },
               },
             },
-          },
+          ],
         },
       });
     });
@@ -226,10 +225,12 @@ describe('ActionEngine (mocked)', () => {
       expect(body).toEqual({
         CreateActionTriggers: {
           $: { xmlns: ACTIONENGINE_XMLNS },
-          ActionTrigger: {
-            TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
-            ActionToken: ACTION_TOKEN,
-          },
+          ActionTrigger: [
+            {
+              TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+              ActionToken: ACTION_TOKEN,
+            },
+          ],
         },
       });
     });
@@ -243,13 +244,15 @@ describe('ActionEngine (mocked)', () => {
       expect(body).toEqual({
         ModifyActionTriggers: {
           $: { xmlns: ACTIONENGINE_XMLNS },
-          ActionTrigger: {
-            $: { token: TRIGGER_TOKEN },
-            Configuration: {
-              TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
-              ActionToken: ACTION_TOKEN,
+          ActionTrigger: [
+            {
+              $: { token: TRIGGER_TOKEN },
+              Configuration: {
+                TopicExpression: 'tns1:RuleEngine/CellMotionDetector/Motion',
+                ActionToken: ACTION_TOKEN,
+              },
             },
-          },
+          ],
         },
       });
     });

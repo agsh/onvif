@@ -71,6 +71,7 @@
     "nimble": "^0.0.2",
     "prettier": "^3.2.5",
     "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.2",
     "tsx": "^4.15.8",
     "typedoc": "^0.28.20",
     "typedoc-plugin-missing-exports": "^4.1.4",
@@ -79,6 +80,6 @@
     "xml2js": "^0.6.2"
   },
   "allowScripts": {
-    "esbuild@0.27.7": true
+    "esbuild@0.27.2": true
   }
 }

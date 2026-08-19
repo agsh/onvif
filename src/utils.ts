@@ -1,6 +1,6 @@
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import { Config, MulticastConfiguration } from './interfaces/onvif';
 import { Duration } from './interfaces/basics';
+import { xsany } from './utils/toOnvifXMLSchemaObject';
 
 const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
@@ -18,8 +18,6 @@ interface OnvifErrorOptions {
  * Type for common duration values, ISO duration or milliseconds
  */
 export type CommonDuration = string | number;
-
-export const xsany = '__any__';
 
 export class OnvifError extends Error {
   public readonly xml?: string;
@@ -322,46 +320,6 @@ const newBuilder = new XMLBuilder({
 export function build(object: any) {
   return newBuilder.build(object);
 }
-
-export const toOnvifXMLSchemaObject = {
-  multicastConfiguration(multicast: MulticastConfiguration) {
-    return {
-      Address: {
-        Type: multicast.address.type,
-        ...(multicast.address.IPv4Address && { IPv4Address: multicast.address.IPv4Address }),
-        ...(multicast.address.IPv6Address && { IPv4Address: multicast.address.IPv6Address }),
-      },
-      Port: multicast.port,
-      TTL: multicast.TTL,
-      AutoStart: multicast.autoStart,
-    };
-  },
-  config(config: Config) {
-    return {
-      $: {
-        Name: config.name,
-        Type: config.type,
-      },
-      Parameters: {
-        ...(config.parameters.simpleItem && {
-          SimpleItem: config.parameters.simpleItem.map((simpleItem) => ({
-            $: { Name: simpleItem.name, Value: simpleItem.value },
-          })),
-        }),
-        ...(config.parameters.elementItem && {
-          ElementItem: config.parameters.elementItem.map((elementItem) => {
-            const anyXml = (elementItem[xsany] ?? {}) as Record<string, any>;
-            return {
-              ...anyXml,
-              $: { Name: elementItem.name, ...anyXml.$ },
-            };
-          }),
-        }),
-        ...(config.parameters.extension && { Extension: config.parameters.extension }),
-      },
-    };
-  },
-};
 
 /**
  * Use ISO duration or convert milliseconds to ISO duration
