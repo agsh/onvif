@@ -37,6 +37,7 @@ import {
   GetVideoSourceConfiguration,
   GetVideoSourceConfigurationOptions,
   RelayOutputOptions,
+  SerialData,
   SendReceiveSerialCommand,
   SendReceiveSerialCommandResponse,
   SerialPort,
@@ -105,7 +106,7 @@ export class DeviceIO extends Service {
     };
   }
 
-  private static serialDataToBuild(serialData?: SendReceiveSerialCommand['serialData']) {
+  private static serialDataToBuild(serialData?: SerialData) {
     if (!serialData) {
       return undefined;
     }

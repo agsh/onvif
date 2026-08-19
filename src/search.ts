@@ -13,6 +13,8 @@ import {
   FindRecordingResultList,
   JobToken,
   MediaAttributes,
+  MetadataFilter,
+  PTZPositionFilter,
   RecordingInformation,
   RecordingReference,
   RecordingSummary,
@@ -36,8 +38,7 @@ import {
   GetRecordingSummary,
   GetSearchState,
 } from './interfaces/search';
-
-const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
+import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * Search service
@@ -82,38 +83,16 @@ export class Search extends Service {
     };
   }
 
-  private static ptzVectorToBuild(vector: FindPTZPosition['searchFilter']['minPosition']) {
+  private static ptzPositionFilterToBuild(searchFilter: PTZPositionFilter) {
     return {
-      ...(vector.panTilt && {
-        PanTilt: {
-          $: {
-            xmlns: SCHEMA_XMLNS,
-            x: vector.panTilt.x,
-            y: vector.panTilt.y,
-          },
-        },
-      }),
-      ...(vector.zoom && {
-        Zoom: {
-          $: {
-            xmlns: SCHEMA_XMLNS,
-            x: vector.zoom.x,
-          },
-        },
-      }),
-    };
-  }
-
-  private static ptzPositionFilterToBuild(searchFilter: FindPTZPosition['searchFilter']) {
-    return {
-      MinPosition: Search.ptzVectorToBuild(searchFilter.minPosition),
-      MaxPosition: Search.ptzVectorToBuild(searchFilter.maxPosition),
+      MinPosition: ptzVectorToBuild(searchFilter.minPosition),
+      MaxPosition: ptzVectorToBuild(searchFilter.maxPosition),
       EnterOrExit: searchFilter.enterOrExit,
       ...(searchFilter.extension !== undefined ? { Extension: searchFilter.extension } : {}),
     };
   }
 
-  private static metadataFilterToBuild(metadataFilter: FindMetadata['metadataFilter']) {
+  private static metadataFilterToBuild(metadataFilter: MetadataFilter) {
     return {
       MetadataStreamFilter: metadataFilter.metadataStreamFilter,
       ...(metadataFilter.extension !== undefined ? { Extension: metadataFilter.extension } : {}),

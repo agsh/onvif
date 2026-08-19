@@ -28,6 +28,7 @@ import {
   VideoSource,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
+  TransportProtocol as OnvifTransportProtocol,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
 import {
@@ -101,7 +102,7 @@ import {
   GetProfilesResponse,
 } from './interfaces/media';
 import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
-import { config, multicastConfiguration, xsany } from './utils/toOnvifXMLSchemaObject';
+import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
 
 const ConfigurationArraysAndExtensions = {
   array: [
@@ -1515,16 +1516,10 @@ export class Media extends Service {
     // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
     const response = await this.request({
       GetStreamUri: {
-        StreamSetup: {
-          Stream: {
-            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
-            _: stream,
-          },
-          Transport: {
-            $: { xmlns: 'http://www.onvif.org/ver10/schema' },
-            Protocol: protocol || 'RTSP',
-          },
-        },
+        StreamSetup: streamSetupToBuild({
+          stream,
+          transport: { protocol: (protocol || 'RTSP') as OnvifTransportProtocol },
+        }),
         ProfileToken: profileToken || this.onvif.activeSource!.profileToken,
       },
     });

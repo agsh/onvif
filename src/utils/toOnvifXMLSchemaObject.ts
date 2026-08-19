@@ -3,7 +3,8 @@
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  */
 
-import { Config, ItemList, MulticastConfiguration } from '../interfaces/onvif';
+import { Config, ItemList, MulticastConfiguration, StreamSetup } from '../interfaces/onvif';
+import { PTZVector } from '../interfaces/common';
 
 export type XSAny = Record<string, any> | undefined;
 
@@ -49,5 +50,39 @@ export function multicastConfiguration(multicast: MulticastConfiguration) {
     Port: multicast.port,
     TTL: multicast.TTL,
     AutoStart: multicast.autoStart,
+  };
+}
+
+export function streamSetupToBuild({ stream, transport }: StreamSetup) {
+  return {
+    Stream: stream,
+    Transport: {
+      Protocol: transport.protocol,
+      ...(transport.tunnel && {
+        Tunnel: {
+          Protocol: transport.tunnel.protocol,
+        },
+      }),
+    },
+  };
+}
+
+export function ptzVectorToBuild(vector: PTZVector) {
+  return {
+    ...(vector.panTilt && {
+      PanTilt: {
+        $: {
+          x: vector.panTilt.x,
+          y: vector.panTilt.y,
+        },
+      },
+    }),
+    ...(vector.zoom && {
+      Zoom: {
+        $: {
+          x: vector.zoom.x,
+        },
+      },
+    }),
   };
 }
