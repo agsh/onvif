@@ -28,6 +28,7 @@ import { Analytics } from './analytics';
 import { DeviceIO } from './deviceio';
 import { Display } from './display';
 import { ActionEngine } from './actionengine';
+import { Search } from './search';
 
 /**
  * Cam constructor options
@@ -365,6 +366,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly actionEngine: ActionEngine;
   /**
+   * Search namespace for search v1.0 methods
+   * @example
+   * ```typescript
+   * const summary = await onvif.search.getRecordingSummary();
+   * console.log(summary);
+   * ```
+   */
+  public readonly search: Search;
+  /**
    * Indicates if the device is using secure connection
    */
   public readonly useSecure: boolean;
@@ -445,6 +455,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.deviceIO = new DeviceIO(this);
     this.display = new Display(this);
     this.actionEngine = new ActionEngine(this);
+    this.search = new Search(this);
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {
