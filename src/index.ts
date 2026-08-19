@@ -14,6 +14,7 @@ export * from './analytics';
 export * from './deviceio';
 export * from './display';
 export * from './actionengine';
+export * from './search';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
 // export * from './compatibility/cam'; // development frozen
