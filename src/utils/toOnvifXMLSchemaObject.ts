@@ -44,7 +44,7 @@ export function multicastConfiguration(multicast: MulticastConfiguration) {
     Address: {
       Type: multicast.address.type,
       ...(multicast.address.IPv4Address && { IPv4Address: multicast.address.IPv4Address }),
-      ...(multicast.address.IPv6Address && { IPv4Address: multicast.address.IPv6Address }),
+      ...(multicast.address.IPv6Address && { IPv6Address: multicast.address.IPv6Address }),
     },
     Port: multicast.port,
     TTL: multicast.TTL,
