@@ -125,9 +125,7 @@ export default class DoorControl extends Service {
    * Returns the capabilities of the door control service.
    */
   async getServiceCapabilities(): Promise<Capabilities> {
-    const response = await this.request({
-      GetServiceCapabilities: {},
-    });
+    const response = await this.request({ GetServiceCapabilities: {} });
     return response.getServiceCapabilitiesResponse?.capabilities ?? {};
   }
 
@@ -154,11 +152,7 @@ export default class DoorControl extends Service {
    */
   async getDoorInfo({ token }: GetDoorInfo): Promise<GetDoorInfoResponse> {
     const response = await this.request(
-      {
-        GetDoorInfo: {
-          Token: DoorControl.tokensToBuild(token),
-        },
-      },
+      { GetDoorInfo: { Token: DoorControl.tokensToBuild(token) } },
       { array: ['doorInfo'] },
     );
     return response.getDoorInfoResponse ?? {};
@@ -186,14 +180,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async getDoors({ token }: GetDoors): Promise<GetDoorsResponse> {
-    const response = await this.request(
-      {
-        GetDoors: {
-          Token: DoorControl.tokensToBuild(token),
-        },
-      },
-      { array: ['door'] },
-    );
+    const response = await this.request({ GetDoors: { Token: DoorControl.tokensToBuild(token) } }, { array: ['door'] });
     return response.getDoorsResponse ?? {};
   }
 
@@ -202,11 +189,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async createDoor({ door }: CreateDoor): Promise<CreateDoorResponse['token']> {
-    const response = await this.request({
-      CreateDoor: {
-        Door: DoorControl.doorToBuild(door),
-      },
-    });
+    const response = await this.request({ CreateDoor: { Door: DoorControl.doorToBuild(door) } });
     return response.createDoorResponse.token;
   }
 
@@ -215,11 +198,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async setDoor({ door }: SetDoor): Promise<void> {
-    await this.request({
-      SetDoor: {
-        Door: DoorControl.doorToBuild(door),
-      },
-    });
+    await this.request({ SetDoor: { Door: DoorControl.doorToBuild(door) } });
   }
 
   /**
@@ -227,11 +206,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async modifyDoor({ door }: ModifyDoor): Promise<void> {
-    await this.request({
-      ModifyDoor: {
-        Door: DoorControl.doorToBuild(door),
-      },
-    });
+    await this.request({ ModifyDoor: { Door: DoorControl.doorToBuild(door) } });
   }
 
   /**
@@ -239,11 +214,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async deleteDoor({ token }: DeleteDoor): Promise<void> {
-    await this.request({
-      DeleteDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ DeleteDoor: { Token: token } });
   }
 
   /**
@@ -251,11 +222,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async getDoorState({ token }: GetDoorState): Promise<DoorState> {
-    const response = await this.request({
-      GetDoorState: {
-        Token: token,
-      },
-    });
+    const response = await this.request({ GetDoorState: { Token: token } });
     return response.getDoorStateResponse.doorState;
   }
 
@@ -281,11 +248,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async lockDoor({ token }: LockDoor): Promise<void> {
-    await this.request({
-      LockDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ LockDoor: { Token: token } });
   }
 
   /**
@@ -293,11 +256,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async unlockDoor({ token }: UnlockDoor): Promise<void> {
-    await this.request({
-      UnlockDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ UnlockDoor: { Token: token } });
   }
 
   /**
@@ -305,11 +264,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async blockDoor({ token }: BlockDoor): Promise<void> {
-    await this.request({
-      BlockDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ BlockDoor: { Token: token } });
   }
 
   /**
@@ -317,11 +272,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async lockDownDoor({ token }: LockDownDoor): Promise<void> {
-    await this.request({
-      LockDownDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ LockDownDoor: { Token: token } });
   }
 
   /**
@@ -329,11 +280,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async lockDownReleaseDoor({ token }: LockDownReleaseDoor): Promise<void> {
-    await this.request({
-      LockDownReleaseDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ LockDownReleaseDoor: { Token: token } });
   }
 
   /**
@@ -341,11 +288,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async lockOpenDoor({ token }: LockOpenDoor): Promise<void> {
-    await this.request({
-      LockOpenDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ LockOpenDoor: { Token: token } });
   }
 
   /**
@@ -353,11 +296,7 @@ export default class DoorControl extends Service {
    * @param options
    */
   async lockOpenReleaseDoor({ token }: LockOpenReleaseDoor): Promise<void> {
-    await this.request({
-      LockOpenReleaseDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ LockOpenReleaseDoor: { Token: token } });
   }
 
   /**
@@ -365,10 +304,6 @@ export default class DoorControl extends Service {
    * @param options
    */
   async doubleLockDoor({ token }: DoubleLockDoor): Promise<void> {
-    await this.request({
-      DoubleLockDoor: {
-        Token: token,
-      },
-    });
+    await this.request({ DoubleLockDoor: { Token: token } });
   }
 }
