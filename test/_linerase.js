@@ -1,4 +1,5 @@
 const linerase = require('../lib/utils').linerase;
+const splitArgs = require('../lib/utils').splitArgs;
 const assert = require('assert');
 const parseString = require('xml2js').parseString;
 
@@ -55,4 +56,25 @@ describe('Linerase function', () => {
 			linerase({a: '2015-01-20T16:33:03Z'}), {a: new Date('2015-01-20T16:33:03Z')}
 		)
 	);
+});
+
+describe('splitArgs function', () => {
+	it('should parse args', (done) => {
+		const result = splitArgs('algorithm=MD5,realm="happytimesoft",qop="auth,auth-int",nonce="36160F746AFA5913"');
+		assert.equal(result.length, 4);
+		assert.equal(result[0], 'algorithm=MD5');
+		assert.equal(result[1], 'realm="happytimesoft"');
+		assert.equal(result[2], 'qop="auth,auth-int"');
+		assert.equal(result[3], 'nonce="36160F746AFA5913"');
+		done();
+	});
+	it('should parse args with spaces', (done) => {
+		const result = splitArgs('algorithm=MD5, realm="happytimesoft",qop="auth,auth-int", nonce="36160F746AFA5913"');
+		assert.equal(result.length, 4);
+		assert.equal(result[0], 'algorithm=MD5');
+		assert.equal(result[1], 'realm="happytimesoft"');
+		assert.equal(result[2], 'qop="auth,auth-int"');
+		assert.equal(result[3], 'nonce="36160F746AFA5913"');
+		done();
+	});
 });
