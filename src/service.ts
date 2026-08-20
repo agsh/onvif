@@ -27,6 +27,7 @@ const XMLNS: Record<keyof OnvifServices, string> = {
   accessrules: 'http://www.onvif.org/ver10/accessrules/wsdl',
   schedule: 'http://www.onvif.org/ver10/schedule/wsdl',
   provisioning: 'http://www.onvif.org/ver10/provisioning/wsdl',
+  advancedsecurity: 'http://www.onvif.org/ver10/advancedsecurity/wsdl',
   thermal: 'http://www.onvif.org/ver10/thermal/wsdl',
   search: 'http://www.onvif.org/ver10/search/wsdl',
   analyticsdevice: 'http://www.onvif.org/ver10/analyticsdevice/wsdl',
@@ -62,7 +63,7 @@ export default class Service {
   }
 }
 
-export function createLazy<T extends object>(
+export function lazyService<T extends object>(
   onvif: Onvif,
   loader: () => Promise<{ default: new (onvif: Onvif) => T }>,
 ): T {
