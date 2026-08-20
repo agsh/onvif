@@ -38,7 +38,7 @@ import { itemList } from './utils/toOnvifXMLSchemaObject';
  * const triggers = await cam.actionEngine.getActionTriggers();
  * ```
  */
-export class ActionEngine extends Service {
+export default class ActionEngine extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'actionengine');
   }

@@ -41,7 +41,7 @@ import {
  *  });
  * ```
  */
-export class Thermal extends Service {
+export default class Thermal extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'thermal');
   }

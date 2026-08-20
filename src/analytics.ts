@@ -31,7 +31,7 @@ import { config } from './utils/toOnvifXMLSchemaObject';
 /**
  * Analytics service
  */
-export class Analytics extends Service {
+export default class Analytics extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'analytics');
   }
