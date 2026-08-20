@@ -66,7 +66,7 @@ import {
  * });
  * ```
  */
-export class DeviceIO extends Service {
+export default class DeviceIO extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'deviceIO');
   }

@@ -53,7 +53,7 @@ import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
  * await cam.search.endSearch({ searchToken: token });
  * ```
  */
-export class Search extends Service {
+export default class Search extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'search');
   }

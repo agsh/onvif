@@ -18,19 +18,19 @@ import type PTZ from './ptz';
 import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
 import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
 import { ReferenceToken } from './interfaces/common';
-import { Events, NotificationMessage } from './events';
-import { Replay } from './replay';
-import { Imaging } from './imaging';
-import { Recording } from './recording';
-import { DoorControl } from './doorcontrol';
-import { Thermal } from './thermal';
-import { Analytics } from './analytics';
-import { DeviceIO } from './deviceio';
-import { Display } from './display';
-import { ActionEngine } from './actionengine';
-import { Search } from './search';
-import { AnalyticsDevice } from './analyticsdevice';
-import { Receiver } from './receiver';
+import Events, { NotificationMessage } from './events';
+import type Replay from './replay';
+import type Imaging from './imaging';
+import type Recording from './recording';
+import type DoorControl from './doorcontrol';
+import type Thermal from './thermal';
+import type Analytics from './analytics';
+import type DeviceIO from './deviceio';
+import type Display from './display';
+import type ActionEngine from './actionengine';
+import type Search from './search';
+import type AnalyticsDevice from './analyticsdevice';
+import type Receiver from './receiver';
 import { createLazy } from './service';
 
 /**
@@ -462,23 +462,23 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this); // createLazy<Device>(this, () => import('./device'));
+    this.device = new Device(this); // mandatory module for startup
     this.media = createLazy<Media>(this, () => import('./media'));
     this.media2 = createLazy<Media2>(this, () => import('./media2'));
     this.ptz = createLazy<PTZ>(this, () => import('./ptz'));
-    this.events = new Events(this);
-    this.replay = new Replay(this);
-    this.imaging = new Imaging(this);
-    this.recording = new Recording(this);
-    this.doorControl = new DoorControl(this);
-    this.thermal = new Thermal(this);
-    this.analytics = new Analytics(this);
-    this.deviceIO = new DeviceIO(this);
-    this.display = new Display(this);
-    this.actionEngine = new ActionEngine(this);
-    this.search = new Search(this);
-    this.analyticsDevice = new AnalyticsDevice(this);
-    this.receiver = new Receiver(this);
+    this.events = new Events(this); // mandatory module for events
+    this.replay = createLazy<Replay>(this, () => import('./replay'));
+    this.imaging = createLazy<Imaging>(this, () => import('./imaging'));
+    this.recording = createLazy<Recording>(this, () => import('./recording'));
+    this.doorControl = createLazy<DoorControl>(this, () => import('./doorcontrol'));
+    this.thermal = createLazy<Thermal>(this, () => import('./thermal'));
+    this.analytics = createLazy<Analytics>(this, () => import('./analytics'));
+    this.deviceIO = createLazy<DeviceIO>(this, () => import('./deviceio'));
+    this.display = createLazy<Display>(this, () => import('./display'));
+    this.actionEngine = createLazy<ActionEngine>(this, () => import('./actionengine'));
+    this.search = createLazy<Search>(this, () => import('./search'));
+    this.analyticsDevice = createLazy<AnalyticsDevice>(this, () => import('./analyticsdevice'));
+    this.receiver = createLazy<Receiver>(this, () => import('./receiver'));
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {

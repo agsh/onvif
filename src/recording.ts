@@ -51,7 +51,7 @@ import {
 /**
  * Recording service
  */
-export class Recording extends Service {
+export default class Recording extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'recording');
   }

@@ -26,7 +26,7 @@ import { multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 /**
  * Display service
  */
-export class Display extends Service {
+export default class Display extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'display');
   }

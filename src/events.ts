@@ -174,7 +174,7 @@ interface SubscribeOptions {
 /**
  * Events service
  */
-export class Events {
+export default class Events {
   private readonly onvif: Onvif;
   public agent: HttpsAgent | HttpAgent;
   public globalSubscription: Subscription;
