@@ -63,21 +63,17 @@ I will be happy to answer any questions and hear your feedback.
   [onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces) to provide code completion and type checking
 - Complete [documentation](https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/index.html)
 - Tests using the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
-- Event support: pull-point, base ws-notification, filters, EventEmitter inheritance 
+- Event support: pull-point, base ws-notification, filters, EventEmitter inheritance
 - Lazy import of service modules: if, for example, a thermal service is not used, it will not be loaded.
-- Authentication with WS-Security, Digest (MD5, SHA-1, SHA-256)
-- Full Media2 [support](https://github.com/agsh/onvif/blob/v1/MEDIA2.md)
-- Full Media [support](https://github.com/agsh/onvif/blob/v1/MEDIA.md)
-- Full PTZ [support](https://github.com/agsh/onvif/blob/v1/PTZ.md)
-- Full Replay [support](https://github.com/agsh/onvif/blob/v1/REPLAY.md)
-- Full Imaging [support](https://github.com/agsh/onvif/blob/v1/IMAGING.md)
-- Full DoorControl [support](https://github.com/agsh/onvif/blob/v1/DOORCONTROL.md)
-- Full Analytics [support](https://github.com/agsh/onvif/blob/v1/ANALYTICS.md)
-- Full DeviceIO [support](https://github.com/agsh/onvif/blob/v1/DEVICEIO.md)
-- Full Display [support](https://github.com/agsh/onvif/blob/v1/DISPLAY.md)
-- Full Action Engine [support](https://github.com/agsh/onvif/blob/v1/ACTIONENGINE.md) (mock tests only)
-- Device [support](https://github.com/agsh/onvif/blob/v1/DEVICE.md) not all features can be tested, for
-  example, `setFitmwareUpgrade` as you can understand from the name, it requires a file to be uploaded
+- Authentication with WS-Security and Digest (MD5, SHA-1, SHA-256)
+- WS-Discovery support for finding devices on the local network
+- Full Device, Events, Media, Media2, PTZ, Imaging, Analytics, AnalyticsDevice, Recording, Replay, Search, Receiver,
+  DeviceIO, Full Display, Action Engine, Thermal, DoorControl, AccessControl, Credential, AccessRules, Schedule,
+  Provisioning, AdvancedSecurity. Not yet implemented (interfaces only, from
+  [ONVIF Network Interface Specifications](https://www.onvif.org/profiles/specifications/)):
+  AuthenticationBehavior, Application Management (`appmgmt`), Uplink, FederatedSearch
+- Improved error handling
+- Compatible with the original API structure
 
 ---
 
@@ -221,7 +217,7 @@ export interface SetSystemDateAndTimeExtended extends SetSystemDateAndTime {
 
 ---
 
-# `xs:any` Support
+# Support for `xs:any`
 
 The ONVIF specifications include numerous extension points, which presents a challenge:
 
