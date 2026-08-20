@@ -28,6 +28,7 @@ import type Credential from './credential';
 import type AccessRules from './accessrules';
 import type Schedule from './schedule';
 import type Provisioning from './provisioning';
+import type AdvancedSecurity from './advancedsecurity';
 import type Thermal from './thermal';
 import type Analytics from './analytics';
 import type DeviceIO from './deviceio';
@@ -36,7 +37,7 @@ import type ActionEngine from './actionengine';
 import type Search from './search';
 import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
-import { createLazy } from './service';
+import { lazyService } from './service';
 
 /**
  * Cam constructor options
@@ -83,6 +84,7 @@ export interface OnvifServices {
   accessrules?: URL;
   schedule?: URL;
   provisioning?: URL;
+  advancedsecurity?: URL;
   thermal?: URL;
   actionengine?: URL;
   search?: URL;
@@ -379,6 +381,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly provisioning: Provisioning;
   /**
+   * AdvancedSecurity namespace for advancedsecurity v1.0 methods
+   * @example
+   * ```typescript
+   * const caps = await onvif.advancedSecurity.getServiceCapabilities();
+   * console.log(caps);
+   * ```
+   */
+  public readonly advancedSecurity: AdvancedSecurity;
+  /**
    * Thermal namespace for thermal v1.0 methods
    * @example
    * ```typescript
@@ -518,27 +529,28 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.capabilities = {};
 
     this.device = new Device(this); // mandatory module for startup
-    this.media = createLazy<Media>(this, () => import('./media'));
-    this.media2 = createLazy<Media2>(this, () => import('./media2'));
-    this.ptz = createLazy<PTZ>(this, () => import('./ptz'));
+    this.media = lazyService<Media>(this, () => import('./media')); // mandatory? TODO think about connect() method
+    this.media2 = lazyService<Media2>(this, () => import('./media2'));
+    this.ptz = lazyService<PTZ>(this, () => import('./ptz'));
     this.events = new Events(this); // mandatory module for events
-    this.replay = createLazy<Replay>(this, () => import('./replay'));
-    this.imaging = createLazy<Imaging>(this, () => import('./imaging'));
-    this.recording = createLazy<Recording>(this, () => import('./recording'));
-    this.doorControl = createLazy<DoorControl>(this, () => import('./doorcontrol'));
-    this.accessControl = createLazy<AccessControl>(this, () => import('./accesscontrol'));
-    this.credential = createLazy<Credential>(this, () => import('./credential'));
-    this.accessRules = createLazy<AccessRules>(this, () => import('./accessrules'));
-    this.schedule = createLazy<Schedule>(this, () => import('./schedule'));
-    this.provisioning = createLazy<Provisioning>(this, () => import('./provisioning'));
-    this.thermal = createLazy<Thermal>(this, () => import('./thermal'));
-    this.analytics = createLazy<Analytics>(this, () => import('./analytics'));
-    this.deviceIO = createLazy<DeviceIO>(this, () => import('./deviceio'));
-    this.display = createLazy<Display>(this, () => import('./display'));
-    this.actionEngine = createLazy<ActionEngine>(this, () => import('./actionengine'));
-    this.search = createLazy<Search>(this, () => import('./search'));
-    this.analyticsDevice = createLazy<AnalyticsDevice>(this, () => import('./analyticsdevice'));
-    this.receiver = createLazy<Receiver>(this, () => import('./receiver'));
+    this.replay = lazyService<Replay>(this, () => import('./replay'));
+    this.imaging = lazyService<Imaging>(this, () => import('./imaging'));
+    this.recording = lazyService<Recording>(this, () => import('./recording'));
+    this.doorControl = lazyService<DoorControl>(this, () => import('./doorcontrol'));
+    this.accessControl = lazyService<AccessControl>(this, () => import('./accesscontrol'));
+    this.credential = lazyService<Credential>(this, () => import('./credential'));
+    this.accessRules = lazyService<AccessRules>(this, () => import('./accessrules'));
+    this.schedule = lazyService<Schedule>(this, () => import('./schedule'));
+    this.provisioning = lazyService<Provisioning>(this, () => import('./provisioning'));
+    this.advancedSecurity = lazyService<AdvancedSecurity>(this, () => import('./advancedsecurity'));
+    this.thermal = lazyService<Thermal>(this, () => import('./thermal'));
+    this.analytics = lazyService<Analytics>(this, () => import('./analytics'));
+    this.deviceIO = lazyService<DeviceIO>(this, () => import('./deviceio'));
+    this.display = lazyService<Display>(this, () => import('./display'));
+    this.actionEngine = lazyService<ActionEngine>(this, () => import('./actionengine'));
+    this.search = lazyService<Search>(this, () => import('./search'));
+    this.analyticsDevice = lazyService<AnalyticsDevice>(this, () => import('./analyticsdevice'));
+    this.receiver = lazyService<Receiver>(this, () => import('./receiver'));
 
     /** Bind event handling to the `event` event */
     this.on('newListener', (name) => {

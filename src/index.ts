@@ -14,6 +14,7 @@ export { default as Credential } from './credential';
 export { default as AccessRules } from './accessrules';
 export { default as Schedule } from './schedule';
 export { default as Provisioning } from './provisioning';
+export { default as AdvancedSecurity } from './advancedsecurity';
 export { default as Thermal } from './thermal';
 export { default as Analytics } from './analytics';
 export { default as DeviceIO } from './deviceio';
