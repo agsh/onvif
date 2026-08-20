@@ -43,7 +43,7 @@ import { config, multicastConfiguration, streamSetupToBuild } from './utils/toOn
 /**
  * Analytics Device service
  */
-export class AnalyticsDevice extends Service {
+export default class AnalyticsDevice extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'analyticsdevice');
   }

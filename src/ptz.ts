@@ -156,7 +156,7 @@ export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
 /**
  * PTZ methods
  */
-export class PTZ extends Service {
+export default class PTZ extends Service {
   #nodes: GetNodesExtended = {};
   get nodes() {
     return this.#nodes;

@@ -119,7 +119,7 @@ export interface AudioOutputConfigurationExtended extends AudioOutputConfigurati
 /**
  * Media service, ver20 profile
  */
-export class Media2 extends Service {
+export default class Media2 extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'media2');
   }

@@ -113,7 +113,7 @@ import { LocationEntity, ReferenceToken } from './interfaces/common';
 /**
  * Device methods
  */
-export class Device extends Service {
+export default class Device extends Service {
   #services: DeviceService[] = [];
   get services() {
     return this.#services;
@@ -481,13 +481,8 @@ export class Device extends Service {
    * Receive the scope parameters of a device
    */
   async getScopes(): Promise<Scope[]> {
-    const response = await this.request({ GetScopes: {} });
+    const response = await this.request({ GetScopes: {} }, { array: ['scopes'] });
     this.#scopes = response.getScopesResponse.scopes;
-    if (this.#scopes === undefined) {
-      this.#scopes = [];
-    } else if (!Array.isArray(this.#scopes)) {
-      this.#scopes = [this.#scopes];
-    }
     return this.#scopes;
   }
 

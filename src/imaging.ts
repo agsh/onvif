@@ -62,7 +62,7 @@ type SetCurrentPresetExtended = VideoSourceTokenExtended & Omit<SetCurrentPreset
  *   });
  * ```
  */
-export class Imaging extends Service {
+export default class Imaging extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'imaging');
   }

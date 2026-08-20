@@ -102,20 +102,16 @@ describe('Scopes', () => {
 
     it('should return device scopes as an array if there is only one scope', async () => {
       jest.spyOn(cam as any, 'request').mockReturnValueOnce([
-        [
-          {
-            getScopesResponse: [
+        {
+          getScopesResponse: {
+            scopes: [
               {
-                scopes: [
-                  {
-                    scopeDef: ['Fixed'],
-                    scopeItem: ['onvif://www.onvif.org/type/audio_encoder'],
-                  },
-                ],
+                scopeDef: 'Fixed',
+                scopeItem: 'onvif://www.onvif.org/type/audio_encoder',
               },
             ],
           },
-        ],
+        },
         '<Scopes><Scope>scope</Scope></Scopes>',
       ]);
       const result = await cam.device.getScopes();
@@ -125,12 +121,12 @@ describe('Scopes', () => {
 
     it('should return empty array if there are no scopes', async () => {
       jest.spyOn(cam as any, 'request').mockReturnValueOnce([
-        [
-          {
-            getScopesResponse: [],
+        {
+          getScopesResponse: {
+            scopes: [],
           },
-        ],
-        '<Scopes><Scope>scope</Scope></Scopes>',
+        },
+        '<Scopes></Scopes>',
       ]);
       const result = await cam.device.getScopes();
       expect(result).toBeInstanceOf(Array);

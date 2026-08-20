@@ -50,7 +50,7 @@ import {
  *  console.log((await cam.doorControl.getDoorState({ token })).doorMode);
  * ```
  */
-export class DoorControl extends Service {
+export default class DoorControl extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'doorcontrol');
   }

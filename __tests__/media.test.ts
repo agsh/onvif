@@ -1,4 +1,5 @@
-import { camelCase, Onvif, Media } from '../src';
+import { camelCase, Onvif } from '../src';
+import type Media from '../src/media';
 import { ReferenceToken } from '../src/interfaces/common';
 import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
 import { OSDConfiguration, Profile } from '../src/interfaces/onvif';

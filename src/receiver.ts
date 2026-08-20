@@ -22,7 +22,7 @@ import { streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
 /**
  * Receiver service
  */
-export class Receiver extends Service {
+export default class Receiver extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'receiver');
   }
