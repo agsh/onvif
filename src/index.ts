@@ -11,6 +11,7 @@ export { default as Recording } from './recording';
 export { default as DoorControl } from './doorcontrol';
 export { default as AccessControl } from './accesscontrol';
 export { default as Credential } from './credential';
+export { default as AccessRules } from './accessrules';
 export { default as Thermal } from './thermal';
 export { default as Analytics } from './analytics';
 export { default as DeviceIO } from './deviceio';
