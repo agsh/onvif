@@ -26,6 +26,7 @@ const XMLNS: Record<keyof OnvifServices, string> = {
   credential: 'http://www.onvif.org/ver10/credential/wsdl',
   accessrules: 'http://www.onvif.org/ver10/accessrules/wsdl',
   schedule: 'http://www.onvif.org/ver10/schedule/wsdl',
+  provisioning: 'http://www.onvif.org/ver10/provisioning/wsdl',
   thermal: 'http://www.onvif.org/ver10/thermal/wsdl',
   search: 'http://www.onvif.org/ver10/search/wsdl',
   analyticsdevice: 'http://www.onvif.org/ver10/analyticsdevice/wsdl',
