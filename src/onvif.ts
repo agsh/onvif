@@ -27,6 +27,7 @@ import type AccessControl from './accesscontrol';
 import type Credential from './credential';
 import type AccessRules from './accessrules';
 import type Schedule from './schedule';
+import type Provisioning from './provisioning';
 import type Thermal from './thermal';
 import type Analytics from './analytics';
 import type DeviceIO from './deviceio';
@@ -81,6 +82,7 @@ export interface OnvifServices {
   credential?: URL;
   accessrules?: URL;
   schedule?: URL;
+  provisioning?: URL;
   thermal?: URL;
   actionengine?: URL;
   search?: URL;
@@ -368,6 +370,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly schedule: Schedule;
   /**
+   * Provisioning namespace for provisioning v1.0 methods
+   * @example
+   * ```typescript
+   * const caps = await onvif.provisioning.getServiceCapabilities();
+   * console.log(caps);
+   * ```
+   */
+  public readonly provisioning: Provisioning;
+  /**
    * Thermal namespace for thermal v1.0 methods
    * @example
    * ```typescript
@@ -519,6 +530,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.credential = createLazy<Credential>(this, () => import('./credential'));
     this.accessRules = createLazy<AccessRules>(this, () => import('./accessrules'));
     this.schedule = createLazy<Schedule>(this, () => import('./schedule'));
+    this.provisioning = createLazy<Provisioning>(this, () => import('./provisioning'));
     this.thermal = createLazy<Thermal>(this, () => import('./thermal'));
     this.analytics = createLazy<Analytics>(this, () => import('./analytics'));
     this.deviceIO = createLazy<DeviceIO>(this, () => import('./deviceio'));

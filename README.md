@@ -65,6 +65,7 @@ I will be happy to answer any questions and hear your feedback.
 - Tests using the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
 - Event support: pull-point, base ws-notification, filters, EventEmitter inheritance 
 - Lazy import of service modules: if, for example, a thermal service is not used, it will not be loaded.
+- Authentication with WS-Security, Digest (MD5, SHA-1, SHA-256)
 - Full Media2 [support](https://github.com/agsh/onvif/blob/v1/MEDIA2.md)
 - Full Media [support](https://github.com/agsh/onvif/blob/v1/MEDIA.md)
 - Full PTZ [support](https://github.com/agsh/onvif/blob/v1/PTZ.md)
