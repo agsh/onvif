@@ -11,14 +11,25 @@
 <li><a href="../modules/Onvif_specs.html">Onvif specs</a></li>
 <li><a href="" aria-current="page">Capabilities</a></li></ul>
 <h1>Interface Capabilities</h1></div>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#reverseplayback">reversePlayback</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rtp_rtsp_tcp">RTP_RTSP_TCP</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#rtspwebsocketuri">RTSPWebSocketUri</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#sessiontimeoutrange">sessionTimeoutRange</a><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.FloatList.html" class="tsd-signature-type tsd-kind-type-alias">FloatList</a><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>The service capabilities reflect optional functionality of a service.
+The information is static and does not change during device operation.
+The following capabilities are available:</p>
+</div></section>
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#accesspointmanagementsupported">accessPointManagementSupported</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#areamanagementsupported">areaManagementSupported</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientsuppliedtokensupported">clientSuppliedTokenSupported</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxaccesspoints">maxAccessPoints</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxareas">maxAreas</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxlimit">maxLimit</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<section class="tsd-panel tsd-hierarchy" data-refl="4543">
+<h4>Hierarchy (<a href="../hierarchy.html#Onvif specs.Capabilities">View Summary</a>)</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><a href="Onvif_specs.ServiceCapabilities-1.html" class="tsd-signature-type tsd-kind-interface">ServiceCapabilities</a>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Capabilities</span></li></ul></li></ul></section>
 <section class="tsd-panel">
 <h4 class="tsd-before-signature">Indexable</h4>
 <ul class="tsd-signatures">
 <li class="tsd-index-signature">
 <div class="tsd-signature"><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span></div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/interfaces/replay.ts#L5">interfaces/replay.ts:5</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L246">interfaces/accesscontrol.ts:246</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -26,42 +37,73 @@
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#reverseplayback" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>reverse<wbr/>Playback?</span></a>
-<a href="#rtp_rtsp_tcp" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>RTP_<wbr/>RTSP_<wbr/>TCP?</span></a>
-<a href="#rtspwebsocketuri" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>RTSP<wbr/>Web<wbr/>Socket<wbr/>Uri?</span></a>
-<a href="#sessiontimeoutrange" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>session<wbr/>Timeout<wbr/>Range?</span></a>
+<div class="tsd-index-list"><a href="#accesspointmanagementsupported" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>access<wbr/>Point<wbr/>Management<wbr/>Supported?</span></a>
+<a href="#areamanagementsupported" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>area<wbr/>Management<wbr/>Supported?</span></a>
+<a href="#clientsuppliedtokensupported" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Supplied<wbr/>Token<wbr/>Supported?</span></a>
+<a href="#maxaccesspoints" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Access<wbr/>Points?</span></a>
+<a href="#maxareas" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Areas?</span></a>
+<a href="#maxlimit" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Limit</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="reverseplayback"><code class="tsd-tag">Optional</code><span>reverse<wbr/>Playback</span><a href="#reverseplayback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">reversePlayback</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicator that the Device supports reverse playback as defined in the ONVIF Streaming Specification.</p>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="accesspointmanagementsupported"><code class="tsd-tag">Optional</code><span>access<wbr/>Point<wbr/>Management<wbr/>Supported</span><a href="#accesspointmanagementsupported" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">accessPointManagementSupported</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that the client can perform CRUD operations (create, read, update and delete)
+on access points. To enable the use of the commands GetAccessPoints, GetAccessPointList,
+CreateAccessPoint, ModifyAccessPoint, DeleteAccessPoint, SetAccessPointAuthenticationProfile
+and DeleteAccessPointAuthenticationProfile, the value must be set to true.</p>
 </div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#accesspointmanagementsupported">accessPointManagementSupported</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/interfaces/replay.ts#L7">interfaces/replay.ts:7</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="rtp_rtsp_tcp"><code class="tsd-tag">Optional</code><span>RTP_<wbr/>RTSP_<wbr/>TCP</span><a href="#rtp_rtsp_tcp" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">RTP_RTSP_TCP</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicates support for RTP/RTSP/TCP.</p>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L71">interfaces/accesscontrol.ts:71</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="areamanagementsupported"><code class="tsd-tag">Optional</code><span>area<wbr/>Management<wbr/>Supported</span><a href="#areamanagementsupported" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">areaManagementSupported</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that the client can perform CRUD operations (create, read, update and delete)
+on areas. To enable the use of the commands GetAreas, GetAreaList, CreateArea, ModifyArea
+and DeleteArea, the value must be set to true.</p>
 </div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#areamanagementsupported">areaManagementSupported</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/interfaces/replay.ts#L11">interfaces/replay.ts:11</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="rtspwebsocketuri"><code class="tsd-tag">Optional</code><span>RTSP<wbr/>Web<wbr/>Socket<wbr/>Uri</span><a href="#rtspwebsocketuri" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">RTSPWebSocketUri</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
-<div class="tsd-comment tsd-typography"><p>If playback streaming over WebSocket is supported, this shall return the RTSP WebSocket URI as described in Streaming Specification Section 5.1.1.5.</p>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L77">interfaces/accesscontrol.ts:77</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="clientsuppliedtokensupported"><code class="tsd-tag">Optional</code><span>client<wbr/>Supplied<wbr/>Token<wbr/>Supported</span><a href="#clientsuppliedtokensupported" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">clientSuppliedTokenSupported</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that the client is allowed to supply the token when creating access
+points and areas.
+To enable the use of the commands SetAccessPoint and SetArea, the value must be set to true.</p>
 </div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#clientsuppliedtokensupported">clientSuppliedTokenSupported</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/interfaces/replay.ts#L13">interfaces/replay.ts:13</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="sessiontimeoutrange"><code class="tsd-tag">Optional</code><span>session<wbr/>Timeout<wbr/>Range</span><a href="#sessiontimeoutrange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">sessionTimeoutRange</span><span class="tsd-signature-symbol">?:</span> <a href="../types/Onvif_specs.FloatList.html" class="tsd-signature-type tsd-kind-type-alias">FloatList</a></div>
-<div class="tsd-comment tsd-typography"><p>The list contains two elements defining the minimum and maximum valid values supported as session timeout in seconds.</p>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L64">interfaces/accesscontrol.ts:64</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="maxaccesspoints"><code class="tsd-tag">Optional</code><span>max<wbr/>Access<wbr/>Points</span><a href="#maxaccesspoints" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxAccessPoints</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates the maximum number of access points supported by the device.</p>
 </div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#maxaccesspoints">maxAccessPoints</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/interfaces/replay.ts#L9">interfaces/replay.ts:9</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L56">interfaces/accesscontrol.ts:56</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="maxareas"><code class="tsd-tag">Optional</code><span>max<wbr/>Areas</span><a href="#maxareas" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxAreas</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates the maximum number of areas supported by the device.</p>
+</div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#maxareas">maxAreas</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L58">interfaces/accesscontrol.ts:58</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="maxlimit"><span>max<wbr/>Limit</span><a href="#maxlimit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxLimit</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>The maximum number of entries returned by a single Get&lt;Entity&gt;List or
+Get&lt;Entity&gt; request.
+The device shall never return more than this number of entities in a single response.</p>
+</div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.ServiceCapabilities-1.html">ServiceCapabilities</a>.<a href="Onvif_specs.ServiceCapabilities-1.html#maxlimit">maxLimit</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/accesscontrol.ts#L54">interfaces/accesscontrol.ts:54</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -77,7 +119,7 @@
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#reverseplayback"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>reverse<wbr/>Playback</span></a><a href="#rtp_rtsp_tcp"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>RTP_<wbr/>RTSP_<wbr/>TCP</span></a><a href="#rtspwebsocketuri"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>RTSP<wbr/>Web<wbr/>Socket<wbr/>Uri</span></a><a href="#sessiontimeoutrange"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>session<wbr/>Timeout<wbr/>Range</span></a></div></details></div></details></div>
+<div><a href="#accesspointmanagementsupported" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>access<wbr/>Point<wbr/>Management<wbr/>Supported</span></a><a href="#areamanagementsupported" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>area<wbr/>Management<wbr/>Supported</span></a><a href="#clientsuppliedtokensupported" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>client<wbr/>Supplied<wbr/>Token<wbr/>Supported</span></a><a href="#maxaccesspoints" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Access<wbr/>Points</span></a><a href="#maxareas" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Areas</span></a><a href="#maxlimit" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Limit</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">onvif</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

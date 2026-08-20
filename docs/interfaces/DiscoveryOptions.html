@@ -12,7 +12,7 @@
 <h1>Interface DiscoveryOptions</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">DiscoveryOptions</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#device">device</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#listeningport">listeningPort</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#messageid">messageId</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#resolve">resolve</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#timeout">timeout</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#type">type</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;udp4&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;udp6&quot;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L12">discovery.ts:12</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L12">discovery.ts:12</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -36,42 +36,42 @@
 <div class="tsd-comment tsd-typography"><p>Interface to bind on for discovery ex. <code>eth0</code></p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L20">discovery.ts:20</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L20">discovery.ts:20</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="listeningport"><code class="tsd-tag">Optional</code><span>listening<wbr/>Port</span><a href="#listeningport" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">listeningPort</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>Client will listen to discovery data device sent</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L22">discovery.ts:22</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L22">discovery.ts:22</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="messageid"><code class="tsd-tag">Optional</code><span>message<wbr/>Id</span><a href="#messageid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">messageId</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>WS-Discovery message id</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L18">discovery.ts:18</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L18">discovery.ts:18</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="resolve"><code class="tsd-tag">Optional</code><span>resolve</span><a href="#resolve" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">resolve</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>Set to <code>false</code> if you want to omit creating of Cam objects. Default true</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L16">discovery.ts:16</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L16">discovery.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="timeout"><code class="tsd-tag">Optional</code><span>timeout</span><a href="#timeout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">timeout</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>Timeout in milliseconds for discovery responses, Default 5000</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L14">discovery.ts:14</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L14">discovery.ts:14</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="type"><code class="tsd-tag">Optional</code><span>type</span><a href="#type" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">type</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">&quot;udp4&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;udp6&quot;</span></div>
 <div class="tsd-comment tsd-typography"><p>Socket type</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/bb3a8c8705e0a3e4ff11a786944f6b4607502040/src/discovery.ts#L24">discovery.ts:24</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/discovery.ts#L24">discovery.ts:24</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
