@@ -24,6 +24,7 @@ import type Imaging from './imaging';
 import type Recording from './recording';
 import type DoorControl from './doorcontrol';
 import type AccessControl from './accesscontrol';
+import type Credential from './credential';
 import type Thermal from './thermal';
 import type Analytics from './analytics';
 import type DeviceIO from './deviceio';
@@ -75,6 +76,7 @@ export interface OnvifServices {
   replay?: URL;
   doorcontrol?: URL;
   accesscontrol?: URL;
+  credential?: URL;
   thermal?: URL;
   actionengine?: URL;
   search?: URL;
@@ -335,6 +337,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly accessControl: AccessControl;
   /**
+   * Credential namespace for credential v1.0 methods
+   * @example
+   * ```typescript
+   * const list = await onvif.credential.getCredentialInfoList();
+   * console.log(list);
+   * ```
+   */
+  public readonly credential: Credential;
+  /**
    * Thermal namespace for thermal v1.0 methods
    * @example
    * ```typescript
@@ -483,6 +494,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.recording = createLazy<Recording>(this, () => import('./recording'));
     this.doorControl = createLazy<DoorControl>(this, () => import('./doorcontrol'));
     this.accessControl = createLazy<AccessControl>(this, () => import('./accesscontrol'));
+    this.credential = createLazy<Credential>(this, () => import('./credential'));
     this.thermal = createLazy<Thermal>(this, () => import('./thermal'));
     this.analytics = createLazy<Analytics>(this, () => import('./analytics'));
     this.deviceIO = createLazy<DeviceIO>(this, () => import('./deviceio'));
