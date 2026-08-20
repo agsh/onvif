@@ -23,6 +23,7 @@ const XMLNS: Record<keyof OnvifServices, string> = {
   replay: 'http://www.onvif.org/ver10/replay/wsdl',
   doorcontrol: 'http://www.onvif.org/ver10/doorcontrol/wsdl',
   accesscontrol: 'http://www.onvif.org/ver10/accesscontrol/wsdl',
+  credential: 'http://www.onvif.org/ver10/credential/wsdl',
   thermal: 'http://www.onvif.org/ver10/thermal/wsdl',
   search: 'http://www.onvif.org/ver10/search/wsdl',
   analyticsdevice: 'http://www.onvif.org/ver10/analyticsdevice/wsdl',
