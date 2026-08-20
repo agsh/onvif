@@ -34,6 +34,7 @@ import {
   SetImagingSettings,
   Stop,
 } from './interfaces/imaging.2';
+import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 
 interface VideoSourceTokenExtended {
   videoSourceToken?: ReferenceToken;
@@ -104,7 +105,9 @@ export default class Imaging extends Service {
 
   private static focusConfigurationToBuild(focus: FocusConfiguration20) {
     return {
-      ...(focus.AFMode && { AFMode: focus.AFMode }),
+      $: {
+        ...(focus.AFMode && { AFMode: stringListToBuild(focus.AFMode) }),
+      },
       AutoFocusMode: focus.autoFocusMode,
       ...(focus.defaultSpeed && { DefaultSpeed: focus.defaultSpeed }),
       ...(focus.nearLimit && { NearLimit: focus.nearLimit }),

@@ -86,3 +86,13 @@ export function ptzVectorToBuild(vector: PTZVector) {
     }),
   };
 }
+
+/**
+ * ONVIF StringList / StringAttrList values are encoded as space-separated strings in XML attributes.
+ */
+export function stringListToBuild(list?: string[]) {
+  if (!list?.length) {
+    return undefined;
+  }
+  return list.join(' ');
+}
