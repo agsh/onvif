@@ -12,8 +12,7 @@ const CAMERA_HOST = '192.168.1.164',
   PORT = 1018,
   PROXY_URI = 'socks5://localhost:1234';
 
-const http = require('http'),
-  { Onvif } = require('../build');
+const { Onvif } = require('../build');
 
 const cam = await Onvif({
   hostname: CAMERA_HOST,
@@ -27,26 +26,12 @@ const cam = await Onvif({
   await cam.connect();
   console.log('CONNECTED');
 
-  this.absoluteMove({
+  cam.absoluteMove({
     x: 1,
     y: 1,
     zoom: 1,
   });
 
-  this.getStreamUri({ protocol: 'RTSP' }, function (err, stream) {
-    console.log(stream);
-
-    http
-      .createServer(function (req, res) {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(
-          '<html><body>' +
-            '<embed type="application/x-vlc-plugin" target="' +
-            stream.uri +
-            '"></embed>' +
-            '</boby></html>',
-        );
-      })
-      .listen(3030);
-  });
+  const stream = await cam.getStreamUri({ protocol: 'RTSP' });
+  console.log(stream);
 })();
