@@ -1,36 +1,45 @@
 # Keep the published tarball limited to runtime artifacts + package metadata.
-# Included (not listed here): build/, package.json, LICENSE, README.md, CHANGELOG.md
+# Included (not listed here): build/, package.json, LICENSE, README.md
 
 # VCS / CI / IDE
-.git
-.github
-.idea
+.git/
+.github/
+.idea/
 *.iml
 .gitignore
 .gitattributes
 
 # Dependencies & local artifacts
-node_modules
-coverage
-.nyc_output
-logs
+node_modules/
+coverage/
+.nyc_output/
+logs/
 *.log
 *.cfg
 *.tsbuildinfo
+*.tgz
+
+# Local notes / scratch
+FORWARD
+interfacesCleanup.ts
+
+# Legacy v0.x typings (v1 types live in build/)
+/index.d.ts
 
 # Sources (consumers use build/)
-src
+src/
 
-# Docs site & examples
-docs
-examples
+# Docs site, internal docs & examples
+docs/
+innerDocs/
+examples/
 
 # Tests
-__tests__
-__test__
-cam_tests
-experiments
-test
+__tests__/
+__test__/
+cam_tests/
+experiments/
+test/
 test.*
 
 # Tooling configs
@@ -44,21 +53,6 @@ tsconfig.json
 typedoc.json
 package-lock.json
 
-# Dev-only markdown (README.md / CHANGELOG.md stay published)
-ACTIONENGINE.md
-ANALYTICS.md
+# Dev-only markdown (README.md stays published)
 CHANGELOG.md
-CHECKED.md
 CONTRIBUTING.md
-DEVICE.md
-DEVICEIO.md
-DISPLAY.md
-DOORCONTROL.md
-EVENTS.md
-IMAGING.md
-MEDIA.md
-MEDIA2.md
-PTZ.md
-RECORDING.md
-REPLAY.md
-THERMAL.md

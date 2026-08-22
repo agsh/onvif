@@ -101,10 +101,39 @@ streaming or controlling the camera without extra setup.
 On success, `connect()` emits a `connect` event and returns the `Onvif` instance. Pass `autoConnect: true` 
 in the constructor to run this automatically after instantiation.
 
+### TypeScript
+
 ```ts
+import { Onvif } from 'onvif';
+
 const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
 await onvif.connect();
-console.log(onvif.activeSource);
+const info = await onvif.device.getDeviceInformation();
+console.log(info);
+```
+
+### CommonJS
+
+```js
+const { Onvif } = require('onvif');
+
+(async () => {
+  const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+  await onvif.connect();
+  const info = await onvif.device.getDeviceInformation();
+  console.log(info);
+})();
+```
+
+### ESM (`.mjs` or `"type": "module"`)
+
+```js
+import { Onvif } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+await onvif.connect();
+const info = await onvif.device.getDeviceInformation();
+console.log(info);
 ```
 
 ---
