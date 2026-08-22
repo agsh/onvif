@@ -1,0 +1,10 @@
+[x] GetSupportedActions
+[x] GetActions
+[x] CreateActions
+[x] DeleteActions
+[x] ModifyActions
+[x] GetServiceCapabilities
+[x] GetActionTriggers
+[x] CreateActionTriggers
+[x] DeleteActionTriggers
+[x] ModifyActionTriggers

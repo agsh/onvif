@@ -1,0 +1,566 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>DeviceIO | onvif</title><meta name="description" content="Documentation for onvif"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">onvif</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="" aria-current="page">DeviceIO</a></li></ul>
+<h1>Class DeviceIO</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>DeviceIO service</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="typescript"><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">caps</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">deviceIO</span><span class="hl-1">.</span><span class="hl-0">getServiceCapabilities</span><span class="hl-1">();</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">relays</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">deviceIO</span><span class="hl-1">.</span><span class="hl-0">getRelayOutputs</span><span class="hl-1">();</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">inputs</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">deviceIO</span><span class="hl-1">.</span><span class="hl-0">getDigitalInputs</span><span class="hl-1">();</span><br/><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">deviceIO</span><span class="hl-1">.</span><span class="hl-0">setRelayOutputState</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-5">relayOutputToken:</span><span class="hl-1"> </span><span class="hl-2">&#39;RelayOutputToken_1&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">logicalState:</span><span class="hl-1"> </span><span class="hl-2">&#39;active&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
+
+</div></div></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="2322">
+<h4>Hierarchy (<a href="../hierarchy.html#DeviceIO">View Summary</a>)</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><a href="Onvif_specs.default-5.html" class="tsd-signature-type tsd-kind-class">default</a>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">DeviceIO</span></li></ul></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L69">deviceio.ts:69</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#onvif" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>onvif</span></a>
+<a href="#service" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>service</span></a>
+<a href="#xmlns" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>xmlns</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#getaudiooutputconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration</span></a>
+<a href="#getaudiooutputconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getaudiooutputs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Outputs</span></a>
+<a href="#getaudiosourceconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration</span></a>
+<a href="#getaudiosourceconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getaudiosources" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Sources</span></a>
+<a href="#getdigitalinputconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Digital<wbr/>Input<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getdigitalinputs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Digital<wbr/>Inputs</span></a>
+<a href="#getrelayoutputoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Relay<wbr/>Output<wbr/>Options</span></a>
+<a href="#getrelayoutputs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Relay<wbr/>Outputs</span></a>
+<a href="#getserialportconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration</span></a>
+<a href="#getserialportconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getserialports" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Ports</span></a>
+<a href="#getservicecapabilities" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Service<wbr/>Capabilities</span></a>
+<a href="#getvideooutputconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration</span></a>
+<a href="#getvideooutputconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getvideooutputs" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Outputs</span></a>
+<a href="#getvideosourceconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration</span></a>
+<a href="#getvideosourceconfigurationoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration<wbr/>Options</span></a>
+<a href="#getvideosources" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Sources</span></a>
+<a href="#request" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>request</span></a>
+<a href="#sendreceiveserialcommand" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>send<wbr/>Receive<wbr/>Serial<wbr/>Command</span></a>
+<a href="#setaudiooutputconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Audio<wbr/>Output<wbr/>Configuration</span></a>
+<a href="#setaudiosourceconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Audio<wbr/>Source<wbr/>Configuration</span></a>
+<a href="#setdigitalinputconfigurations" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Digital<wbr/>Input<wbr/>Configurations</span></a>
+<a href="#setrelayoutputsettings" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Relay<wbr/>Output<wbr/>Settings</span></a>
+<a href="#setrelayoutputstate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Relay<wbr/>Output<wbr/>State</span></a>
+<a href="#setserialportconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Serial<wbr/>Port<wbr/>Configuration</span></a>
+<a href="#setvideooutputconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Video<wbr/>Output<wbr/>Configuration</span></a>
+<a href="#setvideosourceconfiguration" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Video<wbr/>Source<wbr/>Configuration</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructordeviceio"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">DeviceIO</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">onvif</span><span class="tsd-signature-symbol">:</span> <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">DeviceIO</a><a href="#constructordeviceio" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">onvif</span>: <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DeviceIO</a></h4><aside class="tsd-sources">
+<p>Overrides <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#constructor">constructor</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L70">deviceio.ts:70</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="onvif"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>onvif</span><a href="#onvif" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">onvif</span><span class="tsd-signature-symbol">:</span> <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#onvif">onvif</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L39">service.ts:39</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="service"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>service</span><a href="#service" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">service</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a href="../interfaces/OnvifServices.html" class="tsd-signature-type tsd-kind-interface">OnvifServices</a></div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#service">service</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="xmlns"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>xmlns</span><a href="#xmlns" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">xmlns</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#xmlns">xmlns</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L41">service.ts:41</a></li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiooutputconfiguration"><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration</span><a href="#getaudiooutputconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiooutputconfiguration-1"><span class="tsd-kind-call-signature">getAudioOutputConfiguration</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetAudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetAudioOutputConfiguration</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">AudioOutputConfiguration</a><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiooutputconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the audio output configuration for a physical audio output.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetAudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetAudioOutputConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">AudioOutputConfiguration</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L294">deviceio.ts:294</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiooutputconfigurationoptions"><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration<wbr/>Options</span><a href="#getaudiooutputconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiooutputconfigurationoptions-1"><span class="tsd-kind-call-signature">getAudioOutputConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetAudioOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetAudioOutputConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">AudioOutputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiooutputconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns valid ranges for audio output configuration parameters.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetAudioOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetAudioOutputConfigurationOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">AudioOutputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L406">deviceio.ts:406</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiooutputs"><span>get<wbr/>Audio<wbr/>Outputs</span><a href="#getaudiooutputs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiooutputs-1"><span class="tsd-kind-call-signature">getAudioOutputs</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiooutputs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns tokens of available audio outputs.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L232">deviceio.ts:232</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiosourceconfiguration"><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration</span><a href="#getaudiosourceconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiosourceconfiguration-1"><span class="tsd-kind-call-signature">getAudioSourceConfiguration</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetAudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetAudioSourceConfiguration</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">AudioSourceConfiguration</a><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiosourceconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the audio source configuration for a physical audio source.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetAudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetAudioSourceConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">AudioSourceConfiguration</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L279">deviceio.ts:279</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiosourceconfigurationoptions"><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration<wbr/>Options</span><a href="#getaudiosourceconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiosourceconfigurationoptions-1"><span class="tsd-kind-call-signature">getAudioSourceConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetAudioSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetAudioSourceConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">AudioSourceConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiosourceconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns valid ranges for audio source configuration parameters.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetAudioSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetAudioSourceConfigurationOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.AudioSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">AudioSourceConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L391">deviceio.ts:391</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getaudiosources"><span>get<wbr/>Audio<wbr/>Sources</span><a href="#getaudiosources" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getaudiosources-1"><span class="tsd-kind-call-signature">getAudioSources</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getaudiosources-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns tokens of available audio sources.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L224">deviceio.ts:224</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getdigitalinputconfigurationoptions"><span>get<wbr/>Digital<wbr/>Input<wbr/>Configuration<wbr/>Options</span><a href="#getdigitalinputconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getdigitalinputconfigurationoptions-1"><span class="tsd-kind-call-signature">getDigitalInputConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Onvif_specs.GetDigitalInputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetDigitalInputConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.DigitalInputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">DigitalInputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getdigitalinputconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns configuration options for digital inputs.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDigitalInputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetDigitalInputConfigurationOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.DigitalInputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">DigitalInputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L462">deviceio.ts:462</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getdigitalinputs"><span>get<wbr/>Digital<wbr/>Inputs</span><a href="#getdigitalinputs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getdigitalinputs-1"><span class="tsd-kind-call-signature">getDigitalInputs</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.DigitalInput.html" class="tsd-signature-type tsd-kind-interface">DigitalInput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getdigitalinputs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns digital inputs available on the device.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.DigitalInput.html" class="tsd-signature-type tsd-kind-interface">DigitalInput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L453">deviceio.ts:453</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getrelayoutputoptions"><span>get<wbr/>Relay<wbr/>Output<wbr/>Options</span><a href="#getrelayoutputoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getrelayoutputoptions-1"><span class="tsd-kind-call-signature">getRelayOutputOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/Onvif_specs.GetRelayOutputOptions.html" class="tsd-signature-type tsd-kind-interface">GetRelayOutputOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.RelayOutputOptions.html" class="tsd-signature-type tsd-kind-interface">RelayOutputOptions</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getrelayoutputoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Request the available settings and ranges for one or all relay outputs.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetRelayOutputOptions.html" class="tsd-signature-type tsd-kind-interface">GetRelayOutputOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.RelayOutputOptions.html" class="tsd-signature-type tsd-kind-interface">RelayOutputOptions</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L201">deviceio.ts:201</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getrelayoutputs"><span>get<wbr/>Relay<wbr/>Outputs</span><a href="#getrelayoutputs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getrelayoutputs-1"><span class="tsd-kind-call-signature">getRelayOutputs</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.RelayOutput.html" class="tsd-signature-type tsd-kind-interface">RelayOutput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getrelayoutputs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns relay outputs available on the device.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.RelayOutput.html" class="tsd-signature-type tsd-kind-interface">RelayOutput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L420">deviceio.ts:420</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getserialportconfiguration"><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration</span><a href="#getserialportconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getserialportconfiguration-1"><span class="tsd-kind-call-signature">getSerialPortConfiguration</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetSerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetSerialPortConfiguration</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">SerialPortConfiguration</a><span class="tsd-signature-symbol">&gt;</span><a href="#getserialportconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the configuration of a serial port.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetSerialPortConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">SerialPortConfiguration</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L500">deviceio.ts:500</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getserialportconfigurationoptions"><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration<wbr/>Options</span><a href="#getserialportconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getserialportconfigurationoptions-1"><span class="tsd-kind-call-signature">getSerialPortConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetSerialPortConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetSerialPortConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPortConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">SerialPortConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getserialportconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns configuration options for a serial port.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSerialPortConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetSerialPortConfigurationOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPortConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">SerialPortConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L529">deviceio.ts:529</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getserialports"><span>get<wbr/>Serial<wbr/>Ports</span><a href="#getserialports" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getserialports-1"><span class="tsd-kind-call-signature">getSerialPorts</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPort.html" class="tsd-signature-type tsd-kind-interface">SerialPort</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getserialports-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns serial ports available on the device.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SerialPort.html" class="tsd-signature-type tsd-kind-interface">SerialPort</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L491">deviceio.ts:491</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getservicecapabilities"><span>get<wbr/>Service<wbr/>Capabilities</span><a href="#getservicecapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-11.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the capabilities of the device IO service.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-11.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L190">deviceio.ts:190</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideooutputconfiguration"><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration</span><a href="#getvideooutputconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideooutputconfiguration-1"><span class="tsd-kind-call-signature">getVideoOutputConfiguration</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetVideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetVideoOutputConfiguration</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">VideoOutputConfiguration</a><span class="tsd-signature-symbol">&gt;</span><a href="#getvideooutputconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the video output configuration for a physical video output.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetVideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetVideoOutputConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">VideoOutputConfiguration</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L264">deviceio.ts:264</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideooutputconfigurationoptions"><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration<wbr/>Options</span><a href="#getvideooutputconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideooutputconfigurationoptions-1"><span class="tsd-kind-call-signature">getVideoOutputConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetVideoOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetVideoOutputConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">VideoOutputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getvideooutputconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns valid ranges for video output configuration parameters.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetVideoOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetVideoOutputConfigurationOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutputConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">VideoOutputConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L376">deviceio.ts:376</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideooutputs"><span>get<wbr/>Video<wbr/>Outputs</span><a href="#getvideooutputs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideooutputs-1"><span class="tsd-kind-call-signature">getVideoOutputs</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutput.html" class="tsd-signature-type tsd-kind-interface">VideoOutput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getvideooutputs-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns available physical video outputs.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoOutput.html" class="tsd-signature-type tsd-kind-interface">VideoOutput</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L240">deviceio.ts:240</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideosourceconfiguration"><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration</span><a href="#getvideosourceconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideosourceconfiguration-1"><span class="tsd-kind-call-signature">getVideoSourceConfiguration</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetVideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetVideoSourceConfiguration</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">VideoSourceConfiguration</a><span class="tsd-signature-symbol">&gt;</span><a href="#getvideosourceconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the video source configuration for a physical video source.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetVideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">GetVideoSourceConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">VideoSourceConfiguration</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L249">deviceio.ts:249</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideosourceconfigurationoptions"><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration<wbr/>Options</span><a href="#getvideosourceconfigurationoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideosourceconfigurationoptions-1"><span class="tsd-kind-call-signature">getVideoSourceConfigurationOptions</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.GetVideoSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetVideoSourceConfigurationOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">VideoSourceConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span><a href="#getvideosourceconfigurationoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns valid ranges for video source configuration parameters.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetVideoSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">GetVideoSourceConfigurationOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.VideoSourceConfigurationOptions.html" class="tsd-signature-type tsd-kind-interface">VideoSourceConfigurationOptions</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L361">deviceio.ts:361</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getvideosources"><span>get<wbr/>Video<wbr/>Sources</span><a href="#getvideosources" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getvideosources-1"><span class="tsd-kind-call-signature">getVideoSources</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getvideosources-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns tokens of available video sources.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L216">deviceio.ts:216</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited">
+<h3 class="tsd-anchor-link" id="request"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-is-inherited">
+<div class="tsd-signature tsd-anchor-link" id="request-1"><span class="tsd-kind-call-signature">request</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#requestt">T</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">body</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/LineraseOptions.html" class="tsd-signature-type tsd-kind-interface">LineraseOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="Device.html#requestt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#request-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="requestt"><span class="tsd-kind-type-parameter">T</span> = <span class="tsd-signature-type">any</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">body</span>: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/LineraseOptions.html" class="tsd-signature-type tsd-kind-interface">LineraseOptions</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="Device.html#requestt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#request">request</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L49">service.ts:49</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="sendreceiveserialcommand"><span>send<wbr/>Receive<wbr/>Serial<wbr/>Command</span><a href="#sendreceiveserialcommand" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="sendreceiveserialcommand-1"><span class="tsd-kind-call-signature">sendReceiveSerialCommand</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SendReceiveSerialCommand.html" class="tsd-signature-type tsd-kind-interface">SendReceiveSerialCommand</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SendReceiveSerialCommandResponse.html" class="tsd-signature-type tsd-kind-interface">SendReceiveSerialCommandResponse</a><span class="tsd-signature-symbol">&gt;</span><a href="#sendreceiveserialcommand-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Sends data to a serial port and optionally receives a response.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SendReceiveSerialCommand.html" class="tsd-signature-type tsd-kind-interface">SendReceiveSerialCommand</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.SendReceiveSerialCommandResponse.html" class="tsd-signature-type tsd-kind-interface">SendReceiveSerialCommandResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L544">deviceio.ts:544</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setaudiooutputconfiguration"><span>set<wbr/>Audio<wbr/>Output<wbr/>Configuration</span><a href="#setaudiooutputconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setaudiooutputconfiguration-1"><span class="tsd-kind-call-signature">setAudioOutputConfiguration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetAudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetAudioOutputConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setaudiooutputconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies an audio output configuration.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetAudioOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetAudioOutputConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L348">deviceio.ts:348</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setaudiosourceconfiguration"><span>set<wbr/>Audio<wbr/>Source<wbr/>Configuration</span><a href="#setaudiosourceconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setaudiosourceconfiguration-1"><span class="tsd-kind-call-signature">setAudioSourceConfiguration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetAudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetAudioSourceConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setaudiosourceconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies an audio source configuration.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetAudioSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetAudioSourceConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L335">deviceio.ts:335</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setdigitalinputconfigurations"><span>set<wbr/>Digital<wbr/>Input<wbr/>Configurations</span><a href="#setdigitalinputconfigurations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setdigitalinputconfigurations-1"><span class="tsd-kind-call-signature">setDigitalInputConfigurations</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetDigitalInputConfigurations.html" class="tsd-signature-type tsd-kind-interface">SetDigitalInputConfigurations</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setdigitalinputconfigurations-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies digital input configurations.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetDigitalInputConfigurations.html" class="tsd-signature-type tsd-kind-interface">SetDigitalInputConfigurations</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L480">deviceio.ts:480</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setrelayoutputsettings"><span>set<wbr/>Relay<wbr/>Output<wbr/>Settings</span><a href="#setrelayoutputsettings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setrelayoutputsettings-1"><span class="tsd-kind-call-signature">setRelayOutputSettings</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetRelayOutputSettings-1.html" class="tsd-signature-type tsd-kind-interface">SetRelayOutputSettings</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setrelayoutputsettings-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies relay output settings.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetRelayOutputSettings-1.html" class="tsd-signature-type tsd-kind-interface">SetRelayOutputSettings</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L429">deviceio.ts:429</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setrelayoutputstate"><span>set<wbr/>Relay<wbr/>Output<wbr/>State</span><a href="#setrelayoutputstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setrelayoutputstate-1"><span class="tsd-kind-call-signature">setRelayOutputState</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetRelayOutputState.html" class="tsd-signature-type tsd-kind-interface">SetRelayOutputState</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setrelayoutputstate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Sets the logical state of a relay output.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetRelayOutputState.html" class="tsd-signature-type tsd-kind-interface">SetRelayOutputState</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L441">deviceio.ts:441</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setserialportconfiguration"><span>set<wbr/>Serial<wbr/>Port<wbr/>Configuration</span><a href="#setserialportconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setserialportconfiguration-1"><span class="tsd-kind-call-signature">setSerialPortConfiguration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetSerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetSerialPortConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setserialportconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies the configuration of a serial port.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetSerialPortConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetSerialPortConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L513">deviceio.ts:513</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setvideooutputconfiguration"><span>set<wbr/>Video<wbr/>Output<wbr/>Configuration</span><a href="#setvideooutputconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setvideooutputconfiguration-1"><span class="tsd-kind-call-signature">setVideoOutputConfiguration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetVideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetVideoOutputConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setvideooutputconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies a video output configuration.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetVideoOutputConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetVideoOutputConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L322">deviceio.ts:322</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setvideosourceconfiguration"><span>set<wbr/>Video<wbr/>Source<wbr/>Configuration</span><a href="#setvideosourceconfiguration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setvideosourceconfiguration-1"><span class="tsd-kind-call-signature">setVideoSourceConfiguration</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/Onvif_specs.SetVideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetVideoSourceConfiguration</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#setvideosourceconfiguration-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Modifies a video source configuration.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetVideoSourceConfiguration.html" class="tsd-signature-type tsd-kind-interface">SetVideoSourceConfiguration</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/deviceio.ts#L309">deviceio.ts:309</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#onvif" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>onvif</span></a><a href="#service" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>service</span></a><a href="#xmlns" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>xmlns</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#getaudiooutputconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration</span></a><a href="#getaudiooutputconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Output<wbr/>Configuration<wbr/>Options</span></a><a href="#getaudiooutputs"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Outputs</span></a><a href="#getaudiosourceconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration</span></a><a href="#getaudiosourceconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Source<wbr/>Configuration<wbr/>Options</span></a><a href="#getaudiosources"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Audio<wbr/>Sources</span></a><a href="#getdigitalinputconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Digital<wbr/>Input<wbr/>Configuration<wbr/>Options</span></a><a href="#getdigitalinputs"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Digital<wbr/>Inputs</span></a><a href="#getrelayoutputoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Relay<wbr/>Output<wbr/>Options</span></a><a href="#getrelayoutputs"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Relay<wbr/>Outputs</span></a><a href="#getserialportconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration</span></a><a href="#getserialportconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Port<wbr/>Configuration<wbr/>Options</span></a><a href="#getserialports"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Serial<wbr/>Ports</span></a><a href="#getservicecapabilities"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Service<wbr/>Capabilities</span></a><a href="#getvideooutputconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration</span></a><a href="#getvideooutputconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Output<wbr/>Configuration<wbr/>Options</span></a><a href="#getvideooutputs"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Outputs</span></a><a href="#getvideosourceconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration</span></a><a href="#getvideosourceconfigurationoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Source<wbr/>Configuration<wbr/>Options</span></a><a href="#getvideosources"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Video<wbr/>Sources</span></a><a href="#request" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>request</span></a><a href="#sendreceiveserialcommand"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>send<wbr/>Receive<wbr/>Serial<wbr/>Command</span></a><a href="#setaudiooutputconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Audio<wbr/>Output<wbr/>Configuration</span></a><a href="#setaudiosourceconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Audio<wbr/>Source<wbr/>Configuration</span></a><a href="#setdigitalinputconfigurations"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Digital<wbr/>Input<wbr/>Configurations</span></a><a href="#setrelayoutputsettings"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Relay<wbr/>Output<wbr/>Settings</span></a><a href="#setrelayoutputstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Relay<wbr/>Output<wbr/>State</span></a><a href="#setserialportconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Serial<wbr/>Port<wbr/>Configuration</span></a><a href="#setvideooutputconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Video<wbr/>Output<wbr/>Configuration</span></a><a href="#setvideosourceconfiguration"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Video<wbr/>Source<wbr/>Configuration</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">onvif</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
