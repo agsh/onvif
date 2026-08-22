@@ -1,39 +1,57 @@
 /**
- * Created by Andrew D.Laptev<a.d.laptev@gmail.com> on 1/21/15.
+ * Install ffmpeg(https://ffmpeg.org/download.html) in your system
+ * Run `npm i onvif socket.io rtsp-ffmpeg`
  */
 
-var CAMERA_HOST = '192.168.68.111',
-	USERNAME = 'admin',
-	PASSWORD = '9999',
-	PORT = 80;
+const { Onvif } = require('../build');
 
-var http = require('http'),
-	Cam = require('../lib/onvif').Cam;
-
-
-new Cam({
-	hostname: CAMERA_HOST,
-	username: USERNAME,
-	password: PASSWORD,
-	port: PORT
-}, function(err) {
-	if (err) {
-		console.log('Connection Failed for ' + CAMERA_HOST + ' Port: ' + PORT + ' Username: ' + USERNAME + ' Password: ' + PASSWORD);
-		return;
-	}
-	console.log('CONNECTED');
-	this.absoluteMove({
-		x: 1
-		, y: 1
-		, zoom: 1
-	});
-	this.getStreamUri({protocol: 'RTSP'}, function(err, stream) {
-		http.createServer(function(req, res) {
-			res.writeHead(200, {'Content-Type': 'text/html'});
-			res.end(
-				'<html><body>' +
-				'<embed type="application/x-vlc-plugin" target="' + stream.uri + '"></embed>' +
-				'</boby></html>');
-		}).listen(3030);
-	});
+const cam = new Onvif({
+  hostname: '192.168.1.13',
+  username: 'admin',
+  password: 'admin',
+  port: 8000,
 });
+
+const server = require('http').createServer((req, res) =>
+  res.end(`
+<!DOCTYPE html><body>
+<canvas width='640' height='480' />
+<script src="/socket.io/socket.io.js"></script><script>
+  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+  socket.on('data', (data) => {
+    const img = new Image;    
+    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
+    img.onload = () => {
+      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
+      ctx.drawImage(img, 100, 100);
+    };
+    img.src = url;
+  });
+</script></body></html>`),
+);
+server.listen(6147);
+
+(async () => {
+  try {
+    await cam.connect();
+    await cam.ptz.absoluteMove({ position: { x: 0, y: 0 } });
+    const uri = await cam.media.getStreamUri();
+    const stream = new rtsp.FFMpeg({ input, resolution: '320x240', quality: 3 });
+    io.on('connection', (socket) => {
+      const pipeStream = socket.emit.bind(socket, 'data');
+      stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
+    });
+    setInterval(
+      () =>
+        cam.absoluteMove({
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          zoom: Math.random(),
+        }),
+      3000,
+    );
+    console.log(uri);
+  } catch (error) {
+    console.log(error);
+  }
+})();
