@@ -135,7 +135,7 @@ console.log(info);
 located in the Examples Folder on the Github
 > [!TIP]
 > Not all of them were reworked for version 1.x.
-* [example.js](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) - ONVIF Events. With filters, pull-point, push-sub subscriptions
+* [events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) - ONVIF Events. With filters, pull-point, push-sub subscriptions
 * [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
 * [example2.js](https://github.com/agsh/onvif/blob/master/examples/example2.js) - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
   For Profile S Cameras and Encoders it displays the default RTSP address
