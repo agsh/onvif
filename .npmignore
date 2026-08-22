@@ -1,41 +1,29 @@
-# Keep the published tarball limited to runtime artifacts + package metadata.
-# Included (not listed here): build/, package.json, LICENSE, README.md, CHANGELOG.md
-
-# VCS / CI / IDE
-.git
-.github
-.idea
-*.iml
+.git/
+.github/
+.idea/
 .gitignore
 .gitattributes
-
-# Dependencies & local artifacts
-node_modules
-coverage
-.nyc_output
-logs
+node_modules/
+coverage/
+.nyc_output/
+logs/
 *.log
 *.cfg
 *.tsbuildinfo
-
-# Sources (consumers use build/)
-src
-
-# Docs site & examples
-docs
-examples
-
-# Tests
-__tests__
-__test__
-cam_tests
-experiments
-test
+*.tgz
+FORWARD
+interfacesCleanup.ts
+src/
+docs/
+innerDocs/
+examples/
+__tests__/
+__test__/
+cam_tests/
+experiments/
+test/
 test.*
-
-# Tooling configs
 .npmignore
-.mocharc.js
 .prettierignore
 .prettierrc
 eslint.config.mjs
@@ -43,22 +31,5 @@ jest.config.js
 tsconfig.json
 typedoc.json
 package-lock.json
-
-# Dev-only markdown (README.md / CHANGELOG.md stay published)
-ACTIONENGINE.md
-ANALYTICS.md
 CHANGELOG.md
-CHECKED.md
 CONTRIBUTING.md
-DEVICE.md
-DEVICEIO.md
-DISPLAY.md
-DOORCONTROL.md
-EVENTS.md
-IMAGING.md
-MEDIA.md
-MEDIA2.md
-PTZ.md
-RECORDING.md
-REPLAY.md
-THERMAL.md
