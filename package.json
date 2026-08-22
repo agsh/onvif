@@ -27,7 +27,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/agsh/onvif.git"
+    "url": "git+https://github.com/agsh/onvif.git"
   },
   "dependencies": {
     "fast-xml-parser": "^5.11.0"
