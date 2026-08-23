@@ -68,8 +68,9 @@ I will be happy to answer any questions and hear your feedback.
   `AccessRules`, `Schedule`, `Provisioning`, `AdvancedSecurity` support.
   > Not yet implemented (interfaces only, from
   > [ONVIF Network Interface Specifications](https://www.onvif.org/profiles/specifications/)):
-  > AuthenticationBehavior, Application Management (`appmgmt`), Uplink, FederatedSearch
+  > AuthenticationBehavior, Application Management (appmgmt), Uplink, FederatedSearch
 - Improved error handling
+- Compatible with the original API structure
 - Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks, `require('onvif/compatibility/promises')` for Promises
 
 ---

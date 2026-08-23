@@ -7,17 +7,7 @@ import { Cam as CallbackCam } from '../cam';
 import { promisifyProperty } from './promisify';
 import type { PromisifiedCam } from './types';
 
-/**
- * Promise-based wrapper around the v0.x callback {@link CallbackCam}.
- * @example
- * ```js
- * const { Cam } = require('onvif/compatibility/promises');
- * const cam = new Cam({ hostname: '127.0.0.1', username: 'admin', password: 'admin' });
- * await cam.connect();
- * const { uri } = await cam.getStreamUri({ protocol: 'RTSP' });
- * ```
- */
-export class Cam {
+class CamBase {
   readonly _cam: CallbackCam;
 
   constructor(options: Record<string, unknown>) {
@@ -33,8 +23,20 @@ export class Cam {
         (target._cam as unknown as Record<string | symbol, unknown>)[name] = value;
         return true;
       },
-    }) as unknown as this;
+    }) as unknown as PromisifiedCam;
   }
 }
 
-export interface Cam extends PromisifiedCam {}
+/**
+ * Promise-based wrapper around the v0.x callback {@link CallbackCam}.
+ * @example
+ * ```js
+ * const { Cam } = require('onvif/compatibility/promises');
+ * const cam = new Cam({ hostname: '127.0.0.1', username: 'admin', password: 'admin' });
+ * await cam.connect();
+ * const { uri } = await cam.getStreamUri({ protocol: 'RTSP' });
+ * ```
+ */
+export type Cam = PromisifiedCam;
+
+export const Cam = CamBase as new (options: Record<string, unknown>) => Cam;
