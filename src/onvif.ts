@@ -1035,9 +1035,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Check and find out video configuration for device
-   * @private
    */
-  private async getActiveSources() {
+  public async getActiveSources() {
     if (!this.media.videoSources?.length) {
       return;
     }
