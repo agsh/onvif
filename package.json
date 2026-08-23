@@ -1,10 +1,20 @@
 {
   "name": "onvif",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    },
+    "./promises": {
+      "types": "./build/compatibility/promises/index.d.ts",
+      "default": "./build/compatibility/promises/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc --build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
