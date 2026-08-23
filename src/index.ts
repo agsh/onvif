@@ -25,4 +25,4 @@ export { default as AnalyticsDevice } from './analyticsdevice';
 export { default as Receiver } from './receiver';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
-// export * from './compatibility/cam'; // development frozen
+// export * from './compatibility/cam'; // use compatibility directly, ex.: require('onvif/compatibility/promises')
