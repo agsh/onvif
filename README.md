@@ -40,8 +40,8 @@ for existing projects.
 
 > [!TIP]
 > The main 1.x API uses the `Onvif` class with service modules (`onvif.device`, `onvif.media`, `onvif.ptz`, …).
-> If you migrate from v0.8, use the promise-based entry point `onvif/promises` — it exposes the familiar `Cam`
-> class with the same method names and option shapes as 0.x (`getStreamUri`, `absoluteMove({ x, y, zoom })`, and so on).
+> For v0.8 migration, import the separate compatibility modules (not part of `require('onvif')`):
+> `require('onvif/compatibility')` for callbacks or `require('onvif/compatibility/promises')` for async/await.
 
 The documentation for the new library was generated with TypeDoc and is available here:
 
@@ -70,7 +70,7 @@ I will be happy to answer any questions and hear your feedback.
   > [ONVIF Network Interface Specifications](https://www.onvif.org/profiles/specifications/)):
   > AuthenticationBehavior, Application Management (`appmgmt`), Uplink, FederatedSearch
 - Improved error handling
-- v0.x compatibility via `onvif/promises` (`Cam`, `Discovery`) for existing callback-style code
+- Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks, `require('onvif/compatibility/promises')` for Promises
 
 ---
 
@@ -137,45 +137,52 @@ console.log(info);
 
 # Migration from v0.x
 
-Version 1.x introduces a new typed `Onvif` API. To keep existing v0.8 code working with minimal changes,
-use the **`onvif/promises`** entry point — the same module path as in 0.x:
+Version 1.x introduces a new typed `Onvif` API. Compatibility modules are **not** re-exported from `require('onvif')` —
+import them explicitly: `onvif/compatibility` (callbacks) or `onvif/compatibility/promises` (async/await).
+
+### Callbacks (`onvif/compatibility`)
 
 ```js
-const { Cam } = require('onvif/promises');
+const { Cam } = require('onvif/compatibility');
 
-const cam = new Cam({
-  hostname: '192.168.1.13',
-  port: 8000,
-  username: 'admin',
-  password: 'admin',
-});
+const cam = new Cam(
+  { hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' },
+  (error) => {
+    if (error) throw error;
+    cam.getDeviceInformation((err, info) => {
+      if (err) throw err;
+      console.log(info);
+    });
+  },
+);
+```
+
+See [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs).
+
+### Promises (`onvif/compatibility/promises`)
+
+```js
+const { Cam } = require('onvif/compatibility/promises');
+
+const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
 
 (async () => {
   await cam.connect();
-  const { uri } = await cam.getStreamUri({ protocol: 'RTSP' });
-  await cam.absoluteMove({ x: 0, y: 0, zoom: 0.5 });
-  console.log(uri);
+  console.log(await cam.getDeviceInformation());
 })();
 ```
 
-The promisified `Cam` wraps the v0.x-compatible callback implementation:
+See [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs).
 
-- constructor does **not** auto-connect (call `await cam.connect()` explicitly, like in v0.x promises)
-- all v0.x `Cam` methods return Promises instead of using callbacks
-- property getters (`cam.username`, `cam.profiles`, `cam.uri`, …) and EventEmitter methods (`cam.on`, …) work as before
-- underlying callback instance is available as `cam._cam`
-- `Discovery.probe()` returns promisified `Cam` instances
-
-See [compatibility-promises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility-promises.cjs) for a full CommonJS example with RTSP streaming and PTZ.
-
-Integration tests for the compatibility layer: 33 tests for the callback API and 39 tests for `onvif/promises`
-(`__tests__/compatibility.test.ts`, `__tests__/compatibility.promises.test.ts`).
+The promisified `Cam` wraps the callback implementation: no auto-connect (call `await cam.connect()`),
+methods return Promises, getters and EventEmitter APIs are forwarded, and `_cam` exposes the underlying instance.
 
 # Examples
 located in the Examples Folder on the Github
 > [!TIP]
 > Not all of them were reworked for version 1.x.
-* [compatibility-promises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility-promises.cjs) - v0.x-style Promise API (`require('onvif/promises')`): connect, RTSP stream via socket.io, PTZ absoluteMove
+* [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs) - v0.x callback API (`require('onvif/compatibility')`): connect and print `getDeviceInformation`
+* [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs) - v0.x Promise API (`require('onvif/compatibility/promises')`): same, with async/await
 * [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) - ONVIF Events. With filters, pull-point, push-sub subscriptions
 * [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
 * [example2.js](https://github.com/agsh/onvif/blob/master/examples/example2.js) - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
@@ -185,7 +192,7 @@ located in the Examples Folder on the Github
 * [example4.js](https://github.com/agsh/onvif/blob/master/examples/example4.js) - uses Discovery to find cameras on the local network
 * [example5.js](https://github.com/agsh/onvif/blob/master/examples/example5.js) - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
 * [example6.js](https://github.com/agsh/onvif/blob/master/examples/example6.js) - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
-* [example7.js](https://github.com/agsh/onvif/blob/v1/examples/example7.js) - legacy v0.x example using a Promise API (for 1.x use [compatibility-promises.cjs](examples/compatibility-promises.cjs) instead)
+* [example7.js](https://github.com/agsh/onvif/blob/v1/examples/example7.js) - legacy v0.x Promise example (for 1.x use [compatibilityPromises.cjs](examples/compatibilityPromises.cjs) instead)
 * [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) - example setting OSD On Screen Display. (also uses Promises API)
 
 ---
@@ -463,7 +470,7 @@ npm test
 ```
 
 The tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) as a test device,
-including integration suites for the v0.x compatibility layer (callback `Cam` and `onvif/promises`).
+including integration suites for the v0.x compatibility layer (`onvif/compatibility` and `onvif/compatibility/promises`).
 
 Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for providing the opportunity to test the full ONVIF specification.
 

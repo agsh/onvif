@@ -1,5 +1,5 @@
 /**
- * Promisified ONVIF client (`require('onvif/promises')`).
+ * Promisified ONVIF client (`require('onvif/compatibility/promises')`).
  */
 
 export { Cam } from './cam';

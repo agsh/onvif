@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
@@ -10,7 +10,11 @@
       "types": "./build/index.d.ts",
       "default": "./build/index.js"
     },
-    "./promises": {
+    "./compatibility": {
+      "types": "./build/compatibility/cam.d.ts",
+      "default": "./build/compatibility/cam.js"
+    },
+    "./compatibility/promises": {
       "types": "./build/compatibility/promises/index.d.ts",
       "default": "./build/compatibility/promises/index.js"
     }

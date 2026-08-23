@@ -1,5 +1,5 @@
 /**
- * Type definitions for `onvif/promises`.
+ * Type definitions for `onvif/compatibility/promises`.
  */
 
 import { EventEmitter } from 'events';

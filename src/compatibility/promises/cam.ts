@@ -1,5 +1,5 @@
 /**
- * Promisified compatibility Cam (`require('onvif/promises')`).
+ * Promisified compatibility Cam (`require('onvif/compatibility/promises')`).
  * @see origin/v0.x:promises/cam.js
  */
 
@@ -11,7 +11,7 @@ import type { PromisifiedCam } from './types';
  * Promise-based wrapper around the v0.x callback {@link CallbackCam}.
  * @example
  * ```js
- * const { Cam } = require('onvif/promises');
+ * const { Cam } = require('onvif/compatibility/promises');
  * const cam = new Cam({ hostname: '127.0.0.1', username: 'admin', password: 'admin' });
  * await cam.connect();
  * const { uri } = await cam.getStreamUri({ protocol: 'RTSP' });
