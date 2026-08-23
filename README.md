@@ -15,17 +15,16 @@ ONVIF client protocol implementation for Node.js.
 > npm install onvif@alpha
 > ```
 
-This is a wrapper for the ONVIF protocol that allows you to:
+A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:
 
-- get information about your NVT (Network Video Transmitter) device and its media sources
-- control PTZ (pan-tilt-zoom) movements
-- manage presets
-- detect devices on your network
-- control events
-- retrieve information about your NVR (Network Video Recorder) Profile G device
-- obtain a list of recordings
+- **Core media & PTZ** — device info, Media / Media2 profiles, stream URIs, imaging, presets, continuous and absolute moves
+- **Events** — pull-point and WS-BaseNotification with topic filters and `EventEmitter` integration
+- **Recording & replay** — Profile G NVR search, recordings, and replay URIs
+- **Physical access** — DoorControl, AccessControl, Credential, AccessRules, Schedule
+- **More services** — Analytics, DeviceIO, Display, Action Engine, Thermal, Provisioning, AdvancedSecurity
+- **Discovery & auth** — WS-Discovery on the LAN; WS-Security and Digest (MD5 / SHA-1 / SHA-256)
 
-The library runs on Node.js and works server-side.
+Works server-side on Node.js 18+, tested on GitHub Actions.
 
 [![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
