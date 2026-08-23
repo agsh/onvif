@@ -696,7 +696,9 @@ export default class PTZ extends Service {
    * Operation to request PTZ status for the Node in the selected profile.
    * @param options
    */
-  async getStatus({ profileToken = this.onvif.activeSource!.profileToken }: GetStatusExtended): Promise<PTZStatus> {
+  async getStatus({
+    profileToken = this.onvif.activeSource!.profileToken,
+  }: GetStatusExtended = {}): Promise<PTZStatus> {
     const response = await this.request({
       GetStatus: { ProfileToken: profileToken },
     });
