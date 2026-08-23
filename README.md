@@ -158,7 +158,7 @@ const cam = new Cam(
 );
 ```
 
-See [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs).
+See [compatibility.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs).
 
 ### Promises (`onvif/compatibility/promises`)
 
@@ -173,7 +173,7 @@ const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', p
 })();
 ```
 
-See [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs).
+See [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs).
 
 The promisified `Cam` wraps the callback implementation: no auto-connect (call `await cam.connect()`),
 methods return Promises, getters and EventEmitter APIs are forwarded, and `_cam` exposes the underlying instance.
