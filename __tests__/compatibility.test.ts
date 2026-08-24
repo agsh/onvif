@@ -48,6 +48,34 @@ describe('Compatibility Cam', () => {
       expect(cam.activeSource).toBeDefined();
     });
 
+    it('should expose connection getters and allow timeout/hostname updates', () => {
+      expect(cam.port).toBe(8000);
+      expect(cam.path).toBeDefined();
+      expect(cam.hostname).toBe('127.0.0.1');
+      expect(cam.username).toBe('admin');
+      expect(cam.password).toBe('admin');
+      expect(typeof cam.timeout).toBe('number');
+      expect(cam.capabilities).toBeDefined();
+      expect(typeof cam.media2Support).toBe('boolean');
+
+      const previousTimeout = cam.timeout;
+      cam.timeout = previousTimeout + 1;
+      expect(cam.timeout).toBe(previousTimeout + 1);
+      cam.timeout = previousTimeout;
+    });
+
+    it('should not auto-connect when autoconnect is false', async () => {
+      const pending = new Cam({
+        hostname: '127.0.0.1',
+        username: 'admin',
+        password: 'admin',
+        port: 8000,
+        autoconnect: false,
+      });
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(pending.uri.media).toBeUndefined();
+    });
+
     it('should populate deviceInformation after getDeviceInformation', async () => {
       const info = await promisify<any>((callback) => cam.getDeviceInformation(callback));
       expect(info.manufacturer).toBeDefined();
@@ -59,6 +87,36 @@ describe('Compatibility Cam', () => {
       expect(Array.isArray(services)).toBe(true);
       expect(services.length).toBeGreaterThan(0);
       expect(cam.services.length).toBeGreaterThan(0);
+    });
+
+    it('should accept getServices(callback) overload without includeCapability', async () => {
+      const services = await promisify<any[]>((callback) => cam.getServices(callback));
+      expect(Array.isArray(services)).toBe(true);
+      expect(services.length).toBeGreaterThan(0);
+    });
+
+    it('should return active sources list', async () => {
+      const sources = await promisify<any[]>((callback) => cam.getActiveSources(callback));
+      expect(Array.isArray(sources)).toBe(true);
+      expect(sources.length).toBeGreaterThan(0);
+      expect(sources[0]).toHaveProperty('sourceToken');
+      expect(sources[0]).toHaveProperty('profileToken');
+      expect(cam.activeSources).toEqual(sources);
+    });
+
+    it('should return system date and time', async () => {
+      const dateTime = await promisify<any>((callback) => cam.getSystemDateAndTime(callback));
+      expect(dateTime).toBeDefined();
+    });
+
+    it('should return device service capabilities', async () => {
+      const caps = await promisify<any>((callback) => cam.getServiceCapabilities(callback));
+      expect(typeof caps).toBe('object');
+      expect(cam.serviceCapabilities).toEqual(caps);
+    });
+
+    it('should reject _request without a callback', () => {
+      expect(() => (cam as any)._request({})).toThrow('`callback` must be a function');
     });
   });
 
@@ -102,11 +160,27 @@ describe('Compatibility Cam', () => {
       expect(cam.networkInterfaces).toEqual(interfaces);
     });
 
+    it('should return network default gateway and protocols', async () => {
+      const gateway = await promisify<any>((callback) => cam.getNetworkDefaultGateway(callback));
+      expect(gateway).toBeDefined();
+      expect(cam.networkDefaultGateway).toEqual(gateway);
+
+      const protocols = await promisify<any>((callback) => cam.getNetworkProtocols(callback));
+      expect(protocols).toBeDefined();
+      expect(cam.networkProtocols).toEqual(protocols);
+    });
+
     it('should return users and cache them on the cam instance', async () => {
       const users = await promisify<any[]>((callback) => cam.getUsers(callback));
       expect(Array.isArray(users)).toBe(true);
       expect(users[0]).toHaveProperty('username');
       expect(cam.users).toEqual(users);
+    });
+
+    it('should reject setUsers when required fields are missing', async () => {
+      await expect(
+        promisify<void>((callback) => cam.setUsers([{ username: 'x' }] as any, callback)),
+      ).rejects.toThrow('Missing username, password or user level');
     });
   });
 
@@ -134,6 +208,20 @@ describe('Compatibility Cam', () => {
       expect(snapshot.uri).toMatch(/^http/);
     });
 
+    it('should call underlying media methods once when options and callback are both passed', async () => {
+      const Media = (await import('../src/media')).default;
+      const streamSpy = jest.spyOn(Media.prototype, 'getStreamUri');
+      const snapshotSpy = jest.spyOn(Media.prototype, 'getSnapshotUri');
+
+      await promisify<any>((callback) => cam.getStreamUri({ protocol: 'RTSP' }, callback));
+      await promisify<any>((callback) => cam.getSnapshotUri({}, callback));
+
+      expect(streamSpy).toHaveBeenCalledTimes(1);
+      expect(snapshotSpy).toHaveBeenCalledTimes(1);
+      streamSpy.mockRestore();
+      snapshotSpy.mockRestore();
+    });
+
     it('should return media service capabilities', async () => {
       const caps = await promisify<any>((callback) => cam.getMediaServiceCapabilities(callback));
       expect(typeof caps).toBe('object');
@@ -145,6 +233,70 @@ describe('Compatibility Cam', () => {
       expect(Array.isArray(configs)).toBe(true);
       expect(configs.length).toBeGreaterThan(0);
       expect(cam.videoEncoderConfigurations).toEqual(configs);
+    });
+
+    it('should return video source configurations and a single configuration by token', async () => {
+      const configs = await promisify<any[]>((callback) => cam.getVideoSourceConfigurations(callback));
+      expect(configs.length).toBeGreaterThan(0);
+      expect(cam.videoSourceConfigurations).toEqual(configs);
+
+      const token = configs[0].token ?? configs[0].$?.token;
+      const one = await promisify<any>((callback) => cam.getVideoSourceConfiguration(token, callback));
+      expect(one).toBeDefined();
+    });
+
+    it('should return video encoder configuration and options using cached tokens', async () => {
+      await promisify<any[]>((callback) => cam.getVideoEncoderConfigurations(callback));
+      const config = await promisify<any>((callback) => cam.getVideoEncoderConfiguration(callback));
+      expect(config).toBeDefined();
+
+      const options = await promisify<any>((callback) => cam.getVideoEncoderConfigurationOptions(callback));
+      expect(options).toBeDefined();
+    });
+
+    it('should return audio sources, outputs and encoder configurations', async () => {
+      const sources = await promisify<any[]>((callback) => cam.getAudioSources(callback));
+      expect(Array.isArray(sources)).toBe(true);
+
+      const outputs = await promisify<any[]>((callback) => cam.getAudioOutputs(callback));
+      expect(Array.isArray(outputs)).toBe(true);
+      expect(cam.audioOutputs).toEqual(outputs);
+
+      const sourceConfigs = await promisify<any[]>((callback) => cam.getAudioSourceConfigurations(callback));
+      expect(Array.isArray(sourceConfigs)).toBe(true);
+      expect(cam.audioSourceConfigurations).toEqual(sourceConfigs);
+
+      const outputConfigs = await promisify<any[]>((callback) => cam.getAudioOutputConfigurations(callback));
+      expect(Array.isArray(outputConfigs)).toBe(true);
+      expect(cam.audioOutputConfigurations).toEqual(outputConfigs);
+
+      const encoderConfigs = await promisify<any[]>((callback) => cam.getAudioEncoderConfigurations(callback));
+      expect(Array.isArray(encoderConfigs)).toBe(true);
+      expect(cam.audioEncoderConfigurations).toEqual(encoderConfigs);
+
+      const token = encoderConfigs[0]?.token ?? encoderConfigs[0]?.$?.token;
+      expect(token).toBeDefined();
+      const one = await promisify<any>((callback) => cam.getAudioEncoderConfiguration(token, callback));
+      expect(one).toBeDefined();
+      const options = await promisify<any>((callback) => cam.getAudioEncoderConfigurationOptions(callback));
+      expect(options).toBeDefined();
+    });
+
+    it('should set synchronization point for the default profile', async () => {
+      await expect(promisify<void>((callback) => cam.setSynchronizationPoint(callback))).resolves.toBeUndefined();
+    });
+
+    it('should return OSDs and OSD options', async () => {
+      const osds = await promisify<any>((callback) => cam.getOSDs(callback));
+      expect(osds).toBeDefined();
+
+      const videoSourceConfigurationToken =
+        cam.defaultProfile?.videoSourceConfiguration?.token ?? cam.activeSource?.videoSourceConfigurationToken;
+      expect(videoSourceConfigurationToken).toBeDefined();
+      const options = await promisify<any>((callback) =>
+        cam.getOSDOptions({ videoSourceConfigurationToken: videoSourceConfigurationToken! }, callback),
+      );
+      expect(options).toBeDefined();
     });
   });
 
@@ -166,6 +318,20 @@ describe('Compatibility Cam', () => {
       expect(cam.presets).toEqual(presets);
     });
 
+    it('should call underlying ptz methods once when options and callback are both passed', async () => {
+      const PTZ = (await import('../src/ptz')).default;
+      const presetsSpy = jest.spyOn(PTZ.prototype, 'getPresets');
+      const statusSpy = jest.spyOn(PTZ.prototype, 'getStatus');
+
+      await promisify<any>((callback) => cam.getPresets({}, callback));
+      await promisify<any>((callback) => cam.getStatus({}, callback));
+
+      expect(presetsSpy).toHaveBeenCalledTimes(1);
+      expect(statusSpy).toHaveBeenCalledTimes(1);
+      presetsSpy.mockRestore();
+      statusSpy.mockRestore();
+    });
+
     it('should return PTZ status', async () => {
       const status = await promisify<any>((callback) => cam.getStatus(callback));
       expect(status).toHaveProperty('position');
@@ -177,6 +343,37 @@ describe('Compatibility Cam', () => {
           cam.absoluteMove({ x: 0, y: 0, zoom: 0 } as any, callback);
         }),
       ).resolves.toBeUndefined();
+    });
+
+    it('should return PTZ configurations and configuration options', async () => {
+      const configurations = await promisify<any[]>((callback) => cam.getConfigurations(callback));
+      expect(Array.isArray(configurations)).toBe(true);
+      expect(configurations.length).toBeGreaterThan(0);
+      expect(cam.configurations).toBeDefined();
+
+      const token = configurations[0].token;
+      const options = await promisify<any>((callback) => cam.getConfigurationOptions(token, callback));
+      expect(options).toBeDefined();
+    });
+
+    it('should support relativeMove, continuousMove and stop with v0.x options', async () => {
+      await expect(
+        promisify<void>((callback) => cam.relativeMove({ x: 0.01, y: 0, zoom: 0 } as any, callback)),
+      ).resolves.toBeUndefined();
+      await expect(
+        promisify<void>((callback) => cam.continuousMove({ x: 0, y: 0, zoom: 0 } as any, callback)),
+      ).resolves.toBeUndefined();
+      await expect(promisify<void>((callback) => cam.stop(callback))).resolves.toBeUndefined();
+    });
+
+    it('should support preset round-trip helpers', async () => {
+      const presets = await promisify<Record<string, string>>((callback) => cam.getPresets(callback));
+      const names = Object.keys(presets);
+      expect(names.length).toBeGreaterThan(0);
+      await expect(
+        promisify<void>((callback) => cam.gotoPreset({ presetToken: presets[names[0]] } as any, callback)),
+      ).resolves.toBeUndefined();
+      await expect(promisify<void>((callback) => cam.gotoHomePosition({} as any, callback))).resolves.toBeUndefined();
     });
   });
 
@@ -204,6 +401,22 @@ describe('Compatibility Cam', () => {
       const options = await promisify<any>((callback) => cam.getVideoSourceOptions({ token: VIDEO_SOURCE_TOKEN }, callback));
       expect(options).toBeDefined();
     });
+
+    it('should return imaging move options and status', async () => {
+      const moveOptions = await promisify<any>((callback) =>
+        cam.imagingGetMoveOptions({ token: VIDEO_SOURCE_TOKEN }, callback),
+      );
+      expect(moveOptions).toBeDefined();
+
+      const status = await promisify<any>((callback) => cam.imagingGetStatus({ token: VIDEO_SOURCE_TOKEN }, callback));
+      expect(status).toBeDefined();
+    });
+
+    it('should stop imaging focus movement', async () => {
+      await expect(
+        promisify<void>((callback) => cam.imagingStop({ token: VIDEO_SOURCE_TOKEN }, callback)),
+      ).resolves.toBeUndefined();
+    });
   });
 
   describe('events', () => {
@@ -230,7 +443,21 @@ describe('Compatibility Cam', () => {
       expect(subscription.subscriptionReference?.address).toBeDefined();
       expect(cam.events.subscription).toEqual(subscription);
       expect(cam.events.terminationTime).toBeInstanceOf(Date);
+
+      const messages = await promisify<any>((callback) =>
+        cam.pullMessages({ timeout: 'PT1S', messageLimit: 1 }, callback),
+      );
+      expect(messages).toBeDefined();
+
+      await promisify<any>((callback) => cam.renew({}, callback));
       await promisify<void>((callback) => cam.unsubscribe(callback));
+    });
+
+    it('should require a pull-point subscription before pullMessages', async () => {
+      cam.events.subscription = undefined;
+      await expect(
+        promisify<any>((callback) => cam.pullMessages({ timeout: 'PT1S', messageLimit: 1 }, callback)),
+      ).rejects.toThrow('You should create pull-point subscription first!');
     });
   });
 
@@ -301,6 +528,19 @@ describe('Compatibility Cam', () => {
       );
       expect(typeof uri).toBe('string');
       expect(uri).toMatch(/^rtsp:\/\//);
+    });
+
+    it('should return recording options and job configuration', async () => {
+      const options = await promisify<any>((callback) =>
+        cam.getRecordingOptions({ RecordingToken: RECORDING_TOKEN }, callback),
+      );
+      expect(options).toBeDefined();
+      expect(cam.recordingOptions).toEqual(options);
+
+      const jobConfiguration = await promisify<any>((callback) =>
+        cam.getRecordingJobConfiguration({ JobToken: RECORDING_JOB_TOKEN }, callback),
+      );
+      expect(jobConfiguration).toBeDefined();
     });
   });
 });
