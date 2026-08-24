@@ -1,4 +1,5 @@
 import { Onvif } from '../src';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const DEFAULT_SESSION_TIMEOUT = 'PT60S';
@@ -6,12 +7,7 @@ const DEFAULT_SESSION_TIMEOUT = 'PT60S';
 let cam: Onvif;
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

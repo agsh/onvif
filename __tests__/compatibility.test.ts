@@ -1,4 +1,5 @@
 import { Cam, Callback } from '../src/compatibility/cam';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -21,12 +22,7 @@ function promisify<T>(fn: (callback: Callback) => void): Promise<T> {
 beforeAll(async () => {
   await new Promise<void>((resolve, reject) => {
     cam = new Cam(
-      {
-        hostname: '127.0.0.1',
-        username: 'admin',
-        password: 'admin',
-        port: 8000,
-      },
+      happytimeOnvifOptions,
       (error) => {
         if (error) {
           reject(error);
@@ -65,13 +61,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should not auto-connect when autoconnect is false', async () => {
-      const pending = new Cam({
-        hostname: '127.0.0.1',
-        username: 'admin',
-        password: 'admin',
-        port: 8000,
-        autoconnect: false,
-      });
+      const pending = new Cam({ ...happytimeOnvifOptions, autoconnect: false });
       await new Promise((resolve) => setImmediate(resolve));
       expect(pending.uri.media).toBeUndefined();
     });

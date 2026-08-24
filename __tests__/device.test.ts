@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { SetDNS } from '../src/interfaces/devicemgmt';
+import { happytimeOnvifOptions } from './happytime';
 
 const URL_REGEX =
   // eslint-disable-next-line no-useless-escape
@@ -25,12 +26,7 @@ async function initDeviceClient(onvif: Onvif) {
 }
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await initDeviceClient(cam);
 });
 

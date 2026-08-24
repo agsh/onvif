@@ -3,6 +3,7 @@ import type Media from '../src/media';
 import { ReferenceToken } from '../src/interfaces/common';
 import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
 import { OSDConfiguration, Profile } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
 function mediaTestCallable(media: Media): Record<string, (...args: unknown[]) => Promise<unknown>> {
@@ -28,12 +29,7 @@ const configurationEntityFields = {
 };
 let cam: Onvif;
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

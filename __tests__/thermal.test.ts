@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { Configuration, RadiometryConfiguration } from '../src/interfaces/thermal';
+import { happytimeOnvifOptions } from './happytime';
 
 const VIDEO_SOURCE_TOKEN = 'VideoSourceToken_1';
 
@@ -8,12 +9,7 @@ let baselineConfiguration: Configuration;
 let baselineRadiometry: RadiometryConfiguration;
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
   baselineConfiguration = await cam.thermal.getConfiguration({
     videoSourceToken: VIDEO_SOURCE_TOKEN,

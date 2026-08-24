@@ -1,4 +1,5 @@
 import { Cam, Callback } from '../src/compatibility/cam';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -22,12 +23,7 @@ function promisify<T>(fn: (callback: Callback) => void): Promise<T> {
 beforeAll(async () => {
   await new Promise<void>((resolve, reject) => {
     cam = new Cam(
-      {
-        hostname: '127.0.0.1',
-        username: 'admin',
-        password: 'admin',
-        port: 8000,
-      },
+      happytimeOnvifOptions,
       (error) => (error ? reject(error) : resolve()),
     );
   });

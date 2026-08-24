@@ -98,8 +98,10 @@ describe('Service options and builders', () => {
 
     const defaultsHttp = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     expect(defaultsHttp.port).toBe(80);
+    expect((defaultsHttp.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
     const defaultsHttps = new Onvif({ hostname: '127.0.0.1', useSecure: true, autoConnect: false });
     expect(defaultsHttps.port).toBe(443);
+    expect((defaultsHttps.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
 
     const preserved = secure.parseUrl('http://other.host:8000/onvif/media_service');
     expect(preserved.hostname).toBe('cam.local');

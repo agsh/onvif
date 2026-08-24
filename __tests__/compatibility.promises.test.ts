@@ -1,5 +1,6 @@
 import { Cam, promisifiedMethods } from '../src/compatibility/promises';
 import { Cam as CallbackCam } from '../src/compatibility/cam';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -8,24 +9,14 @@ const VIDEO_SOURCE_TOKEN = 'VideoSourceToken_1';
 let cam: any;
 
 beforeAll(async () => {
-  cam = new Cam({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Cam(happytimeOnvifOptions);
   await cam.connect();
 });
 
 describe('Compatibility Cam promises', () => {
   describe('promisify wrapper', () => {
     it('should not auto-connect in constructor', () => {
-      const pendingCam = new Cam({
-        hostname: '127.0.0.1',
-        username: 'admin',
-        password: 'admin',
-        port: 8000,
-      });
+      const pendingCam = new Cam(happytimeOnvifOptions);
       expect(pendingCam._cam.uri.media).toBeUndefined();
     });
 

@@ -9,6 +9,7 @@
 
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
+import { happytimeOnvifOptions } from './happytime';
 import {
   AnalyticsEngine,
   AnalyticsEngineControl,
@@ -91,12 +92,7 @@ function mockAnalyticsDeviceResponse(body: Record<string, unknown>) {
 }
 
 beforeEach(() => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   cam.uri.analyticsDevice = new URL('http://127.0.0.1:8000/onvif/analyticsdevice_service');
 });
 

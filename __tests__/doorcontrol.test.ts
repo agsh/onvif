@@ -1,4 +1,5 @@
 import { Onvif } from '../src';
+import { happytimeOnvifOptions } from './happytime';
 
 const DOOR_TOKEN_1 = 'DoorToken_1';
 const DOOR_TOKEN_2 = 'DoorToken_2';
@@ -6,12 +7,7 @@ const DOOR_TOKEN_2 = 'DoorToken_2';
 let cam: Onvif;
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

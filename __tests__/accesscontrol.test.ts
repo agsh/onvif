@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { AccessPoint, Area } from '../src/interfaces/accesscontrol';
+import { happytimeOnvifOptions } from './happytime';
 
 const ACCESS_POINT_TOKEN_1 = 'AccessPointToken_1';
 const ACCESS_POINT_TOKEN_2 = 'AccessPointToken_2';
@@ -12,12 +13,7 @@ const createdAccessPointTokens: string[] = [];
 const createdAreaTokens: string[] = [];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

@@ -1,4 +1,5 @@
 import { Onvif } from '../src';
+import { happytimeOnvifOptions } from './happytime';
 
 const SIGNATURE_ALGORITHM = { algorithm: '1.2.840.113549.1.1.11' };
 
@@ -16,12 +17,7 @@ const createdCertificationPathIDs: string[] = [];
 const createdPassphraseIDs: string[] = [];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

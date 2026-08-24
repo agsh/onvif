@@ -37,7 +37,7 @@ describe('compatibility promises unit', () => {
 
   describe('Cam proxy setters', () => {
     it('forwards property writes to the underlying callback cam', () => {
-      const cam = new Cam({ hostname: '127.0.0.1', port: 8000 });
+      const cam = new Cam({ hostname: '127.0.0.1', port: 8000, autoconnect: false });
       cam.hostname = '10.0.0.2';
       cam.timeout = 1234;
       expect(cam._cam.hostname).toBe('10.0.0.2');

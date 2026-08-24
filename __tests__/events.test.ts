@@ -10,6 +10,7 @@
 
 import { EventEmitter } from 'events';
 import { NotificationMessage, Onvif, Subscription } from '../src';
+import { happytimeOnvifOptions } from './happytime';
 
 const HAPPYTIME_TOPICS = {
   relay: 'tns1:Device/Trigger/Relay',
@@ -50,17 +51,53 @@ function collectEvents<T>(
   });
 }
 
+/**
+ * Wait until all required notification topics have been seen.
+ * HappyTime may also emit leftover Door/Access topics from earlier suites — ignore those.
+ */
+function collectUntilTopics(
+  emitter: EventEmitter,
+  event: string,
+  requiredTopics: readonly string[],
+  timeoutMs = 15_000,
+): Promise<NotificationMessage[]> {
+  const needed = new Set(requiredTopics);
+  return new Promise((resolve, reject) => {
+    const messages: NotificationMessage[] = [];
+    const seen = new Set<string>();
+    const onMessage = (msg: NotificationMessage) => {
+      messages.push(msg);
+      const topic = topicOf(msg);
+      if (needed.has(topic)) {
+        seen.add(topic);
+      }
+      if (seen.size >= needed.size) {
+        cleanup();
+        resolve(messages);
+      }
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(
+        new Error(
+          `Timed out waiting for topics [${requiredTopics.join(', ')}]; got [${[...seen].join(', ') || 'none'}]`,
+        ),
+      );
+    }, timeoutMs);
+    const cleanup = () => {
+      clearTimeout(timer);
+      emitter.off(event, onMessage);
+    };
+    emitter.on(event, onMessage);
+  });
+}
+
 function topicOf(msg: NotificationMessage): string {
   return msg.topic._;
 }
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 
@@ -128,16 +165,14 @@ describe('Events', () => {
 
   describe("Onvif 'event' (globalSubscription)", () => {
     it('should start pull-point subscription when the first event listener is added', async () => {
-      const messagesPromise = collectEvents<NotificationMessage>(cam, 'event', 2);
+      const expected = [HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput] as const;
+      const messagesPromise = collectUntilTopics(cam, 'event', expected);
       const handler = jest.fn();
       cam.on('event', handler);
 
       const messages = await messagesPromise;
-      expect(messages).toHaveLength(2);
-      expect(messages.map(topicOf)).toEqual(
-        expect.arrayContaining([HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput]),
-      );
-      expect(handler).toHaveBeenCalledTimes(2);
+      expect(messages.map(topicOf)).toEqual(expect.arrayContaining([...expected]));
+      expect(handler.mock.calls.length).toBeGreaterThanOrEqual(2);
       messages.forEach((msg) => {
         expect(msg).toHaveProperty('topic');
         expect(msg).toHaveProperty('message.message');
@@ -146,36 +181,36 @@ describe('Events', () => {
     });
 
     it('should stop pull-point subscription when the last event listener is removed', async () => {
+      const expected = [HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput] as const;
       const handler = jest.fn();
-      const messagesPromise = collectEvents<NotificationMessage>(cam, 'event', 2);
+      const messagesPromise = collectUntilTopics(cam, 'event', expected);
       cam.on('event', handler);
       await messagesPromise;
 
       cam.off('event', handler);
       expect(cam.listeners('event')).toHaveLength(0);
 
-      // After unsubscribe, a fresh listener should receive a new pair of simulated events.
+      // After unsubscribe, a fresh listener should receive HappyTime's simulated topics again.
       await new Promise((resolve) => setTimeout(resolve, 100));
-      const again = collectEvents<NotificationMessage>(cam, 'event', 2);
+      const again = collectUntilTopics(cam, 'event', expected);
       const handler2 = jest.fn();
       cam.on('event', handler2);
       const messages = await again;
-      expect(messages).toHaveLength(2);
+      expect(messages.map(topicOf)).toEqual(expect.arrayContaining([...expected]));
       cam.off('event', handler2);
     });
   });
 
   describe('Subscription', () => {
     it('should create an unfiltered pull-point and emit both Happytime events on data', async () => {
+      const expected = [HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput] as const;
       const sub = new Subscription(cam);
-      const messagesPromise = collectEvents<NotificationMessage>(sub, 'data', 2);
+      const messagesPromise = collectUntilTopics(sub, 'data', expected);
       await sub.subscribe();
       expect(sub.subscription?.subscriptionReference.address).toBeDefined();
 
       const messages = await messagesPromise;
-      expect(messages.map(topicOf)).toEqual(
-        expect.arrayContaining([HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput]),
-      );
+      expect(messages.map(topicOf)).toEqual(expect.arrayContaining([...expected]));
 
       await sub.unsubscribe();
       expect(sub.subscription).toBeUndefined();
@@ -223,6 +258,7 @@ describe('Events', () => {
     });
 
     it('should accept multiple topic expressions in one filter', async () => {
+      const expected = [HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput] as const;
       const sub = new Subscription(cam, {
         filter: {
           topicExpression: [
@@ -237,13 +273,11 @@ describe('Events', () => {
           ],
         },
       });
-      const messagesPromise = collectEvents<NotificationMessage>(sub, 'data', 2);
+      const messagesPromise = collectUntilTopics(sub, 'data', expected);
       await sub.subscribe();
 
       const messages = await messagesPromise;
-      expect(messages.map(topicOf)).toEqual(
-        expect.arrayContaining([HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput]),
-      );
+      expect(messages.map(topicOf)).toEqual(expect.arrayContaining([...expected]));
 
       await sub.unsubscribe();
     });

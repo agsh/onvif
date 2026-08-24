@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { Schedule as ScheduleEntity, SpecialDayGroup } from '../src/interfaces/schedule';
+import { happytimeOnvifOptions } from './happytime';
 
 const SCHEDULE_TOKEN_1 = 'ScheduleToken_1';
 const STANDARD_ICAL =
@@ -11,12 +12,7 @@ const createdScheduleTokens: string[] = [];
 const createdSpecialDayGroupTokens: string[] = [];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { Date as OnvifDateTime, RecordingSummary } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const KEEP_ALIVE_TIME = 'PT10S';
@@ -15,12 +16,7 @@ const searchScope = () => ({
 });
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
   recordingSummary = await cam.search.getRecordingSummary();
 });
