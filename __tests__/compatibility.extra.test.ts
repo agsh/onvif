@@ -153,11 +153,10 @@ describe('Compatibility Cam extra coverage', () => {
     ).resolves.toBeUndefined();
 
     const audioEncoders = await promisify<any[]>((callback) => cam.getAudioEncoderConfigurations(callback));
-    if (audioEncoders[0]) {
-      await expect(
-        promisify<void>((callback) => cam.setAudioEncoderConfiguration(audioEncoders[0], callback)),
-      ).resolves.toBeUndefined();
-    }
+    expect(audioEncoders.length).toBeGreaterThan(0);
+    await expect(
+      promisify<void>((callback) => cam.setAudioEncoderConfiguration(audioEncoders[0], callback)),
+    ).resolves.toBeUndefined();
   });
 
   it('creates, updates and deletes an OSD', async () => {

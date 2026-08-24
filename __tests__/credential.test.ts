@@ -107,9 +107,10 @@ describe('Credential', () => {
     it('should return credential state for a valid token', async () => {
       const state = await cam.credential.getCredentialState({ token: CREDENTIAL_TOKEN_1 });
       expect(typeof state.enabled).toBe('boolean');
-      if (state.antipassbackState) {
-        expect(typeof state.antipassbackState.antipassbackViolated).toBe('boolean');
-      }
+      expect(
+        state.antipassbackState === undefined ||
+          typeof state.antipassbackState.antipassbackViolated === 'boolean',
+      ).toBe(true);
     });
 
     it('should reject an invalid credential token', async () => {

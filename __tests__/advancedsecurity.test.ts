@@ -2,6 +2,13 @@ import { Onvif } from '../src';
 
 const SIGNATURE_ALGORITHM = { algorithm: '1.2.840.113549.1.1.11' };
 
+function expectSettledArrayOrError(results: PromiseSettledResult<unknown>[]) {
+  const fulfilled = results.filter((r): r is PromiseFulfilledResult<unknown> => r.status === 'fulfilled');
+  const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+  expect(fulfilled.every((r) => Array.isArray(r.value))).toBe(true);
+  expect(rejected.every((r) => r.reason instanceof Error)).toBe(true);
+}
+
 let cam: Onvif;
 const createdKeyIDs: string[] = [];
 const createdCertificateIDs: string[] = [];
@@ -181,11 +188,8 @@ describe('AdvancedSecurity', () => {
         cam.advancedSecurity.setCnMapsToUser({ cnMapsToUser: false }),
       ]);
       expect(results).toHaveLength(3);
-      for (const result of results) {
-        if (result.status === 'rejected') {
-          expect(result.reason).toBeInstanceOf(Error);
-        }
-      }
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected.every((r) => r.reason instanceof Error)).toBe(true);
     });
   });
 
@@ -197,13 +201,7 @@ describe('AdvancedSecurity', () => {
         cam.advancedSecurity.getAssignedMediaSigningCertificates(),
       ]);
       expect(results).toHaveLength(3);
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          expect(Array.isArray(result.value)).toBe(true);
-        } else {
-          expect(result.reason).toBeInstanceOf(Error);
-        }
-      }
+      expectSettledArrayOrError(results);
     });
   });
 
@@ -214,13 +212,7 @@ describe('AdvancedSecurity', () => {
         cam.advancedSecurity.getAuthorizationServerConfigurations(),
       ]);
       expect(results).toHaveLength(2);
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          expect(Array.isArray(result.value)).toBe(true);
-        } else {
-          expect(result.reason).toBeInstanceOf(Error);
-        }
-      }
+      expectSettledArrayOrError(results);
     });
   });
 
