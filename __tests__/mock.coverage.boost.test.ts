@@ -3,12 +3,16 @@
  * @jest-environment node
  */
 
+import AccessControl from '../src/accesscontrol';
 import AdvancedSecurity from '../src/advancedsecurity';
+import AnalyticsDevice from '../src/analyticsdevice';
+import Credential from '../src/credential';
 import Device from '../src/device';
 import DeviceIO from '../src/deviceio';
 import DoorControl from '../src/doorcontrol';
 import Events from '../src/events';
 import Recording from '../src/recording';
+import Schedule from '../src/schedule';
 import { Onvif } from '../src/onvif';
 
 function mockServiceRequest(service: { request: (...args: any[]) => any }, impl?: (body: any) => any) {
@@ -564,5 +568,415 @@ describe('Mock coverage boost', () => {
       dataLength: 1,
       delimiter: '\r',
     });
+    // optional serialData / timeout omitted branch
+    await deviceIO.sendReceiveSerialCommand({});
+  });
+
+  it('covers optional field branches in accesscontrol / credential / schedule builders', async () => {
+    const AC = AccessControl as any;
+    expect(
+      AC.accessPointToBuild({
+        token: 'ap1',
+        name: 'AP',
+        description: 'd',
+        areaFrom: 'a1',
+        areaTo: 'a2',
+        entityType: 'Door',
+        entity: 'door1',
+        authenticationProfileToken: 'auth1',
+        extension: { x: 1 },
+        capabilities: {
+          disableAccessPoint: true,
+          duress: true,
+          anonymousAccess: false,
+          accessTaken: true,
+          externalAuthorization: false,
+          supportedRecognitionTypes: ['Card'],
+          identifierAccess: true,
+          supportedFeedbackTypes: ['Beep'],
+          supportedSecurityLevels: ['Level1'],
+          extension: { e: 1 },
+        },
+      }),
+    ).toMatchObject({ Name: 'AP', AreaFrom: 'a1' });
+    expect(
+      AC.accessPointToBuild({
+        token: 'ap2',
+        name: 'AP2',
+        entity: 'door2',
+        capabilities: { disableAccessPoint: false },
+      }),
+    ).toMatchObject({ Name: 'AP2' });
+    expect(AC.areaToBuild({ token: 'ar1', name: 'Area', description: 'd', extension: {} })).toMatchObject({
+      Name: 'Area',
+    });
+
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const accessControl = new AccessControl(onvif);
+    mockServiceRequest(accessControl, (body) => {
+      if (body.CreateAccessPoint) {
+        return { createAccessPointResponse: { token: 'ap1' } };
+      }
+      if (body.CreateArea) {
+        return { createAreaResponse: { token: 'ar1' } };
+      }
+      if (body.GetAccessPointInfoList || body.GetAccessPointList || body.GetAreaInfoList || body.GetAreaList) {
+        const key = Object.keys(body)[0];
+        return { [`${key.charAt(0).toLowerCase()}${key.slice(1)}Response`]: {} };
+      }
+      return {};
+    });
+    await accessControl.getAccessPointInfoList({ limit: 10, startReference: 'ref' });
+    await accessControl.getAccessPointList({ limit: 5 });
+    await accessControl.createAccessPoint({
+      accessPoint: {
+        token: '',
+        name: 'AP',
+        entity: 'door1',
+        capabilities: { disableAccessPoint: true, duress: true },
+      },
+    } as any);
+    await accessControl.setAccessPoint({
+      accessPoint: {
+        token: 'ap1',
+        name: 'AP',
+        entity: 'door1',
+        capabilities: { disableAccessPoint: true },
+      },
+    } as any);
+    await accessControl.modifyAccessPoint({
+      accessPoint: {
+        token: 'ap1',
+        name: 'AP',
+        entity: 'door1',
+        authenticationProfileToken: 'auth',
+        capabilities: { disableAccessPoint: true },
+      },
+    } as any);
+    await accessControl.deleteAccessPoint({ token: 'ap1' });
+    await accessControl.setAccessPointAuthenticationProfile({
+      token: 'ap1',
+      authenticationProfileToken: 'auth',
+    });
+    await accessControl.deleteAccessPointAuthenticationProfile({ token: 'ap1' });
+    await accessControl.createArea({ area: { token: '', name: 'A', description: 'd' } as any });
+    await accessControl.setArea({ area: { token: 'ar1', name: 'A', extension: {} } as any });
+    await accessControl.modifyArea({ area: { token: 'ar1', name: 'A' } as any });
+    await accessControl.deleteArea({ token: 'ar1' });
+    await accessControl.enableAccessPoint({ token: 'ap1' });
+    await accessControl.disableAccessPoint({ token: 'ap1' });
+
+    const Cred = Credential as any;
+    expect(
+      Cred.credentialToBuild({
+        token: 'c1',
+        description: 'd',
+        credentialHolderReference: 'h1',
+        validFrom: '2020-01-01T00:00:00Z',
+        validTo: '2030-01-01T00:00:00Z',
+        credentialIdentifier: [
+          {
+            type: { name: 'pt:Card', formatType: 'GUID' },
+            value: 'AABB',
+            exemptedFromAuthentication: false,
+          },
+        ],
+        credentialAccessProfile: [
+          {
+            accessProfileToken: 'ap1',
+            validFrom: '2020-01-01T00:00:00Z',
+            validTo: '2030-01-01T00:00:00Z',
+          },
+        ],
+        extendedGrantTime: true,
+        attribute: [{ name: 'n', value: 'v' }],
+        extension: {},
+      }),
+    ).toMatchObject({ CredentialHolderReference: 'h1' });
+    expect(
+      Cred.credentialStateToBuild({
+        enabled: true,
+        reason: 'ok',
+        antipassbackState: { antipassbackViolated: false },
+        extension: {},
+      }),
+    ).toMatchObject({ Enabled: true, Reason: 'ok' });
+    expect(Cred.credentialStateToBuild({ enabled: false })).toEqual({ Enabled: false });
+
+    const credential = new Credential(onvif);
+    mockServiceRequest(credential, (body) => {
+      if (body.CreateCredential) {
+        return { createCredentialResponse: { token: 'c1' } };
+      }
+      if (body.GetCredentialInfoList || body.GetCredentialList) {
+        const key = Object.keys(body)[0];
+        return { [`${key.charAt(0).toLowerCase()}${key.slice(1)}Response`]: {} };
+      }
+      return {};
+    });
+    await credential.getCredentialInfoList({ limit: 2, startReference: 's' });
+    await credential.createCredential({
+      credential: {
+        token: '',
+        credentialHolderReference: 'h',
+        credentialIdentifier: [
+          { type: { name: 'pt:Card', formatType: 'GUID' }, value: '1', exemptedFromAuthentication: false },
+        ],
+      },
+      state: { enabled: true, reason: 'new' },
+    } as any);
+    await credential.setCredential({
+      credentialData: {
+        credential: {
+          token: 'c1',
+          credentialHolderReference: 'h',
+          credentialIdentifier: [
+            { type: { name: 'pt:Card', formatType: 'GUID' }, value: '1', exemptedFromAuthentication: false },
+          ],
+          extension: {},
+        },
+        credentialState: { enabled: true },
+        extension: {},
+      },
+    } as any);
+    await credential.enableCredential({ token: 'c1', reason: 'manual' });
+    await credential.setCredentialIdentifier({
+      credentialToken: 'c1',
+      credentialIdentifier: {
+        type: { name: 'pt:Card', formatType: 'GUID' },
+        value: '2',
+        exemptedFromAuthentication: true,
+      },
+    } as any);
+    await credential.deleteCredentialIdentifier({
+      credentialToken: 'c1',
+      credentialIdentifierTypeName: 'pt:Card',
+    } as any);
+    await credential.setCredentialAccessProfiles({
+      credentialToken: 'c1',
+      credentialAccessProfile: [{ accessProfileToken: 'ap1' }],
+    } as any);
+    await credential.deleteCredentialAccessProfiles({
+      credentialToken: 'c1',
+      accessProfileToken: ['ap1'],
+    } as any);
+
+    const Sch = Schedule as any;
+    expect(
+      Sch.scheduleToBuild({
+        token: 's1',
+        name: 'Sched',
+        description: 'd',
+        standard: '0 0 * * *',
+        specialDays: [{ groupToken: 'g1', timeRange: [{ from: 'T08:00:00', until: 'T17:00:00' }], extension: {} }],
+        extension: {},
+      }),
+    ).toMatchObject({ Name: 'Sched' });
+    expect(
+      Sch.specialDayGroupToBuild({
+        token: 'g1',
+        name: 'G',
+        description: 'd',
+        days: '2026-01-01',
+        extension: {},
+      }),
+    ).toMatchObject({ Name: 'G' });
+
+    const schedule = new Schedule(onvif);
+    mockServiceRequest(schedule, (body) => {
+      if (body.CreateSchedule) {
+        return { createScheduleResponse: { token: 's1' } };
+      }
+      if (body.CreateSpecialDayGroup) {
+        return { createSpecialDayGroupResponse: { token: 'g1' } };
+      }
+      return {};
+    });
+    await schedule.getScheduleInfoList({ limit: 1, startReference: 'r' });
+    await schedule.createSchedule({
+      schedule: { token: '', name: 'S', standard: '0 0 * * *', specialDays: [] } as any,
+    });
+    await schedule.setSchedule({
+      schedule: { token: 's1', name: 'S', standard: '0 0 * * *', extension: {} } as any,
+    });
+    await schedule.modifySchedule({
+      schedule: { token: 's1', name: 'S', standard: '0 0 * * *' } as any,
+    });
+    await schedule.deleteSchedule({ token: 's1' });
+    await schedule.createSpecialDayGroup({
+      specialDayGroup: { token: '', name: 'G', days: '2026-01-01' } as any,
+    });
+    await schedule.setSpecialDayGroup({
+      specialDayGroup: { token: 'g1', name: 'G', extension: {} } as any,
+    });
+    await schedule.modifySpecialDayGroup({
+      specialDayGroup: { token: 'g1', name: 'G' } as any,
+    });
+    await schedule.deleteSpecialDayGroup({ token: 'g1' });
+  });
+
+  it('covers analyticsdevice / advancedsecurity / events optional branches', async () => {
+    const AD = AnalyticsDevice as any;
+    expect(AD.tokensToBuild(undefined)).toBeUndefined();
+    expect(AD.tokensToBuild([])).toBeUndefined();
+    expect(AD.tokensToBuild(['a'])).toBe('a');
+    expect(AD.tokensToBuild(['a', 'b'])).toEqual(['a', 'b']);
+    expect(
+      AD.analyticsEngineInputToBuild({
+        token: 'i1',
+        name: 'in',
+        useCount: 1,
+        sourceIdentification: { name: 'src', token: ['t1', 't2'], extension: {} },
+        videoInput: {
+          token: 'v1',
+          name: 've',
+          useCount: 1,
+          encoding: 'H264',
+          resolution: { width: 640, height: 480 },
+          quality: 1,
+          rateControl: { frameRateLimit: 25, encodingInterval: 1, bitrateLimit: 1000 },
+          MPEG4: { govLength: 1, mpeg4Profile: 'SP' },
+          H264: { govLength: 1, H264Profile: 'Baseline' },
+          multicast: {
+            address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+            port: 0,
+            TTL: 1,
+            autoStart: false,
+          },
+          sessionTimeout: 'PT60S',
+        },
+        metadataInput: {
+          metadataConfig: [{ name: 'm', type: 'string', parameters: { simpleItem: [{ name: 'a', value: 'b' }] } }],
+          extension: {},
+        },
+      }),
+    ).toMatchObject({ Name: 'in' });
+    expect(
+      AD.videoAnalyticsConfigurationToBuild({
+        token: 'va1',
+        name: 'va',
+        useCount: 1,
+        analyticsEngineConfiguration: {
+          analyticsModule: [
+            {
+              name: 'm',
+              type: 't',
+              parameters: { simpleItem: [{ name: 'p', value: '1' }] },
+            },
+          ],
+          extension: {},
+        },
+        ruleEngineConfiguration: {
+          rule: [
+            {
+              name: 'r',
+              type: 't',
+              parameters: { simpleItem: [{ name: 'p', value: '1' }] },
+            },
+          ],
+          extension: {},
+        },
+      }),
+    ).toMatchObject({ Name: 'va' });
+
+    const AS = AdvancedSecurity as any;
+    expect(
+      AS.jwtConfigurationToBuild({
+        audiences: ['a'],
+        trustedIssuers: ['iss'],
+        keyID: ['k1'],
+        validationPolicy: ['p1'],
+        customClaims: [{ name: 'c', supportedValues: ['v'] }],
+      }),
+    ).toMatchObject({ Audiences: 'a' });
+    expect(AS.jwtConfigurationToBuild({ audiences: ['a', 'b'] })).toMatchObject({ Audiences: 'a b' });
+    expect(
+      AS.dot1XStageToBuild({
+        method: 'EAP-TLS',
+        certPathValidationPolicyID: 'p',
+        identity: 'u',
+        certificationPathID: 'path',
+        passphraseID: 'pass',
+        extension: {},
+      }),
+    ).toMatchObject({ Identity: 'u' });
+    expect(
+      AS.authorizationServerConfigurationToBuild({
+        token: 'as1',
+        data: {
+          type: 'OAuth2ClientCredentials',
+          clientAuth: 'client_secret_basic',
+          serverUri: 'https://auth',
+          clientID: 'id',
+          clientSecret: 'sec',
+          scope: ['s'],
+          keyID: 'k',
+          certificateID: 'c',
+          certPathValidationPolicyID: 'p',
+        },
+      }),
+    ).toMatchObject({ $: { token: 'as1' } });
+    expect(
+      AS.certPathValidationPolicyToBuild({
+        certPathValidationPolicyID: 'p1',
+        alias: 'a',
+        parameters: {},
+        trustAnchor: [{ certificateID: 'c1' }],
+        anyParameters: { x: 1 },
+      }),
+    ).toMatchObject({ Alias: 'a' });
+    expect(
+      AS.certPathValidationParametersToBuild({
+        requireTLSWWWClientAuthExtendedKeyUsage: false,
+        useDeltaCRLs: true,
+        anyParameters: {},
+      }),
+    ).toMatchObject({ UseDeltaCRLs: true });
+
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const security = new AdvancedSecurity(onvif);
+    mockServiceRequest(security, () => ({
+      getJWTConfigurationResponse: { configuration: { audiences: [] } },
+      setJWTConfigurationResponse: {},
+      createAuthorizationServerConfigurationResponse: { token: 'as1' },
+      getAuthorizationServerConfigurationsResponse: { configuration: [] },
+    }));
+    await security.getJWTConfiguration();
+    await security.setJWTConfiguration({
+      configuration: {
+        audiences: ['aud'],
+        trustedIssuers: ['iss'],
+        customClaims: [{ name: 'c', supportedValues: ['1', '2'] }],
+      },
+    } as any);
+
+    expect(Events.filterToBuild({})).toBeUndefined();
+    expect(Events.filterToBuild({ topicExpression: [] })).toBeUndefined();
+    expect(Events.filterToBuild({ messageContent: 'true()' })).toBeDefined();
+
+    onvif.uri.events = new URL('http://127.0.0.1:8000/onvif/events_service');
+    const events = new Events(onvif);
+    const subscription = {
+      subscriptionReference: { address: 'http://127.0.0.1:8000/Subscription?Idx=2' },
+    };
+    jest.spyOn(onvif, 'request').mockImplementation(async (options: any) => {
+      const root = Object.keys(options.body)[0].replace(/^[^:]+:/, '');
+      if (root === 'Subscribe') {
+        return [{ subscribeResponse: subscription }, ''];
+      }
+      if (root === 'CreatePullPointSubscription') {
+        return [{ createPullPointSubscriptionResponse: subscription }, ''];
+      }
+      return [{}, ''];
+    });
+    await events.createPullPointSubscription({ filter: {} });
+    await events.subscribe({
+      url: 'http://127.0.0.1:9999/notify',
+      terminationTime: 'PT30S',
+      filter: { messageContent: '//SimpleItem' },
+      renew: false,
+    });
+    // getSubscriptionUrlAndHeaders missing address branch
+    await expect(events.unsubscribe({} as any)).rejects.toThrow(/working subscription/);
   });
 });

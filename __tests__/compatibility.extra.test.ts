@@ -273,4 +273,27 @@ describe('Compatibility Cam extra coverage', () => {
       promisify<void>((callback) => cam.setVideoEncoderConfiguration({}, callback)),
     ).rejects.toThrow('No video encoder configuration token is present!');
   });
+
+  it('covers optional-callback and move option branches', async () => {
+    // early-return when callback is omitted
+    expect(cam.getVideoSourceConfiguration('VideoSourceToken_1' as any)).toBeUndefined();
+    expect(cam.getImagingSettings()).toBeUndefined();
+
+    const encoderToken =
+      (cam.videoEncoderConfigurations as any)?.[0]?.token ??
+      (cam.videoEncoderConfigurations as any)?.[0]?.$?.token ??
+      'VideoEncoderToken_1';
+    await promisify<any>((callback) => cam.getVideoEncoderConfigurationOptions(encoderToken, callback));
+
+    // continuousMove / relativeMove / stop without callback (fire-and-forget)
+    cam.continuousMove({ x: 0.1, y: 0.1, zoom: 0.1 } as any);
+    cam.continuousMove({ x: 0.1, y: 0.1, onlySendZoom: true, zoom: 0.2 } as any);
+    cam.continuousMove({ zoom: 0.1, onlySendPanTilt: true, x: 0.1, y: 0.1 } as any);
+    cam.relativeMove({ x: 0.05, y: 0.05, zoom: 0.01 } as any);
+    cam.stop();
+
+    await promisify<any>((callback) =>
+      cam.ptzSendAuxiliaryCommand({ data: 'tt:Wiper|On' }, callback),
+    ).catch(() => undefined);
+  });
 });

@@ -522,11 +522,10 @@ describe('setMetadataConfiguration', () => {
   it('should accept an existing metadata configuration unchanged', async () => {
     const [configuration] = await cam.media2.getMetadataConfigurations({});
     expect(configuration).toBeDefined();
-    const result = await cam.media2.setMetadataConfiguration(configuration).then(
-      () => 'ok',
-      (error) => error,
-    );
-    expect(result === 'ok' || result instanceof Error).toBe(true);
+    // HappyTime occasionally drops the socket on SetMetadataConfiguration; still exercise the client path.
+    const settled = await Promise.allSettled([cam.media2.setMetadataConfiguration(configuration)]);
+    expect(settled).toHaveLength(1);
+    expect(['fulfilled', 'rejected']).toContain(settled[0].status);
   });
 
   it('should accept configuration with explicit multicast and session timeout', async () => {
@@ -542,11 +541,9 @@ describe('setMetadataConfiguration', () => {
       },
       sessionTimeout: base.sessionTimeout ?? 'PT60S',
     };
-    const result = await cam.media2.setMetadataConfiguration(configuration).then(
-      () => 'ok',
-      (error) => error,
-    );
-    expect(result === 'ok' || result instanceof Error).toBe(true);
+    const settled = await Promise.allSettled([cam.media2.setMetadataConfiguration(configuration)]);
+    expect(settled).toHaveLength(1);
+    expect(['fulfilled', 'rejected']).toContain(settled[0].status);
   });
 });
 
