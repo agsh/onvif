@@ -174,7 +174,7 @@ describe('Device XML builders', () => {
     expect(DeviceAny.locationEntitiesToBuild(undefined)).toBeUndefined();
   });
 
-  it('covers device request builders via mocked request', async () => {
+  it('sends device setter requests with expected XML builders', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     const device = new Device(onvif);
     const calls: unknown[] = [];

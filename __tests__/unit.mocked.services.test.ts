@@ -1,5 +1,5 @@
 /**
- * Mocked request paths to exercise builders / service methods HappyTime does not cover.
+ * Unit tests for service methods and XML builders using mocked SOAP responses.
  * @jest-environment node
  */
 
@@ -26,8 +26,8 @@ function mockServiceRequest(service: { request: (...args: any[]) => any }, impl?
   });
 }
 
-describe('Mock coverage boost', () => {
-  it('covers device password/cert/dot1x/storage helpers via mocked request', async () => {
+describe('Mocked service unit tests', () => {
+  it('builds Device password, certificate, Dot1X, and storage requests', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     const device = new Device(onvif);
     mockServiceRequest(device, (body) => {
@@ -194,7 +194,7 @@ describe('Mock coverage boost', () => {
     } as any);
   });
 
-  it('covers advancedsecurity builders and upload/create helpers', async () => {
+  it('builds AdvancedSecurity distinguished names, policies, and upload helpers', async () => {
     const AS = AdvancedSecurity as any;
     expect(
       AS.distinguishedNameToBuild({
@@ -324,7 +324,7 @@ describe('Mock coverage boost', () => {
     await security.deleteCRL({ crlID: 'crl1' });
   });
 
-  it('covers events filter/broker/subscribe paths via mocked onvif.request', async () => {
+  it('creates event pull-point and push subscriptions with filters and brokers', async () => {
     expect(
       Events.filterToBuild({
         topicExpression: [{ expression: 'tns1:Device', dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet' }],
@@ -391,7 +391,7 @@ describe('Mock coverage boost', () => {
     await events.getStatus(subscription as any);
   });
 
-  it('covers doorcontrol builders and CRUD via mocked request', async () => {
+  it('builds DoorControl doors and runs lock lifecycle commands', async () => {
     const Door = DoorControl as any;
     expect(Door.tokensToBuild(undefined)).toBeUndefined();
     expect(Door.tokensToBuild(['a'])).toBe('a');
@@ -456,7 +456,7 @@ describe('Mock coverage boost', () => {
     await doorControl.doubleLockDoor({ token: 'd1' });
   });
 
-  it('covers recording and deviceio builders plus export helpers', async () => {
+  it('builds Recording job/export payloads and DeviceIO configuration setters', async () => {
     const Rec = Recording as any;
     expect(
       Rec.recordingJobConfigurationToBuild({
@@ -572,7 +572,7 @@ describe('Mock coverage boost', () => {
     await deviceIO.sendReceiveSerialCommand({});
   });
 
-  it('covers optional field branches in accesscontrol / credential / schedule builders', async () => {
+  it('builds AccessControl, Credential, and Schedule entities with optional fields', async () => {
     const AC = AccessControl as any;
     expect(
       AC.accessPointToBuild({
@@ -815,7 +815,7 @@ describe('Mock coverage boost', () => {
     await schedule.deleteSpecialDayGroup({ token: 'g1' });
   });
 
-  it('covers analyticsdevice / advancedsecurity / events optional branches', async () => {
+  it('builds AnalyticsDevice engines and AdvancedSecurity JWT/Dot1X payloads', async () => {
     const AD = AnalyticsDevice as any;
     expect(AD.tokensToBuild(undefined)).toBeUndefined();
     expect(AD.tokensToBuild([])).toBeUndefined();
@@ -978,5 +978,245 @@ describe('Mock coverage boost', () => {
     });
     // getSubscriptionUrlAndHeaders missing address branch
     await expect(events.unsubscribe({} as any)).rejects.toThrow(/working subscription/);
+  });
+
+  it('exercises AdvancedSecurity, Analytics, Media2, DeviceIO, and Cam helpers', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.device.media2Support = true;
+
+    const security = new AdvancedSecurity(onvif);
+    mockServiceRequest(security, (body) => {
+      const root = Object.keys(body)[0];
+      const map: Record<string, any> = {
+        SetCertificationPath: {},
+        RemoveServerCertificateAssignment: {},
+        ReplaceServerCertificateAssignment: {},
+        GetClientAuthenticationRequired: { getClientAuthenticationRequiredResponse: { clientAuthenticationRequired: false } },
+        GetCnMapsToUser: { getCnMapsToUserResponse: { cnMapsToUser: false } },
+        AddCertPathValidationPolicyAssignment: {},
+        RemoveCertPathValidationPolicyAssignment: {},
+        ReplaceCertPathValidationPolicyAssignment: {},
+        SetNetworkInterfaceDot1XConfiguration: {
+          setNetworkInterfaceDot1XConfigurationResponse: { rebootNeeded: false },
+        },
+        GetNetworkInterfaceDot1XConfiguration: {
+          getNetworkInterfaceDot1XConfigurationResponse: { dot1XID: 'd1' },
+        },
+        DeleteNetworkInterfaceDot1XConfiguration: {
+          deleteNetworkInterfaceDot1XConfigurationResponse: { rebootNeeded: false },
+        },
+        AddMediaSigningCertificateAssignment: {},
+        RemoveMediaSigningCertificateAssignment: {},
+        CreateAuthorizationServerConfiguration: {
+          createAuthorizationServerConfigurationResponse: { token: 'as1' },
+        },
+        SetAuthorizationServerConfiguration: {},
+        DeleteAuthorizationServerConfiguration: {},
+      };
+      return map[root] ?? { [`${root.charAt(0).toLowerCase()}${root.slice(1)}Response`]: {} };
+    });
+
+    await security.setCertificationPath({
+      certificationPathID: 'p1',
+      certificationPath: { certificateID: ['c1'], alias: 'a' },
+    } as any);
+    await security.removeServerCertificateAssignment({ certificationPathID: 'p1' });
+    await security.replaceServerCertificateAssignment({
+      oldCertificationPathID: 'p1',
+      newCertificationPathID: 'p2',
+    } as any);
+    await security.getClientAuthenticationRequired();
+    await security.getCnMapsToUser();
+    await security.addCertPathValidationPolicyAssignment({ certPathValidationPolicyID: 'pol1' });
+    await security.removeCertPathValidationPolicyAssignment({ certPathValidationPolicyID: 'pol1' });
+    await security.replaceCertPathValidationPolicyAssignment({
+      oldCertPathValidationPolicyID: 'pol1',
+      newCertPathValidationPolicyID: 'pol2',
+    } as any);
+    await security.setNetworkInterfaceDot1XConfiguration({ token: 'eth0', dot1XID: 'd1' });
+    await security.getNetworkInterfaceDot1XConfiguration({ token: 'eth0' });
+    await security.deleteNetworkInterfaceDot1XConfiguration({ token: 'eth0' });
+    await security.addMediaSigningCertificateAssignment({ certificationPathID: 'p1' });
+    await security.removeMediaSigningCertificateAssignment({ certificationPathID: 'p1' });
+    await security.createAuthorizationServerConfiguration({
+      configuration: {
+        type: 'OAuth2ClientCredentials',
+        serverUri: 'https://auth',
+        clientID: 'id',
+      },
+    } as any);
+    await security.setAuthorizationServerConfiguration({
+      configuration: {
+        token: 'as1',
+        data: {
+          type: 'OAuth2ClientCredentials',
+          clientAuth: 'client_secret_basic',
+          serverUri: 'https://auth',
+          clientID: 'id',
+          clientSecret: 's',
+          scope: ['a'],
+          keyID: 'k',
+          certificateID: 'c',
+          certPathValidationPolicyID: 'p',
+        },
+      },
+    } as any);
+    await security.deleteAuthorizationServerConfiguration({ token: 'as1' });
+
+    const Analytics = (await import('../src/analytics')).default;
+    const analytics = new Analytics(onvif);
+    const A = Analytics as any;
+    expect(A.namesToBuild(undefined)).toBeUndefined();
+    expect(A.namesToBuild([])).toBeUndefined();
+    expect(A.namesToBuild(['a'])).toBe('a');
+    expect(A.namesToBuild(['a', 'b'])).toEqual(['a', 'b']);
+    expect(A.configsToBuild(undefined)).toBeUndefined();
+    expect(
+      A.configsToBuild([{ name: 'm', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }]),
+    ).toHaveLength(1);
+    mockServiceRequest(analytics);
+    await analytics.createRules({
+      configurationToken: 'c1',
+      rule: [{ name: 'r', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }],
+    } as any);
+    await analytics.deleteRules({ configurationToken: 'c1', ruleName: ['r'] });
+    await analytics.modifyRules({
+      configurationToken: 'c1',
+      rule: [{ name: 'r', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }],
+    } as any);
+    await analytics.createAnalyticsModules({
+      configurationToken: 'c1',
+      analyticsModule: [{ name: 'm', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }],
+    } as any);
+    await analytics.deleteAnalyticsModules({ configurationToken: 'c1', analyticsModuleName: ['m'] });
+    await analytics.modifyAnalyticsModules({
+      configurationToken: 'c1',
+      analyticsModule: [{ name: 'm', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }],
+    } as any);
+
+    const Media2 = (await import('../src/media2')).default;
+    const media2 = new Media2(onvif);
+    mockServiceRequest(media2, () => ({
+      getWebRTCConfigurationsResponse: { webRTCConfiguration: [] },
+    }));
+    await (media2 as any).getWebRTCConfigurations();
+
+    const deviceIO = new DeviceIO(onvif);
+    mockServiceRequest(deviceIO, (body) => {
+      const root = Object.keys(body)[0];
+      const map: Record<string, any> = {
+        GetVideoSourceConfiguration: {
+          getVideoSourceConfigurationResponse: {
+            videoSourceConfiguration: {
+              token: 'v1',
+              name: 'vs',
+              useCount: 1,
+              sourceToken: 's1',
+              bounds: { x: 0, y: 0, width: 1, height: 1 },
+            },
+          },
+        },
+        GetVideoOutputConfiguration: {
+          getVideoOutputConfigurationResponse: { videoOutputConfiguration: { token: 'vo1' } },
+        },
+        GetVideoOutputConfigurationOptions: {
+          getVideoOutputConfigurationOptionsResponse: { videoOutputConfigurationOptions: {} },
+        },
+        GetAudioSourceConfigurationOptions: {
+          getAudioSourceConfigurationOptionsResponse: { audioSourceOptions: {} },
+        },
+      };
+      return map[root] ?? {};
+    });
+    await deviceIO.getVideoSourceConfiguration({ videoSourceToken: 'v1' } as any);
+    await deviceIO.getVideoOutputConfiguration({ videoOutputToken: 'vo1' } as any);
+    await deviceIO.getVideoOutputConfigurationOptions({ videoOutputToken: 'vo1' } as any);
+    await deviceIO.getAudioSourceConfigurationOptions({ audioSourceConfigurationToken: 'a1' } as any);
+
+    // Replace lazy proxies with concrete instances so spies work without a live device.
+    const PTZ = (await import('../src/ptz')).default;
+    const Imaging = (await import('../src/imaging')).default;
+    const EventsMod = (await import('../src/events')).default;
+    const RecordingMod = (await import('../src/recording')).default;
+    Object.defineProperty(onvif, 'ptz', { value: new PTZ(onvif), configurable: true });
+    Object.defineProperty(onvif, 'imaging', { value: new Imaging(onvif), configurable: true });
+    Object.defineProperty(onvif, 'events', { value: new EventsMod(onvif), configurable: true });
+    Object.defineProperty(onvif, 'recording', { value: new RecordingMod(onvif), configurable: true });
+
+    // Cam compatibility remaining methods via mocked onvif
+    const { Cam } = await import('../src/compatibility/cam');
+    const cam = Object.create(Cam.prototype) as any;
+    cam.onvif = onvif;
+    cam.emit = jest.fn();
+    cam.storePullPointSubscription = jest.fn((s: unknown) => s);
+    Object.defineProperty(onvif.ptz, 'presets', { configurable: true, get: () => [] });
+    jest.spyOn(onvif.device, 'setSystemFactoryDefault').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.device, 'systemReboot').mockResolvedValue('ok');
+    jest.spyOn(onvif.device, 'createUsers').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.device, 'deleteUsers').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.device, 'sendAuxiliaryCommand').mockResolvedValue('ok' as any);
+    jest.spyOn(onvif.ptz, 'gotoPreset').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.ptz, 'gotoHomePosition').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.imaging, 'setCurrentPreset').mockResolvedValue(undefined as any);
+    jest.spyOn(onvif.events, 'subscribe').mockResolvedValue({
+      subscriptionReference: { address: 'http://127.0.0.1/sub' },
+    } as any);
+    jest.spyOn(onvif.recording, 'createRecordingJob').mockResolvedValue('j1' as any);
+    jest.spyOn(onvif.recording, 'deleteRecordingJob').mockResolvedValue(undefined as any);
+
+    await new Promise<void>((resolve, reject) =>
+      cam.setSystemFactoryDefault(true, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.setSystemFactoryDefault((e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.systemReboot((e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.createUsers(
+        { user: [{ username: 'u', password: 'p', userLevel: 'User' }] },
+        (e: Error | null) => (e ? reject(e) : resolve()),
+      ),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.deleteUsers({ username: ['u'] }, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.sendAuxiliaryCommand({ data: 'tt:Wiper|On' }, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.gotoPreset({ presetToken: 'p1' }, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.gotoHomePosition({}, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.setCurrentImagingPreset({ presetToken: 'i1', token: 'vs1' }, (e: Error | null) =>
+        e ? reject(e) : resolve(),
+      ),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.subscribe({ url: 'http://127.0.0.1/n' }, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.createRecordingJob(
+        {
+          JobConfiguration: {
+            RecordingToken: 'r1',
+            Mode: 'Idle',
+            Priority: 1,
+          },
+        },
+        (e: Error | null) => (e ? reject(e) : resolve()),
+      ),
+    );
+    await new Promise<void>((resolve, reject) =>
+      cam.deleteRecordingJob({ JobToken: 'j1' }, (e: Error | null) => (e ? reject(e) : resolve())),
+    );
+
+    cam.onvif.defaultProfiles = [{ token: 'p' }];
+    expect(cam.defaultProfiles).toBeDefined();
+    expect(cam.presets).toBeDefined();
   });
 });
