@@ -201,4 +201,53 @@ describe('Recording', () => {
       ).rejects.toThrow('The JobToken does not reference an existing job');
     });
   });
+
+  describe('createRecording / createTrack / createRecordingJob lifecycle', () => {
+    it('should create and delete a temporary recording, track and job', async () => {
+      const recordingToken = await cam.recording.createRecording({
+        recordingConfiguration: baselineConfiguration,
+      });
+      expect(recordingToken).toBeDefined();
+
+      const trackToken = await cam.recording.createTrack({
+        recordingToken,
+        trackConfiguration: {
+          trackType: 'Video',
+          description: 'temp',
+        },
+      });
+      expect(trackToken).toBeDefined();
+
+      await cam.recording.setTrackConfiguration({
+        recordingToken,
+        trackToken,
+        trackConfiguration: {
+          trackType: 'Video',
+          description: 'temp-updated',
+        },
+      });
+
+      const createdJob = await cam.recording.createRecordingJob({
+        jobConfiguration: {
+          recordingToken,
+          mode: 'Idle',
+          priority: 1,
+        },
+      });
+      expect(createdJob.jobToken).toBeDefined();
+
+      await cam.recording.setRecordingJobConfiguration({
+        jobToken: createdJob.jobToken,
+        jobConfiguration: {
+          recordingToken,
+          mode: 'Idle',
+          priority: 2,
+        },
+      });
+
+      await cam.recording.deleteRecordingJob({ jobToken: createdJob.jobToken });
+      await cam.recording.deleteTrack({ recordingToken, trackToken });
+      await cam.recording.deleteRecording({ recordingToken });
+    });
+  });
 });

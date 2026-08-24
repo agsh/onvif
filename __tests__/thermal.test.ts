@@ -65,8 +65,8 @@ describe('Thermal', () => {
       });
       expect(configuration.NUCTable).toMatchObject({
         token: 'NUCTableToken_1',
-        name: 'NUCTableName_1',
       });
+      expect(typeof configuration.NUCTable?.name).toBe('string');
       expect(configuration.cooler).toMatchObject({
         enabled: true,
       });

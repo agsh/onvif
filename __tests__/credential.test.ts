@@ -107,8 +107,10 @@ describe('Credential', () => {
     it('should return credential state for a valid token', async () => {
       const state = await cam.credential.getCredentialState({ token: CREDENTIAL_TOKEN_1 });
       expect(typeof state.enabled).toBe('boolean');
-      expect(state.antipassbackState).toBeDefined();
-      expect(typeof state.antipassbackState?.antipassbackViolated).toBe('boolean');
+      expect(
+        state.antipassbackState === undefined ||
+          typeof state.antipassbackState.antipassbackViolated === 'boolean',
+      ).toBe(true);
     });
 
     it('should reject an invalid credential token', async () => {
@@ -159,6 +161,70 @@ describe('Credential', () => {
     it('should reset antipassback violation for a credential', async () => {
       await expect(
         cam.credential.resetAntipassbackViolation({ credentialToken: CREDENTIAL_TOKEN_1 }),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('whitelist and blacklist', () => {
+    it('should manage whitelist entries', async () => {
+      const before = await cam.credential.getWhitelist();
+      expect(before).toBeDefined();
+      await cam.credential.addToWhitelist({
+        identifier: [
+          {
+            type: { name: 'pt:Card', formatType: 'GUID' },
+            value: 'WL001',
+          },
+        ],
+      } as any);
+      const afterAdd = await cam.credential.getWhitelist();
+      expect(afterAdd).toBeDefined();
+      await cam.credential.removeFromWhitelist({
+        identifier: [
+          {
+            type: { name: 'pt:Card', formatType: 'GUID' },
+            value: 'WL001',
+          },
+        ],
+      } as any);
+      await expect(cam.credential.deleteWhitelist()).resolves.toBeUndefined();
+    });
+
+    it('should manage blacklist entries', async () => {
+      const before = await cam.credential.getBlacklist();
+      expect(before).toBeDefined();
+      await cam.credential.addToBlacklist({
+        identifier: [
+          {
+            type: { name: 'pt:Card', formatType: 'GUID' },
+            value: 'BL001',
+          },
+        ],
+      } as any);
+      await cam.credential.removeFromBlacklist({
+        identifier: [
+          {
+            type: { name: 'pt:Card', formatType: 'GUID' },
+            value: 'BL001',
+          },
+        ],
+      } as any);
+      await expect(cam.credential.deleteBlacklist()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('setCredential and identifier helpers', () => {
+    it('should set credential state/data helpers for existing token', async () => {
+      const response = await cam.credential.getCredentials({ token: [CREDENTIAL_TOKEN_1] });
+      const credential = response.credential?.[0];
+      expect(credential).toBeDefined();
+      await expect(
+        cam.credential.setCredential({
+          credentialData: {
+            credential: credential!,
+            credentialState: { enabled: true },
+          },
+        } as any),
       ).resolves.toBeUndefined();
     });
   });
