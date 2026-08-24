@@ -33,7 +33,7 @@ beforeAll(async () => {
   });
 });
 
-describe('Compatibility Cam extra coverage', () => {
+describe('Compatibility Cam helpers', () => {
   it('supports _request with a callback', async () => {
     const result = await promisify<any>((callback) =>
       cam._request({ body: { GetDeviceInformation: {} } } as any, callback),
@@ -245,7 +245,7 @@ describe('Compatibility Cam extra coverage', () => {
     );
   });
 
-  it('parses event XML and covers recording job helpers', async () => {
+  it('parses event XML and recording job helpers', async () => {
     await promisify<any>((callback) =>
       cam.parseEventXML(
         `<?xml version="1.0"?><Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"><Body><Notify/></Body></Envelope>`,
@@ -274,7 +274,7 @@ describe('Compatibility Cam extra coverage', () => {
     ).rejects.toThrow('No video encoder configuration token is present!');
   });
 
-  it('covers optional-callback and move option branches', async () => {
+  it('supports optional callbacks and continuous/relative move option flags', async () => {
     // early-return when callback is omitted
     expect(cam.getVideoSourceConfiguration('VideoSourceToken_1' as any)).toBeUndefined();
     expect(cam.getImagingSettings()).toBeUndefined();

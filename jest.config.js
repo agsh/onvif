@@ -16,6 +16,7 @@ module.exports = {
   // Happytime integration suites share one process; connect/reboot recovery can exceed 5s.
   testTimeout: 30_000,
   collectCoverage: true,
+  collectCoverageFrom: ['src/**/*.ts', '!src/interfaces/**', '!src/index.ts'],
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
   coverageReporters: ['json', 'lcov', 'text', 'json-summary'],
