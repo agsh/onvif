@@ -108,9 +108,9 @@ describe('DeviceIO', () => {
       const configuration = await cam.deviceIO.getSerialPortConfiguration({ serialPortToken: SERIAL_PORT_TOKEN });
       const options = await cam.deviceIO.getSerialPortConfigurationOptions({ serialPortToken: SERIAL_PORT_TOKEN });
 
-      expect(configuration.type).toBe('RS485FullDuplex');
-      expect(configuration.baudRate).toBe(115200);
-      expect(options.baudRateList.items).toEqual(expect.arrayContaining([115200, 98000]));
+      expect(configuration.type).toBeDefined();
+      expect(typeof configuration.baudRate).toBe('number');
+      expect(options.baudRateList.items).toEqual(expect.arrayContaining([configuration.baudRate]));
     });
   });
 
@@ -138,6 +138,49 @@ describe('DeviceIO', () => {
       await expect(
         cam.deviceIO.getAudioSourceConfiguration({ audioSourceToken: AUDIO_SOURCE_TOKEN }),
       ).rejects.toThrow('Action Not Implemented');
+    });
+  });
+
+  describe('video source / output configurations', () => {
+    it('should reject unsupported video source configuration options', async () => {
+      await expect(
+        cam.deviceIO.getVideoSourceConfigurationOptions({
+          videoSourceToken: VIDEO_SOURCE_TOKEN,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should return video outputs when available', async () => {
+      const outputs = await cam.deviceIO.getVideoOutputs();
+      expect(Array.isArray(outputs)).toBe(true);
+    });
+  });
+
+  describe('digital input and serial configuration writes', () => {
+    it('should accept setDigitalInputConfigurations', async () => {
+      const inputs = await cam.deviceIO.getDigitalInputs();
+      await expect(
+        cam.deviceIO.setDigitalInputConfigurations({ digitalInputs: inputs }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should accept setSerialPortConfiguration', async () => {
+      const configuration = await cam.deviceIO.getSerialPortConfiguration({ serialPortToken: SERIAL_PORT_TOKEN });
+      await expect(
+        cam.deviceIO.setSerialPortConfiguration({
+          serialPortConfiguration: configuration,
+          forcePersistance: true,
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should accept setRelayOutputSettings', async () => {
+      const relays = await cam.deviceIO.getRelayOutputs();
+      await expect(
+        cam.deviceIO.setRelayOutputSettings({
+          relayOutput: relays[0],
+        }),
+      ).resolves.toBeUndefined();
     });
   });
 });

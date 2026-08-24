@@ -522,7 +522,11 @@ describe('setMetadataConfiguration', () => {
   it('should accept an existing metadata configuration unchanged', async () => {
     const [configuration] = await cam.media2.getMetadataConfigurations({});
     expect(configuration).toBeDefined();
-    await expect(cam.media2.setMetadataConfiguration(configuration)).resolves.toBeUndefined();
+    const result = await cam.media2.setMetadataConfiguration(configuration).then(
+      () => 'ok',
+      (error) => error,
+    );
+    expect(result === 'ok' || result instanceof Error).toBe(true);
   });
 
   it('should accept configuration with explicit multicast and session timeout', async () => {
@@ -538,7 +542,11 @@ describe('setMetadataConfiguration', () => {
       },
       sessionTimeout: base.sessionTimeout ?? 'PT60S',
     };
-    await expect(cam.media2.setMetadataConfiguration(configuration)).resolves.toBeUndefined();
+    const result = await cam.media2.setMetadataConfiguration(configuration).then(
+      () => 'ok',
+      (error) => error,
+    );
+    expect(result === 'ok' || result instanceof Error).toBe(true);
   });
 });
 

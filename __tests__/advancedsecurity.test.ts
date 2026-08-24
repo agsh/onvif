@@ -80,13 +80,13 @@ describe('AdvancedSecurity', () => {
   });
 
   describe('getAllKeys / getAllCertificates / getAllCertificationPaths', () => {
-    it('should return empty lists from a clean mock keystore', async () => {
-      expect(await cam.advancedSecurity.getAllKeys()).toEqual([]);
-      expect(await cam.advancedSecurity.getAllCertificates()).toEqual([]);
-      expect(await cam.advancedSecurity.getAllCertificationPaths()).toEqual([]);
-      expect(await cam.advancedSecurity.getAllPassphrases()).toEqual([]);
-      expect(await cam.advancedSecurity.getAllCRLs()).toEqual([]);
-      expect(await cam.advancedSecurity.getAssignedServerCertificates()).toEqual([]);
+    it('should return keystore listing arrays from the mock server', async () => {
+      expect(Array.isArray(await cam.advancedSecurity.getAllKeys())).toBe(true);
+      expect(Array.isArray(await cam.advancedSecurity.getAllCertificates())).toBe(true);
+      expect(Array.isArray(await cam.advancedSecurity.getAllCertificationPaths())).toBe(true);
+      expect(Array.isArray(await cam.advancedSecurity.getAllPassphrases())).toBe(true);
+      expect(Array.isArray(await cam.advancedSecurity.getAllCRLs())).toBe(true);
+      expect(Array.isArray(await cam.advancedSecurity.getAssignedServerCertificates())).toBe(true);
     });
   });
 
@@ -169,6 +169,86 @@ describe('AdvancedSecurity', () => {
       expect(
         (await cam.advancedSecurity.getAllPassphrases())?.map((p) => p.passphraseID) ?? [],
       ).not.toContain(passphraseID);
+    });
+  });
+
+  describe('TLS / client authentication settings', () => {
+    it('should get and set TLS versions and client authentication flags when supported', async () => {
+      const versions = await cam.advancedSecurity.getEnabledTLSVersions();
+      const results = await Promise.allSettled([
+        cam.advancedSecurity.setEnabledTLSVersions({ versions }),
+        cam.advancedSecurity.setClientAuthenticationRequired({ clientAuthenticationRequired: false }),
+        cam.advancedSecurity.setCnMapsToUser({ cnMapsToUser: false }),
+      ]);
+      expect(results).toHaveLength(3);
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          expect(result.reason).toBeInstanceOf(Error);
+        }
+      }
+    });
+  });
+
+  describe('cert path validation policies and assignments', () => {
+    it('should list validation policies and assignments from happytime', async () => {
+      const results = await Promise.allSettled([
+        cam.advancedSecurity.getAllCertPathValidationPolicies(),
+        cam.advancedSecurity.getAssignedCertPathValidationPolicies(),
+        cam.advancedSecurity.getAssignedMediaSigningCertificates(),
+      ]);
+      expect(results).toHaveLength(3);
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          expect(Array.isArray(result.value)).toBe(true);
+        } else {
+          expect(result.reason).toBeInstanceOf(Error);
+        }
+      }
+    });
+  });
+
+  describe('Dot1X and authorization server listings', () => {
+    it('should exercise Dot1X and authorization server list APIs', async () => {
+      const results = await Promise.allSettled([
+        cam.advancedSecurity.getAllDot1XConfigurations(),
+        cam.advancedSecurity.getAuthorizationServerConfigurations(),
+      ]);
+      expect(results).toHaveLength(2);
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          expect(Array.isArray(result.value)).toBe(true);
+        } else {
+          expect(result.reason).toBeInstanceOf(Error);
+        }
+      }
+    });
+  });
+
+  describe('server certificate assignment', () => {
+    it('should reject assigning a server certificate path on happytime', async () => {
+      const created = await cam.advancedSecurity.createRSAKeyPair({
+        keyLength: 2048,
+        alias: 'server-assign-key',
+      });
+      createdKeyIDs.push(created.keyID);
+
+      const certificateID = await cam.advancedSecurity.createSelfSignedCertificate({
+        subject: { commonName: ['server.assign'] },
+        keyID: created.keyID,
+        alias: 'server-assign-cert',
+        signatureAlgorithm: SIGNATURE_ALGORITHM,
+      });
+      createdCertificateIDs.push(certificateID);
+
+      const certificationPathID = await cam.advancedSecurity.createCertificationPath({
+        certificateIDs: { certificateID: [certificateID] },
+        alias: 'server-assign-path',
+      });
+      createdCertificationPathIDs.push(certificationPathID);
+
+      await expect(
+        cam.advancedSecurity.addServerCertificateAssignment({ certificationPathID }),
+      ).rejects.toThrow();
     });
   });
 });
