@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { ImagingSettings20 } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const VIDEO_SOURCE_TOKEN = 'VideoSourceToken_1';
 
@@ -7,12 +8,7 @@ let cam: Onvif;
 let baselineSettings: ImagingSettings20;
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
   baselineSettings = await cam.imaging.getImagingSettings();
 });

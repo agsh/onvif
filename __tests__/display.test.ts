@@ -7,6 +7,7 @@
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
 import { Layout, PaneConfiguration } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const VIDEO_OUTPUT_TOKEN = 'VideoOutputToken_1';
 const PANE_TOKEN = 'PaneToken_1';
@@ -34,12 +35,7 @@ function mockDisplayResponse(body: Record<string, unknown>) {
 }
 
 beforeEach(() => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   cam.uri.display = new URL('http://127.0.0.1:8000/onvif/display_service');
 });
 

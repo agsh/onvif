@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { Config } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const CONFIGURATION_TOKEN = 'VideoAnalyticsConfigurationToken_1';
 
@@ -7,12 +8,7 @@ let cam: Onvif;
 let baselineRules: Config[];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
   baselineRules = await cam.analytics.getRules({ configurationToken: CONFIGURATION_TOKEN });
 });

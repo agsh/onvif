@@ -1,5 +1,6 @@
 import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
+import { happytimeOnvifOptions } from './happytime';
 import {
   Capabilities2,
   ConfigurationEnumeration,
@@ -78,12 +79,7 @@ async function assertConfigurationOptionsFilterByProfileAndToken(
 
 let cam: Onvif;
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

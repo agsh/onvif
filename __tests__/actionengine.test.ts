@@ -7,6 +7,7 @@
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
 import { Action, ActionConfiguration, ActionTrigger, ActionTriggerConfiguration } from '../src/interfaces/actionengine';
+import { happytimeOnvifOptions } from './happytime';
 
 const ACTION_TOKEN = 'ActionToken_1';
 const TRIGGER_TOKEN = 'ActionTriggerToken_1';
@@ -42,12 +43,7 @@ function mockActionEngineResponse(body: Record<string, unknown>) {
 }
 
 beforeEach(() => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   cam.uri.actionengine = new URL('http://127.0.0.1:8000/onvif/actionengine_service');
 });
 

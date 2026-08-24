@@ -523,6 +523,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.timeout = options.timeout || 120000;
     this.urn = options.urn;
     const httpLibrary = this.useSecure ? https : http;
+    // Reuse sockets for SOAP chatter. Events use their own agent with keepAlive: false
+    // (long-poll PullMessages). HappyTime tests pass `agent: false` — see __tests__/happytime.ts.
     this.agent = options.agent ?? new httpLibrary.Agent({ keepAlive: true, keepAliveMsecs: 10000 });
     this.preserveAddress = options.preserveAddress ?? false;
     this.uri = {};

@@ -3,15 +3,11 @@ import { GetPresetsExtended } from '../src/ptz';
 import { ReferenceToken } from '../src/interfaces/common';
 import { Capabilities } from '../src/interfaces/ptz.2';
 import { PresetTour } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 let cam: Onvif;
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

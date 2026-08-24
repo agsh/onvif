@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { ReceiverConfiguration } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const MEDIA_URI = 'rtsp://127.0.0.1:554/stream1';
 
@@ -16,12 +17,7 @@ let cam: Onvif;
 const createdReceiverTokens: string[] = [];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { RecordingConfiguration } from '../src/interfaces/onvif';
+import { happytimeOnvifOptions } from './happytime';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -9,12 +10,7 @@ let cam: Onvif;
 let baselineConfiguration: RecordingConfiguration;
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 

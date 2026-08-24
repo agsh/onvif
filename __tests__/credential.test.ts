@@ -1,5 +1,6 @@
 import { Onvif } from '../src';
 import { Credential as CredentialEntity } from '../src/interfaces/credential';
+import { happytimeOnvifOptions } from './happytime';
 
 const CREDENTIAL_TOKEN_1 = 'CredentialToken_1';
 const ACCESS_PROFILE_TOKEN_1 = 'AccessProfileToken_1';
@@ -8,12 +9,7 @@ let cam: Onvif;
 const createdCredentialTokens: string[] = [];
 
 beforeAll(async () => {
-  cam = new Onvif({
-    hostname: '127.0.0.1',
-    username: 'admin',
-    password: 'admin',
-    port: 8000,
-  });
+  cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
 });
 
