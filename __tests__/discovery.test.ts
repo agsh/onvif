@@ -87,6 +87,9 @@ describe('Discovery (happytime-onvif-server)', () => {
       expect(cam).toBeInstanceOf(Onvif);
       expect(cam.path).toMatch(/device_service/);
       expect(cam.hostname).toBeTruthy();
+      expect(Array.isArray(cam.xaddrs)).toBe(true);
+      expect(cam.xaddrs!.length).toBeGreaterThan(0);
+      expect(cam.xaddrs![0]).toBeInstanceOf(URL);
     }
   });
 

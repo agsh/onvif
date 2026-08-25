@@ -165,6 +165,7 @@ describe('compatibility promises unit', () => {
         path: '/onvif/device_service',
         urn: 'urn:uuid:test',
         autoConnect: false,
+        xaddrs: [new URL('http://192.168.1.50/onvif/device_service')],
       });
       jest.spyOn(MasterDiscovery, 'probe').mockResolvedValue([onvif, { raw: true }]);
 
@@ -172,6 +173,7 @@ describe('compatibility promises unit', () => {
       expect(devices).toHaveLength(2);
       expect(devices[0]).toBeInstanceOf(Cam);
       expect((devices[0] as Cam).hostname).toBe('192.168.1.50');
+      expect((devices[0] as Cam).xaddrs).toEqual(onvif.xaddrs);
       expect(devices[1]).toEqual({ raw: true });
     });
 

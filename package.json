@@ -11,8 +11,8 @@
       "default": "./build/index.js"
     },
     "./compatibility": {
-      "types": "./build/compatibility/cam.d.ts",
-      "default": "./build/compatibility/cam.js"
+      "types": "./build/compatibility/index.d.ts",
+      "default": "./build/compatibility/index.js"
     },
     "./compatibility/promises": {
       "types": "./build/compatibility/promises/index.d.ts",

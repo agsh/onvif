@@ -499,6 +499,10 @@ describe('Compatibility Cam', () => {
       await expect(
         promisify<void>((callback) => cam.gotoPreset({ presetToken } as any, callback)),
       ).resolves.toBeUndefined();
+      // v0.x alias: options.preset was sent as PresetToken
+      await expect(
+        promisify<void>((callback) => cam.gotoPreset({ preset: presetToken } as any, callback)),
+      ).resolves.toBeUndefined();
       await expect(promisify<void>((callback) => cam.gotoHomePosition({} as any, callback))).resolves.toBeUndefined();
     });
   });

@@ -6,17 +6,11 @@
 import { EventEmitter } from 'events';
 import { Discovery as MasterDiscovery, DiscoveryOptions } from '../../discovery';
 import { Onvif } from '../../onvif';
+import { camOptionsFromOnvif } from '../fromOnvif';
 import { Cam } from './cam';
 
 function onvifToCam(onvif: Onvif): Cam {
-  return new Cam({
-    hostname: onvif.hostname,
-    port: onvif.port,
-    path: onvif.path,
-    username: onvif.username,
-    password: onvif.password,
-    urn: onvif.urn,
-  });
+  return new Cam(camOptionsFromOnvif(onvif));
 }
 
 class DiscoveryCompat extends EventEmitter {

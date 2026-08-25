@@ -266,6 +266,13 @@ export class Cam extends EventEmitter {
   set timeShift(value: number | undefined) {
     this.onvif.timeShift = value;
   }
+  /** All XAddrs from WS-Discovery (v0.x `cam.xaddrs`). */
+  get xaddrs() {
+    return this.onvif.xaddrs;
+  }
+  set xaddrs(value: URL[] | undefined) {
+    this.onvif.xaddrs = value;
+  }
   get services() {
     return this.onvif.device.services;
   }
@@ -844,8 +851,19 @@ export class Cam extends EventEmitter {
     );
   }
 
-  gotoPreset(options: GotoPreset, callback: Callback) {
-    invoke(this.onvif.ptz.gotoPreset(options), callback);
+  /**
+   * Go to a PTZ preset.
+   * Accepts ONVIF `{ presetToken }` and the v0.x alias `{ preset }` (sent as PresetToken).
+   */
+  gotoPreset(options: GotoPreset | (Omit<GotoPreset, 'presetToken'> & { preset: string }), callback: Callback) {
+    const { preset, presetToken, ...rest } = options as GotoPreset & { preset?: string };
+    invoke(
+      this.onvif.ptz.gotoPreset({
+        ...rest,
+        presetToken: (presetToken ?? preset) as string,
+      }),
+      callback,
+    );
   }
 
   setPreset(options: SetPreset, callback: Callback) {

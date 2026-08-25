@@ -45,7 +45,8 @@ for existing projects.
 > [!TIP]
 > The main 1.x API uses the `Onvif` class with service modules (`onvif.device`, `onvif.media`, `onvif.ptz`, …).
 > For v0.8 migration, import the separate compatibility modules (not part of `require('onvif')`):
-> `require('onvif/compatibility')` for callbacks or `require('onvif/compatibility/promises')` for async/await.
+> `require('onvif/compatibility')` for callbacks or `require('onvif/compatibility/promises')` for async/await
+> (both export `Cam` and `Discovery`).
 
 The documentation for the new library was generated with TypeDoc and is available here:
 
@@ -75,7 +76,7 @@ I will be happy to answer any questions and hear your feedback.
   > AuthenticationBehavior, Application Management (appmgmt), Uplink, FederatedSearch
 - Improved error handling
 - Compatible with the original API structure
-- Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks, `require('onvif/compatibility/promises')` for Promises
+- Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks, `require('onvif/compatibility/promises')` for Promises (both export `Cam` and `Discovery`)
 
 ---
 
@@ -175,7 +176,7 @@ import them explicitly: `onvif/compatibility` (callbacks) or `onvif/compatibilit
 ### Callbacks (`onvif/compatibility`)
 
 ```js
-const { Cam } = require('onvif/compatibility');
+const { Cam, Discovery } = require('onvif/compatibility');
 
 const cam = new Cam(
   { hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' },
@@ -194,7 +195,7 @@ See [compatibility.cjs](https://github.com/agsh/onvif/blob/master/examples/compa
 ### Promises (`onvif/compatibility/promises`)
 
 ```js
-const { Cam } = require('onvif/compatibility/promises');
+const { Cam, Discovery } = require('onvif/compatibility/promises');
 
 const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
 
@@ -208,6 +209,19 @@ See [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/master/exampl
 
 The promisified `Cam` wraps the callback implementation: no auto-connect (call `await cam.connect()`),
 methods return Promises, getters and EventEmitter APIs are forwarded, and `_cam` exposes the underlying instance.
+
+Both compatibility entry points also export `Discovery` (callback or Promise `probe`), matching v0.x usage.
+Discovered cams include `xaddrs` (all ProbeMatch XAddrs as `URL[]`).
+
+### Compatibility notes (known differences vs v0.8)
+
+The Cam surface from v0.8 is largely covered. Remaining behavioral differences:
+
+- Callbacks are `(err, result)` — v0 often passed a third `xml` argument
+- `gotoPreset` accepts both `{ presetToken }` (ONVIF / 1.x) and the v0 alias `{ preset }` (sent as PresetToken)
+- `getPresets` / `cam.presets` use **token → preset** (v0.8.1+), not name → token
+- `rawResponse` may omit the `statusCode` second argument that v0 emitted
+- Digest helpers `digestAuth` / `updateNC` are not exposed on Cam (handled inside `Onvif`)
 
 # Examples
 located in the Examples Folder on the Github
