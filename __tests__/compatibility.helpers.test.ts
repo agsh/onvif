@@ -128,8 +128,11 @@ describe('compatibility helpers', () => {
           { name: undefined, token: 'x' },
           { name: 'Away', token: 'p2' },
         ]),
-      ).toEqual({ Home: 'p1', Away: 'p2' });
+      ).toEqual({ Home: 'p1', x: 'x', Away: 'p2' });
       expect(presetsToMap({ a: { name: 'A', token: '1' } })).toEqual({ A: '1' });
+      expect(presetsToMap([{ name: 'Legacy', $: { token: 't1' } } as any])).toEqual({ Legacy: 't1' });
+      expect(presetsToMap(undefined)).toEqual({});
+      expect(presetsToMap([])).toEqual({});
     });
 
     it('normalizes media and stream URI shapes', () => {

@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { Date as OnvifDateTime, RecordingSummary } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const KEEP_ALIVE_TIME = 'PT10S';

@@ -10,7 +10,7 @@
 
 import { EventEmitter } from 'events';
 import { NotificationMessage, Onvif, Subscription } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const HAPPYTIME_TOPICS = {
   relay: 'tns1:Device/Trigger/Relay',

@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { Configuration, RadiometryConfiguration } from '../src/interfaces/thermal';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const VIDEO_SOURCE_TOKEN = 'VideoSourceToken_1';
 

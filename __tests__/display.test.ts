@@ -7,7 +7,7 @@
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
 import { Layout, PaneConfiguration } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const VIDEO_OUTPUT_TOKEN = 'VideoOutputToken_1';
 const PANE_TOKEN = 'PaneToken_1';

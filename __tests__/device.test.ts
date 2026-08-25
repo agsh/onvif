@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { SetDNS } from '../src/interfaces/devicemgmt';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const URL_REGEX =
   // eslint-disable-next-line no-useless-escape

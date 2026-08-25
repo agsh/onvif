@@ -375,14 +375,18 @@ export default class PTZ extends Service {
    * Operation to request all PTZ presets with token names as an object for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresetsExtended(
-    { profileToken }: GetPresets = { profileToken: this.onvif.activeSource!.profileToken },
-  ): Promise<GetPresetsExtended> {
+  async getPresetsExtended(options: GetPresets = {}): Promise<GetPresetsExtended> {
+    const profileToken = options.profileToken ?? this.onvif.activeSource!.profileToken;
     const response = await this.request({ GetPresets: { ProfileToken: profileToken } }, { array: ['preset'] });
     this.#presets = {};
-    const result = response.getPresetsResponse.preset;
-    result.forEach((preset: PTZPreset) => {
-      this.#presets[preset.token!] = preset;
+    const result = response.getPresetsResponse?.preset;
+    const presets = Array.isArray(result) ? result : result ? [result] : [];
+    presets.forEach((preset: PTZPreset) => {
+      const token = preset.token;
+      if (!token) {
+        return;
+      }
+      this.#presets[token] = preset;
     });
     return this.#presets;
   }
@@ -391,8 +395,8 @@ export default class PTZ extends Service {
    * Operation to request a list of all PTZ presets for the PTZNode in the selected profile.
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
-  async getPresets({ profileToken }: GetPresets = { profileToken: this.onvif.activeSource!.profileToken }) {
-    return this.getPresetsExtended({ profileToken }).then((result) => Object.values(result));
+  async getPresets(options: GetPresets = {}) {
+    return this.getPresetsExtended(options).then((result) => Object.values(result));
   }
 
   /**

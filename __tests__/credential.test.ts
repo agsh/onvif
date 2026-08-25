@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { Credential as CredentialEntity } from '../src/interfaces/credential';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const CREDENTIAL_TOKEN_1 = 'CredentialToken_1';
 const ACCESS_PROFILE_TOKEN_1 = 'AccessProfileToken_1';

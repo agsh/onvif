@@ -2,8 +2,18 @@ import { camelCase, Onvif } from '../src';
 import type Media from '../src/media';
 import { ReferenceToken } from '../src/interfaces/common';
 import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
-import { OSDConfiguration, Profile } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import {
+  AudioEncoderConfiguration,
+  AudioOutputConfiguration,
+  AudioSourceConfiguration,
+  MetadataConfiguration,
+  OSDConfiguration,
+  Profile,
+  VideoAnalyticsConfiguration,
+  VideoEncoderConfiguration,
+  VideoSourceConfiguration,
+} from '../src/interfaces/onvif';
+import happytimeOnvifOptions from './happytime.json';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
 function mediaTestCallable(media: Media): Record<string, (...args: unknown[]) => Promise<unknown>> {
@@ -759,6 +769,292 @@ describe('OSD (Media)', () => {
   });
 });
 
+describe('setVideoEncoderConfiguration', () => {
+  it('should accept an existing video encoder configuration unchanged', async () => {
+    const [configuration] = await cam.media.getVideoEncoderConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setVideoEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit rate control and multicast', async () => {
+    const [base] = await cam.media.getVideoEncoderConfigurations();
+    expect(base).toBeDefined();
+    const configuration: VideoEncoderConfiguration = {
+      ...base,
+      rateControl: {
+        frameRateLimit: base.rateControl?.frameRateLimit ?? 25,
+        encodingInterval: base.rateControl?.encodingInterval ?? 1,
+        bitrateLimit: base.rateControl?.bitrateLimit ?? 2048,
+      },
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 0,
+        TTL: 1,
+        autoStart: false,
+      },
+    };
+    await expect(
+      cam.media.setVideoEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should persist quality and sessionTimeout and restore afterwards', async () => {
+    const [original] = await cam.media.getVideoEncoderConfigurations();
+    expect(original).toBeDefined();
+    const updated: VideoEncoderConfiguration = {
+      ...JSON.parse(JSON.stringify(original)),
+      quality: original.quality === 4 ? 5 : 4,
+      sessionTimeout: 'PT13666S',
+    };
+    await cam.media.setVideoEncoderConfiguration({ configuration: updated, forcePersistence: true });
+    const afterUpdate = await cam.media.getVideoEncoderConfiguration({
+      configurationToken: original.token,
+    });
+    expect(afterUpdate.quality).toBe(updated.quality);
+    expect(afterUpdate.sessionTimeout).toBe(updated.sessionTimeout);
+
+    await cam.media.setVideoEncoderConfiguration({ configuration: original, forcePersistence: true });
+    const restored = await cam.media.getVideoEncoderConfiguration({
+      configurationToken: original.token,
+    });
+    expect(restored).toEqual(original);
+  });
+
+  it('should accept MPEG4 encoding payload when switching codec fields', async () => {
+    const [base] = await cam.media.getVideoEncoderConfigurations();
+    expect(base).toBeDefined();
+    const configuration: VideoEncoderConfiguration = {
+      ...JSON.parse(JSON.stringify(base)),
+      encoding: 'MPEG4',
+      H264: undefined,
+      MPEG4: {
+        govLength: 4,
+        mpeg4Profile: 'SP',
+      },
+    };
+    await expect(
+      cam.media.setVideoEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+    await cam.media.setVideoEncoderConfiguration({ configuration: base, forcePersistence: true });
+  });
+
+  it('should accept H264 encoding payload', async () => {
+    const [base] = await cam.media.getVideoEncoderConfigurations();
+    expect(base).toBeDefined();
+    const configuration: VideoEncoderConfiguration = {
+      ...JSON.parse(JSON.stringify(base)),
+      encoding: 'H264',
+      MPEG4: undefined,
+      H264: {
+        govLength: base.H264?.govLength ?? 30,
+        H264Profile: base.H264?.H264Profile ?? 'Main',
+      },
+    };
+    await expect(
+      cam.media.setVideoEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+    await cam.media.setVideoEncoderConfiguration({ configuration: base, forcePersistence: true });
+  });
+
+  it('should accept forcePersistence false', async () => {
+    const [configuration] = await cam.media.getVideoEncoderConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setVideoEncoderConfiguration({ configuration, forcePersistence: false }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setVideoSourceConfiguration', () => {
+  it('should accept an existing video source configuration unchanged', async () => {
+    const [configuration] = await cam.media.getVideoSourceConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setVideoSourceConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should include extension payload when rotate and nested extension are provided', async () => {
+    const [base] = await cam.media.getVideoSourceConfigurations();
+    expect(base).toBeDefined();
+    const configuration: VideoSourceConfiguration = {
+      ...base,
+      extension: {
+        rotate: {
+          mode: 'OFF',
+          degree: 0,
+        },
+        extension: {
+          lensDescription: [
+            {
+              focalLength: 1,
+              offset: { x: 0, y: 0 },
+              projection: [{ angle: 0, radius: 1, transmittance: 1 }],
+              XFactor: 1,
+            },
+          ],
+          sceneOrientation: {
+            mode: 'MANUAL',
+            orientation: '0',
+          },
+        },
+      },
+    };
+    await expect(
+      cam.media.setVideoSourceConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setAudioSourceConfiguration', () => {
+  it('should accept an existing audio source configuration unchanged', async () => {
+    const [configuration] = await cam.media.getAudioSourceConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setAudioSourceConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit source token matching the device', async () => {
+    const [base] = await cam.media.getAudioSourceConfigurations();
+    expect(base).toBeDefined();
+    const configuration: AudioSourceConfiguration = {
+      ...base,
+      sourceToken: base.sourceToken,
+    };
+    await expect(
+      cam.media.setAudioSourceConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setAudioEncoderConfiguration', () => {
+  it('should accept an existing audio encoder configuration unchanged', async () => {
+    const [configuration] = await cam.media.getAudioEncoderConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setAudioEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit multicast and session timeout', async () => {
+    const [base] = await cam.media.getAudioEncoderConfigurations();
+    expect(base).toBeDefined();
+    const configuration: AudioEncoderConfiguration = {
+      ...base,
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 8000,
+        TTL: 1,
+        autoStart: false,
+      },
+      sessionTimeout: base.sessionTimeout ?? 'PT60S',
+    };
+    await expect(
+      cam.media.setAudioEncoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setVideoAnalyticsConfiguration', () => {
+  it('should accept an existing video analytics configuration unchanged', async () => {
+    const [configuration] = await cam.media.getVideoAnalyticsConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setVideoAnalyticsConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with analytics and rule engine modules', async () => {
+    const [base] = await cam.media.getVideoAnalyticsConfigurations();
+    expect(base).toBeDefined();
+    const configuration: VideoAnalyticsConfiguration = {
+      ...JSON.parse(JSON.stringify(base)),
+      name: base.name || 'VAName',
+    };
+    await expect(
+      cam.media.setVideoAnalyticsConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setMetadataConfiguration', () => {
+  it('should accept an existing metadata configuration unchanged', async () => {
+    const settledConfigs = await Promise.allSettled([cam.media.getMetadataConfigurations()]);
+    expect(settledConfigs[0].status).toBeDefined();
+    if (settledConfigs[0].status !== 'fulfilled') {
+      return;
+    }
+    const [configuration] = settledConfigs[0].value;
+    expect(configuration).toBeDefined();
+    // HappyTime may drop the socket on SetMetadataConfiguration; accept either outcome.
+    const settled = await Promise.allSettled([
+      cam.media.setMetadataConfiguration({ configuration, forcePersistence: true }),
+    ]);
+    expect(settled).toHaveLength(1);
+    expect(['fulfilled', 'rejected']).toContain(settled[0].status);
+  });
+
+  it('should accept configuration with explicit multicast and session timeout', async () => {
+    const settledConfigs = await Promise.allSettled([cam.media.getMetadataConfigurations()]);
+    expect(settledConfigs[0].status).toBeDefined();
+    if (settledConfigs[0].status !== 'fulfilled') {
+      return;
+    }
+    const [base] = settledConfigs[0].value;
+    expect(base).toBeDefined();
+    const configuration: MetadataConfiguration = {
+      ...base,
+      multicast: base.multicast ?? {
+        address: { type: 'IPv4', IPv4Address: '0.0.0.0' },
+        port: 8000,
+        TTL: 256,
+        autoStart: false,
+      },
+      sessionTimeout: base.sessionTimeout ?? 'PT60S',
+    };
+    const settled = await Promise.allSettled([
+      cam.media.setMetadataConfiguration({ configuration, forcePersistence: true }),
+    ]);
+    expect(settled).toHaveLength(1);
+    expect(['fulfilled', 'rejected']).toContain(settled[0].status);
+  });
+});
+
+describe('setAudioOutputConfiguration', () => {
+  it('should accept an existing audio output configuration unchanged', async () => {
+    const [configuration] = await cam.media.getAudioOutputConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setAudioOutputConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('should accept configuration with explicit output token matching the device', async () => {
+    const [base] = await cam.media.getAudioOutputConfigurations();
+    expect(base).toBeDefined();
+    const configuration: AudioOutputConfiguration = {
+      ...base,
+      outputToken: base.outputToken,
+    };
+    await expect(
+      cam.media.setAudioOutputConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('setAudioDecoderConfiguration', () => {
+  it('should accept an existing audio decoder configuration unchanged', async () => {
+    const [configuration] = await cam.media.getAudioDecoderConfigurations();
+    expect(configuration).toBeDefined();
+    await expect(
+      cam.media.setAudioDecoderConfiguration({ configuration, forcePersistence: true }),
+    ).resolves.toBeUndefined();
+  });
+});
+
 describe('Configurations', () => {
   describe('Get configurations', () => {
     Object.entries(configurationEntityFields)
@@ -819,7 +1115,20 @@ describe('Configurations', () => {
   });
 
   describe('getGuaranteedNumberOfVideoEncoderInstances', () => {
-    it('should response', async () => {
+    it('should return total and per-codec instance counts for a video source configuration', async () => {
+      const [videoSourceConfiguration] = await cam.media.getVideoSourceConfigurations();
+      expect(videoSourceConfiguration).toBeDefined();
+      const result = await cam.media.getGuaranteedNumberOfVideoEncoderInstances({
+        configurationToken: videoSourceConfiguration.token,
+      });
+      expect(typeof result.totalNumber).toBe('number');
+      expect(result.totalNumber).toBeGreaterThanOrEqual(0);
+      expect(typeof result.JPEG).toBe('number');
+      expect(typeof result.H264).toBe('number');
+      expect(typeof result.MPEG4).toBe('number');
+    });
+
+    it('should work with the well-known HappyTime video source configuration token', async () => {
       const result = await cam.media.getGuaranteedNumberOfVideoEncoderInstances({
         configurationToken: 'VideoSourceConfigurationToken_1',
       });

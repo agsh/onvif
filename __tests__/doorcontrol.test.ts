@@ -1,5 +1,5 @@
 import { Onvif } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const DOOR_TOKEN_1 = 'DoorToken_1';
 const DOOR_TOKEN_2 = 'DoorToken_2';

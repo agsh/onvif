@@ -9,7 +9,7 @@
 
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 import {
   AnalyticsEngine,
   AnalyticsEngineControl,
