@@ -57,6 +57,62 @@ describe('compatibility Cam methods (mocked)', () => {
     expect(header).toContain('qop=auth');
   });
 
+  it('passes lastResponseXml as the third callback argument', async () => {
+    const { cam, onvif } = mockCam();
+    onvif.lastResponseXml = '<s:Envelope>ok</s:Envelope>';
+    jest.spyOn(onvif.device, 'getHostname').mockResolvedValue({ name: 'cam-1' } as any);
+
+    const payload = await new Promise<{ data: any; xml?: string }>((resolve, reject) => {
+      cam.getHostname((error, data, xml) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve({ data, xml });
+      });
+    });
+    expect(payload.data).toEqual({ name: 'cam-1' });
+    expect(payload.xml).toBe('<s:Envelope>ok</s:Envelope>');
+  });
+
+  it('setNTP mutates caller options like v0.x (fills NTPManual)', async () => {
+    const { cam, onvif } = mockCam();
+    const setNTP = jest.spyOn(onvif.device, 'setNTP').mockResolvedValue({} as any);
+    const options: any = {
+      fromDHCP: false,
+      type: 'IPv4',
+      ipv4Address: '192.168.1.1',
+    };
+
+    await promisify<void>((callback) => cam.setNTP(options, callback));
+
+    expect(Array.isArray(options.NTPManual)).toBe(true);
+    expect(options.NTPManual).toEqual([
+      {
+        type: 'IPv4',
+        IPv4Address: '192.168.1.1',
+        IPv6Address: undefined,
+        DNSname: undefined,
+      },
+    ]);
+    expect(setNTP).toHaveBeenCalledWith(options);
+  });
+
+  it('getStreamUri forwards stream/protocol when profileToken is omitted', async () => {
+    const { cam, onvif } = mockCam();
+    const Media = (await import('../src/media')).default;
+    Object.defineProperty(onvif, 'media', { value: new Media(onvif), configurable: true });
+    const spy = jest.spyOn(onvif.media, 'getStreamUri').mockResolvedValue({
+      uri: 'rtsp://127.0.0.1/stream',
+    } as any);
+
+    await promisify<any>((callback) =>
+      cam.getStreamUri({ stream: 'RTP-Unicast', protocol: 'UDP' }, callback),
+    );
+
+    expect(spy).toHaveBeenCalledWith({ stream: 'RTP-Unicast', protocol: 'UDP' });
+  });
+
   it('gotoPreset maps v0 { preset } to presetToken', async () => {
     const { cam, onvif } = mockCam();
     const PTZ = (await import('../src/ptz')).default;

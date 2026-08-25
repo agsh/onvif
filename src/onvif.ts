@@ -517,6 +517,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public deviceInformation?: GetDeviceInformationResponse;
   /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
   public xaddrs?: URL[];
+  /**
+   * Raw SOAP XML from the most recent {@link Onvif.request}.
+   * Used by the v0.x compatibility layer for the third callback argument.
+   */
+  public lastResponseXml?: string;
 
   constructor(options: OnvifOptions) {
     super();
@@ -868,9 +873,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     const body = build(bodyObject);
 
     this.emit('requestBody', body);
-    return this.rawRequest({
+    return this.rawRequest<Record<string, any>>({
       ...options,
       body,
+    }).then((result) => {
+      this.lastResponseXml = result[1];
+      return result;
     });
   }
 

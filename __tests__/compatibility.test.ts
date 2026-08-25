@@ -111,6 +111,43 @@ describe('Compatibility Cam', () => {
       expect(cam.deviceInformation).toEqual(info);
     });
 
+    it('should pass SOAP xml as the third callback argument (v0.x)', async () => {
+      const { info, xml } = await new Promise<{ info: any; xml?: string }>((resolve, reject) => {
+        cam.getDeviceInformation((error, result, responseXml) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve({ info: result, xml: responseXml });
+        });
+      });
+      expect(info.manufacturer).toBeDefined();
+      expect(typeof xml).toBe('string');
+      expect(xml).toMatch(/GetDeviceInformationResponse|Envelope/i);
+    });
+
+    it('should unwrap Onvif.request [data, xml] in _request callbacks', async () => {
+      const { data, xml } = await new Promise<{ data: any; xml?: string }>((resolve, reject) => {
+        cam._request(
+          {
+            service: 'device',
+            body: { GetHostname: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } } },
+          } as any,
+          (error, result, responseXml) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+            resolve({ data: result, xml: responseXml });
+          },
+        );
+      });
+      expect(data).toBeDefined();
+      expect(Array.isArray(data)).toBe(false);
+      expect(typeof xml).toBe('string');
+      expect(xml!.length).toBeGreaterThan(0);
+    });
+
     it('should return services through getServices callback API', async () => {
       const services = await promisify<any[]>((callback) => cam.getServices(false, callback));
       expect(Array.isArray(services)).toBe(true);
@@ -246,9 +283,29 @@ describe('Compatibility Cam', () => {
       await promisify<any>((callback) => cam.getSnapshotUri({}, callback));
 
       expect(streamSpy).toHaveBeenCalledTimes(1);
+      expect(streamSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ protocol: 'RTSP' }),
+      );
       expect(snapshotSpy).toHaveBeenCalledTimes(1);
       streamSpy.mockRestore();
       snapshotSpy.mockRestore();
+    });
+
+    it('should forward stream/protocol to Media.getStreamUri without profileToken', async () => {
+      const Media = (await import('../src/media')).default;
+      const streamSpy = jest.spyOn(Media.prototype, 'getStreamUri').mockResolvedValue({
+        uri: 'rtsp://example/stream',
+      } as any);
+
+      await promisify<any>((callback) =>
+        cam.getStreamUri({ stream: 'RTP-Unicast', protocol: 'RTSP' }, callback),
+      );
+
+      expect(streamSpy).toHaveBeenCalledWith({
+        stream: 'RTP-Unicast',
+        protocol: 'RTSP',
+      });
+      streamSpy.mockRestore();
     });
 
     it('should return media service capabilities', async () => {

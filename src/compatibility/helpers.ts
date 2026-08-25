@@ -1,18 +1,24 @@
 import { ActiveSource, Onvif } from '../onvif';
 
-export type Callback = (error: any, result?: any) => void;
+/** v0.x RequestCallback: `(err, data, xml?)`. */
+export type Callback = (error: any, result?: any, xml?: string) => void;
 
 export function isCallback(value: unknown): value is Callback {
   return typeof value === 'function';
 }
 
-export function invoke<T>(promise: Promise<T>, callback: Callback, transform?: (result: T) => unknown): void {
+export function invoke<T>(
+  promise: Promise<T>,
+  callback: Callback,
+  transform?: (result: T) => unknown,
+  getXml?: () => string | undefined,
+): void {
   // Use then(onFulfilled, onRejected) so a throw inside `callback` is not fed back into
   // `.catch(callback)` (which would invoke the user callback a second time).
   promise
     .then(
       (result) => {
-        callback(null, transform ? transform(result) : result);
+        callback(null, transform ? transform(result) : result, getXml?.());
       },
       (error) => {
         callback(error);

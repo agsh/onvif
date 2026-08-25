@@ -217,10 +217,11 @@ Discovered cams include `xaddrs` (all ProbeMatch XAddrs as `URL[]`).
 
 The Cam surface from v0.8 is largely covered. Remaining behavioral differences:
 
-- Callbacks are `(err, result)` — v0 often passed a third `xml` argument
 - `gotoPreset` accepts both `{ presetToken }` (ONVIF / 1.x) and the v0 alias `{ preset }` (sent as PresetToken)
-- `getPresets` / `cam.presets` use **token → preset** (v0.8.1+), not name → token
 - `rawResponse` may omit the `statusCode` second argument that v0 emitted
+- `setNTP(options)` mutates the passed `options` object (fills `NTPManual`) — same as v0.x
+Callbacks match v0.x `(err, data, xml?)`: the third argument is the raw SOAP response XML from the underlying request (`Onvif.lastResponseXml`).
+`getPresets` / `cam.presets` follow **v0.8.1+** semantics: **token → preset** (duplicate names kept). The old name → token map is available only via deprecated `presetsToMap` and collides on duplicate names.
 
 # Examples
 located in the Examples Folder on the Github

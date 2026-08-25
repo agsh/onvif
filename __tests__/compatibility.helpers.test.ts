@@ -48,7 +48,7 @@ describe('compatibility helpers', () => {
       const cb = jest.fn();
       invoke(Promise.resolve({ n: 1 }), cb, (r) => r.n * 2);
       await Promise.resolve();
-      expect(cb).toHaveBeenCalledWith(null, 2);
+      expect(cb).toHaveBeenCalledWith(null, 2, undefined);
     });
 
     it('forwards rejections to the callback', async () => {
@@ -69,7 +69,14 @@ describe('compatibility helpers', () => {
       await Promise.resolve();
       await Promise.resolve();
       expect(cb).toHaveBeenCalledTimes(1);
-      expect(cb).toHaveBeenCalledWith(null, 42);
+      expect(cb).toHaveBeenCalledWith(null, 42, undefined);
+    });
+
+    it('passes xml from getXml as the third callback argument', async () => {
+      const cb = jest.fn();
+      invoke(Promise.resolve('data'), cb, undefined, () => '<Envelope/>');
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledWith(null, 'data', '<Envelope/>');
     });
   });
 
