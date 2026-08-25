@@ -48,7 +48,6 @@ import {
   mapRecordingToken,
   normalizeMediaUriResponse,
   normalizeStreamUriResponse,
-  presetsToMap,
   profileToken,
   splitOptionalCallback,
   splitTokenCallback,
@@ -271,7 +270,8 @@ export class Cam extends EventEmitter {
     return this.onvif.ptz.configurations;
   }
   get presets() {
-    return presetsToMap(this.onvif.ptz.presets);
+    // v0.8.1+: token → preset object (same as getPresets / Onvif.ptz.presets)
+    return this.onvif.ptz.presets;
   }
   get scopes() {
     return this.onvif.device.scopes;
@@ -824,8 +824,10 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    invoke(this.onvif.ptz.getPresets(resolvedOptions.profileToken ? resolvedOptions : undefined), cb, (result) =>
-      presetsToMap(result),
+    // v0.8.1+: return token → preset (not name → token) so duplicate names are kept
+    invoke(
+      this.onvif.ptz.getPresetsExtended(resolvedOptions.profileToken ? resolvedOptions : undefined),
+      cb,
     );
   }
 
