@@ -140,6 +140,11 @@ export class Cam extends EventEmitter {
   public networkProtocols?: unknown;
   public activeSourcesList?: ActiveSource[];
 
+  /** Relays Onvif `event` to Cam; kept as a stable ref for on/off. */
+  private readonly onOnvifEvent = (msg: unknown) => {
+    this.emit('event', msg);
+  };
+
   constructor(options: any, callback?: Callback) {
     super();
     this.onvif = new Onvif({
@@ -148,6 +153,7 @@ export class Cam extends EventEmitter {
       secureOptions: options.secureOptions ?? options.secureOpts,
       autoConnect: false,
     });
+    this.bindOnvifEvents();
     this.pullPointSubscription = new Subscription(this.onvif);
     const connectCallback = callback ?? (() => undefined);
     if (options.autoconnect !== false) {
@@ -155,6 +161,36 @@ export class Cam extends EventEmitter {
         this.connect(connectCallback);
       });
     }
+  }
+
+  /**
+   * Forward Onvif EventEmitter events so `cam.on('rawRequest'|…)` matches v0.x.
+   * `event` is wired lazily so pull-point subscribe only starts when Cam has listeners.
+   */
+  private bindOnvifEvents() {
+    const relay =
+      (camEvent: string) =>
+      (...args: unknown[]) => {
+        this.emit(camEvent, ...args);
+      };
+
+    this.onvif.on(Onvif.RAW_REQUEST, relay('rawRequest'));
+    this.onvif.on(Onvif.RAW_RESPONSE, relay('rawResponse'));
+    this.onvif.on(Onvif.CONNECT, relay('connect'));
+    this.onvif.on(Onvif.EVENTS_ERROR, relay('eventsError'));
+    // v0.x used `warning`; Onvif emits `warn`
+    this.onvif.on(Onvif.WARN, relay('warning'));
+
+    this.on('newListener', (name) => {
+      if (name === 'event' && this.listeners('event').length === 0) {
+        this.onvif.on(Onvif.EVENT, this.onOnvifEvent);
+      }
+    });
+    this.on('removeListener', (name) => {
+      if (name === 'event' && this.listeners('event').length === 0) {
+        this.onvif.off(Onvif.EVENT, this.onOnvifEvent);
+      }
+    });
   }
 
   get useSecure() {
@@ -255,7 +291,7 @@ export class Cam extends EventEmitter {
     return this.onvif.activeSource;
   }
   get activeSources() {
-    return this.activeSourcesList;
+    return this.onvif.activeSources;
   }
   get serviceCapabilities() {
     return this.onvif.device.serviceCapabilities;
@@ -292,7 +328,10 @@ export class Cam extends EventEmitter {
   connect(callback: Callback) {
     this.onvif
       .connect()
-      .then(() => callback(null))
+      .then(() => {
+        this.activeSourcesList = this.onvif.activeSources;
+        callback(null);
+      })
       .catch(callback);
   }
 
@@ -334,35 +373,9 @@ export class Cam extends EventEmitter {
   getActiveSources(callback: Callback) {
     invoke(
       this.onvif.getActiveSources().then(() => {
-        this.activeSourcesList = this.onvif.defaultProfiles
-          .map((profile, idx) => {
-            const videoSrcToken = this.onvif.media.videoSources[idx]?.token;
-            if (!videoSrcToken || !profile) {
-              return undefined;
-            }
-            const activeSource: ActiveSource = {
-              sourceToken: videoSrcToken,
-              profileToken: profile.token,
-              videoSourceConfigurationToken: profile.videoSourceConfiguration?.token ?? videoSrcToken,
-              videoSourceToken: videoSrcToken,
-            };
-            if (profile.videoEncoderConfiguration) {
-              activeSource.encoding = profile.videoEncoderConfiguration.encoding;
-              activeSource.width = profile.videoEncoderConfiguration.resolution?.width;
-              activeSource.height = profile.videoEncoderConfiguration.resolution?.height;
-              activeSource.fps = profile.videoEncoderConfiguration.rateControl?.frameRateLimit;
-              activeSource.bitrate = profile.videoEncoderConfiguration.rateControl?.bitrateLimit;
-            }
-            if (profile.PTZConfiguration) {
-              activeSource.ptz = {
-                name: profile.PTZConfiguration.name as string,
-                token: profile.PTZConfiguration.token,
-              };
-            }
-            return activeSource;
-          })
-          .filter((source): source is ActiveSource => source !== undefined);
-        return this.activeSourcesList;
+        // Keep legacy field in sync for any callers that read it directly
+        this.activeSourcesList = this.onvif.activeSources;
+        return this.onvif.activeSources;
       }),
       callback,
     );

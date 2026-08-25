@@ -185,6 +185,8 @@ export default class Events {
     this.agent = this.createAgent();
     this.globalSubscription = new Subscription(onvif);
     this.globalSubscription.on('data', (msg) => onvif.emit('event', msg));
+    this.globalSubscription.on('error', (error) => onvif.emit('eventsError', error));
+    this.globalSubscription.on('connectionError', (error) => onvif.emit('eventsError', error));
   }
 
   private createAgent(): HttpsAgent | HttpAgent {
