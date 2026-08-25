@@ -16,12 +16,17 @@ ONVIF client protocol implementation for Node.js.
 > ```
 
 A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:
-
-- **Core media & PTZ** — device info, Media / Media2 profiles, stream URIs, imaging, presets, continuous and absolute moves
-- **Events** — pull-point and WS-BaseNotification with topic filters and `EventEmitter` integration
-- **Recording & replay** — Profile G NVR search, recordings, and replay URIs
-- **Physical access** — DoorControl, AccessControl, Credential, AccessRules, Schedule
-- **More services** — Analytics, DeviceIO, Display, Action Engine, Thermal, Provisioning, AdvancedSecurity
+- **Core media & PTZ** — (Profiles [S](https://www.onvif.org/profiles/profile-s/), 
+  [T](https://www.onvif.org/profiles/profile-t/)) device info, Media / Media2 profiles, stream URIs, imaging, presets, 
+  continuous and absolute moves
+- **Events** — (Profile [M](https://www.onvif.org/profiles/profile-m/)) pull-point and WS-BaseNotification with topic 
+  filters and `EventEmitter` integration
+- **Recording & replay** — (Profile [G](https://www.onvif.org/profiles/profile-g/)) NVR search, recordings, and replay 
+  URIs
+- **Physical access** — (Profiles [C](https://www.onvif.org/profiles/profile-c/), 
+  [A](https://www.onvif.org/profiles/profile-a/)) DoorControl, AccessControl, Credential, AccessRules, Schedule
+- **More services** — (Profile [T](https://www.onvif.org/profiles/profile-t/)) Analytics, DeviceIO, Display, 
+  Action Engine, Thermal, Provisioning, AdvancedSecurity
 - **Discovery & auth** — WS-Discovery on the LAN; WS-Security and Digest (MD5 / SHA-1 / SHA-256)
 
 Works server-side on Node.js 18+, tested on GitHub Actions.
@@ -34,7 +39,7 @@ This is a new version of the ONVIF library. The previous version was written in 
 written in TypeScript and includes interfaces describing ONVIF data structures.
 
 At the moment, all the methods from v0.8 have been implemented in the new `Onvif` API, and a
-[v0.x compatibility layer](https://github.com/agsh/onvif/blob/v1/src/compatibility/cam.ts) is available
+[v0.x compatibility layer](https://github.com/agsh/onvif/blob/master/src/compatibility/cam.ts) is available
 for existing projects.
 
 > [!TIP]
