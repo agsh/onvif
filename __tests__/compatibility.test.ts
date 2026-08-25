@@ -41,7 +41,12 @@ describe('Compatibility Cam', () => {
       expect(cam.videoSources.length).toBeGreaterThan(0);
       expect(cam.profiles.length).toBeGreaterThan(0);
       expect(cam.defaultProfile).toBeDefined();
+      expect(cam.defaultProfiles.length).toBeGreaterThan(0);
       expect(cam.activeSource).toBeDefined();
+      expect(cam.activeSource?.profileToken).toBeDefined();
+      expect(cam.activeSources.length).toBeGreaterThan(0);
+      expect(cam.activeSources[0]).toEqual(cam.activeSource);
+      expect(typeof cam.media2Support).toBe('boolean');
     });
 
     it('should expose connection getters and allow timeout/hostname updates', () => {

@@ -55,6 +55,104 @@ describe('compatibility promises unit', () => {
     });
   });
 
+  describe('Cam event forwarding', () => {
+    it('forwards rawRequest/rawResponse/connect/warning/eventsError from Onvif', () => {
+      const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });
+      const onvif = (cam as unknown as { onvif: Onvif }).onvif;
+      const rawRequest = jest.fn();
+      const rawResponse = jest.fn();
+      const connect = jest.fn();
+      const warning = jest.fn();
+      const eventsError = jest.fn();
+
+      cam.on('rawRequest', rawRequest);
+      cam.on('rawResponse', rawResponse);
+      cam.on('connect', connect);
+      cam.on('warning', warning);
+      cam.on('eventsError', eventsError);
+
+      onvif.emit(Onvif.RAW_REQUEST, '<req/>', {});
+      onvif.emit(Onvif.RAW_RESPONSE, '<res/>');
+      onvif.emit(Onvif.CONNECT);
+      onvif.emit(Onvif.WARN, new Error('no sources'));
+      onvif.emit(Onvif.EVENTS_ERROR, new Error('pull failed'));
+
+      expect(rawRequest).toHaveBeenCalledWith('<req/>', {});
+      expect(rawResponse).toHaveBeenCalledWith('<res/>');
+      expect(connect).toHaveBeenCalled();
+      expect(warning).toHaveBeenCalledWith(expect.any(Error));
+      expect(eventsError).toHaveBeenCalledWith(expect.any(Error));
+    });
+
+    it('lazily bridges event listeners and starts/stops pull subscription', async () => {
+      const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });
+      const onvif = (cam as unknown as { onvif: Onvif }).onvif;
+      const subscribe = jest
+        .spyOn(onvif.events.globalSubscription, 'subscribe')
+        .mockResolvedValue(undefined as never);
+      const unsubscribe = jest
+        .spyOn(onvif.events.globalSubscription, 'unsubscribe')
+        .mockResolvedValue(undefined as never);
+      const handler = jest.fn();
+
+      cam.on('event', handler);
+      expect(subscribe).toHaveBeenCalled();
+
+      onvif.emit(Onvif.EVENT, { topic: 'tns1:VideoSource/MotionAlarm' } as any);
+      expect(handler).toHaveBeenCalledWith({ topic: 'tns1:VideoSource/MotionAlarm' });
+
+      cam.off('event', handler);
+      expect(unsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('Onvif.connect Media2 probe', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    async function withConcreteServices(onvif: Onvif) {
+      const Media2 = (await import('../src/media2')).default;
+      const Media = (await import('../src/media')).default;
+      const media2 = new Media2(onvif);
+      const media = new Media(onvif);
+      Object.defineProperty(onvif, 'media2', { configurable: true, value: media2 });
+      Object.defineProperty(onvif, 'media', { configurable: true, value: media });
+      return { media2, media };
+    }
+
+    it('disables media2Support when Media2 GetProfiles fails (D-Link workaround)', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      const { media2, media } = await withConcreteServices(onvif);
+      onvif.device.media2Support = true;
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(onvif.device, 'getServices').mockResolvedValue({ service: [] } as never);
+      jest.spyOn(media2, 'getProfiles').mockRejectedValue(new Error('media2 broken'));
+      jest.spyOn(media, 'getProfiles').mockResolvedValue([]);
+      jest.spyOn(media, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(onvif, 'getActiveSources').mockResolvedValue(undefined as never);
+
+      await onvif.connect();
+      expect(onvif.device.media2Support).toBe(false);
+      expect(media.getProfiles).toHaveBeenCalled();
+    });
+
+    it('keeps media2Support when Media2 GetProfiles succeeds', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      const { media2, media } = await withConcreteServices(onvif);
+      onvif.device.media2Support = true;
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(onvif.device, 'getServices').mockResolvedValue({ service: [] } as never);
+      jest.spyOn(media2, 'getProfiles').mockResolvedValue([]);
+      jest.spyOn(media, 'getProfiles').mockResolvedValue([]);
+      jest.spyOn(media, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(onvif, 'getActiveSources').mockResolvedValue(undefined as never);
+
+      await onvif.connect();
+      expect(onvif.device.media2Support).toBe(true);
+    });
+  });
+
   describe('Discovery', () => {
     afterEach(() => {
       jest.restoreAllMocks();

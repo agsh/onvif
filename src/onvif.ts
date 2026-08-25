@@ -506,7 +506,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public capabilities: Capabilities;
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;
-  private activeSources: ActiveSource[] = [];
+  public activeSources: ActiveSource[] = [];
   public activeSource?: ActiveSource;
   public readonly urn?: string;
   public deviceInformation?: GetDeviceInformationResponse;
@@ -1116,6 +1116,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       await this.device.getServices();
     } catch (error) {
       await this.device.getCapabilities();
+    }
+    // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
+    // Probe once and fall back to Media1 for subsequent Media2-routed calls (stream URI, etc.).
+    if (this.device.media2Support) {
+      try {
+        await this.media2.getProfiles();
+      } catch {
+        this.device.media2Support = false;
+      }
     }
     await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
     await this.getActiveSources();

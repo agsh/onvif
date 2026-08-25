@@ -52,7 +52,11 @@ describe('Compatibility Cam promises', () => {
       expect(cam.videoSources.length).toBeGreaterThan(0);
       expect(cam.profiles.length).toBeGreaterThan(0);
       expect(cam.defaultProfile).toBeDefined();
+      expect(cam.defaultProfiles.length).toBeGreaterThan(0);
       expect(cam.activeSource).toBeDefined();
+      expect(cam.activeSources.length).toBeGreaterThan(0);
+      expect(cam.activeSources[0]).toEqual(cam.activeSource);
+      expect(typeof cam.media2Support).toBe('boolean');
     });
 
     it('should populate deviceInformation after getDeviceInformation', async () => {
