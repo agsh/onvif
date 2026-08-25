@@ -150,7 +150,7 @@ our best to make it work with as many devices as possible, so your feedback is i
 Profile G and Profile T devices.
 
 But we want to learn about as wide a range of devices as possible.
-So yes, the best way to donate is to leave your feedback :smile:
+So yes, please leave your feedback, it is important
 
 Just run `console.log(await onvif.device.getDeviceInformation());`, you will get something like this:
 ```json
