@@ -15,18 +15,18 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-example">
-<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">doorsList</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorList</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">token</span><span class="hl-1"> = </span><span class="hl-5">doorsList</span><span class="hl-1">.</span><span class="hl-5">door</span><span class="hl-1">![</span><span class="hl-6">0</span><span class="hl-1">].</span><span class="hl-5">token</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorState</span><span class="hl-1">({ </span><span class="hl-5">token</span><span class="hl-1"> })).</span><span class="hl-5">doorMode</span><span class="hl-1">);</span><br/><span class="hl-1"> </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">doorControl</span><span class="hl-1">.</span><span class="hl-0">unlockDoor</span><span class="hl-1">({ </span><span class="hl-5">token</span><span class="hl-1"> });</span><br/><span class="hl-1"> </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorState</span><span class="hl-1">({ </span><span class="hl-5">token</span><span class="hl-1"> })).</span><span class="hl-5">doorMode</span><span class="hl-1">);</span>
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">doorsList</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorList</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">token</span><span class="hl-1"> = </span><span class="hl-4">doorsList</span><span class="hl-1">.</span><span class="hl-4">door</span><span class="hl-1">![</span><span class="hl-7">0</span><span class="hl-1">].</span><span class="hl-4">token</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorState</span><span class="hl-1">({ </span><span class="hl-4">token</span><span class="hl-1"> })).</span><span class="hl-4">doorMode</span><span class="hl-1">);</span><br/><span class="hl-1"> </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">doorControl</span><span class="hl-1">.</span><span class="hl-0">unlockDoor</span><span class="hl-1">({ </span><span class="hl-4">token</span><span class="hl-1"> });</span><br/><span class="hl-1"> </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">doorControl</span><span class="hl-1">.</span><span class="hl-0">getDoorState</span><span class="hl-1">({ </span><span class="hl-4">token</span><span class="hl-1"> })).</span><span class="hl-4">doorMode</span><span class="hl-1">);</span>
 </code><button type="button">Copy</button></pre>
 
 </div></div></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="1325">
+<section class="tsd-panel tsd-hierarchy" data-refl="2037">
 <h4>Hierarchy (<a href="../hierarchy.html#DoorControl">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><a href="Onvif_specs.default-5.html" class="tsd-signature-type tsd-kind-class">default</a>
+<li class="tsd-hierarchy-item"><a href="Service.html" class="tsd-signature-type tsd-kind-class">Service</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">DoorControl</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L53">doorcontrol.ts:53</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L53">doorcontrol.ts:53</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -79,30 +79,30 @@
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">onvif</span>: <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DoorControl</a></h4><aside class="tsd-sources">
-<p>Overrides <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#constructor">constructor</a></p>
+<p>Overrides <a href="Service.html">Service</a>.<a href="Service.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L54">doorcontrol.ts:54</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L54">doorcontrol.ts:54</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onvif"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>onvif</span><a href="#onvif" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onvif</span><span class="tsd-signature-symbol">:</span> <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#onvif">onvif</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#onvif">onvif</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L39">service.ts:39</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="service"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>service</span><a href="#service" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">service</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a href="../interfaces/OnvifServices.html" class="tsd-signature-type tsd-kind-interface">OnvifServices</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#service">service</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#service">service</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L41">service.ts:41</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="xmlns"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>xmlns</span><a href="#xmlns" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">xmlns</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#xmlns">xmlns</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#xmlns">xmlns</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L41">service.ts:41</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L42">service.ts:42</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -120,7 +120,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.AccessDoor.html" class="tsd-signature-type tsd-kind-interface">AccessDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L233">doorcontrol.ts:233</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L233">doorcontrol.ts:233</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="blockdoor"><span>block<wbr/>Door</span><a href="#blockdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -135,7 +135,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.BlockDoor.html" class="tsd-signature-type tsd-kind-interface">BlockDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L266">doorcontrol.ts:266</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L266">doorcontrol.ts:266</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="createdoor"><span>create<wbr/>Door</span><a href="#createdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -150,7 +150,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.CreateDoor.html" class="tsd-signature-type tsd-kind-interface">CreateDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L191">doorcontrol.ts:191</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L191">doorcontrol.ts:191</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deletedoor"><span>delete<wbr/>Door</span><a href="#deletedoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -165,7 +165,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.DeleteDoor.html" class="tsd-signature-type tsd-kind-interface">DeleteDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L216">doorcontrol.ts:216</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L216">doorcontrol.ts:216</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="doublelockdoor"><span>double<wbr/>Lock<wbr/>Door</span><a href="#doublelockdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -180,7 +180,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.DoubleLockDoor.html" class="tsd-signature-type tsd-kind-interface">DoubleLockDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L306">doorcontrol.ts:306</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L306">doorcontrol.ts:306</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdoorinfo"><span>get<wbr/>Door<wbr/>Info</span><a href="#getdoorinfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -195,7 +195,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDoorInfo.html" class="tsd-signature-type tsd-kind-interface">GetDoorInfo</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetDoorInfoResponse.html" class="tsd-signature-type tsd-kind-interface">GetDoorInfoResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L153">doorcontrol.ts:153</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L153">doorcontrol.ts:153</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdoorinfolist"><span>get<wbr/>Door<wbr/>Info<wbr/>List</span><a href="#getdoorinfolist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -210,7 +210,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDoorInfoList.html" class="tsd-signature-type tsd-kind-interface">GetDoorInfoList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetDoorInfoListResponse.html" class="tsd-signature-type tsd-kind-interface">GetDoorInfoListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L136">doorcontrol.ts:136</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L136">doorcontrol.ts:136</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdoorlist"><span>get<wbr/>Door<wbr/>List</span><a href="#getdoorlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -225,7 +225,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDoorList.html" class="tsd-signature-type tsd-kind-interface">GetDoorList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetDoorListResponse.html" class="tsd-signature-type tsd-kind-interface">GetDoorListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L165">doorcontrol.ts:165</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L165">doorcontrol.ts:165</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdoors"><span>get<wbr/>Doors</span><a href="#getdoors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -240,7 +240,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDoors.html" class="tsd-signature-type tsd-kind-interface">GetDoors</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetDoorsResponse.html" class="tsd-signature-type tsd-kind-interface">GetDoorsResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L182">doorcontrol.ts:182</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L182">doorcontrol.ts:182</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getdoorstate"><span>get<wbr/>Door<wbr/>State</span><a href="#getdoorstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -255,18 +255,18 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetDoorState.html" class="tsd-signature-type tsd-kind-interface">GetDoorState</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.DoorState.html" class="tsd-signature-type tsd-kind-interface">DoorState</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L224">doorcontrol.ts:224</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L224">doorcontrol.ts:224</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getservicecapabilities"><span>get<wbr/>Service<wbr/>Capabilities</span><a href="#getservicecapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-3.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-7.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Returns the capabilities of the door control service.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-3.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-7.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L127">doorcontrol.ts:127</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L127">doorcontrol.ts:127</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lockdoor"><span>lock<wbr/>Door</span><a href="#lockdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -281,7 +281,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.LockDoor.html" class="tsd-signature-type tsd-kind-interface">LockDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L250">doorcontrol.ts:250</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L250">doorcontrol.ts:250</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lockdowndoor"><span>lock<wbr/>Down<wbr/>Door</span><a href="#lockdowndoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -296,7 +296,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.LockDownDoor.html" class="tsd-signature-type tsd-kind-interface">LockDownDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L274">doorcontrol.ts:274</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L274">doorcontrol.ts:274</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lockdownreleasedoor"><span>lock<wbr/>Down<wbr/>Release<wbr/>Door</span><a href="#lockdownreleasedoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -311,7 +311,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.LockDownReleaseDoor.html" class="tsd-signature-type tsd-kind-interface">LockDownReleaseDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L282">doorcontrol.ts:282</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L282">doorcontrol.ts:282</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lockopendoor"><span>lock<wbr/>Open<wbr/>Door</span><a href="#lockopendoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -326,7 +326,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.LockOpenDoor.html" class="tsd-signature-type tsd-kind-interface">LockOpenDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L290">doorcontrol.ts:290</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L290">doorcontrol.ts:290</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="lockopenreleasedoor"><span>lock<wbr/>Open<wbr/>Release<wbr/>Door</span><a href="#lockopenreleasedoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -341,7 +341,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.LockOpenReleaseDoor.html" class="tsd-signature-type tsd-kind-interface">LockOpenReleaseDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L298">doorcontrol.ts:298</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L298">doorcontrol.ts:298</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="modifydoor"><span>modify<wbr/>Door</span><a href="#modifydoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -356,7 +356,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.ModifyDoor.html" class="tsd-signature-type tsd-kind-interface">ModifyDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L208">doorcontrol.ts:208</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L208">doorcontrol.ts:208</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="request"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -373,9 +373,9 @@
 <li><span><span class="tsd-kind-parameter">body</span>: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/LineraseOptions.html" class="tsd-signature-type tsd-kind-interface">LineraseOptions</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="Device.html#requestt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#request">request</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#request">request</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L49">service.ts:49</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L50">service.ts:50</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setdoor"><span>set<wbr/>Door</span><a href="#setdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -390,7 +390,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetDoor.html" class="tsd-signature-type tsd-kind-interface">SetDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L200">doorcontrol.ts:200</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L200">doorcontrol.ts:200</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="unlockdoor"><span>unlock<wbr/>Door</span><a href="#unlockdoor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -405,7 +405,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.UnlockDoor.html" class="tsd-signature-type tsd-kind-interface">UnlockDoor</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/doorcontrol.ts#L258">doorcontrol.ts:258</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/doorcontrol.ts#L258">doorcontrol.ts:258</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

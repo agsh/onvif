@@ -15,18 +15,18 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-example">
-<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">caps</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">provisioning</span><span class="hl-1">.</span><span class="hl-0">getServiceCapabilities</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">videoSource</span><span class="hl-1"> = </span><span class="hl-5">caps</span><span class="hl-1">.</span><span class="hl-5">source</span><span class="hl-1">![</span><span class="hl-6">0</span><span class="hl-1">].</span><span class="hl-5">videoSourceToken</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">provisioning</span><span class="hl-1">.</span><span class="hl-0">panMove</span><span class="hl-1">({ </span><span class="hl-5">videoSource</span><span class="hl-1">, </span><span class="hl-5">direction:</span><span class="hl-1"> </span><span class="hl-2">&#39;Left&#39;</span><span class="hl-1">, </span><span class="hl-5">timeout:</span><span class="hl-1"> </span><span class="hl-2">&#39;PT1S&#39;</span><span class="hl-1"> });</span><br/><span class="hl-1"> </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">provisioning</span><span class="hl-1">.</span><span class="hl-0">stop</span><span class="hl-1">({ </span><span class="hl-5">videoSource</span><span class="hl-1"> });</span>
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">caps</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">provisioning</span><span class="hl-1">.</span><span class="hl-0">getServiceCapabilities</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">videoSource</span><span class="hl-1"> = </span><span class="hl-4">caps</span><span class="hl-1">.</span><span class="hl-4">source</span><span class="hl-1">![</span><span class="hl-7">0</span><span class="hl-1">].</span><span class="hl-4">videoSourceToken</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">provisioning</span><span class="hl-1">.</span><span class="hl-0">panMove</span><span class="hl-1">({ </span><span class="hl-4">videoSource</span><span class="hl-1">, </span><span class="hl-4">direction:</span><span class="hl-1"> </span><span class="hl-2">&#39;Left&#39;</span><span class="hl-1">, </span><span class="hl-4">timeout:</span><span class="hl-1"> </span><span class="hl-2">&#39;PT1S&#39;</span><span class="hl-1"> });</span><br/><span class="hl-1"> </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">provisioning</span><span class="hl-1">.</span><span class="hl-0">stop</span><span class="hl-1">({ </span><span class="hl-4">videoSource</span><span class="hl-1"> });</span>
 </code><button type="button">Copy</button></pre>
 
 </div></div></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="2102">
+<section class="tsd-panel tsd-hierarchy" data-refl="2814">
 <h4>Hierarchy (<a href="../hierarchy.html#Provisioning">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><a href="Onvif_specs.default-5.html" class="tsd-signature-type tsd-kind-class">default</a>
+<li class="tsd-hierarchy-item"><a href="Service.html" class="tsd-signature-type tsd-kind-class">Service</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Provisioning</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L31">provisioning.ts:31</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L31">provisioning.ts:31</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -68,30 +68,30 @@
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">onvif</span>: <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">Provisioning</a></h4><aside class="tsd-sources">
-<p>Overrides <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#constructor">constructor</a></p>
+<p>Overrides <a href="Service.html">Service</a>.<a href="Service.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L32">provisioning.ts:32</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L32">provisioning.ts:32</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onvif"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>onvif</span><a href="#onvif" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onvif</span><span class="tsd-signature-symbol">:</span> <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#onvif">onvif</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#onvif">onvif</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L39">service.ts:39</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="service"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>service</span><a href="#service" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">service</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a href="../interfaces/OnvifServices.html" class="tsd-signature-type tsd-kind-interface">OnvifServices</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#service">service</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#service">service</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L41">service.ts:41</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="xmlns"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>xmlns</span><a href="#xmlns" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">xmlns</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#xmlns">xmlns</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#xmlns">xmlns</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L41">service.ts:41</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L42">service.ts:42</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -109,18 +109,18 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.FocusMove-1.html" class="tsd-signature-type tsd-kind-interface">FocusMove</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L104">provisioning.ts:104</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L104">provisioning.ts:104</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getservicecapabilities"><span>get<wbr/>Service<wbr/>Capabilities</span><a href="#getservicecapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-8.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-12.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Returns the capabilities of the provisioning service.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-8.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-12.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L39">provisioning.ts:39</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L39">provisioning.ts:39</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getusage"><span>get<wbr/>Usage</span><a href="#getusage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -135,7 +135,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetUsage.html" class="tsd-signature-type tsd-kind-interface">GetUsage</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Usage.html" class="tsd-signature-type tsd-kind-interface">Usage</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L126">provisioning.ts:126</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L126">provisioning.ts:126</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="panmove"><span>pan<wbr/>Move</span><a href="#panmove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -150,7 +150,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.PanMove.html" class="tsd-signature-type tsd-kind-interface">PanMove</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L48">provisioning.ts:48</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L48">provisioning.ts:48</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="request"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -167,9 +167,9 @@
 <li><span><span class="tsd-kind-parameter">body</span>: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/LineraseOptions.html" class="tsd-signature-type tsd-kind-interface">LineraseOptions</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="Device.html#requestt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#request">request</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#request">request</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L49">service.ts:49</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L50">service.ts:50</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rollmove"><span>roll<wbr/>Move</span><a href="#rollmove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -184,7 +184,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.RollMove.html" class="tsd-signature-type tsd-kind-interface">RollMove</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L90">provisioning.ts:90</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L90">provisioning.ts:90</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stop"><span>stop</span><a href="#stop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -199,7 +199,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.Stop.html" class="tsd-signature-type tsd-kind-interface">Stop</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L118">provisioning.ts:118</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L118">provisioning.ts:118</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="tiltmove"><span>tilt<wbr/>Move</span><a href="#tiltmove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -214,7 +214,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.TiltMove.html" class="tsd-signature-type tsd-kind-interface">TiltMove</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L62">provisioning.ts:62</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L62">provisioning.ts:62</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="zoommove"><span>zoom<wbr/>Move</span><a href="#zoommove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -229,7 +229,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.ZoomMove.html" class="tsd-signature-type tsd-kind-interface">ZoomMove</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/provisioning.ts#L76">provisioning.ts:76</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/provisioning.ts#L76">provisioning.ts:76</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

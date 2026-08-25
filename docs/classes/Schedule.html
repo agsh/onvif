@@ -15,18 +15,18 @@
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-example">
-<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">list</span><span class="hl-1"> = </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">schedule</span><span class="hl-1">.</span><span class="hl-0">getScheduleInfoList</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">token</span><span class="hl-1"> = </span><span class="hl-5">list</span><span class="hl-1">.</span><span class="hl-5">scheduleInfo</span><span class="hl-1">![</span><span class="hl-6">0</span><span class="hl-1">].</span><span class="hl-5">token</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-5">schedule</span><span class="hl-1">.</span><span class="hl-0">getScheduleState</span><span class="hl-1">({ </span><span class="hl-5">token</span><span class="hl-1"> })).</span><span class="hl-5">active</span><span class="hl-1">);</span>
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">list</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">schedule</span><span class="hl-1">.</span><span class="hl-0">getScheduleInfoList</span><span class="hl-1">();</span><br/><span class="hl-1"> </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">token</span><span class="hl-1"> = </span><span class="hl-4">list</span><span class="hl-1">.</span><span class="hl-4">scheduleInfo</span><span class="hl-1">![</span><span class="hl-7">0</span><span class="hl-1">].</span><span class="hl-4">token</span><span class="hl-1">;</span><br/><span class="hl-1"> </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">((</span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-4">schedule</span><span class="hl-1">.</span><span class="hl-0">getScheduleState</span><span class="hl-1">({ </span><span class="hl-4">token</span><span class="hl-1"> })).</span><span class="hl-4">active</span><span class="hl-1">);</span>
 </code><button type="button">Copy</button></pre>
 
 </div></div></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="1970">
+<section class="tsd-panel tsd-hierarchy" data-refl="2682">
 <h4>Hierarchy (<a href="../hierarchy.html#Schedule">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><a href="Onvif_specs.default-5.html" class="tsd-signature-type tsd-kind-class">default</a>
+<li class="tsd-hierarchy-item"><a href="Service.html" class="tsd-signature-type tsd-kind-class">Service</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Schedule</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L56">schedule.ts:56</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L56">schedule.ts:56</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -78,30 +78,30 @@
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">onvif</span>: <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">Schedule</a></h4><aside class="tsd-sources">
-<p>Overrides <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#constructor">constructor</a></p>
+<p>Overrides <a href="Service.html">Service</a>.<a href="Service.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L57">schedule.ts:57</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L57">schedule.ts:57</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="onvif"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>onvif</span><a href="#onvif" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">onvif</span><span class="tsd-signature-symbol">:</span> <a href="Onvif.html" class="tsd-signature-type tsd-kind-class">Onvif</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#onvif">onvif</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#onvif">onvif</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L39">service.ts:39</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="service"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>service</span><a href="#service" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">service</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a href="../interfaces/OnvifServices.html" class="tsd-signature-type tsd-kind-interface">OnvifServices</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#service">service</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#service">service</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L40">service.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L41">service.ts:41</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="xmlns"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>xmlns</span><a href="#xmlns" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">xmlns</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#xmlns">xmlns</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#xmlns">xmlns</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L41">service.ts:41</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L42">service.ts:42</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -119,7 +119,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.CreateSchedule.html" class="tsd-signature-type tsd-kind-interface">CreateSchedule</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L190">schedule.ts:190</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L190">schedule.ts:190</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="createspecialdaygroup"><span>create<wbr/>Special<wbr/>Day<wbr/>Group</span><a href="#createspecialdaygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -134,7 +134,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.CreateSpecialDayGroup.html" class="tsd-signature-type tsd-kind-interface">CreateSpecialDayGroup</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L280">schedule.ts:280</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L280">schedule.ts:280</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deleteschedule"><span>delete<wbr/>Schedule</span><a href="#deleteschedule" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -149,7 +149,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.DeleteSchedule.html" class="tsd-signature-type tsd-kind-interface">DeleteSchedule</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L215">schedule.ts:215</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L215">schedule.ts:215</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="deletespecialdaygroup"><span>delete<wbr/>Special<wbr/>Day<wbr/>Group</span><a href="#deletespecialdaygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -164,7 +164,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.DeleteSpecialDayGroup.html" class="tsd-signature-type tsd-kind-interface">DeleteSpecialDayGroup</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L311">schedule.ts:311</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L311">schedule.ts:311</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getscheduleinfo"><span>get<wbr/>Schedule<wbr/>Info</span><a href="#getscheduleinfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -179,7 +179,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetScheduleInfo.html" class="tsd-signature-type tsd-kind-interface">GetScheduleInfo</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetScheduleInfoResponse.html" class="tsd-signature-type tsd-kind-interface">GetScheduleInfoResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L135">schedule.ts:135</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L135">schedule.ts:135</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getscheduleinfolist"><span>get<wbr/>Schedule<wbr/>Info<wbr/>List</span><a href="#getscheduleinfolist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -194,7 +194,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetScheduleInfoList.html" class="tsd-signature-type tsd-kind-interface">GetScheduleInfoList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetScheduleInfoListResponse.html" class="tsd-signature-type tsd-kind-interface">GetScheduleInfoListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L144">schedule.ts:144</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L144">schedule.ts:144</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getschedulelist"><span>get<wbr/>Schedule<wbr/>List</span><a href="#getschedulelist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -209,7 +209,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetScheduleList.html" class="tsd-signature-type tsd-kind-interface">GetScheduleList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetScheduleListResponse.html" class="tsd-signature-type tsd-kind-interface">GetScheduleListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L173">schedule.ts:173</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L173">schedule.ts:173</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getschedules"><span>get<wbr/>Schedules</span><a href="#getschedules" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -224,7 +224,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSchedules.html" class="tsd-signature-type tsd-kind-interface">GetSchedules</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetSchedulesResponse.html" class="tsd-signature-type tsd-kind-interface">GetSchedulesResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L161">schedule.ts:161</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L161">schedule.ts:161</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getschedulestate"><span>get<wbr/>Schedule<wbr/>State</span><a href="#getschedulestate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -239,18 +239,18 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetScheduleState.html" class="tsd-signature-type tsd-kind-interface">GetScheduleState</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.ScheduleState.html" class="tsd-signature-type tsd-kind-interface">ScheduleState</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L126">schedule.ts:126</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L126">schedule.ts:126</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getservicecapabilities"><span>get<wbr/>Service<wbr/>Capabilities</span><a href="#getservicecapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-7.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="getservicecapabilities-1"><span class="tsd-kind-call-signature">getServiceCapabilities</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-11.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span><a href="#getservicecapabilities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Returns the capabilities of the schedule service.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-7.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.Capabilities-11.html" class="tsd-signature-type tsd-kind-interface">Capabilities</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L117">schedule.ts:117</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L117">schedule.ts:117</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getspecialdaygroupinfo"><span>get<wbr/>Special<wbr/>Day<wbr/>Group<wbr/>Info</span><a href="#getspecialdaygroupinfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -265,7 +265,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSpecialDayGroupInfo.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupInfo</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetSpecialDayGroupInfoResponse.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupInfoResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L223">schedule.ts:223</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L223">schedule.ts:223</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getspecialdaygroupinfolist"><span>get<wbr/>Special<wbr/>Day<wbr/>Group<wbr/>Info<wbr/>List</span><a href="#getspecialdaygroupinfolist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -280,7 +280,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSpecialDayGroupInfoList.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupInfoList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetSpecialDayGroupInfoListResponse.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupInfoListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L235">schedule.ts:235</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L235">schedule.ts:235</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getspecialdaygrouplist"><span>get<wbr/>Special<wbr/>Day<wbr/>Group<wbr/>List</span><a href="#getspecialdaygrouplist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -295,7 +295,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSpecialDayGroupList.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupList</a><span class="tsd-signature-symbol"> = {}</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetSpecialDayGroupListResponse.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupListResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L263">schedule.ts:263</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L263">schedule.ts:263</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getspecialdaygroups"><span>get<wbr/>Special<wbr/>Day<wbr/>Groups</span><a href="#getspecialdaygroups" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -310,7 +310,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.GetSpecialDayGroups.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroups</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Onvif_specs.GetSpecialDayGroupsResponse.html" class="tsd-signature-type tsd-kind-interface">GetSpecialDayGroupsResponse</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L254">schedule.ts:254</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L254">schedule.ts:254</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="modifyschedule"><span>modify<wbr/>Schedule</span><a href="#modifyschedule" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -325,7 +325,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.ModifySchedule.html" class="tsd-signature-type tsd-kind-interface">ModifySchedule</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L207">schedule.ts:207</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L207">schedule.ts:207</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="modifyspecialdaygroup"><span>modify<wbr/>Special<wbr/>Day<wbr/>Group</span><a href="#modifyspecialdaygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -340,7 +340,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.ModifySpecialDayGroup.html" class="tsd-signature-type tsd-kind-interface">ModifySpecialDayGroup</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L301">schedule.ts:301</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L301">schedule.ts:301</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="request"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -357,9 +357,9 @@
 <li><span><span class="tsd-kind-parameter">body</span>: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/LineraseOptions.html" class="tsd-signature-type tsd-kind-interface">LineraseOptions</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="Device.html#requestt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.default-5.html">default</a>.<a href="Onvif_specs.default-5.html#request">request</a></p>
+<p>Inherited from <a href="Service.html">Service</a>.<a href="Service.html#request">request</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/service.ts#L49">service.ts:49</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/service.ts#L50">service.ts:50</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setschedule"><span>set<wbr/>Schedule</span><a href="#setschedule" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -374,7 +374,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetSchedule.html" class="tsd-signature-type tsd-kind-interface">SetSchedule</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L199">schedule.ts:199</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L199">schedule.ts:199</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="setspecialdaygroup"><span>set<wbr/>Special<wbr/>Day<wbr/>Group</span><a href="#setspecialdaygroup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -389,7 +389,7 @@
 <li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/Onvif_specs.SetSpecialDayGroup.html" class="tsd-signature-type tsd-kind-interface">SetSpecialDayGroup</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/schedule.ts#L293">schedule.ts:293</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/schedule.ts#L293">schedule.ts:293</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

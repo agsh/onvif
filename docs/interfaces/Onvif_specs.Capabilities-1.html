@@ -11,14 +11,14 @@
 <li><a href="../modules/Onvif_specs.html">Onvif specs</a></li>
 <li><a href="" aria-current="page">Capabilities</a></li></ul>
 <h1>Interface Capabilities</h1></div>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#adaptablepreset">adaptablePreset</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#imagestabilization">imageStabilization</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#presets">presets</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#eventbrokerprotocols">eventBrokerProtocols</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxeventbrokers">maxEventBrokers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxnotificationproducers">maxNotificationProducers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxpullpoints">maxPullPoints</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#metadataovermqtt">metadataOverMQTT</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#persistentnotificationstorage">persistentNotificationStorage</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#wspausablesubscriptionmanagerinterfacesupport">WSPausableSubscriptionManagerInterfaceSupport</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#wssubscriptionpolicysupport">WSSubscriptionPolicySupport</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
 <h4 class="tsd-before-signature">Indexable</h4>
 <ul class="tsd-signatures">
 <li class="tsd-index-signature">
 <div class="tsd-signature"><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span></div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/imaging.2.ts#L32">interfaces/imaging.2.ts:32</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L5">interfaces/event.ts:5</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -26,35 +26,74 @@
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#adaptablepreset" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>adaptable<wbr/>Preset?</span></a>
-<a href="#imagestabilization" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>image<wbr/>Stabilization?</span></a>
-<a href="#presets" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>presets?</span></a>
+<div class="tsd-index-list"><a href="#eventbrokerprotocols" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>event<wbr/>Broker<wbr/>Protocols?</span></a>
+<a href="#maxeventbrokers" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Event<wbr/>Brokers?</span></a>
+<a href="#maxnotificationproducers" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Notification<wbr/>Producers?</span></a>
+<a href="#maxpullpoints" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Pull<wbr/>Points?</span></a>
+<a href="#metadataovermqtt" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata<wbr/>Over<wbr/>MQTT?</span></a>
+<a href="#persistentnotificationstorage" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>persistent<wbr/>Notification<wbr/>Storage?</span></a>
+<a href="#wspausablesubscriptionmanagerinterfacesupport" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>WS<wbr/>Pausable<wbr/>Subscription<wbr/>Manager<wbr/>Interface<wbr/>Support?</span></a>
+<a href="#wssubscriptionpolicysupport" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>WS<wbr/>Subscription<wbr/>Policy<wbr/>Support?</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="adaptablepreset"><code class="tsd-tag">Optional</code><span>adaptable<wbr/>Preset</span><a href="#adaptablepreset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">adaptablePreset</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicates whether or not imaging preset settings can be updated.</p>
+<h3 class="tsd-anchor-link" id="eventbrokerprotocols"><code class="tsd-tag">Optional</code><span>event<wbr/>Broker<wbr/>Protocols</span><a href="#eventbrokerprotocols" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">eventBrokerProtocols</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>A space separated list of supported event broker protocols as defined by the tev:EventBrokerProtocol datatype.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/imaging.2.ts#L41">interfaces/imaging.2.ts:41</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L17">interfaces/event.ts:17</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="imagestabilization"><code class="tsd-tag">Optional</code><span>image<wbr/>Stabilization</span><a href="#imagestabilization" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">imageStabilization</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicates whether or not Image Stabilization feature is supported.
-The use of this capability is deprecated, a client should use GetOption to find out if image stabilization is supported.</p>
+<h3 class="tsd-anchor-link" id="maxeventbrokers"><code class="tsd-tag">Optional</code><span>max<wbr/>Event<wbr/>Brokers</span><a href="#maxeventbrokers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxEventBrokers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maxiumum number of event broker configurations that can be added to the device.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/imaging.2.ts#L37">interfaces/imaging.2.ts:37</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L19">interfaces/event.ts:19</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="presets"><code class="tsd-tag">Optional</code><span>presets</span><a href="#presets" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">presets</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
-<div class="tsd-comment tsd-typography"><p>Indicates whether or not Imaging Presets feature is supported.</p>
+<h3 class="tsd-anchor-link" id="maxnotificationproducers"><code class="tsd-tag">Optional</code><span>max<wbr/>Notification<wbr/>Producers</span><a href="#maxnotificationproducers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxNotificationProducers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum number of supported notification producers as defined by WS-BaseNotification.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/imaging.2.ts#L39">interfaces/imaging.2.ts:39</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L11">interfaces/event.ts:11</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="maxpullpoints"><code class="tsd-tag">Optional</code><span>max<wbr/>Pull<wbr/>Points</span><a href="#maxpullpoints" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">maxPullPoints</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
+<div class="tsd-comment tsd-typography"><p>Maximum supported number of notification pull points.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L13">interfaces/event.ts:13</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="metadataovermqtt"><code class="tsd-tag">Optional</code><span>metadata<wbr/>Over<wbr/>MQTT</span><a href="#metadataovermqtt" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">metadataOverMQTT</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that metadata streaming over MQTT is supported</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L21">interfaces/event.ts:21</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="persistentnotificationstorage"><code class="tsd-tag">Optional</code><span>persistent<wbr/>Notification<wbr/>Storage</span><a href="#persistentnotificationstorage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">persistentNotificationStorage</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indication if the device supports persistent notification storage.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L15">interfaces/event.ts:15</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="wspausablesubscriptionmanagerinterfacesupport"><code class="tsd-tag">Optional</code><span>WS<wbr/>Pausable<wbr/>Subscription<wbr/>Manager<wbr/>Interface<wbr/>Support</span><a href="#wspausablesubscriptionmanagerinterfacesupport" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">WSPausableSubscriptionManagerInterfaceSupport</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that the WS Pausable Subscription Manager Interface is supported.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L9">interfaces/event.ts:9</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="wssubscriptionpolicysupport"><code class="tsd-tag">Optional</code><span>WS<wbr/>Subscription<wbr/>Policy<wbr/>Support</span><a href="#wssubscriptionpolicysupport" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">WSSubscriptionPolicySupport</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Indicates that the WS Subscription policy is supported.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/event.ts#L7">interfaces/event.ts:7</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -70,7 +109,7 @@ The use of this capability is deprecated, a client should use GetOption to find 
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#adaptablepreset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>adaptable<wbr/>Preset</span></a><a href="#imagestabilization"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>image<wbr/>Stabilization</span></a><a href="#presets"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>presets</span></a></div></details></div></details></div>
+<div><a href="#eventbrokerprotocols"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>event<wbr/>Broker<wbr/>Protocols</span></a><a href="#maxeventbrokers"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Event<wbr/>Brokers</span></a><a href="#maxnotificationproducers"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Notification<wbr/>Producers</span></a><a href="#maxpullpoints"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Pull<wbr/>Points</span></a><a href="#metadataovermqtt"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata<wbr/>Over<wbr/>MQTT</span></a><a href="#persistentnotificationstorage"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>persistent<wbr/>Notification<wbr/>Storage</span></a><a href="#wspausablesubscriptionmanagerinterfacesupport"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>WS<wbr/>Pausable<wbr/>Subscription<wbr/>Manager<wbr/>Interface<wbr/>Support</span></a><a href="#wssubscriptionpolicysupport"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>WS<wbr/>Subscription<wbr/>Policy<wbr/>Support</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">onvif</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

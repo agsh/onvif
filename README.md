@@ -139,9 +139,9 @@ console.log(info);
 ```
 
 ---
-# Donate
+# Feedback
 
-There are no donations yet :smile:, but if you like the library, please fill out this form so we know which devices
+If you like the library, please fill out this form so we know which devices
 it supports. There are a lot of devices, and not all of them correctly support the ONVIF specification. We're trying
 our best to make it work with as many devices as possible, so your feedback is important to us.
 

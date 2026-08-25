@@ -15,7 +15,7 @@
 <div class="tsd-comment tsd-typography"><p>Base type defining the common properties of a configuration.</p>
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">AnalyticsEngineControl</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#engineconfigtoken">engineConfigToken</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#enginetoken">engineToken</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#inputtoken">inputToken</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#mode">mode</a><span class="tsd-signature-symbol">:</span> <a href="../types/Onvif_specs.ModeOfOperation.html" class="tsd-signature-type tsd-kind-type-alias">ModeOfOperation</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#multicast">multicast</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.MulticastConfiguration.html" class="tsd-signature-type tsd-kind-interface">MulticastConfiguration</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#name">name</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#receivertoken">receiverToken</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#subscription">subscription</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.Config.html" class="tsd-signature-type tsd-kind-interface">Config</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#token">token</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#usecount">useCount</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="5665">
+<section class="tsd-panel tsd-hierarchy" data-refl="7724">
 <h4>Hierarchy (<a href="../hierarchy.html#Onvif specs.AnalyticsEngineControl">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="Onvif_specs.ConfigurationEntity.html" class="tsd-signature-type tsd-kind-interface">ConfigurationEntity</a>
@@ -27,7 +27,7 @@
 <li class="tsd-index-signature">
 <div class="tsd-signature"><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span></div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3429">interfaces/onvif.ts:3429</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3429">interfaces/onvif.ts:3429</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -55,31 +55,31 @@
 <div class="tsd-comment tsd-typography"><p>Token of the analytics engine configuration (VideoAnalyticsConfiguration) in effect.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3433">interfaces/onvif.ts:3433</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3433">interfaces/onvif.ts:3433</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="enginetoken"><span>engine<wbr/>Token</span><a href="#enginetoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">engineToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>Token of the analytics engine (AnalyticsEngine) being controlled.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3431">interfaces/onvif.ts:3431</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3431">interfaces/onvif.ts:3431</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="inputtoken"><code class="tsd-tag">Optional</code><span>input<wbr/>Token</span><a href="#inputtoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">inputToken</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Tokens of the input (AnalyticsEngineInput) configuration applied.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3435">interfaces/onvif.ts:3435</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3435">interfaces/onvif.ts:3435</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="mode"><span>mode</span><a href="#mode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">mode</span><span class="tsd-signature-symbol">:</span> <a href="../types/Onvif_specs.ModeOfOperation.html" class="tsd-signature-type tsd-kind-type-alias">ModeOfOperation</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3440">interfaces/onvif.ts:3440</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3440">interfaces/onvif.ts:3440</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="multicast"><code class="tsd-tag">Optional</code><span>multicast</span><a href="#multicast" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">multicast</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.MulticastConfiguration.html" class="tsd-signature-type tsd-kind-interface">MulticastConfiguration</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3438">interfaces/onvif.ts:3438</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3438">interfaces/onvif.ts:3438</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="name"><span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -87,19 +87,19 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="Onvif_specs.ConfigurationEntity.html">ConfigurationEntity</a>.<a href="Onvif_specs.ConfigurationEntity.html#name">name</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L245">interfaces/onvif.ts:245</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L245">interfaces/onvif.ts:245</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="receivertoken"><code class="tsd-tag">Optional</code><span>receiver<wbr/>Token</span><a href="#receivertoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">receiverToken</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Tokens of the receiver providing media input data. The order of ReceiverToken shall exactly match the order of InputToken.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3437">interfaces/onvif.ts:3437</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3437">interfaces/onvif.ts:3437</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="subscription"><span>subscription</span><a href="#subscription" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">subscription</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.Config.html" class="tsd-signature-type tsd-kind-interface">Config</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L3439">interfaces/onvif.ts:3439</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L3439">interfaces/onvif.ts:3439</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="token"><span>token</span><a href="#token" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">token</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -107,7 +107,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="Onvif_specs.ConfigurationEntity.html">ConfigurationEntity</a>.<a href="Onvif_specs.ConfigurationEntity.html#token">token</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L243">interfaces/onvif.ts:243</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L243">interfaces/onvif.ts:243</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="usecount"><span>use<wbr/>Count</span><a href="#usecount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">useCount</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -115,7 +115,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="Onvif_specs.ConfigurationEntity.html">ConfigurationEntity</a>.<a href="Onvif_specs.ConfigurationEntity.html#usecount">useCount</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/onvif.ts#L247">interfaces/onvif.ts:247</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/onvif.ts#L247">interfaces/onvif.ts:247</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

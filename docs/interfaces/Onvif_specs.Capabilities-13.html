@@ -12,17 +12,16 @@
 <li><a href="" aria-current="page">Capabilities</a></li></ul>
 <h1>Interface Capabilities</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Action Engine Capabilities data structure contains the maximum number of supported actions and number of actions in use for generic as well as specific action types</p>
+<div class="tsd-comment tsd-typography"><p>The capabilities of a Security Configuration Service implementation on a device.</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#actioncapabilities">actionCapabilities</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.ActionTypeLimits.html" class="tsd-signature-type tsd-kind-interface">ActionTypeLimits</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#extension">extension</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.ActionEngineCapabilitiesExtension.html" class="tsd-signature-type tsd-kind-interface">ActionEngineCapabilitiesExtension</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maximumactions">maximumActions</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maximumtriggers">maximumTriggers</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-hierarchy" data-refl="5456">
-<h4>Hierarchy (<a href="../hierarchy.html#Onvif specs.Capabilities">View Summary</a>)</h4>
-<ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><a href="Onvif_specs.ActionEngineCapabilities.html" class="tsd-signature-type tsd-kind-interface">ActionEngineCapabilities</a>
-<ul class="tsd-hierarchy">
-<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Capabilities</span></li></ul></li></ul></section><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">Capabilities</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#authorizationserver">authorizationServer</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.AuthorizationServerConfigurationCapabilities.html" class="tsd-signature-type tsd-kind-interface">AuthorizationServerConfigurationCapabilities</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#dot1xcapabilities">dot1XCapabilities</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.Dot1XCapabilities.html" class="tsd-signature-type tsd-kind-interface">Dot1XCapabilities</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keystorecapabilities">keystoreCapabilities</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.KeystoreCapabilities.html" class="tsd-signature-type tsd-kind-interface">KeystoreCapabilities</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#mediasigning">mediaSigning</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.MediaSigningCapabilities-1.html" class="tsd-signature-type tsd-kind-interface">MediaSigningCapabilities</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#tlsservercapabilities">TLSServerCapabilities</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.TLSServerCapabilities.html" class="tsd-signature-type tsd-kind-interface">TLSServerCapabilities</a><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">[</span><span class="tsd-kind-index-signature">key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<section class="tsd-panel">
+<h4 class="tsd-before-signature">Indexable</h4>
+<ul class="tsd-signatures">
+<li class="tsd-index-signature">
+<div class="tsd-signature"><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]:</span> <span class="tsd-signature-type">unknown</span></div></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/actionengine.ts#L371">interfaces/actionengine.ts:371</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L397">interfaces/advancedsecurity.ts:397</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -30,44 +29,50 @@
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-index-list"><a href="#actioncapabilities" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>action<wbr/>Capabilities?</span></a>
-<a href="#extension" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>extension?</span></a>
-<a href="#maximumactions" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>maximum<wbr/>Actions?</span></a>
-<a href="#maximumtriggers" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>maximum<wbr/>Triggers?</span></a>
+<div class="tsd-index-list"><a href="#authorizationserver" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>authorization<wbr/>Server?</span></a>
+<a href="#dot1xcapabilities" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dot1<wbr/>X<wbr/>Capabilities?</span></a>
+<a href="#keystorecapabilities" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>keystore<wbr/>Capabilities</span></a>
+<a href="#mediasigning" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>media<wbr/>Signing?</span></a>
+<a href="#tlsservercapabilities" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>TLS<wbr/>Server<wbr/>Capabilities</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="actioncapabilities"><code class="tsd-tag">Optional</code><span>action<wbr/>Capabilities</span><a href="#actioncapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">actionCapabilities</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.ActionTypeLimits.html" class="tsd-signature-type tsd-kind-interface">ActionTypeLimits</a><span class="tsd-signature-symbol">[]</span></div>
-<div class="tsd-comment tsd-typography"><p>Limits for each action type</p>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="authorizationserver"><code class="tsd-tag">Optional</code><span>authorization<wbr/>Server</span><a href="#authorizationserver" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">authorizationServer</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.AuthorizationServerConfigurationCapabilities.html" class="tsd-signature-type tsd-kind-interface">AuthorizationServerConfigurationCapabilities</a></div>
+<div class="tsd-comment tsd-typography"><p>The capabilities for external authorization server capabilities.</p>
 </div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.ActionEngineCapabilities.html">ActionEngineCapabilities</a>.<a href="Onvif_specs.ActionEngineCapabilities.html#actioncapabilities">actionCapabilities</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/actionengine.ts#L36">interfaces/actionengine.ts:36</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="extension"><code class="tsd-tag">Optional</code><span>extension</span><a href="#extension" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">extension</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.ActionEngineCapabilitiesExtension.html" class="tsd-signature-type tsd-kind-interface">ActionEngineCapabilitiesExtension</a></div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.ActionEngineCapabilities.html">ActionEngineCapabilities</a>.<a href="Onvif_specs.ActionEngineCapabilities.html#extension">extension</a></p>
-<ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/actionengine.ts#L37">interfaces/actionengine.ts:37</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="maximumactions"><code class="tsd-tag">Optional</code><span>maximum<wbr/>Actions</span><a href="#maximumactions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">maximumActions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
-<div class="tsd-comment tsd-typography"><p>The maximum number of actions that the service provider can concurrently support</p>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L405">interfaces/advancedsecurity.ts:405</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="dot1xcapabilities"><code class="tsd-tag">Optional</code><span>dot1<wbr/>X<wbr/>Capabilities</span><a href="#dot1xcapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">dot1XCapabilities</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.Dot1XCapabilities.html" class="tsd-signature-type tsd-kind-interface">Dot1XCapabilities</a></div>
+<div class="tsd-comment tsd-typography"><p>The capabilities of the 802.1X implementation.</p>
 </div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.ActionEngineCapabilities.html">ActionEngineCapabilities</a>.<a href="Onvif_specs.ActionEngineCapabilities.html#maximumactions">maximumActions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/actionengine.ts#L34">interfaces/actionengine.ts:34</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-inherited">
-<h3 class="tsd-anchor-link" id="maximumtriggers"><code class="tsd-tag">Optional</code><span>maximum<wbr/>Triggers</span><a href="#maximumtriggers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">maximumTriggers</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
-<div class="tsd-comment tsd-typography"><p>The maximum number of trigger configurations that the service provider can concurrently support</p>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L403">interfaces/advancedsecurity.ts:403</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="keystorecapabilities"><span>keystore<wbr/>Capabilities</span><a href="#keystorecapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">keystoreCapabilities</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.KeystoreCapabilities.html" class="tsd-signature-type tsd-kind-interface">KeystoreCapabilities</a></div>
+<div class="tsd-comment tsd-typography"><p>The capabilities of the keystore implementation.</p>
 </div><aside class="tsd-sources">
-<p>Inherited from <a href="Onvif_specs.ActionEngineCapabilities.html">ActionEngineCapabilities</a>.<a href="Onvif_specs.ActionEngineCapabilities.html#maximumtriggers">maximumTriggers</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/actionengine.ts#L32">interfaces/actionengine.ts:32</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L399">interfaces/advancedsecurity.ts:399</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="mediasigning"><code class="tsd-tag">Optional</code><span>media<wbr/>Signing</span><a href="#mediasigning" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">mediaSigning</span><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.MediaSigningCapabilities-1.html" class="tsd-signature-type tsd-kind-interface">MediaSigningCapabilities</a></div>
+<div class="tsd-comment tsd-typography"><p>The capabilities of the media signing implementation.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L407">interfaces/advancedsecurity.ts:407</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="tlsservercapabilities"><span>TLS<wbr/>Server<wbr/>Capabilities</span><a href="#tlsservercapabilities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">TLSServerCapabilities</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.TLSServerCapabilities.html" class="tsd-signature-type tsd-kind-interface">TLSServerCapabilities</a></div>
+<div class="tsd-comment tsd-typography"><p>The capabilities of the TLS server implementation.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/advancedsecurity.ts#L401">interfaces/advancedsecurity.ts:401</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -83,7 +88,7 @@
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#actioncapabilities" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>action<wbr/>Capabilities</span></a><a href="#extension" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>extension</span></a><a href="#maximumactions" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>maximum<wbr/>Actions</span></a><a href="#maximumtriggers" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>maximum<wbr/>Triggers</span></a></div></details></div></details></div>
+<div><a href="#authorizationserver"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>authorization<wbr/>Server</span></a><a href="#dot1xcapabilities"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dot1<wbr/>X<wbr/>Capabilities</span></a><a href="#keystorecapabilities"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>keystore<wbr/>Capabilities</span></a><a href="#mediasigning"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>media<wbr/>Signing</span></a><a href="#tlsservercapabilities"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>TLS<wbr/>Server<wbr/>Capabilities</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">onvif</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

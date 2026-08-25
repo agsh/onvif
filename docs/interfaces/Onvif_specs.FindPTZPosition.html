@@ -13,7 +13,7 @@
 <h1>Interface FindPTZPosition</h1></div>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">FindPTZPosition</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#endpoint">endPoint</a><span class="tsd-signature-symbol">?:</span> <a href="Onvif_specs.Date.html" class="tsd-signature-type tsd-kind-interface">Date</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#keepalivetime">keepAliveTime</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#maxmatches">maxMatches</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#scope">scope</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.SearchScope.html" class="tsd-signature-type tsd-kind-interface">SearchScope</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#searchfilter">searchFilter</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.PTZPositionFilter.html" class="tsd-signature-type tsd-kind-interface">PTZPositionFilter</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#startpoint">startPoint</a><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.Date.html" class="tsd-signature-type tsd-kind-interface">Date</a><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L103">interfaces/search.ts:103</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L103">interfaces/search.ts:103</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -37,38 +37,38 @@
 <div class="tsd-comment tsd-typography"><p>The point of time where the search will stop. This can be a time before the StartPoint, in which case the search is performed backwards in time.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L107">interfaces/search.ts:107</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L107">interfaces/search.ts:107</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="keepalivetime"><span>keep<wbr/>Alive<wbr/>Time</span><a href="#keepalivetime" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">keepAliveTime</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L113">interfaces/search.ts:113</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L113">interfaces/search.ts:113</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxmatches"><code class="tsd-tag">Optional</code><span>max<wbr/>Matches</span><a href="#maxmatches" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxMatches</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
 <div class="tsd-comment tsd-typography"><p>The search will be completed after this many matches. If not specified, the search will continue until reaching the endpoint or until the session expires.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L111">interfaces/search.ts:111</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L111">interfaces/search.ts:111</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scope"><span>scope</span><a href="#scope" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">scope</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.SearchScope.html" class="tsd-signature-type tsd-kind-interface">SearchScope</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L108">interfaces/search.ts:108</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L108">interfaces/search.ts:108</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="searchfilter"><span>search<wbr/>Filter</span><a href="#searchfilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">searchFilter</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.PTZPositionFilter.html" class="tsd-signature-type tsd-kind-interface">PTZPositionFilter</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L109">interfaces/search.ts:109</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L109">interfaces/search.ts:109</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="startpoint"><span>start<wbr/>Point</span><a href="#startpoint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">startPoint</span><span class="tsd-signature-symbol">:</span> <a href="Onvif_specs.Date.html" class="tsd-signature-type tsd-kind-interface">Date</a></div>
 <div class="tsd-comment tsd-typography"><p>The point of time where the search will start.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/agsh/onvif/blob/4d055539c7de53ad520db603bbf0956dd4dcc161/src/interfaces/search.ts#L105">interfaces/search.ts:105</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/agsh/onvif/blob/63921dd0df208d9f52822462bc70da0859538bb3/src/interfaces/search.ts#L105">interfaces/search.ts:105</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

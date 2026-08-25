@@ -1,11 +1,16 @@
 export * from './onvif';
 export * from './events';
+export { default as Events } from './events';
 export { default as Device } from './device';
 export * from './media';
+export { default as Media } from './media';
 export * from './media2';
+export { default as Media2 } from './media2';
 export * from './discovery';
 export * from './ptz';
+export { default as PTZ } from './ptz';
 export * from './replay';
+export { default as Replay } from './replay';
 export { default as Imaging } from './imaging';
 export { default as Recording } from './recording';
 export { default as DoorControl } from './doorcontrol';
@@ -23,6 +28,7 @@ export { default as ActionEngine } from './actionengine';
 export { default as Search } from './search';
 export { default as AnalyticsDevice } from './analyticsdevice';
 export { default as Receiver } from './receiver';
+export { default as Service } from './service';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
 // export * from './compatibility/cam'; // use compatibility directly, ex.: require('onvif/compatibility/promises')

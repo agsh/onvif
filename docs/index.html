@@ -20,61 +20,64 @@ If you are looking for the README for the stable 0.x version, please see
 </code><button type="button">Copy</button></pre>
 
 </div>
-<p>This is a wrapper for the ONVIF protocol that allows you to:</p>
+<p>A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:</p>
 <ul>
-<li>get information about your NVT (Network Video Transmitter) device and its media sources</li>
-<li>control PTZ (pan-tilt-zoom) movements</li>
-<li>manage presets</li>
-<li>detect devices on your network</li>
-<li>control events</li>
-<li>retrieve information about your NVR (Network Video Recorder) Profile G device</li>
-<li>obtain a list of recordings</li>
+<li><strong>Core media &amp; PTZ</strong> — (Profiles <a href="https://www.onvif.org/profiles/profile-s/">S</a>,
+<a href="https://www.onvif.org/profiles/profile-t/">T</a>) device info, Media / Media2 profiles, stream URIs, imaging, presets,
+continuous and absolute moves</li>
+<li><strong>Events</strong> — (Profile <a href="https://www.onvif.org/profiles/profile-m/">M</a>) pull-point and WS-BaseNotification with topic
+filters and <code>EventEmitter</code> integration</li>
+<li><strong>Recording &amp; replay</strong> — (Profile <a href="https://www.onvif.org/profiles/profile-g/">G</a>) NVR search, recordings, and replay
+URIs</li>
+<li><strong>Physical access</strong> — (Profiles <a href="https://www.onvif.org/profiles/profile-c/">C</a>,
+<a href="https://www.onvif.org/profiles/profile-a/">A</a>) DoorControl, AccessControl, Credential, AccessRules, Schedule</li>
+<li><strong>More services</strong> — (Profile <a href="https://www.onvif.org/profiles/profile-t/">T</a>) Analytics, DeviceIO, Display,
+Action Engine, Thermal, Provisioning, AdvancedSecurity</li>
+<li><strong>Discovery &amp; auth</strong> — WS-Discovery on the LAN; WS-Security and Digest (MD5 / SHA-1 / SHA-256)</li>
 </ul>
-<p>The library runs on Node.js and works server-side.</p>
+<p>Works server-side on Node.js 18+, tested on GitHub Actions.</p>
 <p><a href="http://onvif.org"><img src="https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d" alt="ONVIF"></a></p>
 <h2 id="about" class="tsd-anchor-link">About<a href="#about" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p>This is a new version of the ONVIF library. The previous version was written in JavaScript, while this version is written in TypeScript and includes interfaces describing ONVIF data structures.</p>
-<p>At the moment, some of the methods from v0.8 have been implemented.</p>
-<p>You can find the list of supported ONVIF commands here:</p>
-<ul>
-<li><a href="https://github.com/agsh/onvif/blob/v1/CHECKED.md">https://github.com/agsh/onvif/blob/v1/CHECKED.md</a></li>
-</ul>
-<p>The library will continue to be updated, as other methods are currently under development.</p>
+<p>This is a new version of the ONVIF library. The previous version was written in JavaScript, while this version is
+written in TypeScript and includes interfaces describing ONVIF data structures.</p>
+<p>At the moment, all the methods from v0.8 have been implemented in the new <code>Onvif</code> API, and a
+<a href="https://github.com/agsh/onvif/blob/master/src/compatibility/cam.ts">v0.x compatibility layer</a> is available
+for existing projects.</p>
+<div class="tsd-alert tsd-alert-tip"><div class="tsd-alert-title"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><use href="assets/icons.svg#icon-alertTip"></use></svg><span>Tip</span></div><p>
+The main 1.x API uses the <code>Onvif</code> class with service modules (<code>onvif.device</code>, <code>onvif.media</code>, <code>onvif.ptz</code>, …).
+For v0.8 migration, import the separate compatibility modules (not part of <code>require('onvif')</code>):
+<code>require('onvif/compatibility')</code> for callbacks or <code>require('onvif/compatibility/promises')</code> for async/await.</p>
+</div>
 <p>The documentation for the new library was generated with TypeDoc and is available here:</p>
 <ul>
-<li><a href="https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/index.html">https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/index.html</a></li>
+<li><a href="https://agsh.github.io/onvif/">https://agsh.github.io/onvif/</a></li>
 </ul>
-<p>Code that uses the old version of the library (<code>0.8.x</code>) should work with the compatibility class:</p>
-<ul>
-<li><a href="https://github.com/agsh/onvif/blob/v1/src/compatibility/cam.ts">https://github.com/agsh/onvif/blob/v1/src/compatibility/cam.ts</a></li>
-</ul>
-<div class="tsd-alert tsd-alert-warning"><div class="tsd-alert-title"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><use href="assets/icons.svg#icon-alertWarning"></use></svg><span>Warning</span></div><p>
-Compatibility mode is currently unsupported.</p>
-</div>
 <p>Thanks a lot for your interest!<br>
 I will be happy to answer any questions and hear your feedback.</p>
 <hr>
 <h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li>TypeScript interfaces for the latest ONVIF WSDL specification generated by
-<a href="https://github.com/agsh/onvif-generate-interfaces">onvif-generate-interfaces</a> to provide code completion and type checking</li>
-<li>Complete <a href="https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/index.html">documentation</a></li>
+<a href="https://github.com/agsh/onvif-generate-interfaces">onvif-generate-interfaces</a> to provide code completion and type checking in the IDE for the requested and
+returned values</li>
+<li>Complete <a href="https://agsh.github.io/onvif/">documentation</a></li>
 <li>Tests using the real <a href="https://www.happytimesoft.com/products/onvif-server/index.html">ONVIF server</a> from HappyTimeSoft</li>
-<li>Event support: pull-point, base ws-notification, filters, EventEmitter inheritance</li>
+<li>Event support: pull-point, base ws-notification, filters, EventEmitter inheritance. See below</li>
 <li>Lazy import of service modules: if, for example, a thermal service is not used, it will not be loaded.</li>
-<li>Authentication with WS-Security, Digest (MD5, SHA-1, SHA-256)</li>
-<li>Full Media2 <a href="https://github.com/agsh/onvif/blob/v1/MEDIA2.md">support</a></li>
-<li>Full Media <a href="https://github.com/agsh/onvif/blob/v1/MEDIA.md">support</a></li>
-<li>Full PTZ <a href="https://github.com/agsh/onvif/blob/v1/PTZ.md">support</a></li>
-<li>Full Replay <a href="https://github.com/agsh/onvif/blob/v1/REPLAY.md">support</a></li>
-<li>Full Imaging <a href="https://github.com/agsh/onvif/blob/v1/IMAGING.md">support</a></li>
-<li>Full DoorControl <a href="https://github.com/agsh/onvif/blob/v1/DOORCONTROL.md">support</a></li>
-<li>Full Analytics <a href="https://github.com/agsh/onvif/blob/v1/ANALYTICS.md">support</a></li>
-<li>Full DeviceIO <a href="https://github.com/agsh/onvif/blob/v1/DEVICEIO.md">support</a></li>
-<li>Full Display <a href="https://github.com/agsh/onvif/blob/v1/DISPLAY.md">support</a></li>
-<li>Full Action Engine <a href="https://github.com/agsh/onvif/blob/v1/ACTIONENGINE.md">support</a> (mock tests only)</li>
-<li>Device <a href="https://github.com/agsh/onvif/blob/v1/DEVICE.md">support</a> not all features can be tested, for
-example, <code>setFitmwareUpgrade</code> as you can understand from the name, it requires a file to be uploaded</li>
+<li>Authentication with WS-Security and Digest (MD5, SHA-1, SHA-256), also Advanced Security (experimental)</li>
+<li>WS-Discovery support for finding devices on the local network</li>
+<li>Full: <code>Device</code>, <code>Events</code>, <code>Media</code>, <code>Media2</code>, <code>PTZ</code>, <code>Imaging</code>, <code>Analytics</code>, <code>AnalyticsDevice</code>, <code>Recording</code>, <code>Replay</code>,
+<code>Search</code>, <code>Receiver</code>, <code>DeviceIO</code>, <code>Display</code>, <code>Action Engine</code>, <code>Thermal</code>, <code>DoorControl</code>, <code>AccessControl</code>, <code>Credential</code>,
+<code>AccessRules</code>, <code>Schedule</code>, <code>Provisioning</code>, <code>AdvancedSecurity</code> support.
+<blockquote>
+<p>Not yet implemented (interfaces only, from
+<a href="https://www.onvif.org/profiles/specifications/">ONVIF Network Interface Specifications</a>):
+AuthenticationBehavior, Application Management (appmgmt), Uplink, FederatedSearch</p>
+</blockquote>
+</li>
+<li>Improved error handling</li>
+<li>Compatible with the original API structure</li>
+<li>Optional v0.x layer (not in the main export): <code>require('onvif/compatibility')</code> for callbacks, <code>require('onvif/compatibility/promises')</code> for Promises</li>
 </ul>
 <hr>
 <h1 id="connection" class="tsd-anchor-link">Connection<a href="#connection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
@@ -98,15 +101,82 @@ streaming or controlling the camera without extra setup.</li>
 </ol>
 <p>On success, <code>connect()</code> emits a <code>connect</code> event and returns the <code>Onvif</code> instance. Pass <code>autoConnect: true</code>
 in the constructor to run this automatically after instantiation.</p>
-<pre><code class="ts"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1"> = </span><span class="hl-3">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">({ </span><span class="hl-5">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-5">port:</span><span class="hl-1"> </span><span class="hl-6">8000</span><span class="hl-1">, </span><span class="hl-5">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-5">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> });</span><br/><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">onvif</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">onvif</span><span class="hl-1">.</span><span class="hl-5">activeSource</span><span class="hl-1">);</span>
+<h3 id="typescript" class="tsd-anchor-link">TypeScript<a href="#typescript" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="ts"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">Onvif</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;onvif&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">onvif</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">({ </span><span class="hl-4">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-4">port:</span><span class="hl-1"> </span><span class="hl-7">8000</span><span class="hl-1">, </span><span class="hl-4">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-4">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> });</span><br/><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">info</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-4">device</span><span class="hl-1">.</span><span class="hl-0">getDeviceInformation</span><span class="hl-1">();</span><br/><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">info</span><span class="hl-1">);</span>
 </code><button type="button">Copy</button></pre>
 
+<h3 id="commonjs" class="tsd-anchor-link">CommonJS<a href="#commonjs" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="js"><span class="hl-5">const</span><span class="hl-1"> { </span><span class="hl-6">Onvif</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;onvif&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-1">(</span><span class="hl-5">async</span><span class="hl-1"> () </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">onvif</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">({ </span><span class="hl-4">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-4">port:</span><span class="hl-1"> </span><span class="hl-7">8000</span><span class="hl-1">, </span><span class="hl-4">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-4">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> });</span><br/><span class="hl-1">  </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">info</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-4">device</span><span class="hl-1">.</span><span class="hl-0">getDeviceInformation</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">info</span><span class="hl-1">);</span><br/><span class="hl-1">})();</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="esm-or-" class="tsd-anchor-link">ESM (<code>.mjs</code> or <code>&quot;type&quot;: &quot;module&quot;</code>)<a href="#esm-or-" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="js"><span class="hl-3">import</span><span class="hl-1"> { </span><span class="hl-4">Onvif</span><span class="hl-1"> } </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-2">&#39;onvif&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">onvif</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">({ </span><span class="hl-4">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-4">port:</span><span class="hl-1"> </span><span class="hl-7">8000</span><span class="hl-1">, </span><span class="hl-4">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-4">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> });</span><br/><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">info</span><span class="hl-1"> = </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-4">device</span><span class="hl-1">.</span><span class="hl-0">getDeviceInformation</span><span class="hl-1">();</span><br/><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">info</span><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
+
+<hr>
+<h1 id="donate" class="tsd-anchor-link">Donate<a href="#donate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>There are no donations yet :smile:, but if you like the library, please fill out this form so we know which devices
+it supports. There are a lot of devices, and not all of them correctly support the ONVIF specification. We're trying
+our best to make it work with as many devices as possible, so your feedback is important to us.</p>
+<p>@RogerHardiman tested this lib on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x Panasonic,
+2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S,
+Profile G and Profile T devices.</p>
+<p>But we want to learn about as wide a range of devices as possible.
+So yes, the best way to donate is to leave your feedback :smile:</p>
+<p>Just run <code>console.log(await onvif.device.getDeviceInformation());</code>, you will get something like this:</p>
+<pre><code class="json">{
+  "manufacturer": "tp-link",
+  "model": "Tapo C220",
+  "firmwareVersion": "1.4.4 Build 260515 Rel.24570n",
+  "serialNumber": "7461572b",
+  "hardwareId": 1
+}
+</code><button type="button">Copy</button></pre>
+
+<p>and put it here with your comments please:
+<a href="https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform">https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform</a></p>
+<hr>
+<h1 id="migration-from-v0x" class="tsd-anchor-link">Migration from v0.x<a href="#migration-from-v0x" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>Version 1.x introduces a new typed <code>Onvif</code> API. Compatibility modules are <strong>not</strong> re-exported from <code>require('onvif')</code> —
+import them explicitly: <code>onvif/compatibility</code> (callbacks) or <code>onvif/compatibility/promises</code> (async/await).</p>
+<h3 id="callbacks-" class="tsd-anchor-link">Callbacks (<code>onvif/compatibility</code>)<a href="#callbacks-" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="js"><span class="hl-5">const</span><span class="hl-1"> { </span><span class="hl-6">Cam</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;onvif/compatibility&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">cam</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Cam</span><span class="hl-1">(</span><br/><span class="hl-1">  { </span><span class="hl-4">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-4">port:</span><span class="hl-1"> </span><span class="hl-7">8000</span><span class="hl-1">, </span><span class="hl-4">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-4">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> },</span><br/><span class="hl-1">  (</span><span class="hl-4">error</span><span class="hl-1">) </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-3">if</span><span class="hl-1"> (</span><span class="hl-4">error</span><span class="hl-1">) </span><span class="hl-3">throw</span><span class="hl-1"> </span><span class="hl-4">error</span><span class="hl-1">;</span><br/><span class="hl-1">    </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-0">getDeviceInformation</span><span class="hl-1">((</span><span class="hl-4">err</span><span class="hl-1">, </span><span class="hl-4">info</span><span class="hl-1">) </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-3">if</span><span class="hl-1"> (</span><span class="hl-4">err</span><span class="hl-1">) </span><span class="hl-3">throw</span><span class="hl-1"> </span><span class="hl-4">err</span><span class="hl-1">;</span><br/><span class="hl-1">      </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">info</span><span class="hl-1">);</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">);</span>
+</code><button type="button">Copy</button></pre>
+
+<p>See <a href="https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs">compatibility.cjs</a>.</p>
+<h3 id="promises-" class="tsd-anchor-link">Promises (<code>onvif/compatibility/promises</code>)<a href="#promises-" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="js"><span class="hl-5">const</span><span class="hl-1"> { </span><span class="hl-6">Cam</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;onvif/compatibility/promises&#39;</span><span class="hl-1">);</span><br/><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">cam</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Cam</span><span class="hl-1">({ </span><span class="hl-4">hostname:</span><span class="hl-1"> </span><span class="hl-2">&#39;192.168.1.13&#39;</span><span class="hl-1">, </span><span class="hl-4">port:</span><span class="hl-1"> </span><span class="hl-7">8000</span><span class="hl-1">, </span><span class="hl-4">username:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1">, </span><span class="hl-4">password:</span><span class="hl-1"> </span><span class="hl-2">&#39;admin&#39;</span><span class="hl-1"> });</span><br/><br/><span class="hl-1">(</span><span class="hl-5">async</span><span class="hl-1"> () </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-0">getDeviceInformation</span><span class="hl-1">());</span><br/><span class="hl-1">})();</span>
+</code><button type="button">Copy</button></pre>
+
+<p>See <a href="https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs">compatibilityPromises.cjs</a>.</p>
+<p>The promisified <code>Cam</code> wraps the callback implementation: no auto-connect (call <code>await cam.connect()</code>),
+methods return Promises, getters and EventEmitter APIs are forwarded, and <code>_cam</code> exposes the underlying instance.</p>
+<h1 id="examples" class="tsd-anchor-link">Examples<a href="#examples" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p>located in the Examples Folder on the Github</p>
+<div class="tsd-alert tsd-alert-tip"><div class="tsd-alert-title"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><use href="assets/icons.svg#icon-alertTip"></use></svg><span>Tip</span></div><p>
+Not all of them were reworked for version 1.x.</p>
+</div>
+<ul>
+<li><a href="https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs">compatibility.cjs</a> - v0.x callback API (<code>require('onvif/compatibility')</code>): connect and print <code>getDeviceInformation</code></li>
+<li><a href="https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs">compatibilityPromises.cjs</a> - v0.x Promise API (<code>require('onvif/compatibility/promises')</code>): same, with async/await</li>
+<li><a href="https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts">events.with.filter.ts</a> - ONVIF Events. With filters, pull-point, push-sub subscriptions</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example.js">example.js</a> - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example2.js">example2.js</a> - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
+For Profile S Cameras and Encoders it displays the default RTSP address
+For Profile G Recorders it displays the RTSP address of the first recording</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example3.js">example3.js</a> - reads the command line cursor keys and sends PTZ commands to the Camera</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example4.js">example4.js</a> - uses Discovery to find cameras on the local network</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example5.js">example5.js</a> - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example6.js">example6.js</a> - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server</li>
+<li><a href="https://github.com/agsh/onvif/blob/v1/examples/example7.js">example7.js</a> - legacy v0.x Promise example (for 1.x use <a href="media/compatibilityPromises.cjs">compatibilityPromises.cjs</a> instead)</li>
+<li><a href="https://github.com/agsh/onvif/blob/master/examples/example8.js">example8.js</a> - example setting OSD On Screen Display. (also uses Promises API)</li>
+</ul>
 <hr>
 <h1 id="events" class="tsd-anchor-link">Events<a href="#events" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <h2 id="common-approach" class="tsd-anchor-link">Common approach<a href="#common-approach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>To subscribe to all events using <strong>pull-point</strong> subscription you can just use <code>.on()</code> method, since the <code>Onvif</code> class
 inherits from the <code>EventEmitter</code> class.</p>
-<pre><code class="ts"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">onvif</span><span class="hl-1"> = </span><span class="hl-3">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">();</span><br/><span class="hl-3">function</span><span class="hl-1"> </span><span class="hl-0">eventHandler</span><span class="hl-1">(</span><span class="hl-5">msg</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">msg</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-5">onvif</span><span class="hl-1">.</span><span class="hl-0">off</span><span class="hl-1">(</span><span class="hl-2">&#39;event&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">}</span><br/><span class="hl-5">onvif</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;event&#39;</span><span class="hl-1">, </span><span class="hl-5">eventHandler</span><span class="hl-1">);</span>
+<pre><code class="ts"><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">onvif</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Onvif</span><span class="hl-1">();</span><br/><span class="hl-5">function</span><span class="hl-1"> </span><span class="hl-0">eventHandler</span><span class="hl-1">(</span><span class="hl-4">msg</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-4">msg</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-0">off</span><span class="hl-1">(</span><span class="hl-2">&#39;event&#39;</span><span class="hl-1">);</span><br/><span class="hl-1">}</span><br/><span class="hl-4">onvif</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;event&#39;</span><span class="hl-1">, </span><span class="hl-4">eventHandler</span><span class="hl-1">);</span>
 </code><button type="button">Copy</button></pre>
 
 <h2 id="subscription-class" class="tsd-anchor-link">Subscription class<a href="#subscription-class" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
@@ -117,7 +187,7 @@ And emits two events: <code>data</code> and <code>error</code>. To use it you ne
 subscription and remove all listeners you need to call <code>unsubscribe()</code> method.</p>
 <p>The first and the only one argument for <code>data</code> is the NotificationMessage object. And an <code>error</code> raised only when
 the connection to the device is lost.</p>
-<pre><code class="ts"><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">cam</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">sub</span><span class="hl-1"> = </span><span class="hl-3">new</span><span class="hl-1"> </span><span class="hl-0">Subscription</span><span class="hl-1">(</span><span class="hl-5">cam</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-5">filter:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">topicExpression:</span><span class="hl-1"> [</span><br/><span class="hl-1">      {</span><br/><span class="hl-1">        </span><span class="hl-5">expression:</span><span class="hl-1"> </span><span class="hl-2">&#39;tns1:RuleEngine/CellMotionDetector/Motion&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-5">dialect:</span><span class="hl-1"> </span><span class="hl-2">&#39;http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">    ],</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><span class="hl-5">sub</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;data&#39;</span><span class="hl-1">, </span><span class="hl-3">async</span><span class="hl-1"> (</span><span class="hl-5">data</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-3">new</span><span class="hl-1"> </span><span class="hl-0">Date</span><span class="hl-1">().</span><span class="hl-0">toLocaleTimeString</span><span class="hl-1">(), </span><span class="hl-2">&#39;motion&#39;</span><span class="hl-1">, </span><span class="hl-5">data</span><span class="hl-1">.</span><span class="hl-5">topic</span><span class="hl-1">.</span><span class="hl-5">_</span><span class="hl-1">, </span><span class="hl-5">data</span><span class="hl-1">.</span><span class="hl-5">message</span><span class="hl-1">.</span><span class="hl-5">message</span><span class="hl-1">.</span><span class="hl-5">data</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">sub</span><span class="hl-1">.</span><span class="hl-0">unsubscribe</span><span class="hl-1">();</span><br/><span class="hl-1">});</span><br/><span class="hl-7">await</span><span class="hl-1"> </span><span class="hl-5">sub</span><span class="hl-1">.</span><span class="hl-0">subscribe</span><span class="hl-1">();</span>
+<pre><code class="ts"><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">cam</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">();</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">sub</span><span class="hl-1"> = </span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Subscription</span><span class="hl-1">(</span><span class="hl-4">cam</span><span class="hl-1">, {</span><br/><span class="hl-1">  </span><span class="hl-4">filter:</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-4">topicExpression:</span><span class="hl-1"> [</span><br/><span class="hl-1">      {</span><br/><span class="hl-1">        </span><span class="hl-4">expression:</span><span class="hl-1"> </span><span class="hl-2">&#39;tns1:RuleEngine/CellMotionDetector/Motion&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-4">dialect:</span><span class="hl-1"> </span><span class="hl-2">&#39;http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">    ],</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">});</span><br/><span class="hl-4">sub</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;data&#39;</span><span class="hl-1">, </span><span class="hl-5">async</span><span class="hl-1"> (</span><span class="hl-4">data</span><span class="hl-1">) </span><span class="hl-5">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">new</span><span class="hl-1"> </span><span class="hl-0">Date</span><span class="hl-1">().</span><span class="hl-0">toLocaleTimeString</span><span class="hl-1">(), </span><span class="hl-2">&#39;motion&#39;</span><span class="hl-1">, </span><span class="hl-4">data</span><span class="hl-1">.</span><span class="hl-4">topic</span><span class="hl-1">.</span><span class="hl-4">_</span><span class="hl-1">, </span><span class="hl-4">data</span><span class="hl-1">.</span><span class="hl-4">message</span><span class="hl-1">.</span><span class="hl-4">message</span><span class="hl-1">.</span><span class="hl-4">data</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">sub</span><span class="hl-1">.</span><span class="hl-0">unsubscribe</span><span class="hl-1">();</span><br/><span class="hl-1">});</span><br/><span class="hl-3">await</span><span class="hl-1"> </span><span class="hl-4">sub</span><span class="hl-1">.</span><span class="hl-0">subscribe</span><span class="hl-1">();</span>
 </code><button type="button">Copy</button></pre>
 
 <p>For a full interactive example, see <a href="https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts">events.with.filter.ts</a>.</p>
@@ -131,7 +201,7 @@ the connection to the device is lost.</p>
 <p>All methods accept options defined by the ONVIF specification and return data from the corresponding <code>&lt;method_name&gt;Response</code>.</p>
 <p>For example, the <code>getCapabilities</code> method accepts a single argument of type <code>GetCapabilities</code> and returns a result of type <code>Capabilities</code>.</p>
 <p>Below is the internal structure of the <code>GetCapabilitiesResponse</code> type:</p>
-<pre><code class="ts"><span class="hl-7">export</span><span class="hl-1"> </span><span class="hl-3">interface</span><span class="hl-1"> </span><span class="hl-8">GetCapabilitiesResponse</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/** Capability information. */</span><br/><span class="hl-1">  </span><span class="hl-5">capabilities</span><span class="hl-1">?: </span><span class="hl-8">Capabilities</span><span class="hl-1">;</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-3">class</span><span class="hl-1"> </span><span class="hl-8">Device</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><br/><span class="hl-1">  </span><span class="hl-3">async</span><span class="hl-1"> </span><span class="hl-0">getCapabilities</span><span class="hl-1">(</span><span class="hl-5">options</span><span class="hl-1">?: </span><span class="hl-8">GetCapabilities</span><span class="hl-1">): </span><span class="hl-8">Promise</span><span class="hl-1">&lt;</span><span class="hl-8">Capabilities</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">    </span><span class="hl-9">// ...</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><span class="hl-1">}</span>
+<pre><code class="ts"><span class="hl-3">export</span><span class="hl-1"> </span><span class="hl-5">interface</span><span class="hl-1"> </span><span class="hl-8">GetCapabilitiesResponse</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/** Capability information. */</span><br/><span class="hl-1">  </span><span class="hl-4">capabilities</span><span class="hl-1">?: </span><span class="hl-8">Capabilities</span><span class="hl-1">;</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-5">class</span><span class="hl-1"> </span><span class="hl-8">Device</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><br/><span class="hl-1">  </span><span class="hl-5">async</span><span class="hl-1"> </span><span class="hl-0">getCapabilities</span><span class="hl-1">(</span><span class="hl-4">options</span><span class="hl-1">?: </span><span class="hl-8">GetCapabilities</span><span class="hl-1">): </span><span class="hl-8">Promise</span><span class="hl-1">&lt;</span><span class="hl-8">Capabilities</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">    </span><span class="hl-9">// ...</span><br/><span class="hl-1">  }</span><br/><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
 
 <p>In general, the library tries to avoid returning objects that contain only a single property.</p>
@@ -142,11 +212,11 @@ the connection to the device is lost.</p>
 <li><code>SetSystemDateAndTimeExtended</code></li>
 </ul>
 <p>The extended version adds a more convenient field:</p>
-<pre><code class="ts"><span class="hl-7">export</span><span class="hl-1"> </span><span class="hl-3">interface</span><span class="hl-1"> </span><span class="hl-8">SetSystemDateAndTimeExtended</span><span class="hl-1"> </span><span class="hl-3">extends</span><span class="hl-1"> </span><span class="hl-8">SetSystemDateAndTime</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/**</span><br/><span class="hl-9">   * Javascript Date object to use instead of UTCDateTime</span><br/><span class="hl-9">   */</span><br/><span class="hl-1">  </span><span class="hl-5">dateTime</span><span class="hl-1">?: </span><span class="hl-8">Date</span><span class="hl-1">;</span><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><span class="hl-1">}</span>
+<pre><code class="ts"><span class="hl-3">export</span><span class="hl-1"> </span><span class="hl-5">interface</span><span class="hl-1"> </span><span class="hl-8">SetSystemDateAndTimeExtended</span><span class="hl-1"> </span><span class="hl-5">extends</span><span class="hl-1"> </span><span class="hl-8">SetSystemDateAndTime</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/**</span><br/><span class="hl-9">   * Javascript Date object to use instead of UTCDateTime</span><br/><span class="hl-9">   */</span><br/><span class="hl-1">  </span><span class="hl-4">dateTime</span><span class="hl-1">?: </span><span class="hl-8">Date</span><span class="hl-1">;</span><br/><span class="hl-1">  </span><span class="hl-9">// ...</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
 
 <hr>
-<h1 id="support" class="tsd-anchor-link"><code>xs:any</code> Support<a href="#support" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<h1 id="support-for" class="tsd-anchor-link">Support for <code>xs:any</code><a href="#support-for" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p>The ONVIF specifications include numerous extension points, which presents a challenge:</p>
 <ul>
 <li>on one hand, we want simple and convenient interfaces</li>
@@ -173,7 +243,7 @@ the connection to the device is lost.</p>
 </code><button type="button">Copy</button></pre>
 
 <p>This becomes the following autogenerated TypeScript interface:</p>
-<pre><code class="ts"><span class="hl-7">export</span><span class="hl-1"> </span><span class="hl-3">interface</span><span class="hl-1"> </span><span class="hl-8">ElementItem</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/** Item name. */</span><br/><span class="hl-1">  </span><span class="hl-5">name</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">;</span><br/><br/><span class="hl-1">  </span><span class="hl-9">/** XML tree containing the element value as defined in the corresponding description. */</span><br/><span class="hl-1">  [</span><span class="hl-5">key</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">]: </span><span class="hl-8">unknown</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
+<pre><code class="ts"><span class="hl-3">export</span><span class="hl-1"> </span><span class="hl-5">interface</span><span class="hl-1"> </span><span class="hl-8">ElementItem</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-9">/** Item name. */</span><br/><span class="hl-1">  </span><span class="hl-4">name</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">;</span><br/><br/><span class="hl-1">  </span><span class="hl-9">/** XML tree containing the element value as defined in the corresponding description. */</span><br/><span class="hl-1">  [</span><span class="hl-4">key</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">]: </span><span class="hl-8">unknown</span><span class="hl-1">;</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
 
 <hr>
@@ -183,7 +253,7 @@ the connection to the device is lost.</p>
 </code><button type="button">Copy</button></pre>
 
 <p>After parsing, the object looks like this:</p>
-<pre><code class="js"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-14">elementItem</span><span class="hl-1"> : [{</span><br/><span class="hl-1">    </span><span class="hl-5">name    :</span><span class="hl-1"> </span><span class="hl-2">&#39;elementItem1&#39;</span><span class="hl-1">,</span><br/><br/><span class="hl-1">    </span><span class="hl-5">param1  :</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-5">data :</span><span class="hl-1"> </span><span class="hl-6">42</span><br/><span class="hl-1">    },</span><br/><br/><span class="hl-1">    </span><span class="hl-5">param2  :</span><span class="hl-1"> </span><span class="hl-2">&#39;param2&#39;</span><span class="hl-1">,</span><br/><br/><span class="hl-1">    </span><span class="hl-5">__any__ :</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-2">&#39;Name&#39;</span><span class="hl-5">   :</span><span class="hl-1"> [</span><span class="hl-2">&#39;elementItem1&#39;</span><span class="hl-1">],</span><br/><br/><span class="hl-1">      </span><span class="hl-2">&#39;Param1&#39;</span><span class="hl-5"> :</span><span class="hl-1"> [{</span><br/><span class="hl-1">        </span><span class="hl-2">&#39;Data&#39;</span><span class="hl-5"> :</span><span class="hl-1"> [</span><span class="hl-2">&#39;42&#39;</span><span class="hl-1">]</span><br/><span class="hl-1">      }],</span><br/><br/><span class="hl-1">      </span><span class="hl-2">&#39;Param2&#39;</span><span class="hl-5"> :</span><span class="hl-1"> </span><span class="hl-2">&#39;param2&#39;</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  }]</span><br/><span class="hl-1">}</span>
+<pre><code class="js"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-14">elementItem</span><span class="hl-1"> : [{</span><br/><span class="hl-1">    </span><span class="hl-4">name    :</span><span class="hl-1"> </span><span class="hl-2">&#39;elementItem1&#39;</span><span class="hl-1">,</span><br/><br/><span class="hl-1">    </span><span class="hl-4">param1  :</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-4">data :</span><span class="hl-1"> </span><span class="hl-7">42</span><br/><span class="hl-1">    },</span><br/><br/><span class="hl-1">    </span><span class="hl-4">param2  :</span><span class="hl-1"> </span><span class="hl-2">&#39;param2&#39;</span><span class="hl-1">,</span><br/><br/><span class="hl-1">    </span><span class="hl-4">__any__ :</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-2">&#39;Name&#39;</span><span class="hl-4">   :</span><span class="hl-1"> [</span><span class="hl-2">&#39;elementItem1&#39;</span><span class="hl-1">],</span><br/><br/><span class="hl-1">      </span><span class="hl-2">&#39;Param1&#39;</span><span class="hl-4"> :</span><span class="hl-1"> [{</span><br/><span class="hl-1">        </span><span class="hl-2">&#39;Data&#39;</span><span class="hl-4"> :</span><span class="hl-1"> [</span><span class="hl-2">&#39;42&#39;</span><span class="hl-1">]</span><br/><span class="hl-1">      }],</span><br/><br/><span class="hl-1">      </span><span class="hl-2">&#39;Param2&#39;</span><span class="hl-4"> :</span><span class="hl-1"> </span><span class="hl-2">&#39;param2&#39;</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  }]</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
 
 <p>This object contains:</p>
@@ -200,15 +270,15 @@ the connection to the device is lost.</p>
 <p>Why keep the raw XML structure?</p>
 </blockquote>
 <p>The answer is simple.</p>
-<p>When configuring ONVIF devices, extensions, or vendor-specific parameters, we often do not know how to serialize a clean JavaScript object back into the correct XML structure.</p>
-<p>At the same time, we still want to work with the data in a convenient way.</p>
+<p>When configuring ONVIF devices, extensions, or vendor-specific parameters, we often do not know how to serialize a clean JavaScript object back into the correct XML structure.
+At the same time, we still want to work with the data in a convenient way.</p>
 <p>So when modifying device configuration (for example using <code>setMetadataConfiguration</code>), follow two simple rules:</p>
 <h3 id="1-modify-known-fields-directly" class="tsd-anchor-link">1. Modify known fields directly<a href="#1-modify-known-fields-directly" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<pre><code class="js"><span class="hl-5">elementItem</span><span class="hl-1">[</span><span class="hl-6">0</span><span class="hl-1">].</span><span class="hl-5">name</span><span class="hl-1"> = </span><span class="hl-2">&#39;hello&#39;</span>
+<pre><code class="js"><span class="hl-4">elementItem</span><span class="hl-1">[</span><span class="hl-7">0</span><span class="hl-1">].</span><span class="hl-4">name</span><span class="hl-1"> = </span><span class="hl-2">&#39;hello&#39;</span>
 </code><button type="button">Copy</button></pre>
 
 <h3 id="2-modify-unknownvendor-specific-fields-inside" class="tsd-anchor-link">2. Modify unknown/vendor-specific fields inside <code>__any__</code><a href="#2-modify-unknownvendor-specific-fields-inside" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<pre><code class="js"><span class="hl-5">elementItem</span><span class="hl-1">[</span><span class="hl-6">0</span><span class="hl-1">].</span><span class="hl-5">__any__</span><span class="hl-1">.</span><span class="hl-5">Param2</span><span class="hl-1"> = </span><span class="hl-2">&#39;hi&#39;</span>
+<pre><code class="js"><span class="hl-4">elementItem</span><span class="hl-1">[</span><span class="hl-7">0</span><span class="hl-1">].</span><span class="hl-4">__any__</span><span class="hl-1">.</span><span class="hl-4">Param2</span><span class="hl-1"> = </span><span class="hl-2">&#39;hi&#39;</span>
 </code><button type="button">Copy</button></pre>
 
 <p>This structure can then be automatically converted back into the appropriate SOAP XML.</p>
@@ -219,7 +289,8 @@ the connection to the device is lost.</p>
 <pre><code class="shell"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">test</span>
 </code><button type="button">Copy</button></pre>
 
-<p>The tests use <a href="https://github.com/agsh/happytime-onvif-server">happytime-onvif-server</a> as a test device.</p>
+<p>The tests use <a href="https://github.com/agsh/happytime-onvif-server">happytime-onvif-server</a> as a test device,
+including integration suites for the v0.x compatibility layer (<code>onvif/compatibility</code> and <code>onvif/compatibility/promises</code>).</p>
 <p>Thanks to <a href="https://www.happytimesoft.com/index.html">HappyTimeSoft</a> for providing the opportunity to test the full ONVIF specification.</p>
 <p>Products are available here:</p>
 <ul>
@@ -242,11 +313,22 @@ the connection to the device is lost.</p>
 <div class="tsd-accordion-details"><a href="#onvif"><span>ONVIF</span></a>
 <ul>
 <li><a href="#about"><span>About</span></a></li>
-<li><a href="#features"><span>Features</span></a></li></ul><a href="#connection"><span>Connection</span></a><a href="#events"><span>Events</span></a>
+<li><a href="#features"><span>Features</span></a></li></ul><a href="#connection"><span>Connection</span></a>
+<ul>
+<li>
+<ul>
+<li><a href="#typescript"><span>Type<wbr/>Script</span></a></li>
+<li><a href="#commonjs"><span>Common<wbr/>JS</span></a></li>
+<li><a href="#esm-or-"><span>ESM ( or )</span></a></li></ul></li></ul><a href="#donate"><span>Donate</span></a><a href="#migration-from-v0x"><span>Migration from v0.x</span></a>
+<ul>
+<li>
+<ul>
+<li><a href="#callbacks-"><span>Callbacks ()</span></a></li>
+<li><a href="#promises-"><span>Promises ()</span></a></li></ul></li></ul><a href="#examples"><span>Examples</span></a><a href="#events"><span>Events</span></a>
 <ul>
 <li><a href="#common-approach"><span>Common approach</span></a></li>
 <li><a href="#subscription-class"><span>Subscription class</span></a></li>
-<li><a href="#push-ws-basenotification"><span>Push <wbr/>WS-<wbr/>Base<wbr/>Notification</span></a></li></ul><a href="#interfaces"><span>Interfaces</span></a><a href="#support"><span> <wbr/>Support</span></a>
+<li><a href="#push-ws-basenotification"><span>Push <wbr/>WS-<wbr/>Base<wbr/>Notification</span></a></li></ul><a href="#interfaces"><span>Interfaces</span></a><a href="#support-for"><span>Support for </span></a>
 <ul>
 <li><a href="#example"><span>Example</span></a></li>
 <li><a href="#real-world-xml-example"><span>Real-<wbr/>World <wbr/>XML <wbr/>Example</span></a></li>
