@@ -374,6 +374,31 @@ describe('Compatibility Cam', () => {
       ).resolves.toBeUndefined();
     });
 
+    it('should omit missing absoluteMove/relativeMove axes instead of sending undefined', async () => {
+      const PTZ = (await import('../src/ptz')).default;
+      const absoluteSpy = jest.spyOn(PTZ.prototype, 'absoluteMove').mockResolvedValue(undefined as never);
+      const relativeSpy = jest.spyOn(PTZ.prototype, 'relativeMove').mockResolvedValue(undefined as never);
+
+      await promisify<void>((callback) => cam.absoluteMove({ x: 0.5, y: 0.5 } as any, callback));
+      expect(absoluteSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: { panTilt: { x: 0.5, y: 0.5 } },
+        }),
+      );
+      expect(absoluteSpy.mock.calls[0][0].position).not.toHaveProperty('zoom');
+
+      await promisify<void>((callback) => cam.relativeMove({ zoom: 0 } as any, callback));
+      expect(relativeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          translation: { zoom: { x: 0 } },
+        }),
+      );
+      expect(relativeSpy.mock.calls[0][0].translation).not.toHaveProperty('panTilt');
+
+      absoluteSpy.mockRestore();
+      relativeSpy.mockRestore();
+    });
+
     it('should return PTZ configurations and configuration options', async () => {
       const configurations = await promisify<any[]>((callback) => cam.getConfigurations(callback));
       expect(Array.isArray(configurations)).toBe(true);
@@ -393,6 +418,47 @@ describe('Compatibility Cam', () => {
         promisify<void>((callback) => cam.continuousMove({ x: 0, y: 0, zoom: 0 } as any, callback)),
       ).resolves.toBeUndefined();
       await expect(promisify<void>((callback) => cam.stop(callback))).resolves.toBeUndefined();
+    });
+
+    it('should pass zero continuousMove velocities (not treat 0 as missing)', async () => {
+      const PTZ = (await import('../src/ptz')).default;
+      const spy = jest.spyOn(PTZ.prototype, 'continuousMove').mockResolvedValue(undefined as never);
+
+      await promisify<void>((callback) => cam.continuousMove({ x: 0, y: 0, zoom: 0 } as any, callback));
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          velocity: {
+            panTilt: { x: 0, y: 0 },
+            zoom: { x: 0 },
+          },
+        }),
+      );
+      spy.mockRestore();
+    });
+
+    it('should honor onlySendPanTilt / onlySendZoom with zero velocities', async () => {
+      const PTZ = (await import('../src/ptz')).default;
+      const spy = jest.spyOn(PTZ.prototype, 'continuousMove').mockResolvedValue(undefined as never);
+
+      await promisify<void>((callback) =>
+        cam.continuousMove({ x: 0, y: 0, zoom: 0, onlySendPanTilt: true } as any, callback),
+      );
+      expect(spy).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          velocity: { panTilt: { x: 0, y: 0 } },
+        }),
+      );
+
+      await promisify<void>((callback) =>
+        cam.continuousMove({ x: 0, y: 0, zoom: 0, onlySendZoom: true } as any, callback),
+      );
+      expect(spy).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          velocity: { zoom: { x: 0 } },
+        }),
+      );
+      spy.mockRestore();
     });
 
     it('should support preset round-trip helpers', async () => {

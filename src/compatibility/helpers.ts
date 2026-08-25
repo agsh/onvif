@@ -157,3 +157,30 @@ export function normalizeStreamUriResponse(result: { uri?: string; mediaUri?: { 
   }
   return result;
 }
+
+/** Flat v0.x PTZ move options (`x`/`y`/`zoom`) plus Sony-style onlySend flags. */
+export interface CompatibilityPTZMoveCoords {
+  x?: number;
+  y?: number;
+  zoom?: number;
+  onlySendPanTilt?: boolean;
+  onlySendZoom?: boolean;
+}
+
+/**
+ * Build an ONVIF {@link PTZVector} from v0.x flat coords.
+ * Omits missing axes (`!== undefined`) so cameras do not receive empty PanTilt/Zoom elements.
+ */
+export function mapCompatibilityPTZVector(options: CompatibilityPTZMoveCoords) {
+  return {
+    ...(options.x !== undefined &&
+      options.y !== undefined &&
+      !options.onlySendZoom && {
+        panTilt: { x: options.x, y: options.y },
+      }),
+    ...(options.zoom !== undefined &&
+      !options.onlySendPanTilt && {
+        zoom: { x: options.zoom },
+      }),
+  };
+}

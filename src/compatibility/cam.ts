@@ -41,6 +41,7 @@ import {
   ensureArray,
   invoke,
   isCallback,
+  mapCompatibilityPTZVector,
   mapCreateRecordingJobOptions,
   mapImagingToken,
   mapJobToken,
@@ -54,8 +55,20 @@ import {
   videoSourceToken,
 } from './helpers';
 
-export type CompatibilityAbsoluteMoveOptions = AbsoluteMove & { x?: number; y?: number; zoom?: number };
-export type CompatibilityRelativeMoveOptions = RelativeMove & { x?: number; y?: number; zoom?: number };
+export type CompatibilityAbsoluteMoveOptions = AbsoluteMove & {
+  x?: number;
+  y?: number;
+  zoom?: number;
+  onlySendPanTilt?: boolean;
+  onlySendZoom?: boolean;
+};
+export type CompatibilityRelativeMoveOptions = RelativeMove & {
+  x?: number;
+  y?: number;
+  zoom?: number;
+  onlySendPanTilt?: boolean;
+  onlySendZoom?: boolean;
+};
 interface CompatibilityContinuousMoveOptions extends ContinuousMove {
   x?: number;
   y?: number;
@@ -847,13 +860,7 @@ export class Cam extends EventEmitter {
   absoluteMove(compatibilityOptions: CompatibilityAbsoluteMoveOptions, callback?: Callback): void {
     const options: AbsoluteMove = {
       ...compatibilityOptions,
-      position: {
-        panTilt: {
-          x: compatibilityOptions.x!,
-          y: compatibilityOptions.y!,
-        },
-        zoom: { x: compatibilityOptions.zoom! },
-      },
+      position: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
       invoke(this.onvif.ptz.absoluteMove(options), callback);
@@ -865,13 +872,7 @@ export class Cam extends EventEmitter {
   relativeMove(compatibilityOptions: CompatibilityRelativeMoveOptions, callback?: Callback): void {
     const options: RelativeMove = {
       ...compatibilityOptions,
-      translation: {
-        panTilt: {
-          x: compatibilityOptions.x!,
-          y: compatibilityOptions.y!,
-        },
-        zoom: { x: compatibilityOptions.zoom! },
-      },
+      translation: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
       invoke(this.onvif.ptz.relativeMove(options), callback);
@@ -883,20 +884,7 @@ export class Cam extends EventEmitter {
   continuousMove(compatibilityOptions: CompatibilityContinuousMoveOptions, callback?: Callback): void {
     const options: ContinuousMove = {
       ...compatibilityOptions,
-      velocity: {
-        ...(compatibilityOptions.x &&
-          compatibilityOptions.y &&
-          !compatibilityOptions.onlySendZoom && {
-            panTilt: {
-              x: compatibilityOptions.x,
-              y: compatibilityOptions.y,
-            },
-          }),
-        ...(compatibilityOptions.zoom &&
-          !compatibilityOptions.onlySendPanTilt && {
-            zoom: { x: compatibilityOptions.zoom },
-          }),
-      },
+      velocity: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
       invoke(this.onvif.ptz.continuousMove(options), callback);

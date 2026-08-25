@@ -3,6 +3,7 @@ import {
   ensureArray,
   invoke,
   isCallback,
+  mapCompatibilityPTZVector,
   mapCreateRecordingJobOptions,
   mapImagingToken,
   mapJobToken,
@@ -110,6 +111,28 @@ describe('compatibility helpers', () => {
             tracks: ['Video'],
           },
         },
+      });
+    });
+  });
+
+  describe('mapCompatibilityPTZVector', () => {
+    it('includes only provided axes and keeps zeros', () => {
+      expect(mapCompatibilityPTZVector({ x: 0.5, y: 0.5 })).toEqual({
+        panTilt: { x: 0.5, y: 0.5 },
+      });
+      expect(mapCompatibilityPTZVector({ zoom: 0 })).toEqual({ zoom: { x: 0 } });
+      expect(mapCompatibilityPTZVector({ x: 0, y: 0, zoom: 0 })).toEqual({
+        panTilt: { x: 0, y: 0 },
+        zoom: { x: 0 },
+      });
+    });
+
+    it('honors onlySendPanTilt / onlySendZoom', () => {
+      expect(mapCompatibilityPTZVector({ x: 0, y: 0, zoom: 0, onlySendPanTilt: true })).toEqual({
+        panTilt: { x: 0, y: 0 },
+      });
+      expect(mapCompatibilityPTZVector({ x: 0, y: 0, zoom: 0, onlySendZoom: true })).toEqual({
+        zoom: { x: 0 },
       });
     });
   });
