@@ -349,6 +349,22 @@ export class Cam extends EventEmitter {
     invoke(this.onvif.request(options), callback);
   }
 
+  /** Increment Digest auth nonce count (v0.x public API). */
+  updateNC(): string {
+    return this.onvif.updateNC();
+  }
+
+  /**
+   * Build Digest Authorization header (v0.x public API).
+   * Prefers SHA-256 when both MD5 and SHA-256 challenges are present.
+   */
+  digestAuth(
+    wwwAuthenticateArray: string[],
+    reqOptions: { method?: string; path?: string; [key: string]: unknown },
+  ): string {
+    return this.onvif.digestAuth(wwwAuthenticateArray, reqOptions);
+  }
+
   getSystemDateAndTime(callback: Callback) {
     invoke(this.onvif.device.getSystemDateAndTime(), callback);
   }

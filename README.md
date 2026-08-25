@@ -221,7 +221,6 @@ The Cam surface from v0.8 is largely covered. Remaining behavioral differences:
 - `gotoPreset` accepts both `{ presetToken }` (ONVIF / 1.x) and the v0 alias `{ preset }` (sent as PresetToken)
 - `getPresets` / `cam.presets` use **token → preset** (v0.8.1+), not name → token
 - `rawResponse` may omit the `statusCode` second argument that v0 emitted
-- Digest helpers `digestAuth` / `updateNC` are not exposed on Cam (handled inside `Onvif`)
 
 # Examples
 located in the Examples Folder on the Github

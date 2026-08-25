@@ -1,9 +1,12 @@
 import { Cam } from '../cam';
 
+/** Sync Cam methods that must not be wrapped as callback→Promise. */
+const syncMethods = new Set(['updateNC', 'digestAuth']);
+
 const promisifiedMethods: string[] = [];
 
 for (const name of Object.getOwnPropertyNames(Cam.prototype)) {
-  if (name !== 'constructor') {
+  if (name !== 'constructor' && !syncMethods.has(name)) {
     promisifiedMethods.push(name);
   }
 }

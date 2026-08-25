@@ -772,7 +772,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     });
   }
 
-  private digestAuth(digestHeadersArray: string[], requestOptions: RequestOptions) {
+  /**
+   * Build Digest Authorization header.
+   * Prefers SHA-256 when both MD5 and SHA-256 challenges are present.
+   * Public for v0.x Cam compatibility (`digestAuth`).
+   */
+  public digestAuth(digestHeadersArray: string[], requestOptions: RequestOptions): string {
     // Process each item in the wwwAuthenticateArray
     // Most cameras have only 1 item.
     // HikVision implementing the new MD5-then-SHA256 have two items
@@ -845,7 +850,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         bestAlgorithm = algorithm;
       }
     }
-    return bestResult;
+    return bestResult as string;
   }
 
   public request(options: OnvifRequestOptions): OnvifResponse {
@@ -877,7 +882,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return Object.fromEntries(parts);
   }
 
-  private updateNC() {
+  /**
+   * Increment Digest auth nonce count and return the padded `nc` value.
+   * Public for v0.x Cam compatibility (`updateNC`).
+   */
+  public updateNC(): string {
     this.nc += 1;
     if (this.nc > 99999999) {
       this.nc = 1;
