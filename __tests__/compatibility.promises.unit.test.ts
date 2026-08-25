@@ -24,6 +24,16 @@ describe('compatibility promises unit', () => {
       expect(spy).toHaveBeenCalled();
     });
 
+    it('keeps updateNC / digestAuth synchronous (not promisified)', () => {
+      expect(promisifiedMethods.includes('updateNC')).toBe(false);
+      expect(promisifiedMethods.includes('digestAuth')).toBe(false);
+
+      const cam = new Cam({ hostname: '127.0.0.1', username: 'u', password: 'p' });
+      const nc = cam.updateNC();
+      expect(nc).toBe('00000001');
+      expect(typeof cam.digestAuth).toBe('function');
+    });
+
     it('rejects when the callback reports an error', async () => {
       const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });
       jest.spyOn(cam, 'getHostname').mockImplementation((callback: any) => {
