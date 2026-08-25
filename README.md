@@ -163,9 +163,7 @@ Just run `console.log(await onvif.device.getDeviceInformation());`, you will get
 }
 ```
 and put it here with your comments please:
-https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform?usp=publish-editor
-
-
+https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform
 
 ---
 
