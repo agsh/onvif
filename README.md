@@ -221,7 +221,8 @@ The Cam surface from v0.8 is largely covered. Remaining behavioral differences:
 - `rawResponse` may omit the `statusCode` second argument that v0 emitted
 - `setNTP(options)` mutates the passed `options` object (fills `NTPManual`) — same as v0.x
 Callbacks match v0.x `(err, data, xml?)`: the third argument is the raw SOAP response XML from the underlying request (`Onvif.lastResponseXml`).
-`getPresets` / `cam.presets` follow **v0.8.1+** semantics: **token → preset** (duplicate names kept). The old name → token map is available only via deprecated `presetsToMap` and collides on duplicate names.
+`getPresets` / `cam.presets` follow **token → preset** (duplicate names kept; 0.8.1+ intent).
+Note: published `onvif@0.8.2` still returns **name → preset** from the `getPresets` *callback* while storing token → preset on `cam.presets` — compatibility aligns both with the token-keyed shape.
 
 # Examples
 located in the Examples Folder on the Github

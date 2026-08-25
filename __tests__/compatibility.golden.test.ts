@@ -175,21 +175,42 @@ describe('Golden compatibility (0.8.2 Cam ↔ master compatibility Cam)', () => 
       expect(compatSnap).toMatch(/^https?:\/\//i);
     });
 
-    it('getPresets: token → preset on both (0.8.1+), xml third arg', async () => {
-      const { v0: a, compat: b } = await callBoth(v0, compat, 'getPresets');
+    it('getPresets: xml on both; cam.presets token-keyed; v0 callback still name-keyed', async () => {
+      // Sequential: avoid racing two GetPresets while other suites may mutate presets.
+      const a = await callMethod(v0, 'getPresets');
+      const b = await callMethod(compat, 'getPresets');
+      if (a.err) {
+        throw a.err;
+      }
+      if (b.err) {
+        throw b.err;
+      }
+
+      expect(a.argc).toBeGreaterThanOrEqual(3);
+      expect(b.argc).toBeGreaterThanOrEqual(3);
       expectSoapXml(a.xml, 'v0 getPresets');
       expectSoapXml(b.xml, 'compat getPresets');
 
-      const v0Map = a.data as Record<string, { token?: string; name?: string; $?: { token?: string } }>;
-      const compatMap = b.data as Record<string, { token?: string; name?: string }>;
-      expect(typeof v0Map).toBe('object');
-      expect(typeof compatMap).toBe('object');
+      const v0ByName = a.data as Record<string, { name?: string; token?: string; $?: { token?: string } }>;
+      const compatByToken = b.data as Record<string, { name?: string; token?: string }>;
+      expect(typeof v0ByName).toBe('object');
+      expect(typeof compatByToken).toBe('object');
 
-      // 0.8.1+: keys are tokens (not names). Happytime may have zero presets — still same shape.
-      for (const [token, preset] of Object.entries(compatMap)) {
+      // master compatibility: callback data is token → preset (0.8.1+ intent)
+      for (const [token, preset] of Object.entries(compatByToken)) {
         expect(preset.token ?? token).toBe(token);
       }
-      expect(Object.keys(compatMap).sort()).toEqual(Object.keys(v0Map).sort());
+
+      // published onvif@0.8.2: callback `result` is still name → preset
+      for (const [name, preset] of Object.entries(v0ByName)) {
+        expect(preset.name ?? name).toBe(name);
+      }
+
+      // Do not compare callback map keys (name-keyed vs token-keyed). Compare `.presets` tokens.
+      const v0Tokens = Object.keys((v0.presets as Record<string, unknown>) ?? {}).sort();
+      const compatTokens = Object.keys((compat.presets as Record<string, unknown>) ?? {}).sort();
+      expect(compatTokens).toEqual(v0Tokens);
+      expect(Object.keys(compatByToken).sort()).toEqual(compatTokens);
     });
 
     it('getStatus: both return position-like payload with xml', async () => {
