@@ -332,24 +332,45 @@ describe('Compatibility Cam', () => {
       expect(cam.nodes).toBeDefined();
     });
 
-    it('should return presets as a name-to-token map', async () => {
+    it('should return presets keyed by token (v0.8.1+)', async () => {
       const presetName = `compat-map-${Date.now()}`;
       const presetToken = await promisify<string>((callback) =>
         cam.setPreset({ presetName } as any, callback),
       );
       expect(typeof presetToken).toBe('string');
 
-      const presets = await promisify<Record<string, string>>((callback) => cam.getPresets(callback));
+      const presets = await promisify<Record<string, { name?: string; token?: string }>>((callback) =>
+        cam.getPresets(callback),
+      );
       expect(typeof presets).toBe('object');
       expect(Array.isArray(presets)).toBe(false);
-      expect(presets[presetName]).toBe(presetToken);
-      expect(typeof presets[presetName]).toBe('string');
-      expect(cam.presets).toEqual(presets);
+      expect(presets[presetToken]).toBeDefined();
+      expect(presets[presetToken].name).toBe(presetName);
+      expect(presets[presetToken].token).toBe(presetToken);
+      expect(cam.presets[presetToken]?.name).toBe(presetName);
+    });
+
+    it('should keep duplicate preset names when keyed by token', async () => {
+      const PTZ = (await import('../src/ptz')).default;
+      const duplicateName = 'Home';
+      jest.spyOn(PTZ.prototype, 'getPresetsExtended').mockResolvedValue({
+        'tok-a': { name: duplicateName, token: 'tok-a' },
+        'tok-b': { name: duplicateName, token: 'tok-b' },
+      } as any);
+
+      const presets = await promisify<Record<string, { name?: string; token?: string }>>((callback) =>
+        cam.getPresets(callback),
+      );
+
+      expect(Object.keys(presets)).toEqual(expect.arrayContaining(['tok-a', 'tok-b']));
+      expect(presets['tok-a'].name).toBe(duplicateName);
+      expect(presets['tok-b'].name).toBe(duplicateName);
+      jest.restoreAllMocks();
     });
 
     it('should call underlying ptz methods once when options and callback are both passed', async () => {
       const PTZ = (await import('../src/ptz')).default;
-      const presetsSpy = jest.spyOn(PTZ.prototype, 'getPresets');
+      const presetsSpy = jest.spyOn(PTZ.prototype, 'getPresetsExtended');
       const statusSpy = jest.spyOn(PTZ.prototype, 'getStatus');
 
       await promisify<any>((callback) => cam.getPresets({}, callback));
@@ -466,10 +487,12 @@ describe('Compatibility Cam', () => {
       const presetToken = await promisify<string>((callback) =>
         cam.setPreset({ presetName } as any, callback),
       );
-      const presets = await promisify<Record<string, string>>((callback) => cam.getPresets(callback));
-      expect(presets[presetName]).toBe(presetToken);
+      const presets = await promisify<Record<string, { name?: string; token?: string }>>((callback) =>
+        cam.getPresets(callback),
+      );
+      expect(presets[presetToken]?.name).toBe(presetName);
       await expect(
-        promisify<void>((callback) => cam.gotoPreset({ presetToken: presets[presetName] } as any, callback)),
+        promisify<void>((callback) => cam.gotoPreset({ presetToken } as any, callback)),
       ).resolves.toBeUndefined();
       await expect(promisify<void>((callback) => cam.gotoHomePosition({} as any, callback))).resolves.toBeUndefined();
     });

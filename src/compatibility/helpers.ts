@@ -47,6 +47,10 @@ export function ensureArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
+/**
+ * Pre-0.8.1 name→token map. Prefer token→preset from `getPresets` / `cam.presets` (v0.8.1+).
+ * @deprecated Duplicate preset names collide with this shape.
+ */
 export function presetsToMap<T extends { name?: string; token?: string; $?: { token?: string } }>(
   presets: Record<string, T> | T[] | undefined | null,
 ): Record<string, string> {

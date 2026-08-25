@@ -168,7 +168,7 @@ describe('Compatibility Cam promises', () => {
       expect(cam.nodes).toBeDefined();
     });
 
-    it('should return presets as a name-to-token map', async () => {
+    it('should return presets keyed by token (v0.8.1+)', async () => {
       const presetName = `compat-promises-map-${Date.now()}`;
       const presetToken = await cam.setPreset({ presetName } as any);
       expect(typeof presetToken).toBe('string');
@@ -176,9 +176,10 @@ describe('Compatibility Cam promises', () => {
       const presets = await cam.getPresets();
       expect(typeof presets).toBe('object');
       expect(Array.isArray(presets)).toBe(false);
-      expect(presets[presetName]).toBe(presetToken);
-      expect(typeof presets[presetName]).toBe('string');
-      expect(cam.presets).toEqual(presets);
+      expect(presets[presetToken]).toBeDefined();
+      expect(presets[presetToken].name).toBe(presetName);
+      expect(presets[presetToken].token).toBe(presetToken);
+      expect(cam.presets[presetToken]?.name).toBe(presetName);
     });
 
     it('should return PTZ status', async () => {
