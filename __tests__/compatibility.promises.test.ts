@@ -1,6 +1,6 @@
 import { Cam, promisifiedMethods } from '../src/compatibility/promises';
 import { Cam as CallbackCam } from '../src/compatibility/cam';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -169,12 +169,15 @@ describe('Compatibility Cam promises', () => {
     });
 
     it('should return presets as a name-to-token map', async () => {
+      const presetName = `compat-promises-map-${Date.now()}`;
+      const presetToken = await cam.setPreset({ presetName } as any);
+      expect(typeof presetToken).toBe('string');
+
       const presets = await cam.getPresets();
       expect(typeof presets).toBe('object');
       expect(Array.isArray(presets)).toBe(false);
-      const names = Object.keys(presets);
-      expect(names.length).toBeGreaterThan(0);
-      expect(typeof presets[names[0]]).toBe('string');
+      expect(presets[presetName]).toBe(presetToken);
+      expect(typeof presets[presetName]).toBe('string');
       expect(cam.presets).toEqual(presets);
     });
 

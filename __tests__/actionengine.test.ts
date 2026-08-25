@@ -7,7 +7,7 @@
 import { Onvif } from '../src';
 import { OnvifError } from '../src/utils';
 import { Action, ActionConfiguration, ActionTrigger, ActionTriggerConfiguration } from '../src/interfaces/actionengine';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const ACTION_TOKEN = 'ActionToken_1';
 const TRIGGER_TOKEN = 'ActionTriggerToken_1';

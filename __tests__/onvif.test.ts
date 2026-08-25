@@ -1,5 +1,5 @@
 import { Onvif } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 let cam: Onvif;
 beforeAll(async () => {

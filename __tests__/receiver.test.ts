@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { ReceiverConfiguration } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const MEDIA_URI = 'rtsp://127.0.0.1:554/stream1';
 

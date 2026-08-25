@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { AccessPoint, Area } from '../src/interfaces/accesscontrol';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const ACCESS_POINT_TOKEN_1 = 'AccessPointToken_1';
 const ACCESS_POINT_TOKEN_2 = 'AccessPointToken_2';

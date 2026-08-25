@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { Schedule as ScheduleEntity, SpecialDayGroup } from '../src/interfaces/schedule';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const SCHEDULE_TOKEN_1 = 'ScheduleToken_1';
 const STANDARD_ICAL =

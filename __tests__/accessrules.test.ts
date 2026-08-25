@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { AccessProfile } from '../src/interfaces/accessrules';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const ACCESS_PROFILE_TOKEN_1 = 'AccessProfileToken_1';
 const ACCESS_POINT_TOKEN_1 = 'AccessPointToken_1';

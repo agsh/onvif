@@ -9,6 +9,8 @@ module.exports = {
         // TypeScript 7 defaults `types` to []; tests still need Jest globals.
         tsconfig: {
           types: ['node', 'jest'],
+          resolveJsonModule: true,
+          esModuleInterop: true,
         },
       },
     ],

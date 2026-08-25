@@ -47,12 +47,22 @@ export function ensureArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-export function presetsToMap<T extends { name?: string; token?: string }>(
-  presets: Record<string, T> | T[],
+export function presetsToMap<T extends { name?: string; token?: string; $?: { token?: string } }>(
+  presets: Record<string, T> | T[] | undefined | null,
 ): Record<string, string> {
+  if (!presets) {
+    return {};
+  }
   const list = Array.isArray(presets) ? presets : Object.values(presets);
   return Object.fromEntries(
-    list.filter((preset) => preset.name && preset.token).map((preset) => [preset.name!, preset.token!]),
+    list.flatMap((preset) => {
+      const token = preset.token ?? preset.$?.token;
+      if (!token) {
+        return [];
+      }
+      const name = preset.name || token;
+      return [[name, token] as [string, string]];
+    }),
   );
 }
 

@@ -1,6 +1,6 @@
 import { Onvif } from '../src';
 import { Config } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const CONFIGURATION_TOKEN = 'VideoAnalyticsConfigurationToken_1';
 

@@ -1,6 +1,6 @@
 import { Onvif, ConfigurationRefExtended, AudioOutputConfigurationExtended } from '../src';
 import { ReferenceToken } from '../src/interfaces/common';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 import {
   Capabilities2,
   ConfigurationEnumeration,

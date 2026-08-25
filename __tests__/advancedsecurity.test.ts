@@ -1,5 +1,5 @@
 import { Onvif } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const SIGNATURE_ALGORITHM = { algorithm: '1.2.840.113549.1.1.11' };
 

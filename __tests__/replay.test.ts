@@ -1,5 +1,5 @@
 import { Onvif } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const DEFAULT_SESSION_TIMEOUT = 'PT60S';

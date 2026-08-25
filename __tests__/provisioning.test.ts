@@ -1,5 +1,5 @@
 import { Onvif } from '../src';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const VIDEO_SOURCE_TOKEN_1 = 'VideoSourceToken_1';
 

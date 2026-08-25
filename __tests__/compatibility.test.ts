@@ -1,5 +1,5 @@
 import { Cam, Callback } from '../src/compatibility/cam';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
@@ -299,12 +299,17 @@ describe('Compatibility Cam', () => {
     });
 
     it('should return presets as a name-to-token map', async () => {
+      const presetName = `compat-map-${Date.now()}`;
+      const presetToken = await promisify<string>((callback) =>
+        cam.setPreset({ presetName } as any, callback),
+      );
+      expect(typeof presetToken).toBe('string');
+
       const presets = await promisify<Record<string, string>>((callback) => cam.getPresets(callback));
       expect(typeof presets).toBe('object');
       expect(Array.isArray(presets)).toBe(false);
-      const names = Object.keys(presets);
-      expect(names.length).toBeGreaterThan(0);
-      expect(typeof presets[names[0]]).toBe('string');
+      expect(presets[presetName]).toBe(presetToken);
+      expect(typeof presets[presetName]).toBe('string');
       expect(cam.presets).toEqual(presets);
     });
 
@@ -357,11 +362,14 @@ describe('Compatibility Cam', () => {
     });
 
     it('should support preset round-trip helpers', async () => {
+      const presetName = `compat-goto-${Date.now()}`;
+      const presetToken = await promisify<string>((callback) =>
+        cam.setPreset({ presetName } as any, callback),
+      );
       const presets = await promisify<Record<string, string>>((callback) => cam.getPresets(callback));
-      const names = Object.keys(presets);
-      expect(names.length).toBeGreaterThan(0);
+      expect(presets[presetName]).toBe(presetToken);
       await expect(
-        promisify<void>((callback) => cam.gotoPreset({ presetToken: presets[names[0]] } as any, callback)),
+        promisify<void>((callback) => cam.gotoPreset({ presetToken: presets[presetName] } as any, callback)),
       ).resolves.toBeUndefined();
       await expect(promisify<void>((callback) => cam.gotoHomePosition({} as any, callback))).resolves.toBeUndefined();
     });

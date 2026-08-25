@@ -3,7 +3,7 @@ import { GetPresetsExtended } from '../src/ptz';
 import { ReferenceToken } from '../src/interfaces/common';
 import { Capabilities } from '../src/interfaces/ptz.2';
 import { PresetTour } from '../src/interfaces/onvif';
-import { happytimeOnvifOptions } from './happytime';
+import happytimeOnvifOptions from './happytime.json';
 
 let cam: Onvif;
 beforeAll(async () => {
