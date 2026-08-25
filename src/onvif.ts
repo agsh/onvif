@@ -62,6 +62,11 @@ export interface OnvifOptions {
   preserveAddress?: boolean;
   /** Set false if the camera should not connect automatically, defaults false. */
   autoConnect?: boolean;
+  /**
+   * All XAddrs from WS-Discovery (set by {@link Discovery}).
+   * Same role as v0.x `cam.xaddrs`.
+   */
+  xaddrs?: URL[];
 }
 
 export interface OnvifServices {
@@ -510,6 +515,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public activeSource?: ActiveSource;
   public readonly urn?: string;
   public deviceInformation?: GetDeviceInformationResponse;
+  /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
+  public xaddrs?: URL[];
 
   constructor(options: OnvifOptions) {
     super();
@@ -523,6 +530,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.path = options.path ?? '/onvif/device_service';
     this.timeout = options.timeout || 120000;
     this.urn = options.urn;
+    this.xaddrs = options.xaddrs;
     const httpLibrary = this.useSecure ? https : http;
     // Reuse sockets for SOAP chatter. Events use their own agent with keepAlive: false
     // (long-poll PullMessages). HappyTime tests pass `agent: false` — see __tests__/happytime.json.

@@ -7,9 +7,20 @@ export function isCallback(value: unknown): value is Callback {
 }
 
 export function invoke<T>(promise: Promise<T>, callback: Callback, transform?: (result: T) => unknown): void {
+  // Use then(onFulfilled, onRejected) so a throw inside `callback` is not fed back into
+  // `.catch(callback)` (which would invoke the user callback a second time).
   promise
-    .then((result) => callback(null, transform ? transform(result) : result))
-    .catch(callback);
+    .then(
+      (result) => {
+        callback(null, transform ? transform(result) : result);
+      },
+      (error) => {
+        callback(error);
+      },
+    )
+    .catch(() => {
+      // Callback itself threw; do not re-invoke it.
+    });
 }
 
 export function splitOptionalCallback<T>(

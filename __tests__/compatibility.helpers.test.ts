@@ -59,6 +59,18 @@ describe('compatibility helpers', () => {
       await Promise.resolve();
       expect(cb).toHaveBeenCalledWith(error);
     });
+
+    it('does not re-invoke callback when the callback throws', async () => {
+      const boom = new Error('boom');
+      const cb = jest.fn(() => {
+        throw boom;
+      });
+      invoke(Promise.resolve(42), cb);
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(cb).toHaveBeenCalledWith(null, 42);
+    });
   });
 
   describe('token helpers', () => {

@@ -149,6 +149,8 @@ export class DiscoverySingleton extends EventEmitter {
                 port     : camUri.port === '' ? undefined : parseInt(camUri.port, 10),
                 path     : camUri.pathname,
                 urn      : camAddr,
+                // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
+                xaddrs   : camUris,
               });
             } else {
               cam = data;
