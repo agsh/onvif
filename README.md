@@ -16,16 +16,16 @@ ONVIF client protocol implementation for Node.js.
 > ```
 
 A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:
-- **Core media & PTZ** — (Profiles [S](https://www.onvif.org/profiles/profile-s/), 
-  [T](https://www.onvif.org/profiles/profile-t/)) device info, Media / Media2 profiles, stream URIs, imaging, presets, 
+- **Core media & PTZ** — (Profiles [S](https://www.onvif.org/profiles/profile-s/),
+  [T](https://www.onvif.org/profiles/profile-t/)) device info, Media / Media2 profiles, stream URIs, imaging, presets,
   continuous and absolute moves
-- **Events** — (Profile [M](https://www.onvif.org/profiles/profile-m/)) pull-point and WS-BaseNotification with topic 
+- **Events** — (Profile [M](https://www.onvif.org/profiles/profile-m/)) pull-point and WS-BaseNotification with topic
   filters and `EventEmitter` integration
-- **Recording & replay** — (Profile [G](https://www.onvif.org/profiles/profile-g/)) NVR search, recordings, and replay 
+- **Recording & replay** — (Profile [G](https://www.onvif.org/profiles/profile-g/)) NVR search, recordings, and replay
   URIs
-- **Physical access** — (Profiles [C](https://www.onvif.org/profiles/profile-c/), 
+- **Physical access** — (Profiles [C](https://www.onvif.org/profiles/profile-c/),
   [A](https://www.onvif.org/profiles/profile-a/)) DoorControl, AccessControl, Credential, AccessRules, Schedule
-- **More services** — (Profile [T](https://www.onvif.org/profiles/profile-t/)) Analytics, DeviceIO, Display, 
+- **More services** — (Profile [T](https://www.onvif.org/profiles/profile-t/)) Analytics, DeviceIO, Display,
   Action Engine, Thermal, Provisioning, AdvancedSecurity
 - **Discovery & auth** — WS-Discovery on the LAN; WS-Security and Digest (MD5 / SHA-1 / SHA-256)
 
@@ -137,6 +137,35 @@ await onvif.connect();
 const info = await onvif.device.getDeviceInformation();
 console.log(info);
 ```
+
+---
+# Donate
+
+There are no donations yet :smile:, but if you like the library, please fill out this form so we know which devices
+it supports. There are a lot of devices, and not all of them correctly support the ONVIF specification. We're trying
+our best to make it work with as many devices as possible, so your feedback is important to us.
+
+@RogerHardiman tested this lib on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x Panasonic,
+2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S,
+Profile G and Profile T devices.
+
+But we want to learn about as wide a range of devices as possible.
+So yes, the best way to donate is to leave your feedback :smile:
+
+Just run `console.log(await onvif.device.getDeviceInformation());`, you will get something like this:
+```json
+{
+  "manufacturer": "tp-link",
+  "model": "Tapo C220",
+  "firmwareVersion": "1.4.4 Build 260515 Rel.24570n",
+  "serialNumber": "7461572b",
+  "hardwareId": 1
+}
+```
+and put it here with your comments please:
+https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform?usp=publish-editor
+
+
 
 ---
 
@@ -443,7 +472,6 @@ A reasonable question is:
 The answer is simple.
 
 When configuring ONVIF devices, extensions, or vendor-specific parameters, we often do not know how to serialize a clean JavaScript object back into the correct XML structure.
-
 At the same time, we still want to work with the data in a convenient way.
 
 So when modifying device configuration (for example using `setMetadataConfiguration`), follow two simple rules:
