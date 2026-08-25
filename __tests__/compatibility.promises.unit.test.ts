@@ -40,8 +40,18 @@ describe('compatibility promises unit', () => {
       const cam = new Cam({ hostname: '127.0.0.1', port: 8000, autoconnect: false });
       cam.hostname = '10.0.0.2';
       cam.timeout = 1234;
+      cam.username = 'admin';
+      cam.password = 'pass';
+      cam.useSecure = true;
+      cam.preserveAddress = true;
+      cam.agent = false;
       expect(cam._cam.hostname).toBe('10.0.0.2');
       expect(cam._cam.timeout).toBe(1234);
+      expect(cam._cam.username).toBe('admin');
+      expect(cam._cam.password).toBe('pass');
+      expect(cam._cam.useSecure).toBe(true);
+      expect(cam._cam.preserveAddress).toBe(true);
+      expect(cam._cam.agent).toBe(false);
     });
   });
 

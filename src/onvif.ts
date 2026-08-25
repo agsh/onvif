@@ -5,7 +5,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { SecureContextOptions } from 'tls';
+import { ConnectionOptions } from 'tls';
 import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
@@ -46,7 +46,7 @@ export interface OnvifOptions {
   /** Set true if using `https` protocol, defaults to false. */
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
-  secureOptions?: SecureContextOptions;
+  secureOptions?: ConnectionOptions;
   /** Use WS-Security SOAP headers */
   useWSSecurity?: boolean;
   hostname: string;
@@ -464,11 +464,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Indicates if the device is using secure connection
    */
-  public readonly useSecure: boolean;
+  public useSecure: boolean;
   /**
    * Secure options for the connection
    */
-  public secureOptions: SecureContextOptions;
+  public secureOptions: ConnectionOptions;
   /**
    * Use WS-Security for the connection (this is the default and adds security headers in the SOAP messages)
    */
@@ -501,7 +501,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public agent: HttpsAgent | HttpAgent | boolean;
   public preserveAddress = false;
   public uri: OnvifServices;
-  private timeShift?: number;
+  /** Clock offset between the device and this host (ms), set during time sync. */
+  public timeShift?: number;
   public capabilities: Capabilities;
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;

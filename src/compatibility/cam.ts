@@ -3,6 +3,9 @@
  */
 
 import { EventEmitter } from 'events';
+import { ConnectionOptions } from 'tls';
+import { Agent as HttpsAgent } from 'https';
+import { Agent as HttpAgent } from 'http';
 import { ActiveSource, Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended } from '../onvif';
 import { GetStreamUriOptions } from '../media';
 import { SetNTP, SetSystemFactoryDefault } from '../interfaces/devicemgmt';
@@ -129,6 +132,8 @@ export class Cam extends EventEmitter {
     super();
     this.onvif = new Onvif({
       ...options,
+      // v0.x used `secureOpts`; 1.x Onvif uses `secureOptions`
+      secureOptions: options.secureOptions ?? options.secureOpts,
       autoConnect: false,
     });
     this.pullPointSubscription = new Subscription(this.onvif);
@@ -140,11 +145,36 @@ export class Cam extends EventEmitter {
     }
   }
 
+  get useSecure() {
+    return this.onvif.useSecure;
+  }
+  set useSecure(value: boolean) {
+    this.onvif.useSecure = value;
+  }
+  /** v0.x name for TLS options (`secureOptions` on {@link Onvif}). */
+  get secureOpts() {
+    return this.onvif.secureOptions;
+  }
+  set secureOpts(value: ConnectionOptions) {
+    this.onvif.secureOptions = value;
+  }
+  get useWSSecurity() {
+    return this.onvif.useWSSecurity;
+  }
+  set useWSSecurity(value: boolean) {
+    this.onvif.useWSSecurity = value;
+  }
   get port() {
     return this.onvif.port;
   }
+  set port(value: number) {
+    this.onvif.port = value;
+  }
   get path() {
     return this.onvif.path;
+  }
+  set path(value: string) {
+    this.onvif.path = value;
   }
   get hostname() {
     return this.onvif.hostname;
@@ -155,14 +185,38 @@ export class Cam extends EventEmitter {
   get username() {
     return this.onvif.username;
   }
+  set username(value: string | undefined) {
+    this.onvif.username = value;
+  }
   get password() {
     return this.onvif.password;
+  }
+  set password(value: string | undefined) {
+    this.onvif.password = value;
   }
   set timeout(time: number) {
     this.onvif.timeout = time;
   }
   get timeout() {
     return this.onvif.timeout;
+  }
+  get agent() {
+    return this.onvif.agent;
+  }
+  set agent(value: HttpsAgent | HttpAgent | boolean) {
+    this.onvif.agent = value;
+  }
+  get preserveAddress() {
+    return this.onvif.preserveAddress;
+  }
+  set preserveAddress(value: boolean) {
+    this.onvif.preserveAddress = value;
+  }
+  get timeShift() {
+    return this.onvif.timeShift;
+  }
+  set timeShift(value: number | undefined) {
+    this.onvif.timeShift = value;
   }
   get services() {
     return this.onvif.device.services;

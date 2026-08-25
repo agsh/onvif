@@ -60,6 +60,40 @@ describe('Compatibility Cam', () => {
       cam.timeout = previousTimeout;
     });
 
+    it('should allow mutating v0.x connection properties (Discovery-style)', () => {
+      const pending = new Cam({ hostname: '127.0.0.1', port: 8000, autoconnect: false });
+      pending.username = 'admin';
+      pending.password = 'secret';
+      pending.useSecure = true;
+      pending.useWSSecurity = false;
+      pending.preserveAddress = true;
+      pending.port = 8443;
+      pending.path = '/onvif/device_service';
+      pending.agent = false;
+      pending.secureOpts = { rejectUnauthorized: false };
+      pending.timeShift = 1000;
+
+      expect(pending.username).toBe('admin');
+      expect(pending.password).toBe('secret');
+      expect(pending.useSecure).toBe(true);
+      expect(pending.useWSSecurity).toBe(false);
+      expect(pending.preserveAddress).toBe(true);
+      expect(pending.port).toBe(8443);
+      expect(pending.path).toBe('/onvif/device_service');
+      expect(pending.agent).toBe(false);
+      expect(pending.secureOpts).toEqual({ rejectUnauthorized: false });
+      expect(pending.timeShift).toBe(1000);
+    });
+
+    it('should map v0.x secureOpts constructor option to Onvif secureOptions', () => {
+      const pending = new Cam({
+        hostname: '127.0.0.1',
+        autoconnect: false,
+        secureOpts: { rejectUnauthorized: false },
+      });
+      expect(pending.secureOpts).toEqual({ rejectUnauthorized: false });
+    });
+
     it('should not auto-connect when autoconnect is false', async () => {
       const pending = new Cam({ ...happytimeOnvifOptions, autoconnect: false });
       await new Promise((resolve) => setImmediate(resolve));
