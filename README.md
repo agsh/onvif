@@ -517,6 +517,10 @@ npm test
 The tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) as a test device,
 including integration suites for the v0.x compatibility layer (`onvif/compatibility` and `onvif/compatibility/promises`).
 
+Golden suite `__tests__/compatibility.golden.test.ts` runs the **same scenarios** against npm `onvif@0.8.2`
+(`onvif-v0`) and the master compatibility `Cam`, comparing callback args (`err`, `data`, `xml`), key result fields,
+post-connect properties, and `rawRequest` / `rawResponse` events.
+
 Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for providing the opportunity to test the full ONVIF specification.
 
 Products are available here:
