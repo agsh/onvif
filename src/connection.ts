@@ -154,10 +154,11 @@ export async function probeMedia2Profiles(onvif: Onvif): Promise<void> {
 }
 
 /**
- * Check and find out video configuration for device
+ * Check and find out video configuration for device.
+ * No-op when the device has no video sources (e.g. Profile C door stations).
  */
 export async function getActiveSources(onvif: Onvif): Promise<void> {
-  if (!onvif.videoSources?.length) {
+  if (!onvif.videoSources.length) {
     return;
   }
 
@@ -216,7 +217,8 @@ export async function getActiveSources(onvif: Onvif): Promise<void> {
 }
 
 /**
- * Connect to the camera and fill device information properties
+ * Connect to the camera and fill device information properties.
+ * Media / active-source discovery runs only when a Media service was advertised.
  */
 export async function connect(onvif: Onvif): Promise<Onvif> {
   await onvif.getSystemDateAndTime();
@@ -226,15 +228,18 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
     await connectSteps.getCapabilities(onvif);
   }
   // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
-  if (onvif.media2Support) {
+  if (onvif.media2Support && onvif.uri.media2) {
     try {
       await connectSteps.probeMedia2Profiles(onvif);
     } catch {
       onvif.media2Support = false;
     }
   }
-  await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
-  await connectSteps.getActiveSources(onvif);
+  // Profile C / doorcontrol / etc. may have no Media service at all.
+  if (onvif.uri.media) {
+    await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+    await connectSteps.getActiveSources(onvif);
+  }
   onvif.emit('connect');
   return onvif;
 }
