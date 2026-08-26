@@ -522,8 +522,13 @@ Golden suite `__tests__/compatibility.golden.test.ts` runs the **same scenarios*
 (`onvif-v0`) and the master compatibility `Cam`, comparing callback args (`err`, `data`, `xml`), key result fields,
 post-connect properties, and `rawRequest` / `rawResponse` events.
 
+
 Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for providing the opportunity to test the full ONVIF specification.
 
 Products are available here:
 
 - https://www.happytimesoft.com/product.html
+
+---
+
+<img width="748" height="561" alt="2_0YMEc2JsheGS0HvU0AM4cv0Lvey7tzzGCWzNHTLoMkFECz0USvK4RmZEa4Fnk8pJAYqXE5qx-qtECccJSD5LQNmPtzwt2a43eEfLAPrfQEMth4zwCsVeEO1-zvTszMxJ9pk93n0Fsj0eHynN709rTqLgRnizjgXL7hCKyEm0T4ZyL3ZyRglVPINRhbK2PW" src="https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3" />
