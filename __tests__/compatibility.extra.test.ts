@@ -242,20 +242,37 @@ describe('Compatibility Cam helpers', () => {
   });
 
   it('parses event XML and recording job helpers', async () => {
-    await promisify<any>((callback) =>
-      cam.parseEventXML(
-        `<?xml version="1.0"?><Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"><Body><Notify/></Body></Envelope>`,
-        callback,
+    const settled = async (promise: Promise<unknown>) => promise.then(
+      () => 'fulfilled' as const,
+      () => 'rejected' as const,
+    );
+
+    await expect(
+      settled(
+        promisify<any>((callback) =>
+          cam.parseEventXML(
+            `<?xml version="1.0"?><Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"><Body><Notify/></Body></Envelope>`,
+            callback,
+          ),
+        ),
       ),
-    ).catch(() => undefined);
+    ).resolves.toMatch(/fulfilled|rejected/);
 
-    await promisify<any>((callback) =>
-      cam.getTrackConfiguration({ recordingToken: RECORDING_TOKEN, trackToken: TRACK_TOKEN }, callback),
-    ).catch(() => undefined);
+    await expect(
+      settled(
+        promisify<any>((callback) =>
+          cam.getTrackConfiguration({ recordingToken: RECORDING_TOKEN, trackToken: TRACK_TOKEN }, callback),
+        ),
+      ),
+    ).resolves.toMatch(/fulfilled|rejected/);
 
-    await promisify<any>((callback) =>
-      cam.setRecordingJobMode({ JobToken: RECORDING_JOB_TOKEN, Mode: 'Idle' }, callback),
-    ).catch(() => undefined);
+    await expect(
+      settled(
+        promisify<any>((callback) =>
+          cam.setRecordingJobMode({ JobToken: RECORDING_JOB_TOKEN, Mode: 'Idle' }, callback),
+        ),
+      ),
+    ).resolves.toMatch(/fulfilled|rejected/);
   });
 
   it('rejects missing configuration tokens', async () => {

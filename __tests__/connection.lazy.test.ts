@@ -4,8 +4,8 @@ import { connectSteps } from '../src/connection';
 
 function trackServiceLoads() {
   const loaded = new Set<string>();
-  const orig = (Module as any)._load;
-  (Module as any)._load = function (request: string, parent: NodeModule, isMain: boolean) {
+  const orig = (Module as any)._load as (this: unknown, ...args: unknown[]) => unknown;
+  (Module as any)._load = function (this: unknown, request: unknown, ...rest: unknown[]) {
     const name = String(request);
     if (
       /(^|[\\/])device(\.js)?$/.test(name) ||
@@ -14,7 +14,7 @@ function trackServiceLoads() {
     ) {
       loaded.add(name);
     }
-    return orig.apply(this, arguments as never);
+    return orig.call(this, request, ...rest);
   };
   return {
     loaded,
