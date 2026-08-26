@@ -65,7 +65,7 @@ I will be happy to answer any questions and hear your feedback.
 - Complete [documentation](https://agsh.github.io/onvif/)
 - Tests using the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
 - Event support: pull-point, base ws-notification, filters, EventEmitter inheritance. See below
-- Lazy import of service modules: if, for example, a thermal service is not used, it will not be loaded.
+- **Lazy loading** of ONVIF service modules — see [Performance / lazy loading](#performance--lazy-loading)
 - Authentication with WS-Security and Digest (MD5, SHA-1, SHA-256), also Advanced Security (experimental)
 - WS-Discovery support for finding devices on the local network
 - Full: `Device`, `Events`, `Media`, `Media2`, `PTZ`, `Imaging`, `Analytics`, `AnalyticsDevice`, `Recording`, `Replay`,
@@ -93,13 +93,14 @@ routed to the correct service endpoints.
    the device clock (`timeShift`). The library tries an unauthenticated request first, as the ONVIF spec allows,
    and retries with credentials when the device requires authentication (some Panasonic and Digital Barriers models
    behave this way).
-2. **Service discovery** — the library tries `device.getServices()`, the modern ONVIF approach introduced
-   with Profile T. If that fails on older devices, it falls back to `device.getCapabilities()`. Both methods
-   populate `onvif.uri` with the URLs for media, PTZ, events, replay, and other services that subsequent requests use.
-3. **Media configuration** — `media.getProfiles()` and `media.getVideoSources()` run in parallel,
-   then `getActiveSources()` matches each video source to a suitable media profile. This sets `activeSource`,
-   `defaultProfile`, and `defaultProfiles`, including encoder settings and PTZ configuration, so you can start
-   streaming or controlling the camera without extra setup.
+2. **Service discovery** — the library calls `GetServices` (the modern ONVIF approach introduced
+   with Profile T) from a small `connection` helper, without loading the full `device` module. If that fails on older
+   devices, it falls back to `GetCapabilities`. Both methods populate `onvif.uri` with the URLs for media, PTZ, events,
+   replay, and other services that subsequent requests use.
+3. **Media configuration** (only when the device advertises a Media service) — `GetProfiles` and `GetVideoSources`
+   run in parallel, then `getActiveSources()` matches each video source to a suitable media profile. This sets
+   `activeSource`, `defaultProfile`, and `defaultProfiles`, including encoder settings and PTZ configuration.
+   Devices without video (for example Profile C door stations) skip this step and still complete `connect()` successfully.
 
 On success, `connect()` emits a `connect` event and returns the `Onvif` instance. Pass `autoConnect: true`
 in the constructor to run this automatically after instantiation.
@@ -138,6 +139,59 @@ await onvif.connect();
 const info = await onvif.device.getDeviceInformation();
 console.log(info);
 ```
+
+---
+
+# Performance / lazy loading
+
+The 1.x package is organized so you only pay for the ONVIF services you actually use.
+
+### Startup footprint
+
+`require('onvif')` / `import { Onvif } from 'onvif'` loads a **core** set of modules (client, connection helpers,
+events, discovery, utils) — on the order of **~100 KiB** of compiled JS. Large service implementations such as
+`device`, `media`, `media2`, `ptz`, `recording`, or `advancedsecurity` are **not** pulled in at import time.
+
+Rough sizes of a few compiled service files (illustrative; exact numbers change with releases):
+
+| Module | Approx. size |
+| --- | --- |
+| Core (`onvif` + `connection` + `events` + `utils` + …) | ~95 KiB |
+| `media.js` | ~78 KiB |
+| `media2.js` | ~70 KiB |
+| `device.js` | ~39 KiB |
+| Remaining service modules combined | ~200+ KiB |
+
+Eagerly loading every service would put the initial JS footprint well over **400 KiB**. With lazy loading, a typical
+camera client that only uses Device + Media + PTZ loads those modules on first use instead of at process start.
+
+### How loading works
+
+- **Service namespaces** (`onvif.device`, `onvif.media`, `onvif.ptz`, `onvif.thermal`, …) are lazy proxies.
+  The corresponding module is loaded the first time you call a method on it (for example `await onvif.ptz.getNodes()`).
+- **`connect()`** uses dedicated helpers in `connection.ts` for the handshake SOAP (`GetServices` /
+  `GetCapabilities`, Media `GetProfiles` / `GetVideoSources`). It does **not** load the full `device` / `media` /
+  `media2` class modules. Profiles and video sources are stored on the `Onvif` instance (`onvif.profiles`,
+  `onvif.videoSources`); when `Media` is later loaded, it reuses that cache.
+- **`Events`** is constructed eagerly (needed for `onvif.on('event', …)`). Everything else stays deferred.
+- The main package entry exports service classes as **TypeScript types only**, so CommonJS `require('onvif')` does
+  not force-load `Recording`, `Thermal`, and similar modules just because they appear in the type surface.
+
+### Practical tips
+
+```ts
+import { Onvif } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+await onvif.connect(); // handshake only — no full Media/Device class modules yet
+
+const info = await onvif.device.getDeviceInformation(); // loads device.js on first use
+const uri = await onvif.media.getStreamUri({ protocol: 'RTSP' }); // loads media.js on first use
+// onvif.thermal is never loaded unless you call it
+```
+
+If you only need Discovery or Events, you can avoid Media entirely: Profile C / door-control style devices complete
+`connect()` without a Media service, and unused namespaces stay unloaded for the lifetime of the process.
 
 ---
 # Feedback
