@@ -101,7 +101,9 @@ routed to the correct service endpoints.
 3. **Media configuration** (only when the device advertises a Media service) — `GetProfiles` and `GetVideoSources`
    run in parallel, then `getActiveSources()` matches each video source to a suitable media profile. This sets
    `activeSource`, `defaultProfile`, and `defaultProfiles`, including encoder settings and PTZ configuration.
-   Devices without video (for example Profile C door stations) skip this step and still complete `connect()` successfully.
+   Devices without video (for example Profile C door stations) skip this step when Media is absent.
+   If Media is listed but either call fails (e.g. Axis A1601 returns “Optional action not implemented”),
+   `connect()` still succeeds with empty `profiles` / `videoSources` and emits `warn`.
 
 On success, `connect()` emits a `connect` event and returns the `Onvif` instance. Pass `autoConnect: true`
 in the constructor to run this automatically after instantiation.

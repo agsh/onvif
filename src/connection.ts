@@ -235,9 +235,18 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
       onvif.media2Support = false;
     }
   }
-  // Profile C / doorcontrol / etc. may have no Media service at all.
+  // Profile C / doorcontrol / etc. may advertise no Media service at all.
+  // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
+  // GetProfiles / GetVideoSources with "Optional action not implemented".
+  // Both calls are required for active sources; if either fails, drop media state.
   if (onvif.uri.media) {
-    await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+    try {
+      await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+    } catch (error) {
+      onvif.profiles = [];
+      onvif.videoSources = [];
+      onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
+    }
     await connectSteps.getActiveSources(onvif);
   }
   onvif.emit('connect');
