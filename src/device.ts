@@ -3,7 +3,7 @@
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  */
 
-import { Onvif, OnvifServices, SetSystemDateAndTimeExtended } from './onvif';
+import { Onvif, SetSystemDateAndTimeExtended } from './onvif';
 import Service from './service';
 import {
   AddIPAddressFilter,
@@ -83,7 +83,6 @@ import {
   BackupFile,
   BinaryData,
   Capabilities,
-  CapabilitiesExtension,
   Certificate,
   CertificateStatus,
   CertificateWithPrivateKey,
@@ -118,7 +117,6 @@ export default class Device extends Service {
   get services() {
     return this.#services;
   }
-  public media2Support = false;
   #scopes: Scope[] = [];
   get scopes() {
     return this.#scopes;
@@ -142,6 +140,7 @@ export default class Device extends Service {
 
   constructor(onvif: Onvif) {
     super(onvif, 'device');
+    this.#services = onvif.services;
   }
 
   private static namesToBuild(names?: string[]) {
@@ -372,42 +371,9 @@ export default class Device extends Service {
    * Returns information about services of the device.
    */
   async getServices({ includeCapability }: GetServices = { includeCapability: true }): Promise<GetServicesResponse> {
-    const response = await this.request({
-      GetServices: {
-        IncludeCapability: includeCapability,
-      },
-    });
-    const result = response.getServicesResponse;
-    this.#services = result.service;
-    // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
-    // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
-    // This is so that existing VMS software can still access the video via the orignal ONVIF Media API
-    // fill Cam#uri property
-    this.#services.forEach((service) => {
-      // Look for services with namespaces and XAddr values
-      if (
-        Object.prototype.hasOwnProperty.call(service, 'namespace') &&
-        Object.prototype.hasOwnProperty.call(service, 'XAddr')
-      ) {
-        // Only parse ONVIF namespaces. Axis cameras return Axis namespaces in GetServices
-        if (!service.namespace || !service.XAddr) {
-          return;
-        }
-        const parsedNamespace = new URL(service.namespace);
-        if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
-          const namespaceSplitted = parsedNamespace.pathname.substring(1).split('/'); // remove leading Slash, then split
-          if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
-            // special case for Media and Media2 where cameras supporting Profile S and Profile T (2020/2021 models) have two media services
-            this.media2Support = true;
-            namespaceSplitted[1] = 'media2';
-          } else if (namespaceSplitted[1] === 'ptz') {
-            // uppercase PTZ namespace to fit names convention
-            namespaceSplitted[1] = 'PTZ';
-          }
-          this.onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = this.onvif.parseUrl(service.XAddr);
-        }
-      }
-    });
+    const { getServices } = await import('./connection');
+    const result = await getServices(this.onvif, { includeCapability });
+    this.#services = this.onvif.services;
     return result;
   }
 
@@ -418,46 +384,8 @@ export default class Device extends Service {
    * @param options.category
    */
   async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
-    if (!options || !options.category) {
-      options = { category: ['All'] };
-    }
-    const response = await this.request({
-      GetCapabilities: {
-        Category: options.category,
-      },
-    });
-    this.onvif.capabilities = response.getCapabilitiesResponse.capabilities as Capabilities;
-    ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
-      // All names in GetCapabilities are optional in the WSL spec. For example, my Pelco IMP1110-1 does not support Analytics.
-      if (name in this.onvif.capabilities) {
-        const capabilityName = name as keyof Capabilities;
-        if ('XAddr' in this.onvif.capabilities[capabilityName]!) {
-          this.onvif.uri[name as keyof OnvifServices] = this.onvif.parseUrl(
-            this.onvif.capabilities[capabilityName]!.XAddr as string,
-          );
-        }
-      }
-    });
-    // extensions, eg. deviceIO
-    if (this.onvif.capabilities.extension) {
-      Object.keys(this.onvif.capabilities.extension).forEach((ext) => {
-        const extensionName = ext as keyof CapabilitiesExtension;
-        // TODO think about complex extensions like `telexCapabilities` and `scdlCapabilities`
-        if (
-          'XAddr' in this.onvif.capabilities.extension![extensionName]! &&
-          this.onvif.capabilities.extension![extensionName]!.XAddr
-        ) {
-          this.onvif.uri[extensionName] = new URL(this.onvif.capabilities.extension![extensionName]!.XAddr as string);
-        }
-      });
-      // HACK for a Profile G NVR that has 'replay' but did not have 'recording' in GetCapabilities
-      if (this.onvif.uri.replay && !this.onvif.uri.recording) {
-        const tempRecorderXaddr = this.onvif.uri.replay.href.replace('replay', 'recording');
-        this.onvif.emit('warn', new Error(`Adding ${tempRecorderXaddr} for bad Profile G device`));
-        this.onvif.uri.recording = new URL(tempRecorderXaddr);
-      }
-    }
-    return this.onvif.capabilities;
+    const { getCapabilities } = await import('./connection');
+    return getCapabilities(this.onvif, options);
   }
 
   /**

@@ -496,7 +496,7 @@ describe('Optional payloads and empty responses', () => {
     await security.getAuthorizationServerConfigurations({ token: 'as1' } as any);
 
     const media = new Media(onvif);
-    onvif.device.media2Support = false;
+    onvif.media2Support = false;
     mockEmpty(media);
     await media.getOSDs({ configurationToken: 'vsc1', OSDToken: 'osd1' } as any);
     await media.setOSD({

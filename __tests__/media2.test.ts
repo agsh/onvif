@@ -113,9 +113,9 @@ describe('Profiles', () => {
     });
 
     it('should fail if media ver20 is not supported', async () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       expect(() => cam.media2.getProfiles()).toThrow();
-      cam.device.media2Support = true;
+      cam.media2Support = true;
     });
   });
 
@@ -898,13 +898,13 @@ describe('getStreamUri', () => {
   });
 
   it('should fail if media ver20 is not supported', () => {
-    cam.device.media2Support = false;
+    cam.media2Support = false;
     try {
       expect(() => cam.media2.getStreamUri({ protocol, profileToken: cam.activeSource!.profileToken })).toThrow(
         'Media2 profile is not supported for this device',
       );
     } finally {
-      cam.device.media2Support = true;
+      cam.media2Support = true;
     }
   });
 });
@@ -933,13 +933,13 @@ describe('getSnapshotUri', () => {
   });
 
   it('should fail if media ver20 is not supported', () => {
-    cam.device.media2Support = false;
+    cam.media2Support = false;
     try {
       expect(() => cam.media2.getSnapshotUri({ profileToken: cam.activeSource!.profileToken })).toThrow(
         'Media2 profile is not supported for this device',
       );
     } finally {
-      cam.device.media2Support = true;
+      cam.media2Support = true;
     }
   });
 });
@@ -972,11 +972,11 @@ describe('OSD', () => {
     });
 
     it('should fail if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.getOSDs()).toThrow('Media2 profile is not supported for this device');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -990,13 +990,13 @@ describe('OSD', () => {
     });
 
     it('should fail if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.getOSDOptions({ configurationToken: videoSourceConfigurationToken })).toThrow(
           'Media2 profile is not supported for this device',
         );
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -1012,7 +1012,7 @@ describe('OSD', () => {
     });
 
     it('should fail if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() =>
           cam.media2.setOSD({
@@ -1024,7 +1024,7 @@ describe('OSD', () => {
           }),
         ).toThrow('Media2 profile is not supported for this device');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -1053,7 +1053,7 @@ describe('OSD', () => {
     });
 
     it('should fail createOSD if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() =>
           cam.media2.createOSD({
@@ -1065,18 +1065,18 @@ describe('OSD', () => {
           }),
         ).toThrow('Media2 profile is not supported for this device');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
 
     it('should fail deleteOSD if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.deleteOSD({ OSDToken: 'x' })).toThrow(
           'Media2 profile is not supported for this device',
         );
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -1100,11 +1100,11 @@ describe('getServiceCapabilities', () => {
   });
 
   it('should fail if media ver20 is not supported', () => {
-    cam.device.media2Support = false;
+    cam.media2Support = false;
     try {
       expect(() => cam.media2.getServiceCapabilities()).toThrow('Media2 profile is not supported for this device');
     } finally {
-      cam.device.media2Support = true;
+      cam.media2Support = true;
     }
   });
 });
@@ -1144,11 +1144,11 @@ describe('Masks', () => {
     });
 
     it('should fail if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.getMasks()).toThrow('Media2 profile is not supported for this device');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -1171,13 +1171,13 @@ describe('Masks', () => {
     });
 
     it('should fail if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.getMaskOptions({ configurationToken: videoSourceConfigurationToken })).toThrow(
           'Media2 profile is not supported for this device',
         );
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -1300,11 +1300,11 @@ describe('Masks', () => {
     });
 
     it('should fail deleteMask if media ver20 is not supported', () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         expect(() => cam.media2.deleteMask({ token: 'x' })).toThrow('Media2 profile is not supported for this device');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });

@@ -982,7 +982,7 @@ describe('Mocked service unit tests', () => {
 
   it('exercises AdvancedSecurity, Analytics, Media2, DeviceIO, and Cam helpers', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-    onvif.device.media2Support = true;
+    onvif.media2Support = true;
 
     const security = new AdvancedSecurity(onvif);
     mockServiceRequest(security, (body) => {

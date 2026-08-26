@@ -99,7 +99,6 @@ import {
   GetOSD,
   GetVideoSourceConfigurationOptions,
   CreateOSDResponse,
-  GetProfilesResponse,
 } from './interfaces/media';
 import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
@@ -192,6 +191,8 @@ export default class Media extends Service {
 
   constructor(onvif: Onvif) {
     super(onvif, 'media');
+    this.profiles = onvif.profiles;
+    this.videoSources = onvif.videoSources;
   }
 
   /**
@@ -211,12 +212,8 @@ export default class Media extends Service {
    * a device. The client does not need to know the media profile in order to use the command.
    */
   async getProfiles(): Promise<Profile[]> {
-    // Original ONVIF Media support (used in Profile S)
-    const response = await this.request<{ getProfilesResponse: GetProfilesResponse }>(
-      { GetProfiles: {} },
-      ConfigurationArraysAndExtensions,
-    );
-    this.profiles = response.getProfilesResponse.profiles ?? [];
+    const { getMediaProfiles } = await import('./connection');
+    this.profiles = await getMediaProfiles(this.onvif);
     return this.profiles;
   }
 
@@ -538,8 +535,8 @@ export default class Media extends Service {
    * video sources through the GetVideoSources command
    */
   async getVideoSources(): Promise<VideoSource[]> {
-    const response = await this.request({ GetVideoSources: {} }, { array: ['videoSources'] });
-    this.videoSources = response.getVideoSourcesResponse.videoSources;
+    const { getVideoSources } = await import('./connection');
+    this.videoSources = await getVideoSources(this.onvif);
     return this.videoSources;
   }
 
@@ -1479,7 +1476,7 @@ export default class Media extends Service {
   async getStreamUri(options: GetStreamUriOptions = {}): Promise<GetStreamUriResponse> {
     const { profileToken, stream = 'RTP-Unicast' } = options;
     const { protocol = 'RTSP' } = options;
-    if (this.onvif.device.media2Support) {
+    if (this.onvif.media2Support) {
       // Permitted values for options.protocol are :-
       //   RtspUnicast - RTSP streaming RTP via UDP Unicast.
       //   RtspMulticast - RTSP streaming RTP via UDP Multicast.
@@ -1535,7 +1532,7 @@ export default class Media extends Service {
       profileToken: this.onvif.activeSource!.profileToken,
     },
   ): Promise<GetSnapshotUriResponse> {
-    if (this.onvif.device.media2Support) {
+    if (this.onvif.media2Support) {
       // Profile T request using Media2
       const data = await this.onvif.media2.getSnapshotUri({ profileToken });
       return {
@@ -1640,7 +1637,7 @@ export default class Media extends Service {
    * @param OSDToken
    */
   async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<OSDConfiguration[]> {
-    if (this.onvif.device.media2Support) {
+    if (this.onvif.media2Support) {
       return this.onvif.media2.getOSDs({ configurationToken, OSDToken });
     }
     const response = await this.request(
@@ -1789,7 +1786,7 @@ export default class Media extends Service {
 
   async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
     const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
-    if (this.onvif.device.media2Support) {
+    if (this.onvif.media2Support) {
       const osdOptions = await this.onvif.media2.getOSDOptions({ configurationToken });
       return { OSDOptions: osdOptions };
     }
@@ -1804,7 +1801,7 @@ export default class Media extends Service {
 
 // function v1(originalMethod: any, context: ClassMethodDecoratorContext) {
 //   return function v1(this: any, ...args: any[]) {
-//     if (this.onvif.device.media2Support) {
+//     if (this.onvif.media2Support) {
 //       this.onvif.emit('warn', `Media2 profile has support for this device, you can try to use similar to \`${
 //         String(context.name)
 //       }' method from \`Media2 class\``);

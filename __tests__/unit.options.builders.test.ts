@@ -156,9 +156,10 @@ describe('Service options and builders', () => {
     expect((proxy as any).value).toBe(7);
 
     const unloaded = lazyService(onvif, async () => ({ default: Dummy }));
-    expect(() => {
-      (unloaded as any).value = 1;
-    }).toThrow(/before class is loaded/);
+    (unloaded as any).value = 1;
+    expect((unloaded as any).value).toBe(1);
+    expect(await (unloaded as any).ping()).toBe('pong');
+    expect((unloaded as any).value).toBe(1);
   });
 
   it('builds event filters and event broker configs with optional fields', async () => {
@@ -472,7 +473,7 @@ describe('Service options and builders', () => {
       videoSourceConfigurationToken: 'vsc1',
       profileToken: 'p1',
     } as any;
-    onvif.device.media2Support = false;
+    onvif.media2Support = false;
     const media = new Media(onvif);
     jest.spyOn(media as any, 'request').mockResolvedValue({
       createOSDResponse: { OSDToken: 'osd1' },

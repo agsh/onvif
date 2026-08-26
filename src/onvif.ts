@@ -11,14 +11,18 @@ import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import { build, getDigestHeaders, linerase, OnvifResponse, parseSOAPString, splitArgs } from './utils';
-import Device from './device';
+import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
 import type PTZ from './ptz';
-import { Capabilities, Profile, SystemDateTime } from './interfaces/onvif';
-import { GetDeviceInformationResponse, SetSystemDateAndTime } from './interfaces/devicemgmt';
-import { ReferenceToken } from './interfaces/common';
-import Events, { NotificationMessage } from './events';
+import type { Capabilities, Profile, SystemDateTime, VideoSource } from './interfaces/onvif';
+import type {
+  GetDeviceInformationResponse,
+  SetSystemDateAndTime,
+  Service as DeviceService,
+} from './interfaces/devicemgmt';
+import type { ReferenceToken } from './interfaces/common';
+import Events, { type NotificationMessage } from './events';
 import type Replay from './replay';
 import type Imaging from './imaging';
 import type Recording from './recording';
@@ -509,11 +513,19 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /** Clock offset between the device and this host (ms), set during time sync. */
   public timeShift?: number;
   public capabilities: Capabilities;
+  /** Filled by {@link connect} Device.getServices without loading the full Device module. */
+  public services: DeviceService[] = [];
+  /** Media1 profiles filled during connect (also copied onto Media when that module loads). */
+  public profiles: Profile[] = [];
+  /** Media1 video sources filled during connect. */
+  public videoSources: VideoSource[] = [];
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;
   public activeSources: ActiveSource[] = [];
   public activeSource?: ActiveSource;
   public readonly urn?: string;
+  /** Set during connect when the device advertises ONVIF Media2 (Profile T). */
+  public media2Support = false;
   public deviceInformation?: GetDeviceInformationResponse;
   /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
   public xaddrs?: URL[];
@@ -544,8 +556,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = new Device(this); // mandatory module for startup
-    this.media = lazyService<Media>(this, () => import('./media')); // mandatory? TODO think about connect() method
+    this.device = lazyService<Device>(this, () => import('./device'));
+    this.media = lazyService<Media>(this, () => import('./media'));
     this.media2 = lazyService<Media2>(this, () => import('./media2'));
     this.ptz = lazyService<PTZ>(this, () => import('./ptz'));
     this.events = new Events(this); // mandatory module for events
@@ -1065,95 +1077,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * Check and find out video configuration for device
    */
   public async getActiveSources() {
-    if (!this.media.videoSources?.length) {
-      return;
-    }
-
-    this.media.videoSources.forEach(({ token: videoSrcToken }, idx) => {
-      // let's choose first appropriate profile for our video source and make it default
-      let appropriateProfiles = this.media.profiles.filter(
-        (profile) =>
-          profile.videoSourceConfiguration?.sourceToken === videoSrcToken &&
-          profile.videoEncoderConfiguration !== undefined,
-      );
-
-      // Happytime and some devices return profiles without VideoSourceConfiguration.
-      // Fall back to any profile that has an encoder, then to any profile at all.
-      if (appropriateProfiles.length === 0) {
-        appropriateProfiles = this.media.profiles.filter((profile) => profile.videoEncoderConfiguration !== undefined);
-      }
-      if (appropriateProfiles.length === 0) {
-        appropriateProfiles = [...this.media.profiles];
-      }
-      if (appropriateProfiles.length === 0) {
-        if (idx === 0) {
-          this.emit(Onvif.WARN, new Error('Unrecognized configuration: no media profiles available for video sources'));
-        }
-        return;
-      }
-
-      if (idx === 0) {
-        [this.defaultProfile] = appropriateProfiles;
-      }
-
-      [this.defaultProfiles[idx]] = appropriateProfiles;
-
-      this.activeSources[idx] = {
-        sourceToken: videoSrcToken,
-        profileToken: this.defaultProfiles[idx].token,
-        videoSourceConfigurationToken: this.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
-        videoSourceToken: videoSrcToken,
-      };
-      if (this.defaultProfiles[idx].videoEncoderConfiguration) {
-        const configuration = this.defaultProfiles[idx].videoEncoderConfiguration;
-        this.activeSources[idx].encoding = configuration?.encoding;
-        this.activeSources[idx].width = configuration?.resolution?.width;
-        this.activeSources[idx].height = configuration?.resolution?.height;
-        this.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit;
-        this.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit;
-      }
-
-      if (idx === 0) {
-        this.activeSource = this.activeSources[idx];
-      }
-
-      if (this.defaultProfiles[idx].PTZConfiguration) {
-        this.activeSources[idx].ptz = {
-          name: this.defaultProfiles[idx].PTZConfiguration!.name as string,
-          token: this.defaultProfiles[idx].PTZConfiguration!.token,
-        };
-        /*
-        TODO Think about it
-        if (idx === 0) {
-          this.defaultProfile.PTZConfiguration = this.activeSources[idx].PTZConfiguration;
-        } */
-      }
-    });
+    const { getActiveSources } = await import('./connection');
+    return getActiveSources(this);
   }
 
   /**
    * Connect to the camera and fill device information properties
    */
   async connect() {
-    await this.getSystemDateAndTime();
-    // Try to get services (new approach). If not, get capabilities
-    try {
-      await this.device.getServices();
-    } catch (error) {
-      await this.device.getCapabilities();
-    }
-    // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
-    // Probe once and fall back to Media1 for subsequent Media2-routed calls (stream URI, etc.).
-    if (this.device.media2Support) {
-      try {
-        await this.media2.getProfiles();
-      } catch {
-        this.device.media2Support = false;
-      }
-    }
-    await Promise.all([this.media.getProfiles(), this.media.getVideoSources()]);
-    await this.getActiveSources();
-    this.emit('connect');
-    return this;
+    const { connect } = await import('./connection');
+    return connect(this);
   }
 }
