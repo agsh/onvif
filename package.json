@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-beta.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
