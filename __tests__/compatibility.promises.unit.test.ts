@@ -208,6 +208,91 @@ describe('compatibility promises unit', () => {
     });
   });
 
+  describe('getVideoSources Media2 fallback', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('falls back to Media2 GetVideoSourceConfigurations when Media GetVideoSources fails', async () => {
+      const { getVideoSources } = await import('../src/connection');
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+      onvif.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+      onvif.media2Support = true;
+
+      jest.spyOn(onvif, 'request').mockImplementation(async ({ body }) => {
+        const root = Object.keys(body as object)[0];
+        if (root === 'GetVideoSources') {
+          throw new Error('ONVIF SOAP Fault: Optional action not implemented');
+        }
+        if (root === 'GetVideoSourceConfigurations') {
+          return [
+            {
+              getVideoSourceConfigurationsResponse: {
+                configurations: [
+                  {
+                    token: 'cfg1',
+                    name: 'Main',
+                    useCount: 1,
+                    sourceToken: 'src1',
+                    bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+                  },
+                  {
+                    token: 'cfg2',
+                    name: 'Crop',
+                    useCount: 1,
+                    sourceToken: 'src1',
+                    bounds: { x: 0, y: 0, width: 1280, height: 720 },
+                  },
+                  {
+                    token: 'cfg3',
+                    name: 'Second',
+                    useCount: 1,
+                    sourceToken: 'src2',
+                    bounds: { x: 0, y: 0, width: 640, height: 480 },
+                  },
+                ],
+              },
+            },
+          ] as never;
+        }
+        throw new Error(`unexpected ${root}`);
+      });
+
+      const sources = await getVideoSources(onvif);
+      expect(sources.map((source) => source.token)).toEqual(['src1', 'src2']);
+      expect(sources[0].resolution).toEqual({ width: 1920, height: 1080 });
+      expect(onvif.videoSources).toEqual(sources);
+    });
+
+    it('uses Media2 when Media service is not advertised', async () => {
+      const { getVideoSources } = await import('../src/connection');
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      onvif.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+      onvif.media2Support = true;
+
+      jest.spyOn(onvif, 'request').mockResolvedValue([
+        {
+          getVideoSourceConfigurationsResponse: {
+            configurations: [
+              {
+                token: 'cfg1',
+                name: 'Main',
+                useCount: 1,
+                sourceToken: 'only-src',
+                bounds: { x: 0, y: 0, width: 800, height: 600 },
+              },
+            ],
+          },
+        },
+      ] as never);
+
+      const sources = await getVideoSources(onvif);
+      expect(sources).toHaveLength(1);
+      expect(sources[0].token).toBe('only-src');
+    });
+  });
+
   describe('Discovery', () => {
     afterEach(() => {
       jest.restoreAllMocks();

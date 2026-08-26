@@ -4,7 +4,7 @@
  */
 
 import type { Onvif, OnvifServices } from './onvif';
-import type { Capabilities, CapabilitiesExtension, Profile, VideoSource } from './interfaces/onvif';
+import type { Capabilities, CapabilitiesExtension, Profile, VideoSource, VideoSourceConfiguration } from './interfaces/onvif';
 import type {
   GetCapabilities,
   GetServices,
@@ -132,11 +132,74 @@ export async function getMediaProfiles(onvif: Onvif): Promise<Profile[]> {
 
 /**
  * Media1 GetVideoSources — stores result on {@link Onvif.videoSources}.
+ * Media2 has no GetVideoSources; if Media1 is absent, empty, or fails and Media2 is available,
+ * falls back to GetVideoSourceConfigurations and maps unique `sourceToken` values to {@link VideoSource}.
  */
 export async function getVideoSources(onvif: Onvif): Promise<VideoSource[]> {
-  const response = await serviceRequest(onvif, 'media', { GetVideoSources: {} }, { array: ['videoSources'] });
-  onvif.videoSources = response.getVideoSourcesResponse.videoSources;
+  let mediaError: unknown;
+
+  if (onvif.uri.media) {
+    try {
+      const response = await serviceRequest(onvif, 'media', { GetVideoSources: {} }, { array: ['videoSources'] });
+      onvif.videoSources = response.getVideoSourcesResponse.videoSources ?? [];
+      if (onvif.videoSources.length > 0) {
+        return onvif.videoSources;
+      }
+    } catch (error) {
+      mediaError = error;
+    }
+  }
+
+  if (onvif.media2Support && onvif.uri.media2) {
+    try {
+      onvif.videoSources = await getVideoSourcesFromMedia2(onvif);
+      return onvif.videoSources;
+    } catch (error) {
+      if (mediaError !== undefined) {
+        throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+      }
+      throw error;
+    }
+  }
+
+  if (mediaError !== undefined) {
+    throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+  }
+
+  onvif.videoSources ??= [];
   return onvif.videoSources;
+}
+
+/** Unique physical sources from Media2 VideoSourceConfiguration list. */
+async function getVideoSourcesFromMedia2(onvif: Onvif): Promise<VideoSource[]> {
+  const response = await serviceRequest(
+    onvif,
+    'media2',
+    { GetVideoSourceConfigurations: {} },
+    { array: ['configurations'] },
+  );
+  const configurations =
+    (response.getVideoSourceConfigurationsResponse?.configurations as VideoSourceConfiguration[] | undefined) ?? [];
+  return videoSourcesFromConfigurations(configurations);
+}
+
+function videoSourcesFromConfigurations(configurations: VideoSourceConfiguration[]): VideoSource[] {
+  const sources = new Map<string, VideoSource>();
+  for (const configuration of configurations) {
+    const { sourceToken: token } = configuration;
+    if (!token || sources.has(token)) {
+      continue;
+    }
+    sources.set(token, {
+      token,
+      framerate: 0,
+      resolution: {
+        width: configuration.bounds?.width ?? 0,
+        height: configuration.bounds?.height ?? 0,
+      },
+    });
+  }
+  return [...sources.values()];
 }
 
 /** Probe Media2 GetProfiles (D-Link workaround); does not keep the result. */
