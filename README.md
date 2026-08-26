@@ -5,14 +5,15 @@
 ONVIF client protocol implementation for Node.js.
 
 > [!TIP]
-> This page describes the future 1.x version of the ONVIF library written in TypeScript.
+> This page describes the 1.x version of the ONVIF library written in TypeScript. The 1.x version is currently in the 
+> release candidate stage.
 > If you are looking for the README for the stable 0.x version, please see
 > [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
 >
 > The default npm installation still uses version 0.x. If you want to try this new version, install it with:
 >
 > ```shell
-> npm install onvif@alpha
+> npm install onvif@rc
 > ```
 
 A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:
