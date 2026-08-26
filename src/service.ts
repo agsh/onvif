@@ -7,7 +7,7 @@
 import { Onvif, OnvifServices } from './onvif';
 import { linerase, LineraseOptions } from './utils';
 
-const XMLNS: Record<keyof OnvifServices, string> = {
+export const XMLNS: Record<keyof OnvifServices, string> = {
   ptz: 'http://www.onvif.org/ver20/ptz/wsdl',
   analytics: 'http://www.onvif.org/ver20/analytics/wsdl',
   device: 'http://www.onvif.org/ver10/device/wsdl',
@@ -69,6 +69,7 @@ export function lazyService<T extends object>(
 ): T {
   let instance: T | undefined;
   let loading: Promise<T> | undefined;
+  const overrides = new Map<string | symbol, unknown>();
 
   const load = (): Promise<T> => {
     if (instance) {
@@ -77,6 +78,9 @@ export function lazyService<T extends object>(
 
     return (loading ??= loader().then(({ default: Service }) => {
       instance = new Service(onvif);
+      for (const [property, value] of overrides) {
+        Reflect.set(instance, property, value, instance);
+      }
       return instance;
     }));
   };
@@ -96,9 +100,16 @@ export function lazyService<T extends object>(
     {},
     {
       get(_target, property) {
+        if (overrides.has(property)) {
+          return overrides.get(property);
+        }
         if (instance) {
           const value = Reflect.get(instance, property, instance);
           if (typeof value === 'function') {
+            // Own props (e.g. jest.spyOn mocks) must be returned as-is for mock APIs.
+            if (Object.prototype.hasOwnProperty.call(instance, property)) {
+              return value;
+            }
             return (...args: unknown[]) => Reflect.apply(value, instance!, args);
           }
           return value;
@@ -106,12 +117,17 @@ export function lazyService<T extends object>(
         return (...args: unknown[]) => load().then((service) => resolveProperty(service, property, args));
       },
       set(_target, property, value) {
-        if (!instance) {
-          throw new Error(`Cannot set ${String(property)} before class is loaded`);
+        if (instance) {
+          overrides.delete(property);
+          return Reflect.set(instance, property, value, instance);
         }
-        return Reflect.set(instance, property, value, instance);
+        overrides.set(property, value);
+        return true;
       },
       has(_target, property) {
+        if (overrides.has(property)) {
+          return true;
+        }
         if (instance) {
           return Reflect.has(instance, property);
         }

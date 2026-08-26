@@ -61,7 +61,7 @@ describe('Profiles', () => {
     });
 
     it('should return media profiles ver10', async () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         const result = await cam.media.getProfiles();
         expect(result.length).toBeGreaterThan(0);
@@ -76,7 +76,7 @@ describe('Profiles', () => {
         expect(result[0]).toHaveProperty('PTZConfiguration');
         expect(result[0]).toHaveProperty('metadataConfiguration');
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -104,12 +104,12 @@ describe('Profiles', () => {
     });
 
     it('should return the profile ver10 by its token', async () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         const result = await cam.media.getProfile({ profileToken: newProfileToken });
         expect(result.fixed).toBe(false);
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });
@@ -595,7 +595,7 @@ describe('getStreamUri', () => {
     it.each([['UDP'], ['RTSP'], ['HTTP'], ['TCP']] as const)(
       'should return a stream URI when protocol is %s',
       async (protocol) => {
-        cam.device.media2Support = false;
+        cam.media2Support = false;
         try {
           const result = await cam.media.getStreamUri({
             profileToken: 'ProfileToken_1',
@@ -608,7 +608,7 @@ describe('getStreamUri', () => {
           expect(typeof mediaUri.uri).toBe('string');
           expect(mediaUri.uri.length).toBeGreaterThan(0);
         } finally {
-          cam.device.media2Support = true;
+          cam.media2Support = true;
         }
       },
     );
@@ -644,7 +644,7 @@ describe('getSnapshotUri', () => {
 
   describe('Media ver10', () => {
     it('should return a snapshot media URI when Media2 is not supported', async () => {
-      cam.device.media2Support = false;
+      cam.media2Support = false;
       try {
         const result = await cam.media.getSnapshotUri({
           profileToken: 'ProfileToken_1',
@@ -653,7 +653,7 @@ describe('getSnapshotUri', () => {
         expect(typeof result.mediaUri!.uri).toBe('string');
         expect(result.mediaUri!.uri!.length).toBeGreaterThan(0);
       } finally {
-        cam.device.media2Support = true;
+        cam.media2Support = true;
       }
     });
   });

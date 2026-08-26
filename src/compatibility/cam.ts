@@ -274,7 +274,7 @@ export class Cam extends EventEmitter {
     this.onvif.xaddrs = value;
   }
   get services() {
-    return this.onvif.device.services;
+    return this.onvif.services;
   }
   get capabilities() {
     return this.onvif.capabilities;
@@ -283,10 +283,10 @@ export class Cam extends EventEmitter {
     return this.onvif.uri;
   }
   get videoSources() {
-    return this.onvif.media.videoSources;
+    return this.onvif.videoSources;
   }
   get profiles() {
-    return this.onvif.media.profiles;
+    return this.onvif.profiles;
   }
   get defaultProfile() {
     return this.onvif.defaultProfile;
@@ -320,7 +320,7 @@ export class Cam extends EventEmitter {
     return this.onvif.device.scopes;
   }
   get media2Support() {
-    return this.onvif.device.media2Support;
+    return this.onvif.media2Support;
   }
   get NTP() {
     return this.onvif.device.NTP;

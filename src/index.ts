@@ -1,34 +1,37 @@
 export * from './onvif';
 export * from './events';
 export { default as Events } from './events';
-export { default as Device } from './device';
-export * from './media';
-export { default as Media } from './media';
-export * from './media2';
-export { default as Media2 } from './media2';
 export * from './discovery';
-export * from './ptz';
-export { default as PTZ } from './ptz';
-export * from './replay';
-export { default as Replay } from './replay';
-export { default as Imaging } from './imaging';
-export { default as Recording } from './recording';
-export { default as DoorControl } from './doorcontrol';
-export { default as AccessControl } from './accesscontrol';
-export { default as Credential } from './credential';
-export { default as AccessRules } from './accessrules';
-export { default as Schedule } from './schedule';
-export { default as Provisioning } from './provisioning';
-export { default as AdvancedSecurity } from './advancedsecurity';
-export { default as Thermal } from './thermal';
-export { default as Analytics } from './analytics';
-export { default as DeviceIO } from './deviceio';
-export { default as Display } from './display';
-export { default as ActionEngine } from './actionengine';
-export { default as Search } from './search';
-export { default as AnalyticsDevice } from './analyticsdevice';
-export { default as Receiver } from './receiver';
-export { default as Service } from './service';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
+
+// Service classes are type-only here so CommonJS `require('onvif')` does not load them.
+// Runtime instances come from lazy getters on Onvif (e.g. onvif.recording).
+export type { default as Device } from './device';
+export type { default as Media, GetStreamUriOptions } from './media';
+export type {
+  default as Media2,
+  ConfigurationRefExtended,
+  AudioOutputConfigurationExtended,
+} from './media2';
+export type { default as PTZ, GetPresetsExtended } from './ptz';
+export type { default as Replay, GetReplayUriOptions } from './replay';
+export type { default as Imaging } from './imaging';
+export type { default as Recording } from './recording';
+export type { default as DoorControl } from './doorcontrol';
+export type { default as AccessControl } from './accesscontrol';
+export type { default as Credential } from './credential';
+export type { default as AccessRules } from './accessrules';
+export type { default as Schedule } from './schedule';
+export type { default as Provisioning } from './provisioning';
+export type { default as AdvancedSecurity } from './advancedsecurity';
+export type { default as Thermal } from './thermal';
+export type { default as Analytics } from './analytics';
+export type { default as DeviceIO } from './deviceio';
+export type { default as Display } from './display';
+export type { default as ActionEngine } from './actionengine';
+export type { default as Search } from './search';
+export type { default as AnalyticsDevice } from './analyticsdevice';
+export type { default as Receiver } from './receiver';
+export type { default as Service } from './service';
 // export * from './compatibility/cam'; // use compatibility directly, ex.: require('onvif/compatibility/promises')

@@ -1226,7 +1226,7 @@ function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
       throw new Error(`Media2.${String(context.name)} is not available on this instance`);
     }
     void context.access.get(this);
-    if (!this.onvif.device.media2Support) {
+    if (!this.onvif.media2Support) {
       throw new Error('Media2 profile is not supported for this device');
     }
     return originalMethod.call(this, ...args);
