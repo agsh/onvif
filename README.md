@@ -3,7 +3,7 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 [![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 
-ONVIF Client protocol Profile S (Live Streaming) and Profile G (Replay) Node.js implementation.
+ONVIF Client protocol Node.js implementation.
 
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
@@ -262,7 +262,13 @@ without passing options object use it. You can change it manually at any time.
   - ptz
 
 ### connect(callback)
-Connect to the camera and fill device information properties with `getSystemDateAndTime`, `getCapabilities`, `getVideoSources`, `getProfiles` methods
+Connect to the camera and fill device information properties with `getSystemDateAndTime`, 
+`getCapabilities`/`getServices`, `getVideoSources`, `getProfiles` methods.
+
+Media discovery runs only when the device advertises Media (or Media2). If those calls fail
+(e.g. Axis A1601 door controller returns “Optional action not implemented”), `connect` still
+succeeds with empty profiles/video sources and emits a `warning`.
+`getVideoSources` falls back to Media2 `GetVideoSourceConfigurations` when Media1 fails.
 
 See more detailed information at http://www.onvif.org/ver10/media/wsdl/media.wsdl
 After cam initialisation we can run several ONVIF commands.

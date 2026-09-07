@@ -129,11 +129,45 @@ describe('Common functions', () => {
 				done();
 			});
 		});
-		it('should return an error when upstart is unfinished', (done) => {
-			cam.getCapabilities = (cb) => cb(new Error('error'));
+		it('should return an error when GetServices and GetCapabilities fail', (done) => {
+			const realGetServices = cam.getServices;
+			const realGetCapabilities = cam.getCapabilities;
+			cam.getServices = (includeCapability, cb) => {
+				if (typeof includeCapability === 'function') {
+					cb = includeCapability;
+				}
+				cb.call(cam, new Error('error'));
+			};
+			cam.getCapabilities = (cb) => cb.call(cam, new Error('error'));
 			cam.connect((err) => {
 				assert.notStrictEqual(err, null);
-				delete cam.getCapabilities;
+				cam.getServices = realGetServices;
+				cam.getCapabilities = realGetCapabilities;
+				done();
+			});
+		});
+		it('should complete connect when media discovery fails (optional / doorcontrol)', (done) => {
+			const realGetProfiles = cam.getProfiles;
+			const realGetVideoSources = cam.getVideoSources;
+			const savedProfiles = cam.profiles;
+			const savedVideoSources = cam.videoSources;
+			const warnings = [];
+			const onWarning = (msg) => warnings.push(msg);
+			cam.on('warning', onWarning);
+			cam.getProfiles = (cb) => cb.call(cam, new Error('Optional action not implemented'));
+			cam.getVideoSources = (cb) => cb.call(cam, new Error('Optional action not implemented'));
+			cam.connect((err) => {
+				cam.off('warning', onWarning);
+				cam.getProfiles = realGetProfiles;
+				cam.getVideoSources = realGetVideoSources;
+				assert.strictEqual(err, null);
+				assert.deepStrictEqual(cam.profiles, []);
+				assert.deepStrictEqual(cam.videoSources, []);
+				assert.ok(warnings.length >= 1);
+				// Restore startup media state for later tests
+				cam.profiles = savedProfiles;
+				cam.videoSources = savedVideoSources;
+				cam.getActiveSources();
 				done();
 			});
 		});
@@ -309,7 +343,7 @@ describe('Common functions', () => {
 		it('should throws an error when no one profile has actual videosource token', () => {
 			const realProfiles = cam.profiles;
 			cam.profiles.forEach((profile) => profile.videoSourceConfiguration.sourceToken = 'crap');
-			assert.throws(cam.getActiveSources, Error);
+			assert.throws(() => cam.getActiveSources(), Error);
 			cam.profiles = realProfiles;
 		});
 		// I can't remember and understand why it is here :)
