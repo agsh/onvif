@@ -1069,7 +1069,7 @@ export default class Media2 extends Service {
    * const { token } = await cam.media2.createMask({
    *     type: 'Color',
    *     token: 'mask_token_1',
-   *     color: { X: 1, Y: 2, Z: 3, colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr' },
+   *     color: { x: 1, y: 2, z: 3, colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr' },
    *     configurationToken: 'VideoSourceConfigurationToken_1',
    *     enabled: true,
    *     polygon: {

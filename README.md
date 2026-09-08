@@ -55,19 +55,25 @@ The main entry is `Onvif`. After `connect()`, call methods on service namespaces
 
 ```text
 Onvif
-├── connect() / request()          # handshake + raw SOAP
-├── device                         # Device management (lazy)
-├── media / media2                 # Profiles S / T media (lazy)
-├── ptz                            # Pan-tilt-zoom (lazy)
-├── events                         # Pull-point / WS-BaseNotification (eager)
-├── imaging                        # Imaging settings (lazy)
-├── recording / replay / search    # Profile G NVR (lazy)
-├── receiver                       # Stream receivers (lazy)
-├── analytics / analyticsDevice    # Analytics (lazy)
-├── deviceIO / display / actionEngine
-├── thermal / provisioning
-├── doorControl / accessControl / credential / accessRules / schedule
-└── advancedSecurity               # TLS / keystore (experimental, lazy)
+├── connect() / request()             # handshake + raw SOAP 
+│                                     # + some actions from device/media/media2 (these modules are not loaded)
+├── device                            # Device management (lazy)
+├── media / media2                    # Profiles S / T media (lazy)
+├── ptz                               # Pan-tilt-zoom (lazy)
+├── events                            # Pull-point / WS-BaseNotification (eager)
+├── imaging                           # Imaging settings (lazy)
+├── recording / replay / search       # Profile G NVR (lazy)
+├── receiver                          # Stream receivers (lazy)
+├── analytics / analyticsDevice       # Analytics (lazy)
+├── deviceIO / display / actionEngine # (lazy)
+├── thermal / provisioning            # (lazy)
+├── doorControl / accessControl / credential / accessRules / schedule 
+│                                     # (lazy)
+└── advancedSecurity                  # TLS / keystore (experimental, lazy)
+
+Discovery                              # separate export (WS-Discovery on the LAN)
+├── probe()                            # find NVT devices; returns Promise of Onvif / info objects
+└── on('device' | 'error', …)          # EventEmitter — device found / errors
 ```
 
 Also exported: [`Discovery`](https://agsh.github.io/onvif/variables/Discovery.html) (WS-Discovery on the LAN),
@@ -80,7 +86,7 @@ Version 1.x is a redesign of the original JavaScript API:
 - TypeScript-first API with generated ONVIF interfaces
 - Native Promise-based methods
 - Lazy-loaded services
-- More ONVIF services than 0.x (media2, access control, thermal, …)
+- More ONVIF services than 0.x (access control, thermal, door control, etc.)
 - Improved error handling
 - Explicit support for vendor-specific XML extensions (`xs:any` / `xs:anyAttribute`) — [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
 - Optional compatibility layer for existing 0.x applications
@@ -103,6 +109,31 @@ await onvif.connect();
 await onvif.media.getProfiles();
 ```
 
+```js
+// Callbacks — onvif/compatibility
+const { Cam } = require('onvif/compatibility');
+
+const cam = new Cam(
+  { hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' },
+  (error) => {
+    if (error) throw error;
+    cam.getProfiles((err, profiles) => {
+      if (err) throw err;
+      console.log(profiles);
+    });
+  },
+);
+```
+
+```js
+// Promises — onvif/compatibility/promises
+const { Cam } = require('onvif/compatibility/promises');
+
+const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+await cam.connect();
+console.log(await cam.getProfiles());
+```
+
 Compatibility import paths, full examples, and known behavioral differences:
 [innerDocs/migration.md](innerDocs/migration.md).
 
@@ -122,8 +153,14 @@ Same import works from CommonJS (`require('onvif')`) and ESM. Call `connect()` b
 
 ### Example project
 
-Special teasing example how to create little funny video server (http://localhost:6147) with 1 ffmpeg and 3 node.js libraries:
-[333702629-e816fed6-067a-4f77-b3f5-ccd9d5ff1310.webm](https://github.com/user-attachments/assets/fd725700-f60e-4c3b-ba2d-bdf2d07b3376)
+> [!NOTE]
+> **Node.js** — works with plain JavaScript (`require` / `import`). TypeScript is optional;
+> types ship with the package when you want them. Here is an example with the cjs-style.
+
+A small example showing how to use ONVIF with FFmpeg, RTSP and Socket.IO
+(http://localhost:6147) with 1 ffmpeg and 3 node.js libraries:
+
+<video src="https://github.com/user-attachments/assets/fd725700-f60e-4c3b-ba2d-bdf2d07b3376" controls width="720"></video>
 
 ```shell
 sudo apt install ffmpeg
@@ -148,9 +185,9 @@ const server = require('http').createServer((req, res) =>
   });
 </script></body></html>`),
 );
-const { Onvif } = require('onvif'),
-  io = require('socket.io')(server),
-  rtsp = require('rtsp-ffmpeg');
+const { Onvif } = require('onvif');
+const io = require('socket.io')(server);
+const rtsp = require('rtsp-ffmpeg');
 server.listen(6147);
 
 const onvif = new Onvif({ username: 'username', password: 'password', hostname: '192.168.0.116', port: 2020 });
@@ -347,7 +384,7 @@ npm test
 - `npm run test-local` — Jest only (expects a server already on the configured host/port)
 - `npm run build` / `npm run lint` — TypeScript build and ESLint
 
-Default integration tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server)
+Default integration tests use [happytime-onvif-server](https://www.happytimesoft.com/products/onvif-server/index.html)
 (`__tests__/happytime.json`, typically `127.0.0.1:8000`).
 
 More detail (golden compatibility suite, pointing tests at another device): [innerDocs/testing.md](innerDocs/testing.md).
@@ -384,4 +421,19 @@ Run `console.log(await onvif.device.getDeviceInformation());` — you should get
 
 ---
 
-<img width="748" height="561" alt="HappyTimeSoft" src="https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3" />
+# Thanks
+
+Thanks to [HappyTimeSoft](https://www.happytimesoft.com/) for allowing us to use
+[HappyTime ONVIF Server](https://www.happytimesoft.com/products/onvif-server/index.html) in our integration tests.
+
+Thanks to [@RogerHardiman](https://github.com/RogerHardiman) for the ongoing support, for keeping this project honest
+against the ONVIF specification, and for testing on real cameras.
+
+Thanks to everyone who filed issues over the years. We have not always replied quickly — day jobs come first —
+and we are sorry if open issues were left unanswered. Vendor device support, and much of what this library is today,
+exists because of you.
+
+If you have a lot of cameras and are willing to let us try this library against them, I would be happy to —
+open an issue or reach out.
+
+[![OBEY!](https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3)](https://www.onvif.org/resources/)

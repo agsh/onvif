@@ -167,9 +167,9 @@ Extra attributes are merged into the same object as normal camelCase properties 
 
 ```js
 {
-  X: 0.1,
-  Y: 0.2,
-  Z: 0.3,
+  x: 0.1,
+  y: 0.2,
+  z: 0.3,
   colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr',
   vendorFlag: 'extra'   // xs:anyAttribute
 }

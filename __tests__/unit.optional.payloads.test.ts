@@ -510,11 +510,11 @@ describe('Optional payloads and empty responses', () => {
         timeFormat: 'HH:mm:ss',
         fontSize: 16,
         fontColor: {
-          color: { X: 0, Y: 0, Z: 0 },
+          color: { x: 0, y: 0, z: 0 },
           transparent: 0,
         },
         backgroundColor: {
-          color: { X: 1, Y: 1, Z: 1 },
+          color: { x: 1, y: 1, z: 1 },
           transparent: 0,
         },
         plainText: 'hello',
