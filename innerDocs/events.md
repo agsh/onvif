@@ -6,7 +6,7 @@ To subscribe to all events using pull-point subscription you can just use `.on()
 inherits from the `EventEmitter` class.
 
 ```ts
-const onvif = new Onvif();
+const onvif = new Onvif({/**...*/});
 function eventHandler(msg) {
   console.log(msg);
   onvif.off('event');
@@ -26,8 +26,9 @@ The first and the only one argument for `data` is the NotificationMessage object
 the connection to the device is lost.
 
 ```ts
-await cam.connect();
-const sub = new Subscription(cam, {
+const onvif = new Onvif({/**...*/});
+await onvif.connect();
+const sub = new Subscription(onvif, {
   filter: {
     topicExpression: [
       {

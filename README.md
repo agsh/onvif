@@ -22,7 +22,7 @@ TypeScript-first ONVIF client for Node.js.
 
 ## Installation
 
-Requires Node.js 18+. Docs: https://agsh.github.io/onvif/
+Requires Node.js 18+.
 
 **For new projects, use 1.x.**  
 **For existing 0.x projects, keep using the [0.x compatibility API](#two-apis) or migrate to the 1.x `Onvif` API** —
@@ -45,6 +45,34 @@ npm install onvif
 Default `npm install onvif` still resolves to stable **0.x**. README for that line:
 [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
+## Documentation
+
+API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** —
+start from the [`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) class.
+
+The main entry is `Onvif`. After `connect()`, call methods on service namespaces. Most namespaces are
+**lazy-loaded** on first use; `events` is constructed eagerly.
+
+```text
+Onvif
+├── connect() / request()          # handshake + raw SOAP
+├── device                         # Device management (lazy)
+├── media / media2                 # Profiles S / T media (lazy)
+├── ptz                            # Pan-tilt-zoom (lazy)
+├── events                         # Pull-point / WS-BaseNotification (eager)
+├── imaging                        # Imaging settings (lazy)
+├── recording / replay / search    # Profile G NVR (lazy)
+├── receiver                       # Stream receivers (lazy)
+├── analytics / analyticsDevice    # Analytics (lazy)
+├── deviceIO / display / actionEngine
+├── thermal / provisioning
+├── doorControl / accessControl / credential / accessRules / schedule
+└── advancedSecurity               # TLS / keystore (experimental, lazy)
+```
+
+Also exported: [`Discovery`](https://agsh.github.io/onvif/variables/Discovery.html) (WS-Discovery on the LAN),
+and the separate [0.x compatibility](#two-apis) entry points.
+
 ## Why 1.x?
 
 Version 1.x is a redesign of the original JavaScript API:
@@ -61,9 +89,11 @@ Version 1.x is a redesign of the original JavaScript API:
 
 **New API ≠ compatibility API.** Pick one surface and stick to it.
 
-### 1.x API (main export)
-
-Preferred for new projects. Service namespaces on `Onvif`:
+| | 1.x API | 0.x compatibility API |
+| --- | --- | --- |
+| Import | `import { Onvif } from 'onvif'` | `require('onvif/compatibility')` or `…/promises` |
+| Type | `Onvif` + service namespaces | `Cam` / `Discovery` (v0.x shape) |
+| For | new projects | existing `Cam`-based apps |
 
 ```ts
 import { Onvif } from 'onvif';
@@ -73,17 +103,8 @@ await onvif.connect();
 await onvif.media.getProfiles();
 ```
 
-### 0.x compatibility API (separate entry points)
-
-For existing `Cam`-based code. **Not** re-exported from `require('onvif')` / `import { Onvif } from 'onvif'`:
-
-```js
-const { Cam } = require('onvif/compatibility'); // callbacks
-// or:
-const { Cam } = require('onvif/compatibility/promises'); // async/await
-```
-
-Examples and known differences: [innerDocs/migration.md](innerDocs/migration.md).
+Compatibility import paths, full examples, and known behavioral differences:
+[innerDocs/migration.md](innerDocs/migration.md).
 
 ## Quick start
 
@@ -101,12 +122,8 @@ Same import works from CommonJS (`require('onvif')`) and ESM. Call `connect()` b
 
 ### Example project
 
-A small example showing how to build a simple video server (http://localhost:6147) with ffmpeg and a few Node.js
-libraries:
-
-<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
-
-https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310
+Special teasing example how to create little funny video server (http://localhost:6147) with 1 ffmpeg and 3 node.js libraries:
+[333702629-e816fed6-067a-4f77-b3f5-ccd9d5ff1310.webm](https://github.com/user-attachments/assets/fd725700-f60e-4c3b-ba2d-bdf2d07b3376)
 
 ```shell
 sudo apt install ffmpeg
@@ -169,10 +186,10 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - [API documentation](https://agsh.github.io/onvif/)
 - Integration tests against [HappyTimeSoft ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html)
 - Events: pull-point, WS-BaseNotification, filters, `EventEmitter` — see [innerDocs/events.md](innerDocs/events.md)
-- Lazy-loaded services — see [innerDocs/performance.md](innerDocs/performance.md)
+- Lazy-loaded services — see [Performance / lazy loading](#performance--lazy-loading)
 - Auth: WS-Security, Digest; Advanced Security (experimental)
 - WS-Discovery on the LAN
-- The library currently implements: `Device`, `Events`, `Media`, `Media2`, `PTZ`, `Imaging`, `Analytics`,
+- Implemented services — `Device`, `Events`, `Media`, `Media2`, `PTZ`, `Imaging`, `Analytics`,
   `AnalyticsDevice`, `Recording`, `Replay`, `Search`, `Receiver`, `DeviceIO`, `Display`, `Action Engine`,
   `Thermal`, `DoorControl`, `AccessControl`, `Credential`, `AccessRules`, `Schedule`, `Provisioning`,
   `AdvancedSecurity`
@@ -240,27 +257,27 @@ Details and camera examples: [innerDocs/vendor-extensions.md](innerDocs/vendor-e
 
 # Migration from v0.x
 
-Use the [0.x compatibility API](#two-apis) (`onvif/compatibility` or `onvif/compatibility/promises`) if you are not
-ready to switch to `Onvif` yet.
+The 1.x API covers all methods available in v0.8. A separate compatibility layer is provided for existing
+applications — **functional coverage**, not bit-identical behavior.
 
-Guides, examples, and known differences: [innerDocs/migration.md](innerDocs/migration.md).
+Full guide with callback / Promise examples and known differences:
+[innerDocs/migration.md](innerDocs/migration.md).
 
 ---
 
 # Examples
 
-Additional samples are in the [`examples`](https://github.com/agsh/onvif/tree/v1/examples) folder. Some older files
-still target 0.x / compatibility APIs; prefer the 1.x samples and [Quick start](#quick-start) for new work.
+Additional samples are in the [`examples`](https://github.com/agsh/onvif/tree/v1/examples) folder.
 
-- [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs) / [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs)
+- Compatibility walkthrough (preferred over reading the `.cjs` files alone): [innerDocs/migration.md](innerDocs/migration.md)
 - [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts)
-- [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) … [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) (legacy / mixed)
+- [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) … [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) (legacy / mixed; some still target 0.x)
 
 ---
 
 # Performance / lazy loading
 
-1.x loads large service modules on first use instead of at import time.
+In 1.x you only pay for the ONVIF services you actually use.
 
 | | 0.x | 1.x |
 | --- | --- | --- |
@@ -270,7 +287,48 @@ still target 0.x / compatibility APIs; prefer the 1.x samples and [Quick start](
 | Promise API | compatibility / wrappers | native |
 | Large services loaded at startup | ✓ | — |
 
-Architecture notes and snapshot measurements: [innerDocs/performance.md](innerDocs/performance.md).
+### How loading works
+
+- Service namespaces (`onvif.device`, `onvif.media`, `onvif.ptz`, `onvif.thermal`, …) are lazy proxies.
+  The corresponding module is loaded the first time you call a method on it (for example `await onvif.ptz.getNodes()`).
+- `connect()` uses dedicated helpers in `connection.ts` for the handshake SOAP (`GetServices` /
+  `GetCapabilities`, Media `GetProfiles` / `GetVideoSources`). It does not load the full `device` / `media` /
+  `media2` class modules. Profiles and video sources are stored on the `Onvif` instance; when `Media` is later
+  loaded, it reuses that cache.
+- `Events` is constructed eagerly (needed for `onvif.on('event', …)`). Everything else stays deferred.
+
+### Practical tips
+
+```ts
+import { Onvif } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+await onvif.connect(); // handshake only — no full Media/Device class modules yet
+
+const info = await onvif.device.getDeviceInformation(); // loads device.js on first use
+const uri = await onvif.media.getStreamUri({ protocol: 'RTSP' }); // loads media.js on first use
+// onvif.thermal is never loaded unless you call it
+```
+
+### Runtime heap (HappyTime ONVIF server)
+
+Measured against [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) on Node.js 24
+(`heapUsed` after GC; illustrative):
+
+| Library | Core | Partial | All |
+| --- | ---: | ---: | ---: |
+| onvif 1.x | ~6.2 MiB | ~7.0 MiB | ~7.5 MiB |
+| [onvif 0.8](https://github.com/agsh/onvif/tree/v0.x) | ~6.3 MiB | ~6.8 MiB | ~6.9 MiB |
+| [node-onvif](https://github.com/GuilhermeC18/node-onvif) | ~6.5 MiB | ~6.5 MiB | ~6.5 MiB |
+| [@2bad/onvif](https://github.com/2BAD/onvif) (a fork of an earlier version of onvif 1.0) | ~8.9 MiB | ~9.1 MiB | ~9.1 MiB |
+
+- **Core** — `connect()` + device information  
+- **Partial** — + media / PTZ / discovery (`media2` where available)  
+- **All** — every service module that library exposes (1.x covers 20+ services)
+
+Lazy loading mainly helps the **Core** path: 1.x stays close to the memory footprint of 0.8 when only Device
+is used, and grows as additional services are accessed. Compiled JS sizes and methodology notes:
+[innerDocs/performance.md](innerDocs/performance.md).
 
 ---
 
@@ -304,16 +362,15 @@ Further reading:
 
 ---
 
-# Feedback
+# Device compatibility
 
-Device reports help track which cameras work well with this library. ONVIF support varies by vendor and firmware.
+The library has been tested with cameras and devices from Axis, Bosch, Canon, Hanwha, Hikvision, Panasonic, Sony and
+other vendors.
 
-@RogerHardiman tested this lib on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x
-Panasonic,
-2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S,
-Profile G and Profile T devices.
+Please report your device and firmware using our
+[compatibility form](https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform).
 
-To contribute a report, run `console.log(await onvif.device.getDeviceInformation());` — you should see something like:
+Run `console.log(await onvif.device.getDeviceInformation());` — you should get something like:
 
 ```json
 {
@@ -324,9 +381,6 @@ To contribute a report, run `console.log(await onvif.device.getDeviceInformation
   "hardwareId": 1
 }
 ```
-
-Submit the result and notes here:
-https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform
 
 ---
 
