@@ -10,7 +10,7 @@ import {
 
 describe('toOnvifXMLSchemaObject', () => {
   describe('itemList', () => {
-    it('serializes simpleItem, elementItem with __any__, and extension', () => {
+    it('serializes simpleItem, elementItem with xsany, and extension', () => {
       expect(
         itemList({
           simpleItem: [{ name: 'A', value: '1' }],
@@ -37,7 +37,7 @@ describe('toOnvifXMLSchemaObject', () => {
       });
     });
 
-    it('handles elementItem without __any__', () => {
+    it('handles elementItem without xsany', () => {
       expect(itemList({ elementItem: [{ name: 'OnlyName' }] })).toEqual({
         ElementItem: [{ $: { Name: 'OnlyName' } }],
       });

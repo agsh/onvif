@@ -532,7 +532,9 @@ export default class Media extends Service {
 
   /**
    * This operation lists all available video sources for the device. The device shall support the listing of available
-   * video sources through the GetVideoSources command
+   * video sources through the GetVideoSources command.
+   * When Media1 GetVideoSources is unavailable or fails and Media2 is supported, falls back to Media2
+   * GetVideoSourceConfigurations (unique sourceToken values).
    */
   async getVideoSources(): Promise<VideoSource[]> {
     const { getVideoSources } = await import('./connection');

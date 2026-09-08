@@ -4,7 +4,13 @@
  */
 
 import type { Onvif, OnvifServices } from './onvif';
-import type { Capabilities, CapabilitiesExtension, Profile, VideoSource } from './interfaces/onvif';
+import type {
+  Capabilities,
+  CapabilitiesExtension,
+  Profile,
+  VideoSource,
+  VideoSourceConfiguration,
+} from './interfaces/onvif';
 import type {
   GetCapabilities,
   GetServices,
@@ -49,22 +55,14 @@ export async function getServices(
   { includeCapability }: GetServices = { includeCapability: true },
 ): Promise<GetServicesResponse> {
   const response = await serviceRequest(onvif, 'device', {
-    GetServices: {
-      IncludeCapability: includeCapability,
-    },
+    GetServices: { IncludeCapability: includeCapability },
   });
   const result = response.getServicesResponse as GetServicesResponse;
   onvif.services = result.service ?? [];
   // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
   // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
   onvif.services.forEach((service: DeviceService) => {
-    if (
-      Object.prototype.hasOwnProperty.call(service, 'namespace') &&
-      Object.prototype.hasOwnProperty.call(service, 'XAddr')
-    ) {
-      if (!service.namespace || !service.XAddr) {
-        return;
-      }
+    if (service.namespace && service.XAddr) {
       const parsedNamespace = new URL(service.namespace);
       if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
         const namespaceSplitted = parsedNamespace.pathname.substring(1).split('/');
@@ -132,11 +130,74 @@ export async function getMediaProfiles(onvif: Onvif): Promise<Profile[]> {
 
 /**
  * Media1 GetVideoSources — stores result on {@link Onvif.videoSources}.
+ * Media2 has no GetVideoSources; if Media1 is absent, empty, or fails and Media2 is available,
+ * falls back to GetVideoSourceConfigurations and maps unique `sourceToken` values to {@link VideoSource}.
  */
 export async function getVideoSources(onvif: Onvif): Promise<VideoSource[]> {
-  const response = await serviceRequest(onvif, 'media', { GetVideoSources: {} }, { array: ['videoSources'] });
-  onvif.videoSources = response.getVideoSourcesResponse.videoSources;
+  let mediaError: unknown;
+
+  if (onvif.uri.media) {
+    try {
+      const response = await serviceRequest(onvif, 'media', { GetVideoSources: {} }, { array: ['videoSources'] });
+      onvif.videoSources = response.getVideoSourcesResponse.videoSources ?? [];
+      if (onvif.videoSources.length > 0) {
+        return onvif.videoSources;
+      }
+    } catch (error) {
+      mediaError = error;
+    }
+  }
+
+  if (onvif.media2Support && onvif.uri.media2) {
+    try {
+      onvif.videoSources = await getVideoSourcesFromMedia2(onvif);
+      return onvif.videoSources;
+    } catch (error) {
+      if (mediaError !== undefined) {
+        throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+      }
+      throw error;
+    }
+  }
+
+  if (mediaError !== undefined) {
+    throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+  }
+
+  onvif.videoSources ??= [];
   return onvif.videoSources;
+}
+
+/** Unique physical sources from Media2 VideoSourceConfiguration list. */
+async function getVideoSourcesFromMedia2(onvif: Onvif): Promise<VideoSource[]> {
+  const response = await serviceRequest(
+    onvif,
+    'media2',
+    { GetVideoSourceConfigurations: {} },
+    { array: ['configurations'] },
+  );
+  const configurations =
+    (response.getVideoSourceConfigurationsResponse?.configurations as VideoSourceConfiguration[] | undefined) ?? [];
+  return videoSourcesFromConfigurations(configurations);
+}
+
+function videoSourcesFromConfigurations(configurations: VideoSourceConfiguration[]): VideoSource[] {
+  const sources = new Map<string, VideoSource>();
+  for (const configuration of configurations) {
+    const { sourceToken: token } = configuration;
+    if (!token || sources.has(token)) {
+      continue;
+    }
+    sources.set(token, {
+      token,
+      framerate: 0,
+      resolution: {
+        width: configuration.bounds?.width ?? 0,
+        height: configuration.bounds?.height ?? 0,
+      },
+    });
+  }
+  return [...sources.values()];
 }
 
 /** Probe Media2 GetProfiles (D-Link workaround); does not keep the result. */
@@ -235,9 +296,18 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
       onvif.media2Support = false;
     }
   }
-  // Profile C / doorcontrol / etc. may have no Media service at all.
+  // Profile C / doorcontrol / etc. may advertise no Media service at all.
+  // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
+  // GetProfiles / GetVideoSources with "Optional action not implemented".
+  // Both calls are required for active sources; if either fails, drop media state.
   if (onvif.uri.media) {
-    await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+    try {
+      await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+    } catch (error) {
+      onvif.profiles = [];
+      onvif.videoSources = [];
+      onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
+    }
     await connectSteps.getActiveSources(onvif);
   }
   onvif.emit('connect');
