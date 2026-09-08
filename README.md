@@ -79,6 +79,7 @@ I will be happy to answer any questions and hear your feedback.
 - Compatible with the original API structure
 - Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks,
   `require('onvif/compatibility/promises')` for Promises (both export `Cam` and `Discovery`)
+- Almost full test coverage in the different cases
 
 ---
 
@@ -168,6 +169,26 @@ Rough sizes of a few compiled service files (illustrative; exact numbers change 
 
 Eagerly loading every service would put the initial JS footprint well over 400 KiB. With lazy loading, a typical
 camera client that only uses Device + Media + PTZ loads those modules on first use instead of at process start.
+
+Runtime heap against [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server)
+(Node.js 24, median of 3 runs, `heapUsed` after GC; illustrative). Scenarios:
+
+1. **Core** — connect + device information
+2. **Partial** — + media / PTZ / discovery (and `media2` where the library has it)
+3. **All** — every service module that library exposes
+
+| Library                                                                                                 | Core | Partial | All | Notes |
+|---------------------------------------------------------------------------------------------------------| ---: | ---: | ---: | --- |
+| onvif 1.x                                                                                               | ~6.2 MiB | ~7.0 MiB | ~7.5 MiB | Lazy service modules; “All” covers 20+ services |
+| [onvif 0.8](https://github.com/agsh/onvif/tree/v0.x)                                                        | ~6.3 MiB | ~6.8 MiB | ~6.9 MiB | Eager load of device/media/ptz/imaging/recording/replay |
+| [node-onvif](https://github.com/GuilhermeC18/node-onvif)                                                | ~6.5 MiB | ~6.5 MiB | ~6.5 MiB | Device/media/ptz only; `init()` already loads that surface |
+| [@2bad/onvif](https://github.com/2BAD/onvif) (fork of onvif 1.x in the early stages of the development) | ~8.9 MiB | ~9.1 MiB | ~9.1 MiB | Eager Device/Media/PTZ (no further services) |
+
+RSS after connect is typically ~72–86 MiB for all clients (SOAP/HTTP dominates). Empty Node ≈ 3.4 MiB heap /
+≈ 47 MiB RSS; `require`/`import` alone ≈ 5.3–5.5 MiB heap for each package.
+
+Lazy loading mainly helps the **Core** path: 1.x stays near 0.8 while only paying for Device, then grows when you
+touch Media2, door control, analytics, and the rest — a surface 0.8 / `node-onvif` / `@2bad/onvif` do not ship.
 
 ### How loading works
 
