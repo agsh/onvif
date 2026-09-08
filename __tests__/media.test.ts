@@ -14,6 +14,7 @@ import {
   VideoSourceConfiguration,
 } from '../src/interfaces/onvif';
 import happytimeOnvifOptions from './happytime.json';
+import { xsany } from '../src/utils/toOnvifXMLSchemaObject';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
 function mediaTestCallable(media: Media): Record<string, (...args: unknown[]) => Promise<unknown>> {
@@ -1243,7 +1244,7 @@ describe('Configurations', () => {
                           scale: { x: 0.090909, y: 0.111111 },
                         },
                       },
-                      __any__: {
+                      [xsany]: {
                         $: { Name: 'Layout' },
                         'tt:CellLayout': [
                           {
@@ -1310,7 +1311,7 @@ describe('Configurations', () => {
               topicExpression: {
                 dialect: '',
               },
-              __any__: {
+              [xsany]: {
                 'wsnt:TopicExpression': [
                   {
                     $: {

@@ -8,7 +8,7 @@ import { PTZVector } from '../interfaces/common';
 
 export type XSAny = Record<string, any> | undefined;
 
-export const xsany = '__any__';
+export const xsany = Symbol('any');
 
 export function itemList(itemList: ItemList) {
   return {
@@ -22,7 +22,7 @@ export function itemList(itemList: ItemList) {
         const anyXml = (elementItem[xsany] ?? {}) as XSAny;
         return {
           ...anyXml,
-          $: { Name: elementItem.name, ...anyXml?.$ },
+          $: { ...anyXml?.$, Name: elementItem.name },
         };
       }),
     }),

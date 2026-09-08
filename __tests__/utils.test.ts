@@ -1,7 +1,7 @@
 import xml2js, { parseStringPromise } from 'xml2js';
 import { build, guid, linerase, parseSOAPString, splitArgs, struct, toIsoDuration, toMs } from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
-import { config } from '../src/utils/toOnvifXMLSchemaObject';
+import { config, xsany } from '../src/utils/toOnvifXMLSchemaObject';
 
 describe('Linerase function', () => {
   it('should handle tag', async () => {
@@ -227,7 +227,7 @@ describe('struct', () => {
 });
 
 describe('xs:any', () => {
-  it('parseSOAPString attaches xml2js __any__ for rawXML tags', async () => {
+  it('parseSOAPString attaches xml2js xsany for rawXML tags', async () => {
     const soap = `<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2">
   <SOAP-ENV:Body>
@@ -266,7 +266,7 @@ describe('xs:any', () => {
     expect(elementItem.name).toBe('Layout');
     expect(elementItem.cellLayout.columns).toBe(13);
     expect(elementItem.cellLayout.rows).toBe(18);
-    expect(elementItem.__any__).toEqual({
+    expect(elementItem[xsany]).toEqual({
       $: { Name: 'Layout' },
       'tt:CellLayout': [
         {
@@ -280,16 +280,18 @@ describe('xs:any', () => {
         },
       ],
     });
+    expect(Object.getOwnPropertyDescriptor(elementItem, xsany)?.enumerable).toBe(false);
 
     const filter = body.getVideoAnalyticsConfigurationsResponse.configurations.events.filter;
     expect(filter.topicExpression.dialect).toBe('');
-    expect(filter.__any__).toEqual({
+    expect(filter[xsany]).toEqual({
       'wsnt:TopicExpression': [
         {
           $: { Dialect: '' },
         },
       ],
     });
+    expect(Object.getOwnPropertyDescriptor(filter, xsany)?.enumerable).toBe(false);
   });
 
   it('any item is an object', async () => {
@@ -310,7 +312,7 @@ describe('xs:any', () => {
     const newLD = {
       Lens: {
         LensDescription: {
-          ...(result.__any__ as object),
+          ...((result as unknown as Record<symbol, object>)[xsany]),
           Offset: { X: result.offset.x, Y: result.offset.y },
           XFactor: result.XFactor,
         },

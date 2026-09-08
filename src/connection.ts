@@ -4,7 +4,13 @@
  */
 
 import type { Onvif, OnvifServices } from './onvif';
-import type { Capabilities, CapabilitiesExtension, Profile, VideoSource, VideoSourceConfiguration } from './interfaces/onvif';
+import type {
+  Capabilities,
+  CapabilitiesExtension,
+  Profile,
+  VideoSource,
+  VideoSourceConfiguration,
+} from './interfaces/onvif';
 import type {
   GetCapabilities,
   GetServices,
@@ -49,22 +55,14 @@ export async function getServices(
   { includeCapability }: GetServices = { includeCapability: true },
 ): Promise<GetServicesResponse> {
   const response = await serviceRequest(onvif, 'device', {
-    GetServices: {
-      IncludeCapability: includeCapability,
-    },
+    GetServices: { IncludeCapability: includeCapability },
   });
   const result = response.getServicesResponse as GetServicesResponse;
   onvif.services = result.service ?? [];
   // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
   // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
   onvif.services.forEach((service: DeviceService) => {
-    if (
-      Object.prototype.hasOwnProperty.call(service, 'namespace') &&
-      Object.prototype.hasOwnProperty.call(service, 'XAddr')
-    ) {
-      if (!service.namespace || !service.XAddr) {
-        return;
-      }
+    if (service.namespace && service.XAddr) {
       const parsedNamespace = new URL(service.namespace);
       if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
         const namespaceSplitted = parsedNamespace.pathname.substring(1).split('/');

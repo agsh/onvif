@@ -655,6 +655,7 @@ export interface PTZFilter {
 }
 export interface SubscriptionPolicy {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Subcription handling in the same way as base notification subscription. */
 export interface EventSubscription {
@@ -2669,6 +2670,7 @@ export interface ElementItem {
   name: string;
   /** XML tree contiaing the element value as defined in the corresponding description. */
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ItemList {
   /** Value name pair as defined by the corresponding description. */

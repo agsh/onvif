@@ -48,11 +48,20 @@ export function linerase<T = any>(xml: any, options: LineraseOptions = { array: 
     options.rawXML = [];
   }
   /* if we have xs:any
-    put it content to the Symbol.any
+    put its content on the xsany symbol (non-enumerable)
    */
-  if (options.rawXML.includes(options.name!)) {
-    if (options.array.includes(options.name!)) {
-      return xml.map((item: any) => linerase(item, { ...options, name: xsany, rawXML: [xsany] }));
+  if (options.name !== undefined && options.rawXML.includes(options.name)) {
+    if (options.array.includes(options.name)) {
+      return xml.map((item: any) => {
+        const rawXMLObject = linerase(item, { ...options, rawXML: [] });
+        Object.defineProperty(rawXMLObject, xsany, {
+          value: item,
+          writable: true,
+          enumerable: false,
+          configurable: true,
+        });
+        return rawXMLObject;
+      });
     }
     if (Array.isArray(xml)) {
       [xml] = xml;
@@ -61,7 +70,7 @@ export function linerase<T = any>(xml: any, options: LineraseOptions = { array: 
     Object.defineProperty(rawXMLObject, xsany, {
       value: xml,
       writable: true,
-      enumerable: true, // false,
+      enumerable: false,
       configurable: true,
     });
     return rawXMLObject;
@@ -243,7 +252,12 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
     }
   }
   formatXMLValues(parsed, { array: options.array });
-  parsed[xsany] = xsAnyParsed;
+  Object.defineProperty(parsed, xsany, {
+    value: xsAnyParsed,
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
   return parsed;
 }
 
@@ -389,7 +403,7 @@ export function getDigestHeaders(headersArray: string[]) {
 
 /**
  * Mutable function to convert string values to their appropriate types.
- * Tags in `rawXML` are re-parsed and get `__any__` as the xml2js object.
+ * Tags in `rawXML` are re-parsed and get `xsany` as the xml2js object.
  */
 export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
   const rawXML = options.rawXML ?? [];
@@ -398,9 +412,6 @@ export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) 
   // }
   if (typeof xml === 'object' && xml !== null) {
     for (const [key, value] of Object.entries(xml)) {
-      if (key === xsany) {
-        continue;
-      }
       if (rawXML.includes(key)) {
         xml[key] = hydrateStopNode(value, options);
         continue;
