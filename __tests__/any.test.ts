@@ -204,9 +204,9 @@ describe('README Color and Parameters (xs:anyAttribute)', () => {
     const color = body.getResponse.color;
 
     expect(color).toMatchObject({
-      X: 0.1,
-      Y: 0.2,
-      Z: 0.3,
+      x: 0.1,
+      y: 0.2,
+      z: 0.3,
       colorspace: COLORSPACE_YCBCR,
       vendorFlag: 'extra',
     });
