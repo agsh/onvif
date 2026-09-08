@@ -2,238 +2,319 @@
 
 [![Coverage Status](https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages-debug/badges/coverage.svg)](https://github.com/agsh/onvif/tree/v1)
 
-ONVIF client protocol implementation for Node.js.
+TypeScript-first ONVIF client for Node.js.
+
+- TypeScript + Promise API
+- Typed ONVIF/WSDL interfaces
+- Profiles [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
+  [G](https://www.onvif.org/profiles/profile-g/), [M](https://www.onvif.org/profiles/profile-m/),
+  [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/)
+- WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256)
+- Lazy-loaded service modules
+- [v0.x compatibility layer](https://github.com/agsh/onvif/blob/master/src/compatibility/cam.ts)
 
 > [!TIP]
-> This page describes the 1.x version of the ONVIF library written in TypeScript. The 1.x version is currently in the 
-> release candidate stage.
-> If you are looking for the README for the stable 0.x version, please see
-> [branch v0.x](https://github.com/agsh/onvif/tree/v0.x)
->
-> The default npm installation still uses version 0.x. If you want to try this new version, install it with:
->
-> ```shell
-> npm install onvif@rc
-> ```
-
-A TypeScript-first ONVIF client for Node.js with typed WSDL interfaces, Promise-based APIs, and broad service coverage:
-- **Core media & PTZ** — (Profiles [S](https://www.onvif.org/profiles/profile-s/),
-  [T](https://www.onvif.org/profiles/profile-t/)) device info, Media / Media2 profiles, stream URIs, imaging, presets,
-  continuous and absolute moves
-- **Events** — (Profile [M](https://www.onvif.org/profiles/profile-m/)) pull-point and WS-BaseNotification with topic
-  filters and `EventEmitter` integration
-- **Recording & replay** — (Profile [G](https://www.onvif.org/profiles/profile-g/)) NVR search, recordings, and replay
-  URIs
-- **Physical access** — (Profiles [C](https://www.onvif.org/profiles/profile-c/),
-  [A](https://www.onvif.org/profiles/profile-a/)) DoorControl, AccessControl, Credential, AccessRules, Schedule
-- **More services** — (Profile [T](https://www.onvif.org/profiles/profile-t/)) Analytics, DeviceIO, Display,
-  Action Engine, Thermal, Provisioning, AdvancedSecurity
-- **Discovery & auth** — WS-Discovery on the LAN; WS-Security and Digest (MD5 / SHA-1 / SHA-256)
-
-Works server-side on Node.js 18+, tested on GitHub Actions.
+> **Looking for stable 0.x / 0.8?** This page is for **1.x** (release candidate).  
+> README and docs for the default npm install: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).  
+> Staying on 0.x while trying 1.x? Use the [0.x compatibility API](#two-apis).
 
 [![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
-## About
+## Installation
 
-This is a new version of the ONVIF library. The previous version was written in JavaScript, while this version is
-written in TypeScript and includes interfaces describing ONVIF data structures.
+Requires Node.js 18+. Docs: https://agsh.github.io/onvif/
 
-At the moment, all the methods from v0.8 have been implemented in the new `Onvif` API, and a
-[v0.x compatibility layer](https://github.com/agsh/onvif/blob/master/src/compatibility/cam.ts) is available
-for existing projects.
+**For new projects, use 1.x.**  
+**For existing 0.x projects, keep using the [0.x compatibility API](#two-apis) or migrate to the 1.x `Onvif` API** —
+see [innerDocs/migration.md](innerDocs/migration.md).
 
-> [!TIP]
-> The main 1.x API uses the `Onvif` class with service modules (`onvif.device`, `onvif.media`, `onvif.ptz`, …).
-> For v0.8 migration, import the separate compatibility modules (not part of `require('onvif')`):
-> `require('onvif/compatibility')` for callbacks or `require('onvif/compatibility/promises')` for async/await
-> (both export `Cam` and `Discovery`).
+### 1.x release candidate
 
-The documentation for the new library was generated with TypeDoc and is available here:
+```shell
+npm install onvif@rc
+```
 
-- https://agsh.github.io/onvif/
+This README describes 1.x. The package is still on the release-candidate channel until 1.0 is published.
 
-Thanks a lot for your interest!  
-I will be happy to answer any questions and hear your feedback.
+### Stable 0.x
 
----
+```shell
+npm install onvif
+```
+
+Default `npm install onvif` still resolves to stable **0.x**. README for that line:
+[branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
+
+## Why 1.x?
+
+Version 1.x is a redesign of the original JavaScript API:
+
+- TypeScript-first API with generated ONVIF interfaces
+- Native Promise-based methods
+- Lazy-loaded services
+- More ONVIF services than 0.x (media2, access control, thermal, …)
+- Improved error handling
+- Explicit support for vendor-specific XML extensions (`xs:any` / `xs:anyAttribute`) — [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
+- Optional compatibility layer for existing 0.x applications
+
+## Two APIs
+
+**New API ≠ compatibility API.** Pick one surface and stick to it.
+
+### 1.x API (main export)
+
+Preferred for new projects. Service namespaces on `Onvif`:
+
+```ts
+import { Onvif } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+await onvif.connect();
+await onvif.media.getProfiles();
+```
+
+### 0.x compatibility API (separate entry points)
+
+For existing `Cam`-based code. **Not** re-exported from `require('onvif')` / `import { Onvif } from 'onvif'`:
+
+```js
+const { Cam } = require('onvif/compatibility'); // callbacks
+// or:
+const { Cam } = require('onvif/compatibility/promises'); // async/await
+```
+
+Examples and known differences: [innerDocs/migration.md](innerDocs/migration.md).
+
+## Quick start
+
+```ts
+import { Onvif } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+await onvif.connect();
+const info = await onvif.device.getDeviceInformation();
+console.log(info);
+```
+
+Same import works from CommonJS (`require('onvif')`) and ESM. Call `connect()` before service methods
+(or pass `autoConnect: true`).
+
+### Example project
+
+A small example showing how to build a simple video server (http://localhost:6147) with ffmpeg and a few Node.js
+libraries:
+
+<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
+
+https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310
+
+```shell
+sudo apt install ffmpeg
+npm install onvif@rc socket.io rtsp-ffmpeg
+```
+
+```js
+const server = require('http').createServer((req, res) =>
+  res.end(`
+<!DOCTYPE html><body>
+<canvas width='640' height='480' />
+<script src="/socket.io/socket.io.js"></script><script>
+  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+  socket.on('data', (data) => {
+    const img = new Image;
+    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
+    img.onload = () => {
+      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
+      ctx.drawImage(img, 100, 100);
+    };
+    img.src = url;
+  });
+</script></body></html>`),
+);
+const { Onvif } = require('onvif'),
+  io = require('socket.io')(server),
+  rtsp = require('rtsp-ffmpeg');
+server.listen(6147);
+
+const onvif = new Onvif({ username: 'username', password: 'password', hostname: '192.168.0.116', port: 2020 });
+(async () => {
+  await onvif.connect();
+  const input = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).uri.replace(
+    '://',
+    `://${onvif.username}:${onvif.password}@`,
+  );
+  const stream = new rtsp.FFMpeg({ input, resolution: '320x240', quality: 3 });
+  io.on('connection', (socket) => {
+    const pipeStream = socket.emit.bind(socket, 'data');
+    stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
+  });
+  setInterval(
+    () =>
+      onvif.ptz.absoluteMove({
+        position: {
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          zoom: Math.random(),
+        },
+      }),
+    3000,
+  );
+})().catch(console.error);
+```
 
 ## Features
 
-- TypeScript interfaces for the latest ONVIF WSDL specification generated by
-  [onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces) to provide code completion and type
-  checking in the IDE for the requested and returned values
-- Complete [documentation](https://agsh.github.io/onvif/)
-- Tests using the real [ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html) from HappyTimeSoft
-- Event support: pull-point, base ws-notification, filters, EventEmitter inheritance. See below
-- Lazy loading of ONVIF service modules — see [Performance / lazy loading](#performance--lazy-loading)
-- Authentication with WS-Security and Digest (MD5, SHA-1, SHA-256), also Advanced Security (experimental)
-- WS-Discovery support for finding devices on the local network
-- Full: `Device`, `Events`, `Media`, `Media2`, `PTZ`, `Imaging`, `Analytics`, `AnalyticsDevice`, `Recording`, `Replay`,
-  `Search`, `Receiver`, `DeviceIO`, `Display`, `Action Engine`, `Thermal`, `DoorControl`, `AccessControl`, `Credential`,
-  `AccessRules`, `Schedule`, `Provisioning`, `AdvancedSecurity` support.
-  > Not yet implemented (interfaces only, from
-  > [ONVIF Network Interface Specifications](https://www.onvif.org/profiles/specifications/)):
-  > AuthenticationBehavior, Application Management (appmgmt), Uplink, FederatedSearch
-- Improved error handling
-- Compatible with the original API structure
-- Optional v0.x layer (not in the main export): `require('onvif/compatibility')` for callbacks,
-  `require('onvif/compatibility/promises')` for Promises (both export `Cam` and `Discovery`)
-- Almost full test coverage in the different cases
+- Typed request/response interfaces from the latest ONVIF WSDL
+  ([onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces))
+- [API documentation](https://agsh.github.io/onvif/)
+- Integration tests against [HappyTimeSoft ONVIF server](https://www.happytimesoft.com/products/onvif-server/index.html)
+- Events: pull-point, WS-BaseNotification, filters, `EventEmitter` — see [innerDocs/events.md](innerDocs/events.md)
+- Lazy-loaded services — see [innerDocs/performance.md](innerDocs/performance.md)
+- Auth: WS-Security, Digest; Advanced Security (experimental)
+- WS-Discovery on the LAN
+- The library currently implements: `Device`, `Events`, `Media`, `Media2`, `PTZ`, `Imaging`, `Analytics`,
+  `AnalyticsDevice`, `Recording`, `Replay`, `Search`, `Receiver`, `DeviceIO`, `Display`, `Action Engine`,
+  `Thermal`, `DoorControl`, `AccessControl`, `Credential`, `AccessRules`, `Schedule`, `Provisioning`,
+  `AdvancedSecurity`
+- The following services currently have interfaces but no high-level implementation:
+  AuthenticationBehavior, Application Management (appmgmt), Uplink, FederatedSearch
+  (from the [ONVIF Network Interface Specifications](https://www.onvif.org/profiles/specifications/))
+- Optional v0.x compatibility entry points — see [Two APIs](#two-apis)
+
 
 ---
 
 # Connection
 
-Before you can use most library methods, call `connect()` on your `Onvif` instance. This method performs
-the initial handshake with the device and fills internal state so later SOAP requests are authenticated and
-routed to the correct service endpoints.
+Before most methods work, call `connect()` on your `Onvif` instance. It handshakes with the device and fills
+internal state so later SOAP requests are authenticated and routed to the correct endpoints.
 
-`connect()` runs the following steps in order:
+`connect()` runs these steps in order:
 
-1. **Time synchronization** — `getSystemDateAndTime()` is called first. ONVIF WS-Security authentication
-   includes a timestamp in the nonce digest, so the client must know the offset between its own clock and
-   the device clock (`timeShift`). The library tries an unauthenticated request first, as the ONVIF spec allows,
-   and retries with credentials when the device requires authentication (some Panasonic and Digital Barriers models
-   behave this way).
-2. **Service discovery** — the library calls `GetServices` (the modern ONVIF approach introduced
-   with Profile T) from a small `connection` helper, without loading the full `device` module. If that fails on older
-   devices, it falls back to `GetCapabilities`. Both methods populate `onvif.uri` with the URLs for media, PTZ, events,
-   replay, and other services that subsequent requests use.
-3. **Media configuration** (only when the device advertises a Media service) — `GetProfiles` and `GetVideoSources`
-   run in parallel, then `getActiveSources()` matches each video source to a suitable media profile. This sets
-   `activeSource`, `defaultProfile`, and `defaultProfiles`, including encoder settings and PTZ configuration.
-   Devices without video (for example Profile C door stations) skip this step when Media is absent.
-   If Media is listed but either call fails (e.g. Axis A1601 returns “Optional action not implemented”),
-   `connect()` still succeeds with empty `profiles` / `videoSources` and emits `warn`.
+1. **Time synchronization** — `getSystemDateAndTime()` first. ONVIF WS-Security includes a timestamp in the nonce
+   digest, so the client needs the clock offset (`timeShift`). The library tries an unauthenticated request first
+   (allowed by the spec) and retries with credentials when needed (some Panasonic and Digital Barriers models).
+2. **Service discovery** — `GetServices` (Profile T) via a small `connection` helper, without loading the full
+   `device` module. On older devices it falls back to `GetCapabilities`. Both populate `onvif.uri` with media, PTZ,
+   events, replay, and other service URLs.
+3. **Media configuration** (only if the device advertises Media) — `GetProfiles` and `GetVideoSources` in parallel,
+   then `getActiveSources()` matches video sources to profiles. Sets `activeSource`, `defaultProfile`, and
+   `defaultProfiles`. Devices without video (e.g. Profile C door stations) skip this when Media is absent.
+   If Media is listed but a call fails (e.g. Axis A1601 “Optional action not implemented”), `connect()` still
+   succeeds with empty `profiles` / `videoSources` and emits `warn`.
 
-On success, `connect()` emits a `connect` event and returns the `Onvif` instance. Pass `autoConnect: true`
-in the constructor to run this automatically after instantiation.
+On success, `connect()` emits `connect` and returns the instance. See [Quick start](#quick-start) for a minimal example.
 
-### TypeScript
+---
+
+# Services
+
+Methods take typed ONVIF request options and return the corresponding response data (often unwrapped when there is a
+single property). Some helpers accept more convenient fields (for example `dateTime?: Date` on
+`SetSystemDateAndTimeExtended`).
+
+See the [API documentation](https://agsh.github.io/onvif/) for per-service methods.
+
+---
+
+# Events
+
+Pull-point and WS-BaseNotification subscriptions, topic filters, and `EventEmitter` integration.
 
 ```ts
-import { Onvif } from 'onvif';
-
-const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
-await onvif.connect();
-const info = await onvif.device.getDeviceInformation();
-console.log(info);
+onvif.on('event', (msg) => console.log(msg));
 ```
 
-### CommonJS
+Full guide (including `Subscription` and push notifications): [innerDocs/events.md](innerDocs/events.md).
 
-```js
-const { Onvif } = require('onvif');
+---
 
-(async () => {
-  const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
-  await onvif.connect();
-  const info = await onvif.device.getDeviceInformation();
-  console.log(info);
-})();
-```
+# Vendor XML
 
-### ESM (`.mjs` or `"type": "module"`)
+ONVIF schemas use `xs:any` / `xs:anyAttribute` extension points. This library exposes them via `xsany` and `$`
+so vendor-specific XML can be read and written without losing data.
 
-```js
-import { Onvif } from 'onvif';
+Details and camera examples: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 
-const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
-await onvif.connect();
-const info = await onvif.device.getDeviceInformation();
-console.log(info);
-```
+---
+
+# Migration from v0.x
+
+Use the [0.x compatibility API](#two-apis) (`onvif/compatibility` or `onvif/compatibility/promises`) if you are not
+ready to switch to `Onvif` yet.
+
+Guides, examples, and known differences: [innerDocs/migration.md](innerDocs/migration.md).
+
+---
+
+# Examples
+
+Additional samples are in the [`examples`](https://github.com/agsh/onvif/tree/v1/examples) folder. Some older files
+still target 0.x / compatibility APIs; prefer the 1.x samples and [Quick start](#quick-start) for new work.
+
+- [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs) / [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs)
+- [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts)
+- [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) … [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) (legacy / mixed)
 
 ---
 
 # Performance / lazy loading
 
-The 1.x package is organized so you only pay for the ONVIF services you actually use.
+1.x loads large service modules on first use instead of at import time.
 
-### Startup footprint
+| | 0.x | 1.x |
+| --- | --- | --- |
+| Service loading | eager | lazy |
+| TypeScript | — | ✓ |
+| Typed WSDL interfaces | — | ✓ |
+| Promise API | compatibility / wrappers | native |
+| Large services loaded at startup | ✓ | — |
 
-`require('onvif')` / `import { Onvif } from 'onvif'` loads a core set of modules (client, connection helpers,
-events, discovery, utils) — on the order of ~100 KiB of compiled JS. Large service implementations such as
-`device`, `media`, `media2`, `ptz`, `recording`, or `advancedsecurity` are not pulled in at import time.
-
-Rough sizes of a few compiled service files (illustrative; exact numbers change with releases):
-
-| Module | Approx. size |
-| --- | --- |
-| Core (`onvif` + `connection` + `events` + `utils` + …) | ~95 KiB |
-| `media.js` | ~78 KiB |
-| `media2.js` | ~70 KiB |
-| `device.js` | ~39 KiB |
-| Remaining service modules combined | ~200+ KiB |
-
-Eagerly loading every service would put the initial JS footprint well over 400 KiB. With lazy loading, a typical
-camera client that only uses Device + Media + PTZ loads those modules on first use instead of at process start.
-
-Runtime heap against [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server)
-(Node.js 24, median of 3 runs, `heapUsed` after GC; illustrative). Scenarios:
-
-1. **Core** — connect + device information
-2. **Partial** — + media / PTZ / discovery (and `media2` where the library has it)
-3. **All** — every service module that library exposes
-
-| Library                                                                                                 | Core | Partial | All | Notes |
-|---------------------------------------------------------------------------------------------------------| ---: | ---: | ---: | --- |
-| onvif 1.x                                                                                               | ~6.2 MiB | ~7.0 MiB | ~7.5 MiB | Lazy service modules; “All” covers 20+ services |
-| [onvif 0.8](https://github.com/agsh/onvif/tree/v0.x)                                                        | ~6.3 MiB | ~6.8 MiB | ~6.9 MiB | Eager load of device/media/ptz/imaging/recording/replay |
-| [node-onvif](https://github.com/GuilhermeC18/node-onvif)                                                | ~6.5 MiB | ~6.5 MiB | ~6.5 MiB | Device/media/ptz only; `init()` already loads that surface |
-| [@2bad/onvif](https://github.com/2BAD/onvif) (fork of onvif 1.x in the early stages of the development) | ~8.9 MiB | ~9.1 MiB | ~9.1 MiB | Eager Device/Media/PTZ (no further services) |
-
-RSS after connect is typically ~72–86 MiB for all clients (SOAP/HTTP dominates). Empty Node ≈ 3.4 MiB heap /
-≈ 47 MiB RSS; `require`/`import` alone ≈ 5.3–5.5 MiB heap for each package.
-
-Lazy loading mainly helps the **Core** path: 1.x stays near 0.8 while only paying for Device, then grows when you
-touch Media2, door control, analytics, and the rest — a surface 0.8 / `node-onvif` / `@2bad/onvif` do not ship.
-
-### How loading works
-
-- Service namespaces (`onvif.device`, `onvif.media`, `onvif.ptz`, `onvif.thermal`, …) are lazy proxies.
-  The corresponding module is loaded the first time you call a method on it (for example `await onvif.ptz.getNodes()`).
-- `connect()` uses dedicated helpers in `connection.ts` for the handshake SOAP (`GetServices` /
-  `GetCapabilities`, Media `GetProfiles` / `GetVideoSources`). It does not load the full `device` / `media` /
-  `media2` class modules. Profiles and video sources are stored on the `Onvif` instance (`onvif.profiles`,
-  `onvif.videoSources`); when `Media` is later loaded, it reuses that cache.
-- `Events` is constructed eagerly (needed for `onvif.on('event', …)`). Everything else stays deferred.
-- The main package entry exports service classes as TypeScript types only, so CommonJS `require('onvif')` does
-  not force-load `Recording`, `Thermal`, and similar modules just because they appear in the type surface.
-
-### Practical tips
-
-```ts
-import { Onvif } from 'onvif';
-
-const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
-await onvif.connect(); // handshake only — no full Media/Device class modules yet
-
-const info = await onvif.device.getDeviceInformation(); // loads device.js on first use
-const uri = await onvif.media.getStreamUri({ protocol: 'RTSP' }); // loads media.js on first use
-// onvif.thermal is never loaded unless you call it
-```
-
-If you only need Discovery or Events, you can avoid Media entirely: Profile C / door-control style devices complete
-`connect()` without a Media service, and unused namespaces stay unloaded for the lifetime of the process.
+Architecture notes and snapshot measurements: [innerDocs/performance.md](innerDocs/performance.md).
 
 ---
+
+# Development
+
+```bash
+git clone https://github.com/agsh/onvif.git
+cd onvif
+npm install
+npm run build
+npm run lint
+npm test
+```
+
+- `npm test` — lint, start the HappyTime mock ONVIF server, run Jest, stop the server
+- `npm run test-local` — Jest only (expects a server already on the configured host/port)
+- `npm run build` / `npm run lint` — TypeScript build and ESLint
+
+Default integration tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server)
+(`__tests__/happytime.json`, typically `127.0.0.1:8000`).
+
+More detail (golden compatibility suite, pointing tests at another device): [innerDocs/testing.md](innerDocs/testing.md).
+
+Further reading:
+
+- [innerDocs/events.md](innerDocs/events.md)
+- [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
+- [innerDocs/migration.md](innerDocs/migration.md)
+- [innerDocs/performance.md](innerDocs/performance.md)
+- [innerDocs/testing.md](innerDocs/testing.md)
+
+---
+
 # Feedback
 
-If you like the library, please fill out this form so we know which devices
-it supports. There are a lot of devices, and not all of them correctly support the ONVIF specification. We're trying
-our best to make it work with as many devices as possible, so your feedback is important to us.
+Device reports help track which cameras work well with this library. ONVIF support varies by vendor and firmware.
 
 @RogerHardiman tested this lib on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Hanwha, 4 x HikVision, 1 x
 Panasonic,
 2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S,
 Profile G and Profile T devices.
 
-But we want to learn about as wide a range of devices as possible.
-So yes, please leave your feedback, it is important
+To contribute a report, run `console.log(await onvif.device.getDeviceInformation());` — you should see something like:
 
-Just run `console.log(await onvif.device.getDeviceInformation());`, you will get something like this:
 ```json
 {
   "manufacturer": "tp-link",
@@ -243,503 +324,10 @@ Just run `console.log(await onvif.device.getDeviceInformation());`, you will get
   "hardwareId": 1
 }
 ```
-and put it here with your comments please:
+
+Submit the result and notes here:
 https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform
 
 ---
 
-# Migration from v0.x
-
-Version 1.x introduces a new typed `Onvif` API. Compatibility modules are not re-exported from `require('onvif')` —
-import them explicitly: `onvif/compatibility` (callbacks) or `onvif/compatibility/promises` (async/await).
-
-### Callbacks (`onvif/compatibility`)
-
-```js
-const { Cam, Discovery } = require('onvif/compatibility');
-
-const cam = new Cam(
-  { hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' },
-  (error) => {
-    if (error) throw error;
-    cam.getDeviceInformation((err, info) => {
-      if (err) throw err;
-      console.log(info);
-    });
-  },
-);
-```
-
-See [compatibility.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs).
-
-### Promises (`onvif/compatibility/promises`)
-
-```js
-const { Cam, Discovery } = require('onvif/compatibility/promises');
-
-const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
-
-(async () => {
-  await cam.connect();
-  console.log(await cam.getDeviceInformation());
-})();
-```
-
-See [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs).
-
-The promisified `Cam` wraps the callback implementation: no auto-connect (call `await cam.connect()`),
-methods return Promises, getters and EventEmitter APIs are forwarded, and `_cam` exposes the underlying instance.
-
-Both compatibility entry points also export `Discovery` (callback or Promise `probe`), matching v0.x usage.
-Discovered cams include `xaddrs` (all ProbeMatch XAddrs as `URL[]`).
-
-### Compatibility notes (known differences vs v0.8)
-
-The Cam surface from v0.8 is largely covered. Remaining behavioral differences:
-
-- `gotoPreset` accepts both `{ presetToken }` (ONVIF / 1.x) and the v0 alias `{ preset }` (sent as PresetToken)
-- `rawResponse` may omit the `statusCode` second argument that v0 emitted
-- `setNTP(options)` mutates the passed `options` object (fills `NTPManual`) — same as v0.x
-Callbacks match v0.x `(err, data, xml?)`: the third argument is the raw SOAP response XML from the underlying request
-(`Onvif.lastResponseXml`).
-`getPresets` / `cam.presets` follow token → preset (duplicate names kept; 0.8.1+ intent).
-Note: published `onvif@0.8.2` still returns name → preset from the `getPresets` *callback* while storing token → preset
-on `cam.presets` — compatibility aligns both with the token-keyed shape.
-
-# Examples
-located in the Examples Folder on the Github
-> [!TIP]
-> Not all of them were reworked for version 1.x.
-* [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs) - v0.x callback API
-  (`require('onvif/compatibility')`): connect and print `getDeviceInformation`
-* [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs) - v0.x Promise
-  API (`require('onvif/compatibility/promises')`): same, with async/await
-* [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) - ONVIF Events. With
-  filters, pull-point, push-sub subscriptions
-* [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) - Move camera to a pre-defined position
-  then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have
-  the VLC plugin installed)
-* [example2.js](https://github.com/agsh/onvif/blob/master/examples/example2.js) - takes an IP address range, scans the
-  range for ONVIF devices (brute force scan) and displays information about each device found including make and model
-  and RTSP URLs
-  For Profile S Cameras and Encoders it displays the default RTSP address
-  For Profile G Recorders it displays the RTSP address of the first recording
-* [example3.js](https://github.com/agsh/onvif/blob/master/examples/example3.js) - reads the command line cursor keys and
-  sends PTZ commands to the Camera
-* [example4.js](https://github.com/agsh/onvif/blob/master/examples/example4.js) - uses Discovery to find cameras on the
-  local network
-* [example5.js](https://github.com/agsh/onvif/blob/master/examples/example5.js) - connect to a camera via  SOCKS proxy.
-  Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
-* [example6.js](https://github.com/agsh/onvif/blob/master/examples/example6.js) - ONVIF Events. Example can be switched
-  btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
-* [example7.js](https://github.com/agsh/onvif/blob/v1/examples/example7.js) - legacy v0.x Promise example (for 1.x use
-  [compatibilityPromises.cjs](examples/compatibilityPromises.cjs) instead)
-* [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) - example setting OSD On Screen Display.
-  (also uses Promises API)
-
----
-
-# Events
-
-## Common approach
-
-To subscribe to all events using pull-point subscription you can just use `.on()` method, since the `Onvif` class
-inherits from the `EventEmitter` class.
-
-```ts
-const onvif = new Onvif();
-function eventHandler(msg) {
-  console.log(msg);
-  onvif.off('event');
-}
-onvif.on('event', eventHandler);
-```
-
-## Subscription class
-
-If you need to subscribe to events, you can use the `Subscription` class. This class is for the specific subscriptions,
-for example, when we need to subscribe to events from the camera with the filters. or add some more subscriptions
-than the common one. It uses the pull-point subscription. It inherits from EventEmitter.
-And emits two events: `data` and `error`. To use it you need to call `subscribe()` method. And to stop the device
-subscription and remove all listeners you need to call `unsubscribe()` method.
-
-The first and the only one argument for `data` is the NotificationMessage object. And an `error` raised only when
-the connection to the device is lost.
-
-```ts
-await cam.connect();
-const sub = new Subscription(cam, {
-  filter: {
-    topicExpression: [
-      {
-        expression: 'tns1:RuleEngine/CellMotionDetector/Motion',
-        dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
-      },
-    ],
-  },
-});
-sub.on('data', async (data) => {
-  console.log(new Date().toLocaleTimeString(), 'motion', data.topic._, data.message.message.data);
-  await sub.unsubscribe();
-});
-await sub.subscribe();
-```
-
-For a full interactive example, see
-[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts).
-
-This class is used internally by the `Onvif` class for the common `event` listener.
-
-## Push WS-BaseNotification
-
-With push (WS-BaseNotification), the camera sends event notifications to an HTTP endpoint you host, instead of you
-polling the device.
-
-To use it: start an HTTP server reachable from the camera, call `subscribe` with that URL as the consumer reference,
-keep the subscription alive with `renew` before it expires, and call `unsubscribe` when you are done. Method signatures
-are in the [Events class documentation][events-docs]. A working flow is shown in
-[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) — the HTTP server at
-lines 50–65, and subscribe / unsubscribe at lines 143–164.
-
-[events-docs]: https://htmlpreview.github.io/?https://github.com/agsh/onvif/blob/v1/docs/classes/Events.html
-
----
-
-# Interfaces
-
-Interfaces are generated according to the latest version of the [ONVIF specification](https://github.com/onvif/specs).
-
-All methods accept options defined by the ONVIF specification and return data from the corresponding
-`<method_name>Response`.
-
-For example, the `getCapabilities` method accepts a single argument of type `GetCapabilities` and returns a result of
-type `Capabilities`.
-
-Below is the internal structure of the `GetCapabilitiesResponse` type:
-
-```ts
-export interface GetCapabilitiesResponse {
-  /** Capability information. */
-  capabilities?: Capabilities;
-}
-
-class Device {
-  // ...
-
-  async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
-    // ...
-  }
-
-  // ...
-}
-```
-
-In general, the library tries to avoid returning objects that contain only a single property.
-
-In some cases, where native JavaScript types are more convenient, interfaces are extended with additional fields.
-
-For example:
-
-- `SetSystemDateAndTime`
-- `SetSystemDateAndTimeExtended`
-
-The extended version adds a more convenient field:
-
-```ts
-export interface SetSystemDateAndTimeExtended extends SetSystemDateAndTime {
-  /**
-   * Javascript Date object to use instead of UTCDateTime
-   */
-  dateTime?: Date;
-  // ...
-}
-```
-
----
-
-# Support for `xs:any` and `xs:anyAttribute`
-
-ONVIF schemas use two extension points everywhere (analytics modules, metadata filters, PTZ status, Color, …):
-
-```xml
-<xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-<xs:anyAttribute processContents="lax"/>
-```
-
-| Wildcard | Meaning in XML | How this library exposes it |
-| --- | --- | --- |
-| `xs:any` | Extra child elements (vendor-/type-specific trees) | camelCase fields + raw rebuild tree on `xsany` |
-| `xs:anyAttribute` | Extra XML attributes | Flattened on read; put under `$` when writing |
-
-Import the symbol once:
-
-```ts
-import { xsany } from 'onvif';
-```
-
-`xsany` is `Symbol('any')`. The property is non-enumerable, so it does not show up in `Object.keys`, `JSON.stringify`,
-or object spreads — use `obj[xsany]` explicitly.
-
-The shape of `obj[xsany]` (and how you send it back) follows the
-[xml2js](https://github.com/Leonidas-from-XIV/node-xml2js) object style: element names as keys, attributes under `$`,
-text under `_`, and children as arrays.
-
----
-
-## What you get after parsing (`xs:any`)
-
-Tags marked as raw XML (for example `elementItem`, `filter`, `subscriptionPolicy` in Media) are parsed twice:
-
-1. Normal fields — camelCase, typed where possible (`name`, `cellLayout.columns`, …)
-2. `obj[xsany]` — xml2js-style tree with original element/attribute names (with prefixes), arrays, and `$` / `_` — ready
-   to send back to the camera
-
-### Camera example: Cell Motion `ElementItem` (`onvif.xsd` ItemList)
-
-Typical analytics layout from Hikvision / Dahua / HappyTime-style devices:
-
-```xml
-<ElementItem Name="Layout">
-  <tt:CellLayout Columns="8" Rows="6">
-    <tt:Transformation>
-      <tt:Translate x="-1" y="-1"/>
-      <tt:Scale x="0.25" y="0.333"/>
-    </tt:Transformation>
-  </tt:CellLayout>
-</ElementItem>
-```
-
-After `getVideoAnalyticsConfigurations` / similar:
-
-```js
-elementItem.name                         // 'Layout'
-elementItem.cellLayout.columns           // 8
-elementItem.cellLayout.rows              // 6
-elementItem.cellLayout.transformation.translate  // { x: -1, y: -1 }
-elementItem.cellLayout.transformation.scale      // { x: 0.25, y: 0.333 }
-
-elementItem[xsany]
-// {
-//   $: { Name: 'Layout' },
-//   'tt:CellLayout': [{
-//     $: { Columns: '8', Rows: '6' },
-//     'tt:Transformation': [{
-//       'tt:Translate': [{ $: { x: '-1', y: '-1' } }],
-//       'tt:Scale':     [{ $: { x: '0.25', y: '0.333' } }],
-//     }],
-//   }],
-// }
-```
-
-### Camera example: Metadata `Filter` (WS-BaseNotification TopicExpression)
-
-```xml
-<Filter>
-  <wsnt:TopicExpression Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">
-    tns1:RuleEngine/CellMotionDetector/Motion
-  </wsnt:TopicExpression>
-</Filter>
-```
-
-```js
-filter.topicExpression.dialect
-// 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet'
-
-filter[xsany]
-// {
-//   'wsnt:TopicExpression': [{
-//     $: { Dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet' },
-//     _: 'tns1:RuleEngine/CellMotionDetector/Motion',
-//   }],
-// }
-```
-
----
-
-## Sending `xs:any` back (so nothing breaks)
-
-Cameras often reject configs if child trees lose namespaces, attribute casing, or array shape. Do not rebuild `xs:any`
-from the camelCase view. Mutate `[xsany]` (and known typed fields), then pass the object into the library setter.
-
-```ts
-import { xsany } from 'onvif';
-
-const configs = await onvif.media.getVideoAnalyticsConfigurations();
-const module = configs[0].analyticsEngineConfiguration.analyticsModule[0];
-const layout = module.parameters.elementItem[0];
-
-// 1) Known typed field — safe to change directly
-layout.name = 'Layout';
-
-// 2) xs:any tree — change only inside [xsany]
-layout[xsany]['tt:CellLayout'][0].$.Columns = '10';
-layout[xsany]['tt:CellLayout'][0].$.Rows = '7';
-layout[xsany]['tt:CellLayout'][0]['tt:Transformation'][0]['tt:Translate'][0].$ = {
-  x: '-1',
-  y: '-1',
-};
-layout[xsany]['tt:CellLayout'][0]['tt:Transformation'][0]['tt:Scale'][0].$ = {
-  x: '0.25',
-  y: '0.333',
-};
-
-await onvif.media.setVideoAnalyticsConfiguration({
-  configuration: configs[0],
-  forcePersistence: true,
-});
-```
-
-Same idea for metadata event filters — Media sends `Filter: configuration.events.filter[xsany]`:
-
-```ts
-const meta = await onvif.media.getMetadataConfigurations();
-const filterAny = meta[0].events.filter[xsany];
-
-filterAny['wsnt:TopicExpression'][0]._ =
-  'tns1:RuleEngine/CellMotionDetector/Motion';
-
-await onvif.media.setMetadataConfiguration({
-  configuration: meta[0],
-  forcePersistence: true,
-});
-```
-
-Rules of thumb:
-
-- Change typed fields on the object (`name`, `sensitivity`, …).
-- Change unknown / vendor / layout XML only under `[xsany]`.
-- Keep prefixed tags (`tt:…`, `wsnt:…`) and `$` / `_` as returned — that is what the device expects.
-
----
-
-## What you get after parsing (`xs:anyAttribute`)
-
-Extra attributes are merged into the same object as normal camelCase properties (namespace prefixes are stripped).
-
-### Camera example: `Color` (`common.xsd`)
-
-```xml
-<Color X="0.1" Y="0.2" Z="0.3"
-       Colorspace="http://www.onvif.org/ver10/colorspace/YCbCr"
-       vv:VendorFlag="extra"/>
-```
-
-```js
-{
-  X: 0.1,
-  Y: 0.2,
-  Z: 0.3,
-  colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr',
-  vendorFlag: 'extra'   // xs:anyAttribute
-}
-```
-
-### Camera example: `ItemList` / `Parameters` attribute
-
-```xml
-<Parameters vv:VendorParam="keep-me">
-  <SimpleItem Name="Sensitivity" Value="50"/>
-</Parameters>
-```
-
-```js
-parameters.vendorParam  // 'keep-me'
-parameters.simpleItem   // [{ name: 'Sensitivity', value: 50 }]
-```
-
----
-
-## Sending `xs:anyAttribute` back — use `$`
-
-When building XML for the device, attributes live under `$`. Putting a vendor flag next to child elements as a plain
-property often drops it or turns it into a wrong child tag.
-
-```js
-// Correct: attributes in $
-{
-  Color: {
-    $: {
-      X: 0.4,
-      Y: 0.5,
-      Z: 0.6,
-      Colorspace: 'http://www.onvif.org/ver10/colorspace/RGB',
-      'vv:VendorFlag': 'painted',
-    },
-  },
-}
-
-// Correct: ItemList vendor attribute preserved
-{
-  Parameters: {
-    $: { 'vv:VendorParam': 'keep-me' },
-    SimpleItem: [{ $: { Name: 'Sensitivity', Value: '50' } }],
-  },
-}
-```
-
-Inside an `[xsany]` tree the same rule applies: attributes are already under `$` — edit those keys, do not invent a
-parallel camelCase attribute object for rebuild.
-
----
-
-## Both at once: `PTZStatus` (`common.xsd`)
-
-Devices may add a vendor attribute and a vendor child on the same element:
-
-```xml
-<PTZStatus vv:FirmwareChannel="A">
-  <Position>
-    <PanTilt x="0.1" y="-0.2"/>
-    <Zoom x="0.5"/>
-  </Position>
-  <vv:VendorExtension><vv:Stable>true</vv:Stable></vv:VendorExtension>
-</PTZStatus>
-```
-
-Read: `status.firmwareChannel`, `status.vendorExtension.stable`, plus normal `position` / `moveStatus`.  
-Write: put `vv:FirmwareChannel` in `$`, and keep `vv:VendorExtension` as a child element (or under `[xsany]` when that
-node is rawXML).
-
----
-
-## Summary at the end
-
-For everyday reading, use the camelCase fields. When you need to change vendor or layout XML and send it back, edit
-`obj[xsany]` — that tree is what Media setters already pass through for things like `ElementItem` and `Filter`. Extra
-attributes belong under `$` on write (keep the prefixes the camera used). Do not rebuild the SOAP payload from the
-camelCase view alone: that is the usual way round-trips break.
-
-More coverage of the snippets above:
-[`__tests__/any.test.ts`](__tests__/any.test.ts).
-
----
-
-# Tests
-
-All tests are written using Jest.
-
-Run them with:
-
-```shell
-npm test
-```
-
-The tests use [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) as a test device,
-including integration suites for the v0.x compatibility layer (`onvif/compatibility` and
-`onvif/compatibility/promises`).
-
-Golden suite `__tests__/compatibility.golden.test.ts` runs the same scenarios against npm `onvif@0.8.2`
-(`onvif-v0`) and the master compatibility `Cam`, comparing callback args (`err`, `data`, `xml`), key result fields,
-post-connect properties, and `rawRequest` / `rawResponse` events.
-
-
-Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for providing the opportunity to test the full ONVIF
-specification.
-
-Products are available here:
-
-- https://www.happytimesoft.com/product.html
-
----
-
-<img width="748" height="561" alt="2_0YMEc2JsheGS0HvU0AM4cv0Lvey7tzzGCWzNHTLoMkFECz0USvK4RmZEa4Fnk8pJAYqXE5qx-qtECccJSD5LQNmPtzwt2a43eEfLAPrfQEMth4zwCsVeEO1-zvTszMxJ9pk93n0Fsj0eHynN709rTqLgRnizjgXL7hCKyEm0T4ZyL3ZyRglVPINRhbK2PW" src="https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3" />
+<img width="748" height="561" alt="HappyTimeSoft" src="https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3" />
