@@ -1,3 +1,11 @@
+/**
+ * Pull-point and WS-BaseNotification events, with optional topic filters.
+ *
+ * Created by Roger Hardiman <opensource@rjh.org.uk>
+ *
+ * (c) Roger Hardiman, RJH Technical Consultancy Ltd, November 2019, September 2021
+ * Licenced under the MIT Open Source Licence
+ */
 import { NotificationMessage, Onvif, PullPointSubscription, Subscription } from '../src';
 import { createServer } from 'http';
 import { parseStringPromise } from 'xml2js';

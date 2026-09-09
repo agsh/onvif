@@ -304,11 +304,21 @@ Full guide with callback / Promise examples and known differences:
 
 # Examples
 
-Additional samples are in the [`examples`](https://github.com/agsh/onvif/tree/v1/examples) folder.
+Additional samples are in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) folder.
 
 - Compatibility walkthrough (preferred over reading the `.cjs` files alone): [innerDocs/migration.md](innerDocs/migration.md)
-- [events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts)
-- [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) … [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) (legacy / mixed; some still target 0.x)
+  - [compatibility.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs) — callback API
+  - [compatibilityPromises.cjs](https://github.com/agsh/blob/master/examples/compatibilityPromises.cjs) — Promise API
+- [rtsp.socketio.ptz.js](https://github.com/agsh/onvif/blob/master/examples/rtsp.socketio.ptz.js) — RTSP preview over Socket.IO with random PTZ moves
+- [scan.ip.range.js](https://github.com/agsh/onvif/blob/master/examples/scan.ip.range.js) — brute-force IP range scan (no WS-Discovery)
+- [ptz.keyboard.js](https://github.com/agsh/onvif/blob/master/examples/ptz.keyboard.js) — keyboard PTZ + presets
+- [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js) — WS-Discovery on the LAN
+- [proxy.socks5.js](https://github.com/agsh/onvif/blob/master/examples/proxy.socks5.js) — connect through a SOCKS5 proxy
+- [events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) — pull-point / push events with topic filters
+- [osd.js](https://github.com/agsh/onvif/blob/master/examples/osd.js) — create / delete on-screen text overlays
+- [replay.uri.js](https://github.com/agsh/onvif/blob/master/examples/replay.uri.js) — Profile G replay URI for a recording
+
+Legacy numbered files (`example.js` … `example9.js`) still target mixed 0.x / partial 1.x APIs; prefer the samples above.
 
 ---
 
@@ -349,7 +359,7 @@ const uri = await onvif.media.getStreamUri({ protocol: 'RTSP' }); // loads media
 
 ### Runtime heap (HappyTime ONVIF server)
 
-Measured against [happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) on Node.js 24
+Measured against [happytime-onvif-server](https://www.happytimesoft.com/products/onvif-server/index.html) on Node.js 24
 (`heapUsed` after GC; illustrative):
 
 | Library | Core | Partial | All |
