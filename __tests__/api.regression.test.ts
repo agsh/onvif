@@ -26,6 +26,8 @@ const MAIN_RUNTIME_EXPORTS = [
   'guid',
   'linerase',
   'parseSOAPString',
+  'soapActionFromBody',
+  'soapActionFromXml',
   'splitArgs',
   'struct',
   'toIsoDuration',
