@@ -12,6 +12,8 @@ interface OnvifErrorOptions {
    * Raw error response from the server
    */
   xml?: string;
+  /** HTTP status code when the failure came from an HTTP response */
+  statusCode?: number;
 }
 
 /**
@@ -21,11 +23,13 @@ export type CommonDuration = string | number;
 
 export class OnvifError extends Error {
   public readonly xml?: string;
+  public readonly statusCode?: number;
   constructor(message: string, options?: OnvifErrorOptions) {
     super(message);
     this.name = 'OnvifError';
     if (options) {
       this.xml = options.xml;
+      this.statusCode = options.statusCode;
     }
   }
 }
@@ -272,6 +276,11 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
 export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringOptions): Promise<[T, string]> {
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
+  if (!xml?.trim()) {
+    throw new OnvifError('Empty ONVIF SOAP response (camera returned no body)', {
+      xml: xml ?? '',
+    });
+  }
   const result = parse(xml, options);
   formatXMLValues(result, options);
   const body = result.envelope?.body;
@@ -325,17 +334,56 @@ export function struct<T, K extends keyof T>(list: T[], groupKey: K): Record<str
 //   return builder.buildObject(object);
 // }
 
+// Compact SOAP like v0.x (no pretty-print). Some cameras (e.g. Pelco) reject or
+// mishandle indented SOAP and return an empty HTTP body — see #497.
 const newBuilder = new XMLBuilder({
   ignoreAttributes: false,
   attributesGroupName: '$',
   attributeNamePrefix: '',
   textNodeName: '_',
-  format: true,
-  indentBy: '  ',
+  format: false,
+  suppressEmptyNode: true,
 });
 
 export function build(object: any) {
   return newBuilder.build(object);
+}
+
+/**
+ * Derive SOAP 1.2 `action` URI from a request body object (first child of Body + its xmlns).
+ * Matches v0.x Content-Type `action="namespace/Operation"` behaviour.
+ */
+export function soapActionFromBody(body: Record<string, any>, fallbackXmlns?: string): string | undefined {
+  const keys = Object.keys(body).filter((key) => key !== '$');
+  if (keys.length === 0) {
+    return undefined;
+  }
+  const operation = keys[0];
+  const xmlns = body[operation]?.$?.xmlns ?? fallbackXmlns;
+  if (!xmlns || typeof xmlns !== 'string') {
+    return undefined;
+  }
+  return `${xmlns}/${operation}`;
+}
+
+/**
+ * Derive SOAP 1.2 `action` from a pre-built envelope string (rawRequest paths).
+ */
+export function soapActionFromXml(xml: string): string | undefined {
+  const bodyMatch = xml.match(/<(?:[\w-]+:)?Body\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?Body>/i);
+  if (!bodyMatch) {
+    return undefined;
+  }
+  const opMatch = bodyMatch[1].match(/<([\w-]+)([^>]*)\/?>/);
+  if (!opMatch) {
+    return undefined;
+  }
+  const local = opMatch[1].includes(':') ? opMatch[1].split(':').pop()! : opMatch[1];
+  const nsMatch = opMatch[2].match(/\bxmlns(?::\w+)?="([^"]+)"/);
+  if (!nsMatch) {
+    return undefined;
+  }
+  return `${nsMatch[1]}/${local}`;
 }
 
 /**

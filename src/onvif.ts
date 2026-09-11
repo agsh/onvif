@@ -10,7 +10,7 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, getDigestHeaders, linerase, OnvifResponse, parseSOAPString, splitArgs } from './utils';
+import { build, getDigestHeaders, linerase, OnvifError, OnvifResponse, parseSOAPString, soapActionFromBody, soapActionFromXml, splitArgs } from './utils';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
@@ -41,7 +41,7 @@ import type ActionEngine from './actionengine';
 import type Search from './search';
 import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
-import { lazyService } from './service';
+import { lazyService, XMLNS } from './service';
 
 /**
  * Cam constructor options
@@ -123,6 +123,11 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
 export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'> {
   /** SOAP body */
   body: string;
+  /**
+   * SOAP 1.2 action URI for Content-Type (namespace/Operation).
+   * When omitted, derived from the envelope Body like v0.x.
+   */
+  action?: string;
 }
 
 /**
@@ -696,7 +701,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       };
       requestOptions.headers = {
         ...options.headers,
-        'Content-Type': 'application/soap+xml',
+        // Match v0.x: charset + SOAP action. Some devices (Pelco) reject requests without action
+        // and return an empty body (#497).
+        'Content-Type': (() => {
+          const action = options.action ?? soapActionFromXml(options.body);
+          return action
+            ? `application/soap+xml;charset=utf-8;action="${action}"`
+            : 'application/soap+xml;charset=utf-8';
+        })(),
         'Content-Length': Buffer.byteLength(options.body, 'utf8').toString(),
         charset: 'utf-8',
       };
@@ -741,6 +753,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
         const bufs: Buffer[] = [];
         let length = 0;
+        const statusCode = response.statusCode;
 
         response.on('data', (chunk) => {
           bufs.push(chunk);
@@ -754,6 +767,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           alreadyReturned = true;
           const xml = Buffer.concat(bufs, length).toString('utf8');
           this.emit('rawResponse', xml);
+          if (!xml.trim()) {
+            reject(
+              new OnvifError(`Empty ONVIF SOAP response (HTTP ${statusCode ?? 'unknown'})`, {
+                xml,
+                statusCode,
+              }),
+            );
+            return;
+          }
           resolve(parseSOAPString(xml, options));
         });
         return undefined;
@@ -883,11 +905,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       },
     };
     const body = build(bodyObject);
+    const fallbackXmlns = options.service ? XMLNS[options.service] : undefined;
+    const action = soapActionFromBody(options.body, fallbackXmlns);
 
     this.emit('requestBody', body);
     return this.rawRequest<Record<string, any>>({
       ...options,
       body,
+      action,
     }).then((result) => {
       this.lastResponseXml = result[1];
       return result;
