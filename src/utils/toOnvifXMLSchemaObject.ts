@@ -55,8 +55,12 @@ export function multicastConfiguration(multicast: MulticastConfiguration) {
 
 export function streamSetupToBuild({ stream, transport }: StreamSetup) {
   return {
-    Stream: stream,
+    Stream: {
+      $: { xmlns: 'http://www.onvif.org/ver10/schema' },
+      _: stream
+    },
     Transport: {
+      $: { xmlns: 'http://www.onvif.org/ver10/schema' },
       Protocol: transport.protocol,
       ...(transport.tunnel && {
         Tunnel: {
