@@ -174,6 +174,58 @@ describe('Media', () => {
 				done();
 			});
 		});
+		describe('serialization', () => {
+			const sent = (options, check) => {
+				let body = null;
+				cam.once('rawRequest', (xml) => { body = xml; });
+				cam.setVideoEncoderConfiguration(options, (err) => {
+					assert.strictEqual(err, null);
+					check(body.slice(body.indexOf('<Configuration'), body.indexOf('</Configuration>')));
+				});
+			};
+			const token = () => cam.videoEncoderConfigurations[0].$.token;
+
+			it('should send the H.264 profile given in the shape getVideoEncoderConfiguration returns', (done) => {
+				sent({token: token(), encoding: 'H264', H264: {govLength: 50, H264Profile: 'Main'}}, (conf) => {
+					assert.ok(conf.includes('<GovLength>50</GovLength>'));
+					assert.ok(conf.includes('<H264Profile>Main</H264Profile>'));
+					done();
+				});
+			});
+
+			it('should still accept H264.profile', (done) => {
+				sent({token: token(), H264: {govLength: 30, profile: 'High'}}, (conf) => {
+					assert.ok(conf.includes('<H264Profile>High</H264Profile>'));
+					done();
+				});
+			});
+
+			it('should send quality 0', (done) => {
+				sent({token: token(), quality: 0}, (conf) => {
+					assert.ok(conf.includes('<Quality xmlns="http://www.onvif.org/ver10/schema">0</Quality>'));
+					done();
+				});
+			});
+
+			it('should omit null and empty quality', (done) => {
+				sent({token: token(), quality: null}, (conf) => {
+					assert.ok(!conf.includes('<Quality'));
+					sent({token: token(), quality: ''}, (conf) => {
+						assert.ok(!conf.includes('<Quality'));
+						done();
+					});
+				});
+			});
+
+			it('should use the schema element name Mpeg4Profile', (done) => {
+				sent({token: token(), MPEG4: {govLength: 10, mpeg4Profile: 'SP'}}, (conf) => {
+					assert.ok(conf.includes('<Mpeg4Profile>SP</Mpeg4Profile>'));
+					assert.ok(!conf.includes('MPEG4Profile'));
+					done();
+				});
+			});
+		});
+
 		if (synthTest) {
 			it('should emits error with wrong response', (done) => {
 				serverMockup.conf.bad = true;
