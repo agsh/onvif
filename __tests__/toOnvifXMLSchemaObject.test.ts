@@ -84,6 +84,8 @@ describe('toOnvifXMLSchemaObject', () => {
   });
 
   describe('streamSetupToBuild', () => {
+    const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
+
     it('includes optional transport tunnel', () => {
       expect(
         streamSetupToBuild({
@@ -91,8 +93,12 @@ describe('toOnvifXMLSchemaObject', () => {
           transport: { protocol: 'RTSP', tunnel: { protocol: 'HTTP' } },
         }),
       ).toEqual({
-        Stream: 'RTP-Unicast',
+        Stream: {
+          $: { xmlns: SCHEMA_XMLNS },
+          _: 'RTP-Unicast',
+        },
         Transport: {
+          $: { xmlns: SCHEMA_XMLNS },
           Protocol: 'RTSP',
           Tunnel: { Protocol: 'HTTP' },
         },
@@ -106,8 +112,14 @@ describe('toOnvifXMLSchemaObject', () => {
           transport: { protocol: 'UDP' },
         }),
       ).toEqual({
-        Stream: 'RTP-Multicast',
-        Transport: { Protocol: 'UDP' },
+        Stream: {
+          $: { xmlns: SCHEMA_XMLNS },
+          _: 'RTP-Multicast',
+        },
+        Transport: {
+          $: { xmlns: SCHEMA_XMLNS },
+          Protocol: 'UDP',
+        },
       });
     });
   });

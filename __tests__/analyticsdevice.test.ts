@@ -22,6 +22,7 @@ const CONTROL_TOKEN = 'AnalyticsEngineControlToken_1';
 const INPUT_TOKEN = 'AnalyticsEngineInputToken_1';
 const CONFIG_TOKEN = 'VideoAnalyticsConfigurationToken_1';
 const ANALYTICS_DEVICE_XMLNS = 'http://www.onvif.org/ver10/analyticsdevice/wsdl';
+const SCHEMA_XMLNS = 'http://www.onvif.org/ver10/schema';
 
 const mockMulticast = {
   address: { type: 'IPv4' as const, IPv4Address: '0.0.0.0' },
@@ -381,8 +382,12 @@ describe('AnalyticsDevice (mocked)', () => {
       expect(body.GetAnalyticsDeviceStreamUri).toEqual({
         $: { xmlns: ANALYTICS_DEVICE_XMLNS },
         StreamSetup: {
-          Stream: 'RTP-Unicast',
+          Stream: {
+            $: { xmlns: SCHEMA_XMLNS },
+            _: 'RTP-Unicast',
+          },
           Transport: {
+            $: { xmlns: SCHEMA_XMLNS },
             Protocol: 'RTSP',
           },
         },
