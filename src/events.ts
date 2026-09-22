@@ -560,11 +560,19 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       } else {
         // there was an error pulling the message (device shut down, corrupted)
         this.emit('error', error as NodeJS.ErrnoException);
-        const shouldResubscribe = this.pulling;
-        await this.unsubscribe();
-        if (shouldResubscribe) {
-          await this.subscribe();
+        // A device that answers every pull with a fault would be re-subscribed as fast as the
+        // network allows, and every attempt authenticates, so some devices lock the account. Wait
+        // the interval the branch above uses; a successful pull resets it.
+        const interval = this.eventReconnectMs;
+        this.eventReconnectMs = Math.min(1.111 * interval, MAX_EVENT_RECONNECT_MS);
+        await new Promise((resolve) => {
+          setTimeout(resolve, interval);
+        });
+        if (!this.pulling) {
+          return;
         }
+        await this.unsubscribe();
+        await this.subscribe();
       }
     }
   }
