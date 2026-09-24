@@ -133,7 +133,7 @@ export interface EventMessage {
 
 export type PropertyOperation = 'Initialized' | 'Changed' | 'Deleted';
 
-const RETRY_ERROR_CODES = ['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENETUNREACH', 'HPE_CLOSED_CONNECTION'] as const;
+const RETRY_ERROR_CODES = ['ECONNRESET', 'ETIMEDOUT', 'ENETUNREACH', 'HPE_CLOSED_CONNECTION'] as const;
 const PULL_TIMEOUT = 'PT1M';
 const MAX_EVENT_RECONNECT_MS = toMs(PULL_TIMEOUT) * 2;
 const MIN_EVENT_RECONNECT_MS = 1000;
@@ -492,14 +492,26 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     this.options = options;
   }
 
-  /** When false, in-flight pull loops must not renew or auto-resubscribe. */
+  /**
+   * When false, in-flight pull loops must not renew or auto-resubscribe.
+   * Needed when the user wants to unsubscribe
+   */
   private pulling = false;
+  /**
+   * Flag not to subscribe when user called unsubscribe, but we are in the reconnection loop only
+   * @private
+   */
+  private dontWantToRestartEvent = false;
 
   async subscribe() {
+    this.dontWantToRestartEvent = false;
     this.subscription = await this.onvif.events.createPullPointSubscription({
       initialTerminationTime: PULL_TERMINATION_TIME,
       ...this.options,
     });
+    if (this.dontWantToRestartEvent) {
+      return;
+    }
     this.pulling = true;
     this.eventPull();
   }
@@ -563,16 +575,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         // A device that answers every pull with a fault would be re-subscribed as fast as the
         // network allows, and every attempt authenticates, so some devices lock the account. Wait
         // the interval the branch above uses; a successful pull resets it.
-        const interval = this.eventReconnectMs;
-        this.eventReconnectMs = Math.min(1.111 * interval, MAX_EVENT_RECONNECT_MS);
-        await new Promise((resolve) => {
-          setTimeout(resolve, interval);
-        });
-        if (!this.pulling) {
-          return;
-        }
-        await this.unsubscribe();
-        await this.subscribe();
+        this.restartEvent();
       }
     }
   }
@@ -638,9 +641,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/RenewRequest',
     );
     // x2 larger than the pull timeout
-    const terminationTime = PULL_TERMINATION_TIME;
     const body = {
-      Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: terminationTime },
+      Renew: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' }, TerminationTime: PULL_TERMINATION_TIME },
     };
     const [data] = await this.onvif.request({
       url: subscriptionParams.url,
@@ -656,6 +658,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * This command shall terminate the lifetime of a pull point.
    */
   async unsubscribe() {
+    this.dontWantToRestartEvent = true;
     this.pulling = false;
     if (!this.subscription) {
       return;
@@ -694,10 +697,26 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         this.eventPull();
       }
     }, this.eventReconnectMs);
-    if (this.eventReconnectMs < MAX_EVENT_RECONNECT_MS) {
-      this.eventReconnectMs = 1.111 * this.eventReconnectMs;
-    } else {
-      this.eventReconnectMs = MAX_EVENT_RECONNECT_MS;
+    this.eventReconnectMs = Math.min(1.111 * this.eventReconnectMs, MAX_EVENT_RECONNECT_MS);
+  }
+
+  /**
+   * We lost the connection to the device. Trying to subscribe again
+   * @private
+   */
+  private async restartEvent() {
+    const interval = this.eventReconnectMs;
+    this.eventReconnectMs = Math.min(1.111 * interval, MAX_EVENT_RECONNECT_MS);
+    await new Promise((resolve) => {
+      setTimeout(resolve, interval);
+    });
+    if (!this.pulling) {
+      return;
+    }
+    try {
+      await this.subscribe();
+    } catch (error) {
+      this.restartEvent();
     }
   }
 
