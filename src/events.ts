@@ -510,10 +510,11 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       ...this.options,
     });
     if (this.dontWantToRestartEvent) {
+      await this.unsubscribe(false);
       return;
     }
     this.pulling = true;
-    this.eventPull();
+    void this.eventPull();
   }
 
   /**
@@ -545,7 +546,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       } else {
         this.subscription.terminationTime = msgs.terminationTime;
       }
-      this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
+      void this.eventPull(); // go around the loop again, once the RENEW has completed (and terminationTime updated)
     } catch (error) {
       if (!this.pulling || !this.subscription) {
         return;
@@ -575,7 +576,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         // A device that answers every pull with a fault would be re-subscribed as fast as the
         // network allows, and every attempt authenticates, so some devices lock the account. Wait
         // the interval the branch above uses; a successful pull resets it.
-        this.restartEvent();
+        void this.restartEvent();
       }
     }
   }
@@ -656,8 +657,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * The device shall provide the following Unsubscribe command for all SubscriptionManager endpoints returned
    * by the CreatePullPointSubscription command.
    * This command shall terminate the lifetime of a pull point.
+   * @param resetAgent if we want to abort long-pulling connections, default true
    */
-  async unsubscribe() {
+  async unsubscribe(resetAgent = true) {
     this.dontWantToRestartEvent = true;
     this.pulling = false;
     if (!this.subscription) {
@@ -672,7 +674,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     // Drop local state first so an in-flight eventPull cannot auto-resubscribe after a race.
     delete this.subscription;
     // Abort long-poll PullMessages before/while sending Unsubscribe.
-    this.onvif.events.resetAgent();
+    if (resetAgent) {
+      this.onvif.events.resetAgent();
+    }
     try {
       await this.onvif.request({
         url: subscriptionParams.url,
@@ -694,7 +698,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     }
     setTimeout(() => {
       if (this.pulling) {
-        this.eventPull();
+        void this.eventPull();
       }
     }, this.eventReconnectMs);
     this.eventReconnectMs = Math.min(1.111 * this.eventReconnectMs, MAX_EVENT_RECONNECT_MS);
@@ -715,8 +719,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     }
     try {
       await this.subscribe();
-    } catch (error) {
-      this.restartEvent();
+    } catch (_error) {
+      void this.restartEvent();
     }
   }
 

@@ -279,13 +279,15 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
   it('widens eventReconnectMs while the device keeps faulting', async () => {
     mock.pullBehavior = 'fault';
     const sub = prepareSub(cam);
+    // restartEvent bumps before waiting/recreating. Create counts race with the next pull
+    // fault, so assert the interval itself rather than tying bumps to create#N.
+    const initial = sub.eventReconnectMs;
 
     await sub.subscribe();
-    await waitFor(() => mock.stats.pull >= 1, 5000, 'first fault');
-    const afterFirst = sub.eventReconnectMs;
+    await waitFor(() => sub.eventReconnectMs > initial, 5000, 'first reconnect bump');
+    const afterFirstBump = sub.eventReconnectMs;
 
-    await waitFor(() => mock.stats.create >= 2, 5000, 'second create');
-    expect(sub.eventReconnectMs).toBeGreaterThan(afterFirst);
+    await waitFor(() => sub.eventReconnectMs > afterFirstBump, 5000, 'second reconnect bump');
 
     await sub.unsubscribe();
   });
