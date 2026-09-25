@@ -1,5 +1,6 @@
 import { camelCase, Onvif } from '../src';
 import type Media from '../src/media';
+import { getMediaProfiles } from '../src/connection';
 import { ReferenceToken } from '../src/interfaces/common';
 import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
 import {
@@ -14,6 +15,7 @@ import {
   VideoSourceConfiguration,
 } from '../src/interfaces/onvif';
 import happytimeOnvifOptions from './happytime.json';
+import { parseSOAPString } from '../src/utils';
 import { xsany } from '../src/utils/toOnvifXMLSchemaObject';
 
 /** Parametrized tests invoke Media methods by dynamically built names. */
@@ -123,6 +125,123 @@ describe('Profiles', () => {
       const currentProfiles = await cam.media.getProfiles();
       expect(currentProfiles.length).toBe(profileCount - 1);
     });
+  });
+});
+
+describe('getMediaProfiles', () => {
+  function getProfilesSoap(profilesXml: string): string {
+    return (
+      `<?xml version="1.0" encoding="UTF-8"?>` +
+      `<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope"` +
+      ` xmlns:trt="http://www.onvif.org/ver10/media/wsdl"` +
+      ` xmlns:tt="http://www.onvif.org/ver10/schema">` +
+      `<SOAP-ENV:Body><trt:GetProfilesResponse>${profilesXml}</trt:GetProfilesResponse></SOAP-ENV:Body>` +
+      `</SOAP-ENV:Envelope>`
+    );
+  }
+
+  function mockGetProfilesXml(onvif: Onvif, profilesXml: string) {
+    return jest.spyOn(onvif, 'request').mockImplementation(async (options) =>
+      parseSOAPString(getProfilesSoap(profilesXml), {
+        array: options.array,
+        rawXML: options.rawXML,
+      }),
+    );
+  }
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should return and store media profiles from the happytime device', async () => {
+    const profiles = await getMediaProfiles(cam);
+    expect(Array.isArray(profiles)).toBe(true);
+    expect(profiles.length).toBeGreaterThan(0);
+    expect(cam.profiles).toBe(profiles);
+    profiles.forEach((profile) => {
+      expect(profile.token).toBeDefined();
+      expect(profile.name).toBeDefined();
+      expect(typeof profile.fixed).toBe('boolean');
+    });
+  });
+
+  it('should always return an array when the device has a single profile', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    mockGetProfilesXml(
+      onvif,
+      `<trt:Profiles token="ProfileToken_1" fixed="true"><tt:Name>MainStream</tt:Name></trt:Profiles>`,
+    );
+
+    const profiles = await getMediaProfiles(onvif);
+    expect(Array.isArray(profiles)).toBe(true);
+    expect(profiles).toHaveLength(1);
+    expect(profiles[0].token).toBe('ProfileToken_1');
+    expect(profiles[0].name).toBe('MainStream');
+    expect(profiles[0].fixed).toBe(true);
+    expect(onvif.profiles).toEqual(profiles);
+  });
+
+  it('should return a one-element array when the only profile token is "0"', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    mockGetProfilesXml(onvif, `<trt:Profiles token="0" fixed="true"><tt:Name>Main</tt:Name></trt:Profiles>`);
+
+    const profiles = await getMediaProfiles(onvif);
+    expect(Array.isArray(profiles)).toBe(true);
+    expect(profiles).toHaveLength(1);
+    // Numeric tokens are coerced by formatXMLValues; "0" must still be present and usable.
+    expect(profiles[0].token).toBe(0);
+    expect(String(profiles[0].token)).toBe('0');
+    expect(profiles[0].name).toBe('Main');
+    expect(onvif.profiles).toHaveLength(1);
+    expect(onvif.profiles[0].token).toBe(0);
+  });
+
+  it('should return multiple profiles when the device reports several', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    mockGetProfilesXml(
+      onvif,
+      `<trt:Profiles token="0" fixed="true"><tt:Name>A</tt:Name></trt:Profiles>` +
+        `<trt:Profiles token="1" fixed="false"><tt:Name>B</tt:Name></trt:Profiles>`,
+    );
+
+    const profiles = await getMediaProfiles(onvif);
+    expect(profiles).toHaveLength(2);
+    expect(profiles.map((profile) => profile.token)).toEqual([0, 1]);
+    expect(profiles.map((profile) => profile.name)).toEqual(['A', 'B']);
+  });
+
+  it('should return an empty array when GetProfilesResponse has no Profiles', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    mockGetProfilesXml(onvif, '');
+
+    const profiles = await getMediaProfiles(onvif);
+    expect(profiles).toEqual([]);
+    expect(onvif.profiles).toEqual([]);
+  });
+
+  it('should request Media GetProfiles with profiles forced to an array', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    const request = mockGetProfilesXml(
+      onvif,
+      `<trt:Profiles token="0" fixed="true"><tt:Name>Main</tt:Name></trt:Profiles>`,
+    );
+
+    await getMediaProfiles(onvif);
+
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        service: 'media',
+        body: expect.objectContaining({
+          GetProfiles: expect.any(Object),
+        }),
+        array: expect.arrayContaining(['profiles']),
+      }),
+    );
   });
 });
 

@@ -23,7 +23,7 @@ import { XMLNS } from './service';
 
 /** Same array/rawXML hints as Media.getProfiles for linerase. */
 const MEDIA_PROFILE_PARSE: LineraseOptions = {
-  array: ['configurations', 'analyticsModule', 'rule', 'simpleItem', 'elementItem'],
+  array: ['profiles', 'configurations', 'analyticsModule', 'rule', 'simpleItem', 'elementItem'],
   rawXML: ['elementItem', 'subscriptionPolicy', 'filter'],
 };
 
