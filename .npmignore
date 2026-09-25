@@ -13,6 +13,7 @@ logs/
 *.tgz
 FORWARD
 interfacesCleanup.ts
+cleanupInterfaces.ts
 src/
 docs/
 innerDocs/
