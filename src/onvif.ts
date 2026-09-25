@@ -34,6 +34,7 @@ import type Schedule from './schedule';
 import type Provisioning from './provisioning';
 import type AdvancedSecurity from './advancedsecurity';
 import type Thermal from './thermal';
+import type Uplink from './uplink';
 import type Analytics from './analytics';
 import type DeviceIO from './deviceio';
 import type Display from './display';
@@ -95,6 +96,7 @@ export interface OnvifServices {
   provisioning?: URL;
   advancedsecurity?: URL;
   thermal?: URL;
+  uplink?: URL;
   actionengine?: URL;
   search?: URL;
   [key: string]: URL | undefined;
@@ -413,6 +415,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public readonly thermal: Thermal;
   /**
+   * Uplink namespace for uplink v1.0 methods
+   * @example
+   * ```typescript
+   * const uplinks = await onvif.uplink.getUplinks();
+   * console.log(uplinks);
+   * ```
+   */
+  public readonly uplink: Uplink;
+  /**
    * Analytics namespace for analytics v1.0 methods
    * @example
    * ```typescript
@@ -577,6 +588,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.provisioning = lazyService<Provisioning>(this, () => import('./provisioning'));
     this.advancedSecurity = lazyService<AdvancedSecurity>(this, () => import('./advancedsecurity'));
     this.thermal = lazyService<Thermal>(this, () => import('./thermal'));
+    this.uplink = lazyService<Uplink>(this, () => import('./uplink'));
     this.analytics = lazyService<Analytics>(this, () => import('./analytics'));
     this.deviceIO = lazyService<DeviceIO>(this, () => import('./deviceio'));
     this.display = lazyService<Display>(this, () => import('./display'));
