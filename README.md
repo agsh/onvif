@@ -67,7 +67,7 @@ Onvif
 ├── analytics / analyticsDevice       # Analytics (lazy)
 ├── deviceIO / display / actionEngine # (lazy)
 ├── thermal / provisioning            # (lazy)
-├── doorControl / accessControl / credential / accessRules / schedule 
+├── doorControl / accessControl / credential / accessRules / schedule / uplink
 │                                     # (lazy)
 └── advancedSecurity                  # TLS / keystore (experimental, lazy)
 
