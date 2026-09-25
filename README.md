@@ -45,6 +45,23 @@ npm install onvif
 Default `npm install onvif` still resolves to stable **0.x**. README for that line:
 [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
+### Development version
+
+If you want to try the latest development version directly from GitHub:
+
+```shell
+git clone https://github.com/agsh/onvif.git
+cd onvif
+
+npm install
+npm run build
+```
+
+The compiled package is available in `build/`. You can use the locally built package from another project with:
+```shell
+npm install /path/to/onvif
+```
+
 ## Documentation
 
 API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** —
