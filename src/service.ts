@@ -30,6 +30,7 @@ export const XMLNS: Record<keyof OnvifServices, string> = {
   advancedsecurity: 'http://www.onvif.org/ver10/advancedsecurity/wsdl',
   thermal: 'http://www.onvif.org/ver10/thermal/wsdl',
   uplink: 'http://www.onvif.org/ver10/uplink/wsdl',
+  appmgmt: 'http://www.onvif.org/ver10/appmgmt/wsdl',
   search: 'http://www.onvif.org/ver10/search/wsdl',
   analyticsdevice: 'http://www.onvif.org/ver10/analyticsdevice/wsdl',
 };
