@@ -27,6 +27,7 @@ export type { default as Provisioning } from './provisioning';
 export type { default as AdvancedSecurity } from './advancedsecurity';
 export type { default as Thermal } from './thermal';
 export type { default as Uplink } from './uplink';
+export type { default as AppManagement } from './appmgmt';
 export type { default as Analytics } from './analytics';
 export type { default as DeviceIO } from './deviceio';
 export type { default as Display } from './display';
