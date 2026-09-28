@@ -172,7 +172,7 @@ export class DiscoverySingleton extends EventEmitter {
       const interfaces = os.networkInterfaces();
       let sendList: os.NetworkInterfaceInfo[] = [];
       for(const interfaceName in interfaces) {
-        this.emit('status', "Found interface " + interfaceName);
+        this.emit('status', `Found interface ${interfaceName}`);
         if (options.device && options.device != interfaceName) {
           continue;
         }
@@ -201,7 +201,7 @@ export class DiscoverySingleton extends EventEmitter {
           if (options.bufferSize && options.bufferSize > 0) {
 			    	socket.setRecvBufferSize(options.bufferSize);
 			    }
-          this.emit('status', 'Sending ' + sendItem.family + ' from ' + sendItem.address);
+          this.emit('status', `Sending ${sendItem.family} from ${sendItem.address}`);
           if (sendItem.family == 'IPv4') socket.send(request, 0, request.length, 3702, '239.255.255.250');
           if (sendItem.family == 'IPv6') socket.send(request, 0, request.length, 3702, '::ffff:239.255.255.250'); // untested
         });
