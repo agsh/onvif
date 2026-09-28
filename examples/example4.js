@@ -6,8 +6,9 @@
  */
 
 const OnvifLibrary = require('../build');
-var xml2js = require('xml2js');
-var stripPrefix = require('xml2js').processors.stripPrefix;
+const xml2js = require('xml2js');
+const stripPrefix = require('xml2js').processors.stripPrefix;
+let replyCount = 0;
 
 /*
 onvif.Discovery.on('device', function(cam,rinfo,xml){
@@ -50,8 +51,9 @@ OnvifLibrary.Discovery.on('device', function (cam, rinfo, xml) {
         hardware = decodeURI(scopes[i].substring(31));
       }
     }
+    replyCount++;
     let msg =
-      'Discovery Reply from ' + rinfo.address + ' (' + name + ') (' + hardware + ') (' + xaddrs + ') (' + urn + ')';
+      '[' + replyCount + '] ' + 'Discovery Reply from ' + rinfo.address + ' (' + name + ') (' + hardware + ') (' + xaddrs + ') (' + urn + ')';
     console.log(msg);
   });
 });
@@ -59,4 +61,10 @@ OnvifLibrary.Discovery.on('error', function (err, xml) {
   // The ONVIF library had problems parsing some XML
   console.log('Discovery error ' + err);
 });
+
+OnvifLibrary.Discovery.on('status', function (status) {
+  console.log('Discovery status: ' + status);
+});
+
+
 OnvifLibrary.Discovery.probe();
