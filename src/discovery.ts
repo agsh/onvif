@@ -184,7 +184,7 @@ export class DiscoverySingleton extends EventEmitter {
         });
       }
 
-      let udpNameConverter = (family: string) => {
+      const udpNameConverter = (family: string) => {
         if (family === 'IPv4') return 'udp4';
         else if (family == 'IPv6') return 'udp6';
         else return 'udp4'
@@ -200,9 +200,8 @@ export class DiscoverySingleton extends EventEmitter {
           // bind() is complete. Send the discovery message
           if (options.bufferSize && options.bufferSize > 0) {
 			    	socket.setRecvBufferSize(options.bufferSize);
-            console.log(options.bufferSize);
 			    }
-          this.emit('status', 'Sending ' + sendItem.family + ' from ' + sendItem.address)
+          this.emit('status', 'Sending ' + sendItem.family + ' from ' + sendItem.address);
           if (sendItem.family == 'IPv4') socket.send(request, 0, request.length, 3702, '239.255.255.250');
           if (sendItem.family == 'IPv6') socket.send(request, 0, request.length, 3702, '::ffff:239.255.255.250'); // untested
         });
