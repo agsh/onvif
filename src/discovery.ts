@@ -22,6 +22,8 @@ export interface DiscoveryOptions {
   listeningPort?: number;
   /** Socket type */
   type?: 'udp4' | 'udp6';
+  /** Receive buffer size in bytes for discovery responses */
+  bufferSize?: number;
 }
 
 /**
@@ -112,11 +114,6 @@ export class DiscoverySingleton extends EventEmitter {
         + '</Body>'
         + '</Envelope>',
       );
-      const socket = createSocket(options.type ?? 'udp4');
-      socket.on('error', (err) => {
-        this.emit('error', err);
-      });
-
       const listener = async (msg: Buffer, rinfo: RemoteInfo) => {
         let data;
         let xml;
@@ -161,33 +158,71 @@ export class DiscoverySingleton extends EventEmitter {
         }
       };
 
-      // If device is specified try to bind to that interface
-      if (options.device) {
-        const interfaces = os.networkInterfaces();
-        // Try to find the interface based on the device name
-        if (options.device in interfaces) {
-          interfaces[options.device]?.forEach((iface) => {
-            // Only use IPv4 addresses
-            if (iface.family === 'IPv4') {
-              socket.bind(options.listeningPort, iface.address);
-            }
-          });
+      // A computer may have Multiple Network Interfaces (Network Devices) like eth0, eth1, wifi0, lo0, vpm0, vpn1
+      // Each Network Interface can have Multiple IP Addresses e.g. 192.168.1.99 and also 10.10.10.5
+      // And the IP Addresses can be IPv4 or IPv6
+      // To find every device on the network we want to send a Discovery Message from every IP Address on every Network Interface
+
+      // None of my test cameras responded to IPv6 discovery so the IPv6 code in this code is untested
+
+      
+      // We can also restrict to a specific Interface using options.device
+
+      // Make a list of IP addresses to send from
+      const interfaces = os.networkInterfaces();
+      let sendList: os.NetworkInterfaceInfo[] = [];
+      for(const interfaceName in interfaces) {
+        this.emit('status', `Found interface ${interfaceName}`);
+        if (options.device && options.device != interfaceName) {
+          continue;
         }
+        interfaces[interfaceName]?.forEach((addressItem) => {
+          // Only use IPv4 addresses
+          if (addressItem.family === 'IPv4') {
+            sendList.push(addressItem);
+          }
+        });
       }
 
-      socket.on('message', listener);
-      socket.send(request, 0, request.length, 3702, '239.255.255.250');
+      const udpNameConverter = (family: string) => {
+        if (family === 'IPv4') return 'udp4';
+        else if (family == 'IPv6') return 'udp6';
+        else return 'udp4'
+      }
 
-      setTimeout(() => {
-        socket.removeListener('message', listener);
-        socket.close();
-        if (errors.length === 0) {
-          resolve(Array.from(cams.values()));
-        } else {
-          reject(errors);
-        }
-      }, options.timeout || 5000);
-    });
+      // Send a Discovery Message from each address in the SendList
+      for(const sendItem of sendList) {
+        const socket = createSocket({ type: options.type ?? udpNameConverter(sendItem.family), reuseAddr: true });
+        socket.on('error', (err) => {
+          this.emit('error', err);
+        });
+        socket.on('listening', () => {
+          // bind() is complete. Send the discovery message
+          if (options.bufferSize && options.bufferSize > 0) {
+			    	socket.setRecvBufferSize(options.bufferSize);
+			    }
+          this.emit('status', `Sending ${sendItem.family} from ${sendItem.address}`);
+          if (sendItem.family == 'IPv4') socket.send(request, 0, request.length, 3702, '239.255.255.250');
+          if (sendItem.family == 'IPv6') socket.send(request, 0, request.length, 3702, '::ffff:239.255.255.250'); // untested
+        });
+        socket.on('message', listener);
+
+        // Bind to the local IP address and either an OS selected UDP Port, or the options.listeningPort UDP Port)
+        // This fires 'connected' which sends the discovery message
+        socket.bind(options.listeningPort, sendItem.address);
+
+
+        setTimeout(() => {
+          socket.removeListener('message', listener);
+          socket.close();
+          if (errors.length === 0) {
+            resolve(Array.from(cams.values()));
+          } else {
+            reject(errors);
+          }
+        }, options.timeout || 5000);
+      };
+    })
   }
 }
 
