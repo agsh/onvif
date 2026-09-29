@@ -170,7 +170,7 @@ export class DiscoverySingleton extends EventEmitter {
 
       // Make a list of IP addresses to send from
       const interfaces = os.networkInterfaces();
-      let sendList: os.NetworkInterfaceInfo[] = [];
+      const sendList: os.NetworkInterfaceInfo[] = [];
       for(const interfaceName in interfaces) {
         this.emit('status', `Found interface ${interfaceName}`);
         if (options.device && options.device != interfaceName) {
