@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build": "tsc --build",
+    "prepare": "npm run build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "eslint . --no-warn-ignored",
     "pretest": "npm run lint",
