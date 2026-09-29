@@ -715,18 +715,19 @@ describe('getStreamUri', () => {
     it.each([['UDP'], ['RTSP'], ['HTTP'], ['TCP']] as const)(
       'should return a stream URI when protocol is %s',
       async (protocol) => {
-        cam.media2Support = false;
+        cam.media2Support = false; // ignore any Media2 support in the camera
         try {
           const result = await cam.media.getStreamUri({
             profileToken: 'ProfileToken_1',
             stream: 'RTP-Unicast',
             protocol,
           });
-          // Media ver10 path returns the linerased `mediaUri` object, not `{ mediaUri: … }`
-          const mediaUri = result as unknown as { uri: string };
-          expect(mediaUri.uri).toBeDefined();
-          expect(typeof mediaUri.uri).toBe('string');
-          expect(mediaUri.uri.length).toBeGreaterThan(0);
+          // In Onvif v0.00 the Media1 path returned the linerased `mediaUri` object, not `{ mediaUri: … }`
+          // In Onvif v1.xx the return result is changed to match the ONVIF defined interface
+          expect(result).toHaveProperty('mediaUri');
+          expect(result.mediaUri.uri).toBeDefined();
+          expect(typeof result.mediaUri.uri).toBe('string');
+          expect(result.mediaUri.uri!.length).toBeGreaterThan(0);
         } finally {
           cam.media2Support = true;
         }

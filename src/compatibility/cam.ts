@@ -322,6 +322,9 @@ export class Cam extends EventEmitter {
   get media2Support() {
     return this.onvif.media2Support;
   }
+  set media2Support(value: boolean) {
+    this.onvif.media2Support = value;
+  }
   get NTP() {
     return this.onvif.device.NTP;
   }

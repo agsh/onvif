@@ -274,6 +274,17 @@ describe('Compatibility Cam', () => {
       expect(snapshot.uri).toMatch(/^http/);
     });
 
+    it('should return stream and snapshot URIs (forced into Media ver10 mode)', async () => {
+      cam.media2Support = false;
+      const stream = await promisify<any>((callback) => cam.getStreamUri(callback));
+      expect(stream.uri).toMatch(/^rtsp:\/\//);
+
+      const snapshot = await promisify<any>((callback) => cam.getSnapshotUri(callback));
+      expect(snapshot.uri).toMatch(/^http/);
+      cam.media2Support = true;
+    });
+
+
     it('should call underlying media methods once when options and callback are both passed', async () => {
       const Media = (await import('../src/media')).default;
       const streamSpy = jest.spyOn(Media.prototype, 'getStreamUri');
