@@ -1460,20 +1460,21 @@ export default class Media extends Service {
    * The returned URI shall remain valid indefinitely even if the profile is changed.
    * Method uses Media2 if device supports it.
    *
-   * For Media2 you need to provide only `protocol` parameter ('RTPS' by default). Here is supported values from the
+   * For Media2 you need to provide only `protocol` parameter ('RTSP' by default). Here is supported values from the
    * ONVIF documentation:
    * Defined stream types are
-   * - RtspUnicast RTSP streaming RTP as UDP Unicast.
-   * - RtspMulticast RTSP streaming RTP as UDP Multicast.
-   * - RTSP RTSP streaming RTP over TCP.
-   * - RtspOverHttp Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
+   * - RtspUnicast    RTSP streaming RTP as UDP Unicast.
+   * - RtspMulticast  RTSP streaming RTP as UDP Multicast.
+   * - RTSP           RTSP streaming RTP over TCP.
+   * - RtspOverHttp   Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
    *
-   * For Media1 you need to set both parameters: protocl and stream (RTP-Unicast by default) If Media2 supported
+   * For Media1 you need to set both parameters: protocol and stream (RTP-Unicast by default) If Media2 supported
    * by device, this parameters will be converted to Media2 call. This is excerpt from ONVIF documentation:
    * The correct syntax for the StreamSetup element for these media stream setups defined in 5.1.1 of the streaming specification are as follows:
-   * - RTP unicast over UDP: StreamType = "RTP_unicast", TransportProtocol = "UDP"
-   * - RTP over RTSP over HTTP over TCP: StreamType = "RTP_unicast", TransportProtocol = "HTTP"
-   * - RTP over RTSP over TCP: StreamType = "RTP_unicast", TransportProtocol = "RTSP"
+   * - RTP unicast over UDP:             StreamType = "RTP-unicast", TransportProtocol = "UDP"
+   * - RTP over RTSP over HTTP over TCP: StreamType = "RTP-unicast", TransportProtocol = "HTTP"
+   * - RTP over RTSP over TCP:           StreamType = "RTP-unicast", TransportProtocol = "RTSP"
+   * - RTP Multicast over UDP:           StreamType = "RTP-Multicast, TransportProtocol = "UDP",
    */
   async getStreamUri(options: GetStreamUriOptions = {}): Promise<GetStreamUriResponse> {
     const { profileToken, stream = 'RTP-Unicast' } = options;
@@ -1522,7 +1523,7 @@ export default class Media extends Service {
         ProfileToken: profileToken || this.onvif.activeSource!.profileToken,
       },
     });
-    return response.getStreamUriResponse.mediaUri;
+    return response.getStreamUriResponse;
   }
 
   /**
