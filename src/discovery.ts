@@ -6,8 +6,59 @@
 import { EventEmitter } from 'events';
 import { createSocket, RemoteInfo } from 'dgram';
 import os from 'os';
-import { guid, linerase, OnvifError, parseSOAPString } from './utils';
+import { build, guid, linerase, OnvifError, parseSOAPString } from './utils';
+import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 import { Onvif } from './onvif';
+
+/**
+ * WS-Discovery Probe Types (ONVIF QNames).
+ * - `tds:Device` — ONVIF Core Spec §7.3.2.1 (required for all devices)
+ * - `dn:NetworkVideoTransmitter` — NVT Definition §5.2.1
+ * - `dn:NetworkVideoDisplay` / `Storage` / `Analytics` — NVD / NVS / NVA device types
+ */
+export type Types =
+  | 'tds:Device'
+  | 'dn:NetworkVideoTransmitter'
+  | 'dn:NetworkVideoDisplay'
+  | 'dn:NetworkVideoStorage'
+  | 'dn:NetworkVideoAnalytics';
+
+/**
+ * WS-Discovery Probe Scopes (ONVIF absolute URIs, scheme `onvif://www.onvif.org/...`).
+ * Profile and type values are fixed by ONVIF specs; hardware / name / location accept any path.
+ */
+export type Scopes =
+  | 'onvif://www.onvif.org'
+  // Profiles — ONVIF Profile Specs / Conformance Device Test Spec
+  | 'onvif://www.onvif.org/Profile/Streaming'
+  | 'onvif://www.onvif.org/Profile/T'
+  | 'onvif://www.onvif.org/Profile/G'
+  | 'onvif://www.onvif.org/Profile/C'
+  | 'onvif://www.onvif.org/Profile/A'
+  | 'onvif://www.onvif.org/Profile/D'
+  | 'onvif://www.onvif.org/Profile/M'
+  | 'onvif://www.onvif.org/Profile/V'
+  | 'onvif://www.onvif.org/Profile/Q/FactoryDefault'
+  | 'onvif://www.onvif.org/Profile/Q/Operational'
+  | `onvif://www.onvif.org/Profile/${string}`
+  // type — NVT / NVD / NVS / NVA Device Definitions
+  | 'onvif://www.onvif.org/type/Network_Video_Transmitter'
+  | 'onvif://www.onvif.org/type/Network_Video_Display'
+  | 'onvif://www.onvif.org/type/Network_Video_Storage'
+  | 'onvif://www.onvif.org/type/Network_Video_Analytic'
+  | 'onvif://www.onvif.org/type/video_encoder'
+  | 'onvif://www.onvif.org/type/audio_encoder'
+  | 'onvif://www.onvif.org/type/ptz'
+  | 'onvif://www.onvif.org/type/video_analytics'
+  | 'onvif://www.onvif.org/type'
+  | `onvif://www.onvif.org/type/${string}`
+  // Core Spec Table 7 — category root or any path value
+  | 'onvif://www.onvif.org/hardware'
+  | `onvif://www.onvif.org/hardware/${string}`
+  | 'onvif://www.onvif.org/name'
+  | `onvif://www.onvif.org/name/${string}`
+  | 'onvif://www.onvif.org/location'
+  | `onvif://www.onvif.org/location/${string}`;
 
 export interface DiscoveryOptions {
   /** Timeout in milliseconds for discovery responses, Default 5000 */
@@ -24,6 +75,10 @@ export interface DiscoveryOptions {
   type?: 'udp4' | 'udp6';
   /** Receive buffer size in bytes for discovery responses */
   bufferSize?: number;
+  /** WS-Discovery Probe Types. Default empty — match any type. */
+  types?: Types[];
+  /** WS-Discovery Probe Scopes. Default empty — match any scope. */
+  scopes?: Scopes[];
 }
 
 /**
@@ -99,21 +154,40 @@ export class DiscoverySingleton extends EventEmitter {
       const cams: Map<string, Onvif | Record<string, unknown>> = new Map();
       const errors: Error[] = [];
       const messageID = `urn:uuid:${options.messageId || guid()}`;
-      const request = Buffer.from(
-        '<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:dn="http://www.onvif.org/ver10/network/wsdl">'
-        + '<Header>'
-        + `<wsa:MessageID xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">${messageID}</wsa:MessageID>`
-        + '<wsa:To xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">urn:schemas-xmlsoap-org:ws:2005:04:discovery</wsa:To>'
-        + '<wsa:Action xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</wsa:Action>'
-        + '</Header>'
-        + '<Body>'
-        + '<Probe xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-        + '<Types/>'
-        + '<Scopes/>'
-        + '</Probe>'
-        + '</Body>'
-        + '</Envelope>',
-      );
+      const request = Buffer.from(build({
+        Envelope: {
+          $: {
+            xmlns: 'http://www.w3.org/2003/05/soap-envelope',
+            'xmlns:dn': 'http://www.onvif.org/ver10/network/wsdl',
+            'xmlns:tds': 'http://www.onvif.org/ver10/device/wsdl',
+          },
+          Header: {
+            'wsa:MessageID': {
+              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+              _: messageID,
+            },
+            'wsa:To': {
+              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+              _: 'urn:schemas-xmlsoap-org:ws:2005:04:discovery',
+            },
+            'wsa:Action': {
+              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+              _: 'http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe',
+            },
+          },
+          Body: {
+            Probe: {
+              $: {
+                xmlns: 'http://schemas.xmlsoap.org/ws/2005/04/discovery',
+                'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+                'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+              },
+              Types: stringListToBuild(options.types) ?? {},
+              Scopes: stringListToBuild(options.scopes) ?? {},
+            },
+          },
+        },
+      }));
       const listener = async (msg: Buffer, rinfo: RemoteInfo) => {
         let data;
         let xml;
@@ -165,7 +239,7 @@ export class DiscoverySingleton extends EventEmitter {
 
       // None of my test cameras responded to IPv6 discovery so the IPv6 code in this code is untested
 
-      
+
       // We can also restrict to a specific Interface using options.device
 
       // Make a list of IP addresses to send from
@@ -185,9 +259,7 @@ export class DiscoverySingleton extends EventEmitter {
       }
 
       const udpNameConverter = (family: string) => {
-        if (family === 'IPv4') return 'udp4';
-        else if (family == 'IPv6') return 'udp6';
-        else return 'udp4'
+        return (family === 'IPv6') ? 'udp6': 'udp4';
       }
 
       // Send a Discovery Message from each address in the SendList
@@ -211,7 +283,6 @@ export class DiscoverySingleton extends EventEmitter {
         // This fires 'connected' which sends the discovery message
         socket.bind(options.listeningPort, sendItem.address);
 
-
         setTimeout(() => {
           socket.removeListener('message', listener);
           socket.close();
@@ -221,7 +292,7 @@ export class DiscoverySingleton extends EventEmitter {
             reject(errors);
           }
         }, options.timeout || 5000);
-      };
+      }
     })
   }
 }

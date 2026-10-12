@@ -132,12 +132,24 @@ describe('Scopes', () => {
 
   describe('setScopes', () => {
     it('should set scopes as an array or uris', async () => {
-      const result = await cam.device.setScopes([
-        'onvif://www.onvif.org/type/awesome',
-        'onvif://www.onvif.org/Profile/S',
-      ]);
-      expect(result).toBeInstanceOf(Array);
-      expect(result.some((scope) => scope.scopeDef === 'Configurable')).toBe(true);
+      // Preserve cfg scopes for later suites (e.g. discovery): SetScopes replaces all configurable ones.
+      const previous = (await cam.device.getScopes())
+        .filter((scope) => scope.scopeDef === 'Configurable')
+        .map((scope) => scope.scopeItem)
+        .filter((item): item is string => typeof item === 'string' && item.length > 0);
+
+      try {
+        const result = await cam.device.setScopes([
+          'onvif://www.onvif.org/type/awesome',
+          'onvif://www.onvif.org/Profile/S',
+        ]);
+        expect(result).toBeInstanceOf(Array);
+        expect(result.some((scope) => scope.scopeDef === 'Configurable')).toBe(true);
+      } finally {
+        if (previous.length > 0) {
+          await cam.device.setScopes(previous);
+        }
+      }
     });
 
     it('should throw an error when the response from the device is not empty string', async () => {
