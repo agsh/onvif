@@ -108,8 +108,8 @@ export class DiscoverySingleton extends EventEmitter {
         + '</Header>'
         + '<Body>'
         + '<Probe xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
-        + '<Types>dn:NetworkVideoTransmitter</Types>'
-        + '<Scopes />'
+        + '<Types/>'
+        + '<Scopes/>'
         + '</Probe>'
         + '</Body>'
         + '</Envelope>',
