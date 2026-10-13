@@ -197,50 +197,54 @@ export class DiscoverySingleton extends EventEmitter {
           },
         }),
       );
-      const listener = async (msg: Buffer, rinfo: RemoteInfo) => {
-        let data;
-        let xml;
-        try {
-          [data, xml] = await parseSOAPString(msg.toString());
-          data = linerase(data);
-        } catch (error) {
-          const err = error instanceof Error ? error : new OnvifResponseError(String(error));
-          this.emit('error', err, xml);
-          return;
-        }
-        // TODO check for matching RelatesTo field and messageId
-        if (!data.probeMatches) {
-          const err = new OnvifResponseError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, {
-            xml,
-          });
-          this.emit('error', err, xml);
-        } else {
-          // Possible to get multiple matches for the same camera
-          // when your computer has more than one network adapter in the same subnet
-          const camAddr = data.probeMatches.probeMatch.endpointReference.address;
-          if (!cams.has(camAddr)) {
-            let cam;
-            if (options.resolve !== false) {
-              // Create cam with one of the XAddrs uri
-              const camUris = data.probeMatches.probeMatch.XAddrs.split(' ')
-                .filter(Boolean)
-                .map((href: string) => new URL(href.trim()));
-              const camUri = matchXAddr(camUris, rinfo.address);
-              cam = new Onvif({
-                hostname: camUri.hostname,
-                port: camUri.port === '' ? undefined : parseInt(camUri.port, 10),
-                path: camUri.pathname,
-                urn: camAddr,
-                // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
-                xaddrs: camUris,
-              });
-            } else {
-              cam = data;
-            }
-            cams.set(camAddr, cam);
-            this.emit('device', cam, rinfo, xml);
+      // Defer heavy XML parsing so the event loop can drain the UDP receive
+      // buffer first — otherwise ProbeMatch packets are dropped on large networks (#377).
+      const listener = (msg: Buffer, rinfo: RemoteInfo) => {
+        setImmediate(async () => {
+          let data;
+          let xml;
+          try {
+            [data, xml] = await parseSOAPString(msg.toString());
+            data = linerase(data);
+          } catch (error) {
+            const err = error instanceof Error ? error : new OnvifResponseError(String(error));
+            this.emit('error', err, xml);
+            return;
           }
-        }
+          // TODO check for matching RelatesTo field and messageId
+          if (!data.probeMatches) {
+            const err = new OnvifResponseError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, {
+              xml,
+            });
+            this.emit('error', err, xml);
+          } else {
+            // Possible to get multiple matches for the same camera
+            // when your computer has more than one network adapter in the same subnet
+            const camAddr = data.probeMatches.probeMatch.endpointReference.address;
+            if (!cams.has(camAddr)) {
+              let cam;
+              if (options.resolve !== false) {
+                // Create cam with one of the XAddrs uri
+                const camUris = data.probeMatches.probeMatch.XAddrs.split(' ')
+                  .filter(Boolean)
+                  .map((href: string) => new URL(href.trim()));
+                const camUri = matchXAddr(camUris, rinfo.address);
+                cam = new Onvif({
+                  hostname: camUri.hostname,
+                  port: camUri.port === '' ? undefined : parseInt(camUri.port, 10),
+                  path: camUri.pathname,
+                  urn: camAddr,
+                  // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
+                  xaddrs: camUris,
+                });
+              } else {
+                cam = data;
+              }
+              cams.set(camAddr, cam);
+              this.emit('device', cam, rinfo, xml);
+            }
+          }
+        });
       };
 
       let timeout: ReturnType<typeof setTimeout> | undefined;
