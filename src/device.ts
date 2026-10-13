@@ -111,7 +111,30 @@ import { AnyURI } from './interfaces/basics';
 import { LocationEntity, ReferenceToken } from './interfaces/common';
 
 /**
- * Device methods
+ * Device management service (network, users, scopes, system).
+ *
+ * @example Read identity and network settings, then adjust NTP / scopes:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const info = await onvif.device.getDeviceInformation();
+ * const hostname = await onvif.device.getHostname();
+ * const ifaces = await onvif.device.getNetworkInterfaces();
+ * const scopes = await onvif.device.getScopes();
+ * console.log(info.manufacturer, hostname.name, ifaces[0]?.token, scopes.length);
+ *
+ * const ntp = await onvif.device.getNTP();
+ * console.log(ntp.fromDHCP, ntp.NTPManual);
+ * // await onvif.device.setNTP({ fromDHCP: false, NTPManual: [{ type: 'DNS', dNSname: 'pool.ntp.org' }] });
+ *
+ * await onvif.device.addScopes({
+ *   scopeItem: ['onvif://www.onvif.org/location/country/russia'],
+ * });
+ * ```
+ * @category Services
  */
 export default class Device extends Service {
   #services: DeviceService[] = [];

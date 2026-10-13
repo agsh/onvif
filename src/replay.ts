@@ -23,7 +23,32 @@ export interface GetReplayUriOptions extends Omit<GetReplayUri, 'streamSetup'> {
 }
 
 /**
- * Replay service
+ * Replay service (Profile G) — replay URI and replay configuration.
+ *
+ * @example Get a replay RTSP URI for a recording, optionally tweak replay config:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const recordings = await onvif.recording.getRecordings();
+ * const recordingToken = recordings[0]!.recordingToken;
+ *
+ * const uri = await onvif.replay.getReplayUri({
+ *   recordingToken,
+ *   protocol: 'RTSP',
+ *   stream: 'RTP-Unicast',
+ * });
+ * console.log('replay', uri);
+ *
+ * const cfg = await onvif.replay.getReplayConfiguration();
+ * console.log(cfg);
+ * // await onvif.replay.setReplayConfiguration({
+ * //   configuration: { sessionTimeout: 'PT60S' },
+ * // });
+ * ```
+ * @category Services
  */
 export default class Replay extends Service {
   constructor(onvif: Onvif) {

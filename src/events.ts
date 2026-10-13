@@ -178,7 +178,35 @@ interface SubscribeOptions {
 }
 
 /**
- * Events service
+ * Events service — pull-point / WS-BaseNotification, topic filters, brokers.
+ *
+ * @example Pull-point via the eager `onvif.on('event')` path, plus topic filter and properties:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const props = await onvif.events.getEventProperties();
+ * console.log(Object.keys(props.topicSet ?? {}));
+ *
+ * onvif.on('event', (msg) => {
+ *   console.log(msg.topic, msg.message?.message?.data);
+ * });
+ * onvif.on('eventsError', (err) => console.error(err));
+ *
+ * // Or a dedicated filtered subscription:
+ * // const sub = new Subscription(onvif, 'pullPoint', {
+ * //   filter: {
+ * //     topicExpression: [{
+ * //       expression: 'tns1:RuleEngine//.',
+ * //       dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+ * //     }],
+ * //   },
+ * // });
+ * // await sub.subscribe();
+ * ```
+ * @category Services
  */
 export default class Events {
   private readonly onvif: Onvif;
@@ -451,24 +479,37 @@ interface SubscriptionEvents {
 }
 
 /**
- * Subscription to events class
- * @event data - emitted when event is received
- * @event error - emitted when error occurs
- * @example
+ * Standalone pull-point subscription (separate from {@link Events.globalSubscription}).
+ * @event data - emitted when an event notification is received
+ * @event error - emitted when a pull / renew error occurs
+ *
+ * @example Filtered pull-point with renew and clean shutdown:
  * ```ts
- *   const sub = new Subscription(cam, 'pullPoint', {
- *     filter: {
- *       topicExpression: [
- *         {
- *           expression: 'tns1:RuleEngine/PeopleDetector/People',
- *           dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
- *         },
- *       ],
- *     },
- *   });
- *   sub.on('data', console.log);
- *   await sub.subscribe();
+ * import { Onvif, Subscription } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const sub = new Subscription(onvif, 'pullPoint', {
+ *   filter: {
+ *     topicExpression: [
+ *       {
+ *         expression: 'tns1:RuleEngine/PeopleDetector/People',
+ *         dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet',
+ *       },
+ *     ],
+ *   },
+ * });
+ *
+ * sub.on('data', (msg) => console.log(msg.topic, msg.message));
+ * sub.on('error', (err) => console.error('subscription', err));
+ * await sub.subscribe();
+ * await sub.setSynchronizationPoint();
+ *
+ * // … later
+ * await sub.unsubscribe();
  * ```
+ * @category Services
  */
 export class Subscription extends EventEmitter<SubscriptionEvents> {
   private readonly onvif: Onvif;

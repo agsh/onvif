@@ -118,7 +118,29 @@ export interface AudioOutputConfigurationExtended extends AudioOutputConfigurati
 }
 
 /**
- * Media service, ver20 profile
+ * Media2 service, ver20 (Profile T profiles, configurations, OSD, stream URI).
+ *
+ * @example Profiles with configurations, stream / snapshot URI, and OSD list:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const profiles = await onvif.media2.getProfiles({ type: ['All'] });
+ * const profileToken = profiles[0]!.token;
+ * const encoders = await onvif.media2.getVideoEncoderConfigurations({ profileToken });
+ * console.log(profiles[0]?.name, encoders[0]?.encoding, encoders[0]?.resolution);
+ *
+ * const { uri } = await onvif.media2.getStreamUri({ profileToken, protocol: 'RtspUnicast' });
+ * const snap = await onvif.media2.getSnapshotUri({ profileToken });
+ * console.log(uri, snap.uri);
+ *
+ * const sources = await onvif.media2.getVideoSourceConfigurations({ profileToken });
+ * const osds = await onvif.media2.getOSDs({ configurationToken: sources[0]!.token });
+ * console.log('OSDs', osds.map((o) => o.token));
+ * ```
+ * @category Services
  */
 export default class Media2 extends Service {
   constructor(onvif: Onvif) {

@@ -49,7 +49,31 @@ import {
 } from './interfaces/recording';
 
 /**
- * Recording service
+ * Recording service (Profile G) — recordings, tracks, and recording jobs.
+ *
+ * @example List recordings and jobs, then inspect configuration / options:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.recording.getServiceCapabilities();
+ * const recordings = await onvif.recording.getRecordings();
+ * const jobs = await onvif.recording.getRecordingJobs();
+ * console.log(caps, recordings.length, jobs.length);
+ *
+ * const recordingToken = recordings[0]?.recordingToken;
+ * if (recordingToken) {
+ *   const cfg = await onvif.recording.getRecordingConfiguration({ recordingToken });
+ *   const opts = await onvif.recording.getRecordingOptions({ recordingToken });
+ *   console.log(cfg.source, opts);
+ * }
+ *
+ * // Start / stop a job when you know the token:
+ * // await onvif.recording.setRecordingJobMode({ jobToken: jobs[0]!.jobToken, mode: 'Active' });
+ * ```
+ * @category Services
  */
 export default class Recording extends Service {
   constructor(onvif: Onvif) {

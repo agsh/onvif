@@ -29,7 +29,29 @@ import {
 import { config } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Analytics service
+ * Analytics service — rules and analytics modules on a configuration.
+ *
+ * @example Discover supported rules/modules for the active profile configuration:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const configurationToken =
+ *   onvif.defaultProfile?.videoAnalyticsConfiguration?.token ??
+ *   (await onvif.media.getVideoAnalyticsConfigurations())[0]!.token;
+ *
+ * const supportedRules = await onvif.analytics.getSupportedRules({ configurationToken });
+ * const rules = await onvif.analytics.getRules({ configurationToken });
+ * const supportedModules = await onvif.analytics.getSupportedAnalyticsModules({ configurationToken });
+ * const modules = await onvif.analytics.getAnalyticsModules({ configurationToken });
+ *
+ * console.log(supportedRules.ruleDescription?.map((r) => r.name));
+ * console.log(rules.map((r) => r.name), modules.map((m) => m.name));
+ * console.log(supportedModules.analyticsModuleDescription?.map((m) => m.name));
+ * ```
+ * @category Services
  */
 export default class Analytics extends Service {
   constructor(onvif: Onvif) {

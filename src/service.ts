@@ -36,7 +36,28 @@ export const XMLNS: Record<keyof OnvifServices, string> = {
 };
 
 /**
- * Common class for all services that handles the common xmlns, request and response
+ * Common base for ONVIF service namespaces (device, media, ptz, ...).
+ *
+ * Handles SOAP request / xmlns; subclasses add typed operations.
+ *
+ * @example
+ * Typical usage is through a lazy namespace on {@link Onvif} (you rarely construct `Service` yourself):
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * // First call loads the module; subsequent calls reuse the same Service instance.
+ * const caps = await onvif.device.getServiceCapabilities();
+ * const info = await onvif.device.getDeviceInformation();
+ * console.log(caps, info.manufacturer);
+ *
+ * // Low-level escape hatch when a typed wrapper is missing:
+ * const raw = await onvif.device.request({ GetHostname: {} });
+ * console.log(raw.getHostnameResponse);
+ * ```
+ * @category Core
  */
 export default class Service {
   protected readonly onvif: Onvif;

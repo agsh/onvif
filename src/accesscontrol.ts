@@ -52,13 +52,24 @@ import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
  * AccessControl service
- * @example
+ *
+ * @example List access points, inspect state, temporarily disable one:
  * ```ts
- *  const list = await cam.accessControl.getAccessPointInfoList();
- *  const token = list.accessPointInfo![0].token;
- *  console.log((await cam.accessControl.getAccessPointState({ token })).enabled);
- *  await cam.accessControl.disableAccessPoint({ token });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.accessControl.getServiceCapabilities();
+ * const list = await onvif.accessControl.getAccessPointInfoList();
+ * const token = list.accessPointInfo![0].token;
+ * const state = await onvif.accessControl.getAccessPointState({ token });
+ * console.log(caps, list.accessPointInfo?.map((p) => p.name), state.enabled);
+ *
+ * await onvif.accessControl.disableAccessPoint({ token });
+ * // await onvif.accessControl.enableAccessPoint({ token });
  * ```
+ * @category Services
  */
 export default class AccessControl extends Service {
   constructor(onvif: Onvif) {

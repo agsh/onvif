@@ -17,17 +17,28 @@ import {
 
 /**
  * Uplink service
- * @example
+ *
+ * @example Read uplink configuration, then update the remote address:
  * ```ts
- *  const uplinks = await cam.uplink.getUplinks();
- *  console.log(uplinks.configuration?.[0]?.remoteAddress);
- *  await cam.uplink.setUplink({
- *    configuration: {
- *      remoteAddress: 'https://uplink.example.com/path',
- *      userLevel: ['Administrator'],
- *    },
- *  });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.uplink.getServiceCapabilities();
+ * const { configuration } = await onvif.uplink.getUplinks();
+ * console.log(caps, configuration?.map((c) => c.remoteAddress));
+ *
+ * await onvif.uplink.setUplink({
+ *   configuration: {
+ *     remoteAddress: 'https://uplink.example.com/path',
+ *     userLevel: ['Administrator'],
+ *     ...(configuration?.[0]?.certificateID && { certificateID: configuration[0].certificateID }),
+ *   },
+ * });
+ * // await onvif.uplink.deleteUplink({ remoteAddress: 'https://uplink.example.com/path' });
  * ```
+ * @category Services
  */
 export default class Uplink extends Service {
   constructor(onvif: Onvif) {

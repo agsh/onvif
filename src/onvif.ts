@@ -208,6 +208,38 @@ interface OnvifEvents {
   removeListener: [event: string, listener: (...args: any[]) => void];
 }
 
+/**
+ * Main ONVIF client. Connect to a device, then use lazy service namespaces (`media`, `ptz`, …).
+ *
+ * @example Connect, inspect the device, then stream and move PTZ:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({
+ *   hostname: '192.168.1.13',
+ *   port: 80,
+ *   username: 'admin',
+ *   password: 'admin',
+ * });
+ *
+ * onvif.on('warn', (err) => console.warn('warn', err.message));
+ * onvif.on('event', (msg) => console.log('event', msg.topic));
+ *
+ * await onvif.connect();
+ * console.log(await onvif.device.getDeviceInformation());
+ * console.log(onvif.profiles.map((p) => p.name));
+ *
+ * const { uri } = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+ * console.log('RTSP', uri);
+ *
+ * if (onvif.uri.ptz) {
+ *   await onvif.ptz.continuousMove({ velocity: { x: 0.2, y: 0, zoom: 0 } });
+ *   await new Promise((r) => setTimeout(r, 500));
+ *   await onvif.ptz.stop();
+ * }
+ * ```
+ * @category Core
+ */
 export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Indicates raw xml response from device.

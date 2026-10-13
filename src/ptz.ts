@@ -155,7 +155,30 @@ interface MoveAndStartTrackingExtended {
 export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
 
 /**
- * PTZ methods
+ * PTZ service — nodes, presets, absolute / relative / continuous move.
+ *
+ * @example Status, absolute move, preset round-trip:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const nodes = await onvif.ptz.getNodes();
+ * const status = await onvif.ptz.getStatus();
+ * console.log(nodes[0]?.name, status.position);
+ *
+ * await onvif.ptz.absoluteMove({
+ *   position: { x: 0.1, y: -0.1, zoom: 0 },
+ *   speed: { x: 0.5, y: 0.5, zoom: 0.3 },
+ * });
+ *
+ * const token = await onvif.ptz.setPreset({ presetName: 'demo' });
+ * await onvif.ptz.gotoPreset({ presetToken: token });
+ * const presets = await onvif.ptz.getPresets();
+ * console.log(presets);
+ * ```
+ * @category Services
  */
 export default class PTZ extends Service {
   #nodes: GetNodesExtended = {};

@@ -55,13 +55,25 @@ import {
 
 /**
  * Credential service
- * @example
+ *
+ * @example Page credentials, inspect state / identifiers, enable one:
  * ```ts
- *  const list = await cam.credential.getCredentialInfoList();
- *  const token = list.credentialInfo![0].token;
- *  console.log((await cam.credential.getCredentialState({ token })).enabled);
- *  await cam.credential.enableCredential({ token });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.credential.getServiceCapabilities();
+ * const list = await onvif.credential.getCredentialInfoList({ limit: 20 });
+ * const token = list.credentialInfo![0].token;
+ * const [cred] = (await onvif.credential.getCredentials({ token: [token] })).credential ?? [];
+ * const state = await onvif.credential.getCredentialState({ token });
+ * console.log(caps, cred?.description, state.enabled);
+ *
+ * await onvif.credential.enableCredential({ token });
+ * // await onvif.credential.disableCredential({ token });
  * ```
+ * @category Services
  */
 export default class Credential extends Service {
   constructor(onvif: Onvif) {

@@ -20,13 +20,27 @@ import {
 
 /**
  * Application Management service
- * @example
+ *
+ * @example List installed apps, inspect state, activate / deactivate:
  * ```ts
- *  const apps = await cam.appManagement.getInstalledApps();
- *  const appID = apps.app![0].appID;
- *  console.log((await cam.appManagement.getAppsInfo({ appID })).info?.[0]?.state);
- *  await cam.appManagement.activate({ appID });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.appManagement.getServiceCapabilities();
+ * const deviceId = await onvif.appManagement.getDeviceId();
+ * const { app } = await onvif.appManagement.getInstalledApps();
+ * console.log(caps, deviceId, app?.map((a) => a.appID));
+ *
+ * const appID = app![0].appID;
+ * const { info } = await onvif.appManagement.getAppsInfo({ appID });
+ * console.log(info?.[0]?.state, info?.[0]?.name);
+ *
+ * await onvif.appManagement.activate({ appID });
+ * // await onvif.appManagement.deactivate({ appID });
  * ```
+ * @category Services
  */
 export default class AppManagement extends Service {
   constructor(onvif: Onvif) {
