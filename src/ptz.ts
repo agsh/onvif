@@ -8,6 +8,7 @@
 import { Onvif, OnvifServices } from './onvif';
 import Service from './service';
 import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
+import { OnvifValidationError } from './utils';
 import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 import {
   AuxiliaryData,
@@ -719,7 +720,7 @@ export default class PTZ extends Service {
    */
   async absoluteMove({ profileToken = this.onvif.activeSource!.profileToken, position, speed }: AbsoluteMoveExtended) {
     if (!position) {
-      throw new Error("'position' is required");
+      throw new OnvifValidationError("'position' is required");
     }
     await this.request({
       AbsoluteMove: {
@@ -745,7 +746,7 @@ export default class PTZ extends Service {
     speed,
   }: RelativeMoveExtended): Promise<void> {
     if (!translation) {
-      throw new Error("'translation' is required");
+      throw new OnvifValidationError("'translation' is required");
     }
     await this.request({
       RelativeMove: {
@@ -768,7 +769,7 @@ export default class PTZ extends Service {
     timeout,
   }: ContinuousMoveExtended): Promise<void> {
     if (!velocity) {
-      throw new Error("'velocity' is required");
+      throw new OnvifValidationError("'velocity' is required");
     }
     await this.request({
       ContinuousMove: {

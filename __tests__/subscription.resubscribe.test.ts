@@ -184,6 +184,8 @@ async function startEventsMock(): Promise<EventsMock> {
   mock.port = (server.address() as AddressInfo).port;
   mock.close = () =>
     new Promise<void>((resolve, reject) => {
+      // Drop keep-alive / in-flight PullMessages so Jest can exit without --forceExit.
+      server.closeAllConnections?.();
       server.close((err) => (err ? reject(err) : resolve()));
     });
   return mock;
@@ -229,20 +231,31 @@ async function waitFor(predicate: () => boolean, timeoutMs = 5000, label = 'cond
 describe('Subscription resubscribe (SOAP mock server)', () => {
   let mock: EventsMock;
   let cam: Onvif;
+  let activeSub: Subscription | undefined;
 
   beforeEach(async () => {
     mock = await startEventsMock();
     cam = createCam(mock.port);
+    activeSub = undefined;
   });
 
   afterEach(async () => {
+    if (activeSub) {
+      try {
+        await activeSub.unsubscribe();
+      } catch {
+        // ignore teardown errors
+      }
+      activeSub.removeAllListeners();
+      activeSub = undefined;
+    }
     await mock.close();
   });
 
   it('retries PullMessages after ECONNRESET without creating a new pull point', async () => {
     mock.pullBehavior = 'reset';
     mock.terminationFuture = true;
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     await sub.subscribe();
     await waitFor(() => mock.stats.pull >= 1, 5000, 'first pull');
@@ -261,7 +274,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
 
   it('waits the reconnect interval before CreatePullPointSubscription on fatal pull', async () => {
     mock.pullBehavior = 'fault';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     await sub.subscribe();
     await waitFor(() => mock.stats.pull >= 1, 5000, 'failing pull');
@@ -278,7 +291,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
 
   it('widens eventReconnectMs while the device keeps faulting', async () => {
     mock.pullBehavior = 'fault';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
     // restartEvent bumps before waiting/recreating. Create counts race with the next pull
     // fault, so assert the interval itself rather than tying bumps to create#N.
     const initial = sub.eventReconnectMs;
@@ -294,7 +307,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
 
   it('does not create another pull point after unsubscribe during rebuild wait', async () => {
     mock.pullBehavior = 'fault';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     await sub.subscribe();
     await waitFor(() => mock.stats.pull >= 1, 5000, 'fault pull');
@@ -308,7 +321,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
 
   it('allows subscribe again after unsubscribe', async () => {
     mock.pullBehavior = 'ok';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     await sub.subscribe();
     await waitFor(() => mock.stats.pull >= 1, 5000, 'first session pull');
@@ -329,7 +342,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
       releaseCreate = resolve;
     });
     mock.pullBehavior = 'ok';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     const subscribePromise = sub.subscribe();
     await waitFor(() => mock.stats.create >= 1, 5000, 'create started');
@@ -351,7 +364,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
   it('retries CreatePullPointSubscription after create failures then starts pulling', async () => {
     mock.createFailuresLeft = 2;
     mock.pullBehavior = 'ok';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
     // Initial create fails; recovery goes through restartEvent only after a successful
     // subscribe that started pulling — so drive recovery via a first success then fault,
     // and separately verify create-fault retry from restartEvent using a failing pull.
@@ -373,7 +386,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
 
   it('rebuilds pull point via restartEvent when create fails during recovery', async () => {
     mock.pullBehavior = 'fault';
-    const sub = prepareSub(cam);
+    const sub = (activeSub = prepareSub(cam));
 
     await sub.subscribe();
     await waitFor(() => mock.stats.pull >= 1, 5000, 'initial fault');

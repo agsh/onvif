@@ -10,7 +10,19 @@ import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { build, getDigestHeaders, linerase, OnvifError, OnvifResponse, parseSOAPString, soapActionFromBody, soapActionFromXml, splitArgs } from './utils';
+import {
+  build,
+  getDigestHeaders,
+  linerase,
+  OnvifAuthError,
+  OnvifResponse,
+  OnvifResponseError,
+  OnvifValidationError,
+  parseSOAPString,
+  soapActionFromBody,
+  soapActionFromXml,
+  splitArgs,
+} from './utils';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
@@ -751,7 +763,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           if (options.headers?.authorization || options.headers?.Authorization) {
             alreadyReturned = true;
             response.destroy();
-            return reject(new Error('Digest authentication failed'));
+            return reject(
+              new OnvifAuthError('Digest authentication failed', {
+                statusCode: response.statusCode,
+              }),
+            );
           }
           const digestHeadersArray = getDigestHeaders(response.rawHeaders);
           if (digestHeadersArray.length > 0) {
@@ -771,7 +787,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           } else {
             alreadyReturned = true;
             response.destroy();
-            return reject(new Error(`Digest authentication headers not found in the server response`));
+            return reject(
+              new OnvifAuthError('Digest authentication headers not found in the server response', {
+                statusCode: response.statusCode,
+              }),
+            );
           }
         }
 
@@ -793,7 +813,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           this.emit('rawResponse', xml);
           if (!xml.trim()) {
             reject(
-              new OnvifError(`Empty ONVIF SOAP response (HTTP ${statusCode ?? 'unknown'})`, {
+              new OnvifResponseError(`Empty ONVIF SOAP response (HTTP ${statusCode ?? 'unknown'})`, {
                 xml,
                 statusCode,
               }),
@@ -1065,10 +1085,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   async setSystemDateAndTime(options: SetSystemDateAndTimeExtended): Promise<SystemDateTimeExtended> {
     if (!['Manual', 'NTP'].includes(options.dateTimeType!)) {
-      throw new Error('DateTimeType should be `Manual` or `NTP`');
+      throw new OnvifValidationError('DateTimeType should be `Manual` or `NTP`');
     }
     if (options.dateTimeType === 'Manual' && !options.dateTime && !options.UTCDateTime) {
-      throw new Error('`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`');
+      throw new OnvifValidationError(
+        '`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`',
+      );
     }
     const body = {
       SetSystemDateAndTime: {
@@ -1116,7 +1138,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       body,
     });
     if (data.setSystemDateAndTimeResponse.length !== 0) {
-      throw new Error(`Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`);
+      throw new OnvifResponseError(
+        `Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`,
+      );
     }
     // get new system time from device
     return this.getSystemDateAndTime();

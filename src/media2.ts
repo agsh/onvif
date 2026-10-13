@@ -69,6 +69,7 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
+import { OnvifValidationError } from './utils';
 import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
 /**
@@ -1223,11 +1224,11 @@ function v2(originalMethod: any, context: ClassMethodDecoratorContext) {
   return function v2(this: any, ...args: any[]) {
     // Ensure decorator access helpers run for each Media2 method invocation.
     if (!context.access.has(this)) {
-      throw new Error(`Media2.${String(context.name)} is not available on this instance`);
+      throw new OnvifValidationError(`Media2.${String(context.name)} is not available on this instance`);
     }
     void context.access.get(this);
     if (!this.onvif.media2Support) {
-      throw new Error('Media2 profile is not supported for this device');
+      throw new OnvifValidationError('Media2 profile is not supported for this device');
     }
     return originalMethod.call(this, ...args);
   };

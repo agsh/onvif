@@ -1,5 +1,16 @@
 import xml2js, { parseStringPromise } from 'xml2js';
-import { build, guid, linerase, parseSOAPString, splitArgs, struct, toIsoDuration, toMs } from '../src/utils';
+import {
+  build,
+  guid,
+  linerase,
+  OnvifResponseError,
+  OnvifSoapFaultError,
+  parseSOAPString,
+  splitArgs,
+  struct,
+  toIsoDuration,
+  toMs,
+} from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 import { config, xsany } from '../src/utils/toOnvifXMLSchemaObject';
 
@@ -206,6 +217,9 @@ describe('ParseSOAPString', () => {
   });
 
   it('should throw an error when it is not a SOAP message', async () => {
+    await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects.toBeInstanceOf(
+      OnvifResponseError,
+    );
     await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi></hi>')).rejects.toThrow(
       'Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected',
     );
@@ -215,6 +229,30 @@ describe('ParseSOAPString', () => {
     await expect(parseSOAPString('<?xml version="1.0" encoding="UTF-8"?><hi a="1"></hi>')).rejects.toThrow(
       'Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected',
     );
+  });
+
+  it('should throw OnvifSoapFaultError with structured fault fields', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
+      '<s:Body>' +
+      '<s:Fault>' +
+      '<s:Code><s:Value>s:Receiver</s:Value></s:Code>' +
+      '<s:Reason><s:Text xml:lang="en">ter:ActionNotSupported</s:Text></s:Reason>' +
+      '<s:Detail><s:Text>not implemented</s:Text></s:Detail>' +
+      '</s:Fault>' +
+      '</s:Body>' +
+      '</s:Envelope>';
+
+    await expect(parseSOAPString(xml)).rejects.toMatchObject({
+      name        : 'OnvifSoapFaultError',
+      message     : expect.stringContaining('ONVIF SOAP Fault:'),
+      faultCode   : 's:Receiver',
+      faultReason : 'ter:ActionNotSupported',
+      faultDetail : 'not implemented',
+      xml,
+    });
+    await expect(parseSOAPString(xml)).rejects.toBeInstanceOf(OnvifSoapFaultError);
   });
 });
 

@@ -5,6 +5,7 @@
 
 import { Onvif, SetSystemDateAndTimeExtended } from './onvif';
 import Service from './service';
+import { OnvifResponseError } from './utils';
 import {
   AddIPAddressFilter,
   AddScopes,
@@ -425,7 +426,7 @@ export default class Device extends Service {
       },
     });
     if (response.setScopesResponse.length !== 0) {
-      throw new Error('Wrong `SetScopes` response');
+      throw new OnvifResponseError('Wrong `SetScopes` response');
     }
     // get new scopes from device
     return this.getScopes();
@@ -485,7 +486,7 @@ export default class Device extends Service {
       },
     });
     if (response.setNTPResponse.length !== 0) {
-      throw new Error('Wrong `SetNTP` response');
+      throw new OnvifResponseError('Wrong `SetNTP` response');
     }
     return this.getNTP();
   }
@@ -523,7 +524,7 @@ export default class Device extends Service {
       },
     });
     if (response.setDNSResponse.length !== 0) {
-      throw new Error('Wrong `SetDNS` response');
+      throw new OnvifResponseError('Wrong `SetDNS` response');
     }
     return this.getDNS();
   }

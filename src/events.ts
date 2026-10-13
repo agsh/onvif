@@ -16,7 +16,7 @@ import {
   GetEventPropertiesResponse,
   PullMessages,
 } from './interfaces/event';
-import { CommonDuration, toMs, toIsoDuration } from './utils';
+import { CommonDuration, OnvifValidationError, toMs, toIsoDuration } from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
@@ -141,8 +141,14 @@ const MESSAGE_LIMIT = 10;
 const PULL_TERMINATION_TIME = toIsoDuration(toMs(PULL_TIMEOUT) * 4);
 const PUSH_TERMINATION_TIME = 2 * 60 * 60 * 1000;
 
-function isSoapError(error: any): error is { code: string } {
-  return typeof error === 'object' && error !== null && 'code' in error && RETRY_ERROR_CODES.includes(error.code);
+/** True for transient network failures that warrant a pull-loop retry. */
+function isRetryableNetworkError(error: unknown): error is { code: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    RETRY_ERROR_CODES.includes((error as { code: string }).code as (typeof RETRY_ERROR_CODES)[number])
+  );
 }
 
 function localTerminationTime(response: TerminationTimeResponse): Date {
@@ -502,6 +508,32 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * @private
    */
   private dontWantToRestartEvent = false;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
+  private reconnectTimerResolve?: () => void;
+
+  private clearReconnectTimer() {
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = undefined;
+    }
+    if (this.reconnectTimerResolve) {
+      const resolve = this.reconnectTimerResolve;
+      this.reconnectTimerResolve = undefined;
+      resolve();
+    }
+  }
+
+  private scheduleReconnectDelay(ms: number): Promise<void> {
+    this.clearReconnectTimer();
+    return new Promise((resolve) => {
+      this.reconnectTimerResolve = resolve;
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = undefined;
+        this.reconnectTimerResolve = undefined;
+        resolve();
+      }, ms);
+    });
+  }
 
   async subscribe() {
     this.dontWantToRestartEvent = false;
@@ -551,7 +583,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       if (!this.pulling || !this.subscription) {
         return;
       }
-      if (isSoapError(error) && +this.subscription.terminationTime > Date.now()) {
+      if (isRetryableNetworkError(error) && +this.subscription.terminationTime > Date.now()) {
         // connection reset (request ended without messages, closed connection) when we're still on the surrent
         // subscription - restart Event loop for pullMessages request
         try {
@@ -662,6 +694,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   async unsubscribe(resetAgent = true) {
     this.dontWantToRestartEvent = true;
     this.pulling = false;
+    this.clearReconnectTimer();
     if (!this.subscription) {
       return;
     }
@@ -696,7 +729,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     if (!this.pulling) {
       return;
     }
-    setTimeout(() => {
+    this.clearReconnectTimer();
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined;
       if (this.pulling) {
         void this.eventPull();
       }
@@ -711,9 +746,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   private async restartEvent() {
     const interval = this.eventReconnectMs;
     this.eventReconnectMs = Math.min(1.111 * interval, MAX_EVENT_RECONNECT_MS);
-    await new Promise((resolve) => {
-      setTimeout(resolve, interval);
-    });
+    await this.scheduleReconnectDelay(interval);
     if (!this.pulling) {
       return;
     }
@@ -740,7 +773,7 @@ function getSubscriptionUrlAndHeaders(
   soapAction = 'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
 ) {
   if (!subscription?.subscriptionReference?.address) {
-    throw new Error(`You should have working subscription. ${JSON.stringify(subscription)}`);
+    throw new OnvifValidationError(`You should have working subscription. ${JSON.stringify(subscription)}`);
   }
   const url = new URL(subscription.subscriptionReference.address);
   const axisSubscriptionId = subscription?.subscriptionReference.referenceParameters?.subscriptionId;

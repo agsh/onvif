@@ -7,13 +7,16 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
 const PREFIX_MATCH_RE = /(?!xmlns)^.*:/;
 const ISO_DURATION_RE = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d+)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
 
-interface OnvifErrorOptions {
-  /**
-   * Raw error response from the server
-   */
+/**
+ * Options shared by {@link OnvifError} and its subclasses.
+ */
+export interface OnvifErrorOptions {
+  /** Raw SOAP / HTTP body associated with the failure */
   xml?: string;
   /** HTTP status code when the failure came from an HTTP response */
   statusCode?: number;
+  /** Nested cause (network error, parser error, etc.) */
+  cause?: unknown;
 }
 
 /**
@@ -21,17 +24,97 @@ interface OnvifErrorOptions {
  */
 export type CommonDuration = string | number;
 
+/**
+ * Base error for the ONVIF client. Prefer subclasses when the failure kind is known.
+ */
 export class OnvifError extends Error {
   public readonly xml?: string;
   public readonly statusCode?: number;
+
   constructor(message: string, options?: OnvifErrorOptions) {
-    super(message);
-    this.name = 'OnvifError';
-    if (options) {
-      this.xml = options.xml;
-      this.statusCode = options.statusCode;
-    }
+    super(message, options?.cause !== undefined ? { cause: options.cause } : undefined);
+    this.name = new.target.name;
+    this.xml = options?.xml;
+    this.statusCode = options?.statusCode;
   }
+}
+
+/** Empty, non-SOAP, or otherwise unexpected response body. */
+export class OnvifResponseError extends OnvifError {}
+
+/** SOAP 1.2 Fault from the device. */
+export class OnvifSoapFaultError extends OnvifError {
+  public readonly faultCode?: string;
+  public readonly faultReason?: string;
+  public readonly faultDetail?: string;
+
+  constructor(
+    message: string,
+    options?: OnvifErrorOptions & {
+      faultCode?: string;
+      faultReason?: string;
+      faultDetail?: string;
+    },
+  ) {
+    super(message, options);
+    this.faultCode = options?.faultCode;
+    this.faultReason = options?.faultReason;
+    this.faultDetail = options?.faultDetail;
+  }
+}
+
+/** HTTP Digest / credentials rejected by the device. */
+export class OnvifAuthError extends OnvifError {}
+
+/** Invalid arguments or unexpected response shape from a client-side check. */
+export class OnvifValidationError extends OnvifError {}
+
+function soapFaultText(value: unknown): string {
+  if (value == null) {
+    return '';
+  }
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  if (typeof value === 'object' && '_' in value) {
+    return soapFaultText((value as { _: unknown })._);
+  }
+  return '';
+}
+
+function extractSoapFault(fault: Record<string, any>): {
+  faultCode?: string;
+  faultReason: string;
+  faultDetail: string;
+} {
+  let faultCode: string | undefined;
+  const codeValue = fault.code?.value ?? fault.code?.Value ?? fault.code;
+  if (typeof codeValue === 'string') {
+    faultCode = codeValue;
+  } else if (codeValue != null && typeof codeValue === 'object') {
+    faultCode = soapFaultText(codeValue) || JSON.stringify(codeValue);
+  }
+
+  let faultReason = '';
+  try {
+    faultReason = soapFaultText(fault.reason?.text) || faultCode || '';
+  } catch {
+    // ignore malformed reason
+  }
+
+  let faultDetail = '';
+  try {
+    const detailText = fault.detail?.text;
+    if (Array.isArray(detailText)) {
+      faultDetail = soapFaultText(detailText[0]);
+    } else {
+      faultDetail = soapFaultText(detailText);
+    }
+  } catch {
+    // ignore malformed detail
+  }
+
+  return { faultCode, faultReason, faultDetail };
 }
 
 export interface LineraseOptions {
@@ -277,7 +360,7 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
   /* Filter out xml namespaces */
   // const xml = rawXml.replace(/xmlns([^=]*?)=(".*?")/g, '');
   if (!xml?.trim()) {
-    throw new OnvifError('Empty ONVIF SOAP response (camera returned no body)', {
+    throw new OnvifResponseError('Empty ONVIF SOAP response (camera returned no body)', {
       xml: xml ?? '',
     });
   }
@@ -285,29 +368,18 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
   formatXMLValues(result, options);
   const body = result.envelope?.body;
   if (!body) {
-    throw new OnvifError('Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected', {
+    throw new OnvifResponseError('Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected', {
       xml,
     });
   }
   if (body.fault) {
-    const fault = body.fault;
-    let reason = '';
-    let detail = '';
-
-    try {
-      const text = fault.reason.text;
-      reason = (typeof text === 'object' ? text._ : text) || JSON.stringify(fault.code);
-    } catch (_e) {
-      // Ignore error if reason extraction fails
-    }
-
-    try {
-      [detail] = fault.detail.text;
-    } catch (_e) {
-      // Ignore error if detail extraction fails
-    }
-
-    throw new Error(`ONVIF SOAP Fault: ${reason}${detail}`);
+    const { faultCode, faultReason, faultDetail } = extractSoapFault(body.fault);
+    throw new OnvifSoapFaultError(`ONVIF SOAP Fault: ${faultReason}${faultDetail}`, {
+      xml,
+      faultCode,
+      faultReason,
+      faultDetail,
+    });
   }
   return [body, xml];
 }
@@ -393,7 +465,7 @@ export function soapActionFromXml(xml: string): string | undefined {
 export function toIsoDuration(duration: CommonDuration): Duration {
   if (typeof duration === 'string') {
     if (!ISO_DURATION_RE.test(duration)) {
-      throw new Error(`"${duration}" is not a valid ISO duration value`);
+      throw new OnvifValidationError(`"${duration}" is not a valid ISO duration value`);
     }
     return duration;
   }
@@ -427,7 +499,7 @@ export function toMs(duration: CommonDuration): number {
   const matches = duration.match(regex);
 
   if (!matches) {
-    throw new Error(`Invalid ISO Time Duration format: ${duration}`);
+    throw new OnvifValidationError(`Invalid ISO Time Duration format: ${duration}`);
   }
 
   const hours = parseInt(matches[1]) || 0;

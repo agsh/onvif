@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import * as dgram from 'dgram';
 import os from 'os';
-import { Discovery, parseSOAPString } from '../src';
+import { Discovery, OnvifResponseError, parseSOAPString } from '../src';
 
 jest.mock('dgram', () => {
   const actual = jest.requireActual<typeof import('dgram')>('dgram');
@@ -69,16 +69,18 @@ describe('Discovery error handling (mocked)', () => {
 
   afterEach(() => {
     Discovery.off('error', swallowDiscoveryErrors);
+    Discovery.removeAllListeners();
     swallowDiscoveryErrors.mockClear();
     jest.useRealTimers();
   });
 
-  it('rejects when SOAP parsing fails', async () => {
+  it('resolves empty and emits when SOAP parsing fails', async () => {
     const parseErr = new Error('bad xml');
     mockedParseSOAPString.mockRejectedValue(parseErr);
+    const onError = jest.fn();
+    Discovery.once('error', onError);
+
     const probePromise = Discovery.probe({ timeout : 25 });
-    // eslint-disable-next-line jest/valid-expect -- handler attached before timers (see comment below)
-    const rejectsAssertion = expect(probePromise).rejects.toEqual([parseErr]);
 
     getMessageListener()(
       Buffer.from('not-xml'),
@@ -86,19 +88,16 @@ describe('Discovery error handling (mocked)', () => {
     );
 
     await jest.advanceTimersByTimeAsync(25);
-    await rejectsAssertion;
+    await expect(probePromise).resolves.toEqual([]);
+    expect(onError).toHaveBeenCalledWith(parseErr, undefined);
   });
 
-  it('rejects when the SOAP body has no probeMatches', async () => {
+  it('resolves empty and emits when the SOAP body has no probeMatches', async () => {
     mockedParseSOAPString.mockResolvedValue([{ hello : 'world' }, '<empty/>']);
+    const onError = jest.fn();
+    Discovery.once('error', onError);
+
     const probePromise = Discovery.probe({ timeout : 25 });
-    // eslint-disable-next-line jest/valid-expect
-    const rejectsAssertion = expect(probePromise).rejects.toMatchObject([
-      expect.objectContaining({
-        name    : 'OnvifError',
-        message : expect.stringContaining('Wrong SOAP message'),
-      }),
-    ]);
 
     getMessageListener()(
       Buffer.from('<soap/>'),
@@ -106,32 +105,43 @@ describe('Discovery error handling (mocked)', () => {
     );
 
     await jest.advanceTimersByTimeAsync(25);
-    await rejectsAssertion;
+    await expect(probePromise).resolves.toEqual([]);
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name    : 'OnvifResponseError',
+        message : expect.stringContaining('Wrong SOAP message'),
+        xml     : '<empty/>',
+      }),
+      '<empty/>',
+    );
+    expect(onError.mock.calls[0][0]).toBeInstanceOf(OnvifResponseError);
   });
 
-  it('emits error with a string detail when probeMatches is missing', async () => {
+  it('emits OnvifResponseError when probeMatches is missing', async () => {
     mockedParseSOAPString.mockResolvedValue([{ foo : 1 }, '<bad/>']);
     const onError = jest.fn();
     Discovery.once('error', onError);
 
     const probePromise = Discovery.probe({ timeout : 20 });
-    // eslint-disable-next-line jest/valid-expect
-    const rejectsAssertion = expect(probePromise).rejects.toBeDefined();
 
     await getMessageListener()(
       Buffer.from('<soap/>'),
       { address : '10.0.0.1', family : 'IPv4', port : 3702, size : 0 },
     );
     await jest.advanceTimersByTimeAsync(20);
-    await rejectsAssertion;
 
+    await expect(probePromise).resolves.toEqual([]);
     expect(onError).toHaveBeenCalledWith(
-      'Wrong SOAP message from 10.0.0.1:3702',
+      expect.objectContaining({
+        message : 'Wrong SOAP message from 10.0.0.1:3702',
+        xml     : '<bad/>',
+      }),
       '<bad/>',
     );
+    expect(onError.mock.calls[0][0]).toBeInstanceOf(OnvifResponseError);
   });
 
-  it('forwards socket errors on the Discovery emitter', async () => {
+  it('emits socket errors but still resolves when a device was found', async () => {
     mockedParseSOAPString.mockResolvedValue([validProbeBody, '<xml/>']);
     const sockErr = new Error('socket failure');
     const onError = jest.fn();
@@ -148,21 +158,39 @@ describe('Discovery error handling (mocked)', () => {
       { address : '192.168.1.10', family : 'IPv4', port : 3702, size : 0 },
     );
     await jest.advanceTimersByTimeAsync(30);
-    await probePromise;
 
+    const cams = await probePromise;
+    expect(cams).toHaveLength(1);
     expect(onError).toHaveBeenCalledWith(sockErr);
   });
 
-  it('rejects the probe when any response fails parse even after a valid device', async () => {
+  it('resolves empty when only socket errors occur', async () => {
+    const sockErr = new Error('socket failure');
+    const onError = jest.fn();
+    Discovery.once('error', onError);
+
+    const probePromise = Discovery.probe({ timeout : 30 });
+    const onMock = jest.mocked(mockSocket.on);
+    const errorHandler = onMock.mock.calls.find((call) => call[0] === 'error')?.[1] as (e: Error) => void;
+    expect(errorHandler).toBeDefined();
+    errorHandler(sockErr);
+
+    await jest.advanceTimersByTimeAsync(30);
+
+    await expect(probePromise).resolves.toEqual([]);
+    expect(onError).toHaveBeenCalledWith(sockErr);
+  });
+
+  it('keeps valid devices when another response fails parse', async () => {
+    const parseErr = new Error('second packet corrupt');
     mockedParseSOAPString
       .mockResolvedValueOnce([validProbeBody, '<ok/>'])
-      .mockRejectedValueOnce(new Error('second packet corrupt'));
+      .mockRejectedValueOnce(parseErr);
+
+    const onError = jest.fn();
+    Discovery.once('error', onError);
 
     const probePromise = Discovery.probe({ timeout : 40 });
-    // eslint-disable-next-line jest/valid-expect
-    const rejectsAssertion = expect(probePromise).rejects.toEqual([
-      expect.objectContaining({ message : 'second packet corrupt' }),
-    ]);
 
     const listener = getMessageListener();
     const rinfo = { address : '192.168.1.10', family : 'IPv4' as const, port : 3702, size : 0 };
@@ -170,7 +198,11 @@ describe('Discovery error handling (mocked)', () => {
     await listener(Buffer.from('two'), rinfo);
 
     await jest.advanceTimersByTimeAsync(40);
-    await rejectsAssertion;
+
+    const cams = await probePromise;
+    expect(cams).toHaveLength(1);
+    expect((cams[0] as { urn?: string }).urn).toBe('urn:uuid:cam-1');
+    expect(onError).toHaveBeenCalledWith(parseErr, undefined);
   });
 
   it('os.networkInterfaces is used when device option is set (bind path)', async () => {

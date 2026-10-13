@@ -83,6 +83,16 @@ beforeAll(async () => {
   await cam.connect();
 });
 
+/** Media2 may throw sync (loaded service) or reject (lazy proxy) when media2Support is false. */
+async function expectMedia2NotSupported(call: () => unknown): Promise<void> {
+  cam.media2Support = false;
+  try {
+    await expect((async () => call())()).rejects.toThrow('Media2 profile is not supported');
+  } finally {
+    cam.media2Support = true;
+  }
+}
+
 describe('Profiles', () => {
   let basicProfile: MediaProfile;
 
@@ -113,9 +123,7 @@ describe('Profiles', () => {
     });
 
     it('should fail if media ver20 is not supported', async () => {
-      cam.media2Support = false;
-      expect(() => cam.media2.getProfiles()).toThrow();
-      cam.media2Support = true;
+      await expectMedia2NotSupported(() => cam.media2.getProfiles());
     });
   });
 
