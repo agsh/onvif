@@ -41,7 +41,33 @@ import {
 import { config, multicastConfiguration, streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Analytics Device service
+ * Analytics Device service — analytics engines, inputs, and controls.
+ *
+ * @example Enumerate engines/controls and fetch a metadata stream URI:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const engines = await onvif.analyticsDevice.getAnalyticsEngines();
+ * const controls = await onvif.analyticsDevice.getAnalyticsEngineControls();
+ * const inputs = await onvif.analyticsDevice.getAnalyticsEngineInputs();
+ * console.log(engines.map((e) => e.name), controls.length, inputs.length);
+ *
+ * const controlToken = controls[0]?.token;
+ * if (controlToken) {
+ *   const state = await onvif.analyticsDevice.getAnalyticsState({
+ *     analyticsEngineControlToken: controlToken,
+ *   });
+ *   const uri = await onvif.analyticsDevice.getAnalyticsDeviceStreamUri({
+ *     analyticsEngineControlToken: controlToken,
+ *     streamSetup: { stream: 'RTP-Unicast', transport: { protocol: 'RTSP' } },
+ *   });
+ *   console.log(state, uri);
+ * }
+ * ```
+ * @category Services
  */
 export default class AnalyticsDevice extends Service {
   constructor(onvif: Onvif) {

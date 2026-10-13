@@ -41,14 +41,26 @@ import {
 
 /**
  * DoorControl service
- * @example
+ *
+ * @example List doors, unlock briefly, then lock again:
  * ```ts
- *  const doorsList = await cam.doorControl.getDoorList();
- *  const token = doorsList.door![0].token;
- *  console.log((await cam.doorControl.getDoorState({ token })).doorMode);
- *  await cam.doorControl.unlockDoor({ token });
- *  console.log((await cam.doorControl.getDoorState({ token })).doorMode);
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.doorControl.getServiceCapabilities();
+ * const { door } = await onvif.doorControl.getDoorList();
+ * const token = door![0].token;
+ * console.log(caps, await onvif.doorControl.getDoorInfo({ token: [token] }));
+ *
+ * console.log((await onvif.doorControl.getDoorState({ token })).doorMode);
+ * await onvif.doorControl.unlockDoor({ token });
+ * await new Promise((r) => setTimeout(r, 2000));
+ * await onvif.doorControl.lockDoor({ token });
+ * console.log((await onvif.doorControl.getDoorState({ token })).doorMode);
  * ```
+ * @category Services
  */
 export default class DoorControl extends Service {
   constructor(onvif: Onvif) {

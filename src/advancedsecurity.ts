@@ -112,12 +112,26 @@ import {
 
 /**
  * AdvancedSecurity service
- * @example
+ *
+ * @example Inspect keystore capabilities, keys, and certificates (read-only tour):
  * ```ts
- *  const caps = await cam.advancedSecurity.getServiceCapabilities();
- *  const keys = await cam.advancedSecurity.getAllKeys();
- *  console.log(caps.keystoreCapabilities, keys);
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.advancedSecurity.getServiceCapabilities();
+ * const keys = await onvif.advancedSecurity.getAllKeys();
+ * const certs = await onvif.advancedSecurity.getAllCertificates();
+ * console.log(caps.keystoreCapabilities, keys.length, certs.length);
+ *
+ * const keyID = keys[0]?.keyID;
+ * if (keyID) {
+ *   const status = await onvif.advancedSecurity.getKeyStatus({ keyID });
+ *   console.log(keyID, status);
+ * }
  * ```
+ * @category Services
  */
 export default class AdvancedSecurity extends Service {
   constructor(onvif: Onvif) {

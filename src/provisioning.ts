@@ -20,13 +20,24 @@ import {
 
 /**
  * Provisioning service
- * @example
+ *
+ * @example Move during provisioning (pan / tilt / zoom), then stop:
  * ```ts
- *  const caps = await cam.provisioning.getServiceCapabilities();
- *  const videoSource = caps.source![0].videoSourceToken;
- *  await cam.provisioning.panMove({ videoSource, direction: 'Left', timeout: 'PT1S' });
- *  await cam.provisioning.stop({ videoSource });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.provisioning.getServiceCapabilities();
+ * const videoSource = caps.source![0].videoSourceToken;
+ * console.log(caps.source);
+ *
+ * await onvif.provisioning.panMove({ videoSource, direction: 'Left', timeout: 'PT1S' });
+ * await onvif.provisioning.tiltMove({ videoSource, direction: 'Up', timeout: 'PT1S' });
+ * await onvif.provisioning.zoomMove({ videoSource, direction: 'Wide', timeout: 'PT1S' });
+ * await onvif.provisioning.stop({ videoSource });
  * ```
+ * @category Services
  */
 export default class Provisioning extends Service {
   constructor(onvif: Onvif) {

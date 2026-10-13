@@ -24,7 +24,31 @@ import {
 import { multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Display service
+ * Display service — video output layout and pane configurations.
+ *
+ * @example Read layout / panes for the first video output, then tweak a pane:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const outputs = await onvif.deviceIO.getVideoOutputs();
+ * const videoOutput = outputs[0]!.token;
+ *
+ * const options = await onvif.display.getDisplayOptions({ videoOutput });
+ * const layout = await onvif.display.getLayout({ videoOutput });
+ * const panes = await onvif.display.getPaneConfigurations({ videoOutput });
+ * console.log(options, layout, panes.map((p) => p.paneName ?? p.token));
+ *
+ * if (panes[0]) {
+ *   await onvif.display.setPaneConfiguration({
+ *     videoOutput,
+ *     paneConfiguration: { ...panes[0], paneName: panes[0].paneName ?? 'Main' },
+ *   });
+ * }
+ * ```
+ * @category Services
  */
 export default class Display extends Service {
   constructor(onvif: Onvif) {

@@ -53,18 +53,27 @@ import {
 } from './interfaces/deviceio';
 
 /**
- * DeviceIO service
- * @example
- * ```typescript
- * await cam.connect();
- * const caps = await cam.deviceIO.getServiceCapabilities();
- * const relays = await cam.deviceIO.getRelayOutputs();
- * const inputs = await cam.deviceIO.getDigitalInputs();
- * await cam.deviceIO.setRelayOutputState({
- *   relayOutputToken: 'RelayOutputToken_1',
- *   logicalState: 'active',
- * });
+ * DeviceIO service — relays, digital inputs, serial ports, physical A/V I/O.
+ *
+ * @example Inspect I/O capabilities and pulse a relay:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.deviceIO.getServiceCapabilities();
+ * const relays = await onvif.deviceIO.getRelayOutputs();
+ * const inputs = await onvif.deviceIO.getDigitalInputs();
+ * const videoOutputs = await onvif.deviceIO.getVideoOutputs();
+ * console.log(caps, relays.length, inputs.length, videoOutputs.map((v) => v.token));
+ *
+ * const relayOutputToken = relays[0]!.token;
+ * await onvif.deviceIO.setRelayOutputState({ relayOutputToken, logicalState: 'active' });
+ * await new Promise((r) => setTimeout(r, 500));
+ * await onvif.deviceIO.setRelayOutputState({ relayOutputToken, logicalState: 'inactive' });
  * ```
+ * @category Services
  */
 export default class DeviceIO extends Service {
   constructor(onvif: Onvif) {

@@ -28,15 +28,28 @@ import {
 import { itemList } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Action Engine service
- * @example
- * ```typescript
- * await cam.connect();
- * const caps = await cam.actionEngine.getServiceCapabilities();
- * const supported = await cam.actionEngine.getSupportedActions();
- * const actions = await cam.actionEngine.getActions();
- * const triggers = await cam.actionEngine.getActionTriggers();
+ * Action Engine service — device actions and event-driven triggers.
+ *
+ * @example List supported actions, configured actions, and triggers:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.actionEngine.getServiceCapabilities();
+ * const supported = await onvif.actionEngine.getSupportedActions();
+ * const actions = await onvif.actionEngine.getActions();
+ * const triggers = await onvif.actionEngine.getActionTriggers();
+ *
+ * console.log(caps);
+ * console.log(supported.actionDescription?.map((a) => a.name));
+ * console.log(
+ *   actions.map((a) => ({ token: a.token, type: a.configuration?.type })),
+ *   triggers.map((t) => t.token),
+ * );
  * ```
+ * @category Services
  */
 export default class ActionEngine extends Service {
   constructor(onvif: Onvif) {

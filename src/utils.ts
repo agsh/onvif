@@ -26,6 +26,7 @@ export type CommonDuration = string | number;
 
 /**
  * Base error for the ONVIF client. Prefer subclasses when the failure kind is known.
+ * @category Errors
  */
 export class OnvifError extends Error {
   public readonly xml?: string;
@@ -39,10 +40,14 @@ export class OnvifError extends Error {
   }
 }
 
-/** Empty, non-SOAP, or otherwise unexpected response body. */
+/** Empty, non-SOAP, or otherwise unexpected response body.
+ * @category Errors
+ */
 export class OnvifResponseError extends OnvifError {}
 
-/** SOAP 1.2 Fault from the device. */
+/** SOAP 1.2 Fault from the device.
+ * @category Errors
+ */
 export class OnvifSoapFaultError extends OnvifError {
   public readonly faultCode?: string;
   public readonly faultReason?: string;
@@ -63,10 +68,14 @@ export class OnvifSoapFaultError extends OnvifError {
   }
 }
 
-/** HTTP Digest / credentials rejected by the device. */
+/** HTTP Digest / credentials rejected by the device.
+ * @category Errors
+ */
 export class OnvifAuthError extends OnvifError {}
 
-/** Invalid arguments or unexpected response shape from a client-side check. */
+/** Invalid arguments or unexpected response shape from a client-side check.
+ * @category Errors
+ */
 export class OnvifValidationError extends OnvifError {}
 
 function soapFaultText(value: unknown): string {

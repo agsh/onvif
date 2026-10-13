@@ -91,7 +91,60 @@ function matchXAddr(xaddrs: URL[], address: string) {
 }
 
 /**
- * Class for `Discovery` singleton
+ * Class for `Discovery` singleton. Prefer the exported {@link Discovery} instance.
+ *
+ * @example Discover NVTs on the LAN, filter by Probe type / Profile T scope, connect, and fetch stream URIs:
+ * ```typescript
+ * import { Discovery, type Onvif } from 'onvif';
+ *
+ * const USERNAME = 'admin';
+ * const PASSWORD = 'admin';
+ *
+ * Discovery.on('error', (err, xml) => {
+ *   console.error('WS-Discovery error', err.message, xml?.slice(0, 200));
+ * });
+ *
+ * Discovery.on('device', async (cam, rinfo) => {
+ *   // Fired as soon as each NVT replies (before probe() settles).
+ *   if (typeof (cam as Onvif).connect !== 'function') return;
+ *   const onvif = cam as Onvif;
+ *   onvif.username = USERNAME;
+ *   onvif.password = PASSWORD;
+ *   try {
+ *     await onvif.connect();
+ *     const info = await onvif.device.getDeviceInformation();
+ *     console.log(`Live: ${rinfo.address} → ${info.manufacturer} ${info.model}`);
+ *   } catch (e) {
+ *     console.warn(`Skip ${onvif.hostname}:`, e);
+ *   }
+ * });
+ *
+ * (async () => {
+ *   const devices = await Discovery.probe({
+ *     timeout: 8000,
+ *     // Optional: bind to a specific NIC (Linux: eth0 / enp0s3)
+ *     // device: 'eth0',
+ *     types: ['dn:NetworkVideoTransmitter'],
+ *     scopes: ['onvif://www.onvif.org/Profile/T'],
+ *   });
+ *
+ *   // probe() always resolves; bad replies only emit 'error'
+ *   const cams = devices.filter((d): d is Onvif => typeof (d as Onvif).connect === 'function');
+ *   console.log(`Probe finished: ${cams.length} Onvif instance(s)`);
+ *
+ *   await Promise.all(
+ *     cams.map(async (cam) => {
+ *       cam.username ??= USERNAME;
+ *       cam.password ??= PASSWORD;
+ *       if (cam.timeShift === undefined) await cam.connect();
+ *       const profiles = await cam.media.getProfiles();
+ *       const uri = await cam.media.getStreamUri({ protocol: 'RTSP' });
+ *       console.log(cam.hostname, profiles[0]?.name, uri.uri);
+ *     }),
+ *   );
+ * })().catch(console.error);
+ * ```
+ * @category Core
  */
 export class DiscoverySingleton extends EventEmitter {
   /**
@@ -346,5 +399,6 @@ export class DiscoverySingleton extends EventEmitter {
  *   const cams = Promise.all((await Discovery.probe()).map(camera => camera.connect());
  *   console.log(await cams[0]?.getSystemDateAndTime());
  * })();
+ * @category Core
  */
 export const Discovery = DiscoverySingleton.getInstance;

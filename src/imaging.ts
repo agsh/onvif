@@ -52,16 +52,31 @@ type GetCurrentPresetExtended = VideoSourceTokenExtended & Omit<GetCurrentPreset
 type SetCurrentPresetExtended = VideoSourceTokenExtended & Omit<SetCurrentPreset, 'videoSourceToken'>;
 
 /**
- * Imaging service
- * @example
+ * Imaging service — brightness, focus, IR cut, imaging presets.
+ *
+ * @example Read options, adjust brightness, then restore via imaging preset:
  * ```ts
- *   const is = await cam.imaging.getImagingSettings();
- *   is.brightness = 70;
- *   await cam.imaging.setImagingSettings({
- *     imagingSettings: is,
- *     forcePersistence: true,
- *   });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const options = await onvif.imaging.getOptions();
+ * const settings = await onvif.imaging.getImagingSettings();
+ * console.log(options.brightness, settings.brightness, settings.irCutFilter);
+ *
+ * settings.brightness = Math.min(options.brightness?.max ?? 100, 70);
+ * await onvif.imaging.setImagingSettings({
+ *   imagingSettings: settings,
+ *   forcePersistence: true,
+ * });
+ *
+ * const presets = await onvif.imaging.getPresets();
+ * if (presets[0]) {
+ *   await onvif.imaging.setCurrentPreset({ presetToken: presets[0].token });
+ * }
  * ```
+ * @category Services
  */
 export default class Imaging extends Service {
   constructor(onvif: Onvif) {

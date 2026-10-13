@@ -28,12 +28,25 @@ import {
 
 /**
  * AccessRules service
- * @example
+ *
+ * @example List access profiles and dump rules for the first one:
  * ```ts
- *  const list = await cam.accessRules.getAccessProfileInfoList();
- *  const token = list.accessProfileInfo![0].token;
- *  console.log((await cam.accessRules.getAccessProfiles({ token: [token] })).accessProfile);
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.accessRules.getServiceCapabilities();
+ * const list = await onvif.accessRules.getAccessProfileInfoList();
+ * const token = list.accessProfileInfo![0].token;
+ * const { accessProfile } = await onvif.accessRules.getAccessProfiles({ token: [token] });
+ * console.log(
+ *   caps,
+ *   list.accessProfileInfo?.map((p) => p.name),
+ *   accessProfile?.[0]?.accessPolicy,
+ * );
  * ```
+ * @category Services
  */
 export default class AccessRules extends Service {
   constructor(onvif: Onvif) {

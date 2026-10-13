@@ -27,19 +27,29 @@ import {
 
 /**
  * Thermal service
- * @example
+ *
+ * @example List thermal configs, read options, switch polarity / palette:
  * ```ts
- *  const configs = await cam.thermal.getConfigurations();
- *  const token = configs.configurations![0].token;
- *  console.log((await cam.thermal.getConfiguration({ videoSourceToken: token })).polarity);
- *  await cam.thermal.setConfiguration({
- *    videoSourceToken: token,
- *    configuration: {
- *      colorPalette: configs.configurations![0].configuration.colorPalette,
- *      polarity: 'WhiteHot',
- *    },
- *  });
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const { configurations } = await onvif.thermal.getConfigurations();
+ * const videoSourceToken = configurations![0].token;
+ * const current = await onvif.thermal.getConfiguration({ videoSourceToken });
+ * const options = await onvif.thermal.getConfigurationOptions({ videoSourceToken });
+ * console.log(current.polarity, options.colorPalette?.map((p) => p.name));
+ *
+ * await onvif.thermal.setConfiguration({
+ *   videoSourceToken,
+ *   configuration: {
+ *     colorPalette: configurations![0].configuration.colorPalette,
+ *     polarity: current.polarity === 'WhiteHot' ? 'BlackHot' : 'WhiteHot',
+ *   },
+ * });
  * ```
+ * @category Services
  */
 export default class Thermal extends Service {
   constructor(onvif: Onvif) {

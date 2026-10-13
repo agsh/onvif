@@ -20,7 +20,27 @@ import {
 import { streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Receiver service
+ * Receiver service — configure stream receivers on the device.
+ *
+ * @example List receivers, inspect state, toggle mode:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.receiver.getServiceCapabilities();
+ * const receivers = await onvif.receiver.getReceivers();
+ * console.log(caps, receivers.map((r) => r.token));
+ *
+ * const receiverToken = receivers[0]!.token;
+ * const state = await onvif.receiver.getReceiverState({ receiverToken });
+ * console.log(state);
+ *
+ * await onvif.receiver.setReceiverMode({ receiverToken, mode: 'AlwaysConnect' });
+ * // await onvif.receiver.deleteReceiver({ receiverToken });
+ * ```
+ * @category Services
  */
 export default class Receiver extends Service {
   constructor(onvif: Onvif) {

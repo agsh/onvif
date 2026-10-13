@@ -1,3 +1,18 @@
+/**
+ * ONVIF client library entry point.
+ *
+ * @categoryDescription Core
+ * Main client entry points: connect to a device ({@link Onvif}) and discover cameras on the LAN ({@link Discovery}).
+ *
+ * @categoryDescription Services
+ * Lazy-loaded ONVIF service namespaces accessed via `onvif.media`, `onvif.ptz`, `onvif.doorControl`, etc.
+ *
+ * @categoryDescription Errors
+ * Typed errors thrown by the client and SOAP fault handling.
+ *
+ * @packageDocumentation
+ * @showCategories
+ */
 export * from './onvif';
 export * from './events';
 export { default as Events } from './events';

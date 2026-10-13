@@ -181,7 +181,32 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
   AudioOutputConfigurationOptions;
 
 /**
- * Media service, ver10 profile
+ * Media service, ver10 (Profile S streaming / profiles / configurations).
+ *
+ * @example List profiles, get an RTSP URI, then tweak an encoder configuration:
+ * ```ts
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const profiles = await onvif.media.getProfiles();
+ * const profileToken = profiles[0]!.token;
+ * console.log(profiles.map((p) => ({ name: p.name, token: p.token })));
+ *
+ * const { uri } = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
+ * const snapshot = await onvif.media.getSnapshotUri({ profileToken });
+ * console.log(uri, snapshot.uri);
+ *
+ * const encoders = await onvif.media.getVideoEncoderConfigurations();
+ * const cfg = encoders[0]!;
+ * if (cfg.rateControl) cfg.rateControl.bitrateLimit = 2048;
+ * await onvif.media.setVideoEncoderConfiguration({
+ *   configuration: cfg,
+ *   forcePersistence: true,
+ * });
+ * ```
+ * @category Services
  */
 export default class Media extends Service {
   public profiles: Profile[] = [];
@@ -1604,6 +1629,12 @@ export default class Media extends Service {
     });
   }
 
+  /**
+   * A device returns the information for current video source mode and settable video source modes of
+   * specified video source. A device that indicates a capability of VideoSourceModes shall support this
+   * command.
+   * @param options
+   */
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
     const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
     const response = await this.request(
@@ -1787,6 +1818,10 @@ export default class Media extends Service {
     });
   }
 
+  /**
+   * Get the OSD Options.
+   * @param options
+   */
   async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
     const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
     if (this.onvif.media2Support) {

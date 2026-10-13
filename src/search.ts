@@ -41,17 +41,32 @@ import {
 import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * Search service
- * @example
+ * Search service (Profile G) — recording / event / PTZ position search.
+ *
+ * @example Summarize recordings, run a find, page results, then end the search:
  * ```ts
- * const summary = await cam.search.getRecordingSummary();
- * const token = await cam.search.findRecordings({
- *   scope: { includedRecordings: ['RecordingToken_1'] },
- *   keepAliveTime: 'PT10S',
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const summary = await onvif.search.getRecordingSummary();
+ * console.log(summary.numberRecordings, summary.dataFrom, summary.dataUntil);
+ *
+ * const recordings = await onvif.recording.getRecordings();
+ * const searchToken = await onvif.search.findRecordings({
+ *   scope: { includedRecordings: [recordings[0]!.recordingToken] },
+ *   keepAliveTime: 'PT30S',
  * });
- * const results = await cam.search.getRecordingSearchResults({ searchToken: token });
- * await cam.search.endSearch({ searchToken: token });
+ *
+ * const results = await onvif.search.getRecordingSearchResults({
+ *   searchToken,
+ *   maxResults: 20,
+ * });
+ * console.log(results.recordingInformation);
+ * await onvif.search.endSearch({ searchToken });
  * ```
+ * @category Services
  */
 export default class Search extends Service {
   constructor(onvif: Onvif) {

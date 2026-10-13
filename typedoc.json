@@ -1,5 +1,14 @@
 {
   "out": "docs",
   "internalModule": "Onvif specs",
-  "highlightLanguages": ["xml", "ts", "js", "shell"]
+  "highlightLanguages": ["xml", "ts", "js", "shell", "json"],
+  "categorizeByGroup": false,
+  "categoryOrder": ["Core", "Services", "Errors", "*"],
+  "navigation": {
+    "includeCategories": true
+  },
+  "searchCategoryBoosts": {
+    "Core": 2,
+    "Services": 1.5
+  }
 }

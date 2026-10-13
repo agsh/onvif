@@ -46,12 +46,23 @@ import {
 
 /**
  * Schedule service
- * @example
+ *
+ * @example List schedules and special-day groups, then check active state:
  * ```ts
- *  const list = await cam.schedule.getScheduleInfoList();
- *  const token = list.scheduleInfo![0].token;
- *  console.log((await cam.schedule.getScheduleState({ token })).active);
+ * import { Onvif } from 'onvif';
+ *
+ * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+ * await onvif.connect();
+ *
+ * const caps = await onvif.schedule.getServiceCapabilities();
+ * const list = await onvif.schedule.getScheduleInfoList();
+ * const groups = await onvif.schedule.getSpecialDayGroupInfoList();
+ * const token = list.scheduleInfo![0].token;
+ * const { schedule } = await onvif.schedule.getSchedules({ token: [token] });
+ * const state = await onvif.schedule.getScheduleState({ token });
+ * console.log(caps, schedule?.[0]?.standard, groups.specialDayGroupInfo?.length, state.active);
  * ```
+ * @category Services
  */
 export default class Schedule extends Service {
   constructor(onvif: Onvif) {
