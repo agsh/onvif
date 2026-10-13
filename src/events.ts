@@ -259,6 +259,9 @@ export default class Events {
     return data.getEventPropertiesResponse;
   }
 
+  /**
+   * Returns the capabilities of the event service. The result is returned in a typed answer.
+   */
   async getServiceCapabilities(): Promise<Capabilities> {
     const body = {
       GetServiceCapabilities: {
@@ -334,6 +337,12 @@ export default class Events {
     };
   }
 
+  /**
+   * The AddEventBroker command allows an ONVIF client to add an event broker configuration to device to
+   * enable ONVIF events to be transferred to an event broker. If an existing event broker configuration
+   * already exists with the same Address, the existing configuration shall be modified.
+   * @param options
+   */
   async addEventBroker({ eventBroker }: AddEventBroker): Promise<void> {
     const body = {
       AddEventBroker: {
@@ -346,6 +355,11 @@ export default class Events {
     await this.onvif.request({ service: 'events', body });
   }
 
+  /**
+   * The DeleteEventBroker allows an ONVIF client to delete an event broker configuration from an ONVIF
+   * device.
+   * @param options
+   */
   async deleteEventBroker({ address }: DeleteEventBroker): Promise<void> {
     const body = {
       DeleteEventBroker: {
@@ -358,6 +372,10 @@ export default class Events {
     await this.onvif.request({ service: 'events', body });
   }
 
+  /**
+   * The GetEventBrokers command lets a client retrieve event broker configurations from the device.
+   * @param options
+   */
   async getEventBrokers({ address }: GetEventBrokers = {}): Promise<EventBrokerConfig[]> {
     const body = {
       GetEventBrokers: {
@@ -576,6 +594,9 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     });
   }
 
+  /**
+   * Create a pull-point subscription and start the background {@link eventPull} loop.
+   */
   async subscribe() {
     this.dontWantToRestartEvent = false;
     this.subscription = await this.onvif.events.createPullPointSubscription({

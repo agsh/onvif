@@ -1629,6 +1629,12 @@ export default class Media extends Service {
     });
   }
 
+  /**
+   * A device returns the information for current video source mode and settable video source modes of
+   * specified video source. A device that indicates a capability of VideoSourceModes shall support this
+   * command.
+   * @param options
+   */
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
     const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
     const response = await this.request(
@@ -1812,6 +1818,10 @@ export default class Media extends Service {
     });
   }
 
+  /**
+   * Get the OSD Options.
+   * @param options
+   */
   async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
     const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
     if (this.onvif.media2Support) {

@@ -829,6 +829,19 @@ export default class Media2 extends Service {
     return response.getVideoEncoderInstancesResponse.info;
   }
 
+  /**
+   * Synchronization points allow clients to decode and correctly use all data after the synchronization
+   * point. For example, if a video stream is configured with a large I-frame distance and a client loses
+   * a single packet, the client does not display video until the next I-frame is transmitted. In such
+   * cases, the client can request a Synchronization Point which enforces the device to add an I-Frame as
+   * soon as possible. Clients can request Synchronization Points for profiles. The device shall add
+   * synchronization points for all streams associated with this profile. Similarly, a synchronization
+   * point is used to get an update on full PTZ or event status through the metadata stream. If a video
+   * stream is associated with the profile, an I-frame shall be added to this video stream. If a PTZ
+   * metadata stream is associated to the profile, the PTZ position shall be repeated within the metadata
+   * stream.
+   * @param options
+   */
   @v2
   async setSynchronizationPoint({ profileToken }: SetSynchronizationPoint) {
     await this.request({
@@ -1231,6 +1244,15 @@ export default class Media2 extends Service {
     return response.getStreamUriResponse;
   }
 
+  /**
+   * A client uses the GetSnapshotUri command to obtain a JPEG snapshot from the device. The returned URI
+   * shall remain valid indefinitely even if the profile is changed. The URI can be used for acquiring a
+   * JPEG image through an HTTP GET operation. The image encoding will always be JPEG regardless of the
+   * encoding setting in the media profile. The Jpeg settings (like resolution or quality) may be taken
+   * from the profile if suitable. The provided image will be updated automatically and independent from
+   * calls to GetSnapshotUri.
+   * @param options
+   */
   @v2
   async getSnapshotUri(options?: GetSnapshotUri): Promise<GetSnapshotUriResponse> {
     const { profileToken } = options ?? {};
