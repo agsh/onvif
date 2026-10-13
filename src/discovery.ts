@@ -4,9 +4,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { createSocket, RemoteInfo } from 'dgram';
+import { createSocket, type Socket, RemoteInfo } from 'dgram';
 import os from 'os';
-import { build, guid, linerase, OnvifError, parseSOAPString } from './utils';
+import { build, guid, linerase, OnvifResponseError, parseSOAPString } from './utils';
 import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 import { Onvif } from './onvif';
 
@@ -105,8 +105,12 @@ export class DiscoverySingleton extends EventEmitter {
    */
   static device = 'device' as const;
   /**
-   * Indicates any errors
-   * @param error Error instance or array of error instances from {@link OnvifError}
+   * Indicates a problem with a Probe response or UDP socket.
+   * Always an {@link Error} (often {@link OnvifResponseError} / parser error).
+   * {@link DiscoverySingleton.probe} always resolves (possibly with an empty array);
+   * bad responses and socket failures are reported only via this event.
+   * @param error Error instance
+   * @param xml Optional raw SOAP that triggered the error
    * @event error
    * @example
    * ```typescript
@@ -129,7 +133,9 @@ export class DiscoverySingleton extends EventEmitter {
   }
 
   /**
-   * Discover NVT devices in the subnetwork
+   * Discover NVT devices in the subnetwork.
+   * Always resolves with found devices (or `[]`); bad Probe responses and socket
+   * failures are emitted on {@link DiscoverySingleton.error} and do not reject.
    * @param options
    * @example
    * ```typescript
@@ -150,44 +156,47 @@ export class DiscoverySingleton extends EventEmitter {
    * })();
    */
   probe(options: DiscoveryOptions = {}): Promise<(Onvif | Record<string, unknown>)[]> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const cams: Map<string, Onvif | Record<string, unknown>> = new Map();
-      const errors: Error[] = [];
+      const sockets: Socket[] = [];
+      let settled = false;
       const messageID = `urn:uuid:${options.messageId || guid()}`;
-      const request = Buffer.from(build({
-        Envelope: {
-          $: {
-            xmlns: 'http://www.w3.org/2003/05/soap-envelope',
-            'xmlns:dn': 'http://www.onvif.org/ver10/network/wsdl',
-            'xmlns:tds': 'http://www.onvif.org/ver10/device/wsdl',
-          },
-          Header: {
-            'wsa:MessageID': {
-              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
-              _: messageID,
+      const request = Buffer.from(
+        build({
+          Envelope: {
+            $: {
+              xmlns: 'http://www.w3.org/2003/05/soap-envelope',
+              'xmlns:dn': 'http://www.onvif.org/ver10/network/wsdl',
+              'xmlns:tds': 'http://www.onvif.org/ver10/device/wsdl',
             },
-            'wsa:To': {
-              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
-              _: 'urn:schemas-xmlsoap-org:ws:2005:04:discovery',
-            },
-            'wsa:Action': {
-              $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
-              _: 'http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe',
-            },
-          },
-          Body: {
-            Probe: {
-              $: {
-                xmlns: 'http://schemas.xmlsoap.org/ws/2005/04/discovery',
-                'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
-                'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+            Header: {
+              'wsa:MessageID': {
+                $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+                _: messageID,
               },
-              Types: stringListToBuild(options.types) ?? {},
-              Scopes: stringListToBuild(options.scopes) ?? {},
+              'wsa:To': {
+                $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+                _: 'urn:schemas-xmlsoap-org:ws:2005:04:discovery',
+              },
+              'wsa:Action': {
+                $: { 'xmlns:wsa': 'http://schemas.xmlsoap.org/ws/2004/08/addressing' },
+                _: 'http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe',
+              },
+            },
+            Body: {
+              Probe: {
+                $: {
+                  xmlns: 'http://schemas.xmlsoap.org/ws/2005/04/discovery',
+                  'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
+                  'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                },
+                Types: stringListToBuild(options.types) ?? {},
+                Scopes: stringListToBuild(options.scopes) ?? {},
+              },
             },
           },
-        },
-      }));
+        }),
+      );
       const listener = async (msg: Buffer, rinfo: RemoteInfo) => {
         let data;
         let xml;
@@ -195,14 +204,16 @@ export class DiscoverySingleton extends EventEmitter {
           [data, xml] = await parseSOAPString(msg.toString());
           data = linerase(data);
         } catch (error) {
-          errors.push(error as Error);
-          this.emit('error', error, xml);
+          const err = error instanceof Error ? error : new OnvifResponseError(String(error));
+          this.emit('error', err, xml);
           return;
         }
         // TODO check for matching RelatesTo field and messageId
         if (!data.probeMatches) {
-          errors.push(new OnvifError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}\n${xml}`));
-          this.emit('error', `Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, xml);
+          const err = new OnvifResponseError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, {
+            xml,
+          });
+          this.emit('error', err, xml);
         } else {
           // Possible to get multiple matches for the same camera
           // when your computer has more than one network adapter in the same subnet
@@ -216,12 +227,12 @@ export class DiscoverySingleton extends EventEmitter {
                 .map((href: string) => new URL(href.trim()));
               const camUri = matchXAddr(camUris, rinfo.address);
               cam = new Onvif({
-                hostname : camUri.hostname,
-                port     : camUri.port === '' ? undefined : parseInt(camUri.port, 10),
-                path     : camUri.pathname,
-                urn      : camAddr,
+                hostname: camUri.hostname,
+                port: camUri.port === '' ? undefined : parseInt(camUri.port, 10),
+                path: camUri.pathname,
+                urn: camAddr,
                 // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
-                xaddrs   : camUris,
+                xaddrs: camUris,
               });
             } else {
               cam = data;
@@ -232,6 +243,28 @@ export class DiscoverySingleton extends EventEmitter {
         }
       };
 
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+
+      const finish = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (timeout !== undefined) {
+          clearTimeout(timeout);
+          timeout = undefined;
+        }
+        for (const socket of sockets) {
+          socket.removeAllListeners();
+          try {
+            socket.close();
+          } catch {
+            // socket may already be closed
+          }
+        }
+        resolve(Array.from(cams.values()));
+      };
+
       // A computer may have Multiple Network Interfaces (Network Devices) like eth0, eth1, wifi0, lo0, vpm0, vpn1
       // Each Network Interface can have Multiple IP Addresses e.g. 192.168.1.99 and also 10.10.10.5
       // And the IP Addresses can be IPv4 or IPv6
@@ -239,13 +272,12 @@ export class DiscoverySingleton extends EventEmitter {
 
       // None of my test cameras responded to IPv6 discovery so the IPv6 code in this code is untested
 
-
       // We can also restrict to a specific Interface using options.device
 
       // Make a list of IP addresses to send from
       const interfaces = os.networkInterfaces();
       const sendList: os.NetworkInterfaceInfo[] = [];
-      for(const interfaceName in interfaces) {
+      for (const interfaceName in interfaces) {
         this.emit('status', `Found interface ${interfaceName}`);
         if (options.device && options.device != interfaceName) {
           continue;
@@ -259,20 +291,21 @@ export class DiscoverySingleton extends EventEmitter {
       }
 
       const udpNameConverter = (family: string) => {
-        return (family === 'IPv6') ? 'udp6': 'udp4';
-      }
+        return family === 'IPv6' ? 'udp6' : 'udp4';
+      };
 
       // Send a Discovery Message from each address in the SendList
-      for(const sendItem of sendList) {
+      for (const sendItem of sendList) {
         const socket = createSocket({ type: options.type ?? udpNameConverter(sendItem.family), reuseAddr: true });
+        sockets.push(socket);
         socket.on('error', (err) => {
           this.emit('error', err);
         });
         socket.on('listening', () => {
           // bind() is complete. Send the discovery message
           if (options.bufferSize && options.bufferSize > 0) {
-			    	socket.setRecvBufferSize(options.bufferSize);
-			    }
+            socket.setRecvBufferSize(options.bufferSize);
+          }
           this.emit('status', `Sending ${sendItem.family} from ${sendItem.address}`);
           if (sendItem.family == 'IPv4') socket.send(request, 0, request.length, 3702, '239.255.255.250');
           if (sendItem.family == 'IPv6') socket.send(request, 0, request.length, 3702, '::ffff:239.255.255.250'); // untested
@@ -282,18 +315,10 @@ export class DiscoverySingleton extends EventEmitter {
         // Bind to the local IP address and either an OS selected UDP Port, or the options.listeningPort UDP Port)
         // This fires 'connected' which sends the discovery message
         socket.bind(options.listeningPort, sendItem.address);
-
-        setTimeout(() => {
-          socket.removeListener('message', listener);
-          socket.close();
-          if (errors.length === 0) {
-            resolve(Array.from(cams.values()));
-          } else {
-            reject(errors);
-          }
-        }, options.timeout || 5000);
       }
-    })
+
+      timeout = setTimeout(finish, options.timeout || 5000);
+    });
   }
 }
 

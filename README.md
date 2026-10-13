@@ -428,8 +428,8 @@ Further reading:
 
 # Device compatibility
 
-The library has been tested with cameras and devices from Axis, Bosch, Canon, Hanwha, Hikvision, Panasonic, Sony and
-other vendors.
+The library has been tested with cameras and devices from ACTi, Avigilon, Axis, Bosch, Canon, Hanwha, Hikvision, 
+Panasonic, Sony, Tapo and other vendors.
 
 Please report your device and firmware using our
 [compatibility form](https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform).

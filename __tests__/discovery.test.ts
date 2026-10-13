@@ -15,6 +15,8 @@ const TEST_HOST = '127.0.0.1';
 const TEST_PORT = 8000;
 const DISCOVERY_TIMEOUT_MS = 1_000;
 const SERVER_WAIT_MS = 45_000;
+/** Probe / connect can miss under parallel Jest workers sharing one Happytime process. */
+const VERIFY_ATTEMPTS = 5;
 
 /** Scopes Happytime is known to match via WS-Discovery Probe (Profile/* often does not). */
 const PREFERRED_MATCHABLE_SCOPES: Scopes[] = [
@@ -54,16 +56,48 @@ async function waitForOnvifTestServer(): Promise<void> {
   );
 }
 
-async function isHappytimesoftNvt(cam: Onvif): Promise<boolean> {
-  cam.username = 'admin';
-  cam.password = 'admin';
-  try {
-    await cam.connect();
-    const info = await cam.device.getDeviceInformation();
-    return (info.manufacturer ?? '').includes('Happytimesoft');
-  } catch {
-    return false;
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Resolved ProbeMatch port — empty URL port means scheme default, not our :8000 server. */
+function camPort(cam: Onvif): number | undefined {
+  if (cam.port !== undefined) {
+    return cam.port;
   }
+  for (const xaddr of cam.xaddrs ?? []) {
+    if (xaddr.port !== '') {
+      return Number(xaddr.port);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Confirm manufacturer via loopback when XAddrs point at the local Happytime port.
+ * Parallel suites already hammer `127.0.0.1:8000`; connecting to the LAN XAddr under
+ * that load often fails even though Probe succeeded.
+ */
+async function isHappytimesoftNvt(cam: Onvif): Promise<boolean> {
+  const port = camPort(cam);
+  const hostname = port === TEST_PORT ? TEST_HOST : cam.hostname;
+  const verify = new Onvif({
+    hostname,
+    port,
+    path: cam.path,
+    username: 'admin',
+    password: 'admin',
+  });
+  for (let attempt = 0; attempt < VERIFY_ATTEMPTS; attempt++) {
+    try {
+      await verify.connect();
+      const info = await verify.device.getDeviceInformation();
+      return (info.manufacturer ?? '').includes('Happytimesoft');
+    } catch {
+      await sleep(250 * (attempt + 1));
+    }
+  }
+  return false;
 }
 
 async function filterHappytimesoftDevices(cams: readonly (Onvif | Record<string, unknown>)[]): Promise<Onvif[]> {
@@ -76,15 +110,56 @@ async function filterHappytimesoftDevices(cams: readonly (Onvif | Record<string,
   return out;
 }
 
+type ProbeOptions = Parameters<typeof Discovery.probe>[0];
+
+/** Serialize probe+verify in-process (overlapping probes starve Happytime HTTP). */
+let discoveryVerifyChain: Promise<unknown> = Promise.resolve();
+
+function withDiscoveryVerifyLock<T>(fn: () => Promise<T>): Promise<T> {
+  const run = discoveryVerifyChain.then(fn, fn);
+  discoveryVerifyChain = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+/** Retry Probe when UDP / Happytime is busy (parallel workers). */
+async function probeHappytime(options: ProbeOptions = {}): Promise<Onvif[]> {
+  return withDiscoveryVerifyLock(async () => {
+    let last: (Onvif | Record<string, unknown>)[] = [];
+    for (let attempt = 0; attempt < VERIFY_ATTEMPTS; attempt++) {
+      last = await Discovery.probe({ ...options, timeout: options?.timeout ?? DISCOVERY_TIMEOUT_MS });
+      const happy = await filterHappytimesoftDevices(last);
+      if (happy.length > 0) {
+        return happy;
+      }
+      await sleep(250 * (attempt + 1));
+    }
+    return filterHappytimesoftDevices(last);
+  });
+}
+
+async function probeRaw(options: ProbeOptions = {}): Promise<(Onvif | Record<string, unknown>)[]> {
+  return withDiscoveryVerifyLock(async () => {
+    for (let attempt = 0; attempt < VERIFY_ATTEMPTS; attempt++) {
+      const rows = await Discovery.probe({ ...options, timeout: options?.timeout ?? DISCOVERY_TIMEOUT_MS });
+      if (rows.length > 0) {
+        return rows;
+      }
+      await sleep(250 * (attempt + 1));
+    }
+    return Discovery.probe({ ...options, timeout: options?.timeout ?? DISCOVERY_TIMEOUT_MS });
+  });
+}
+
 beforeAll(async () => {
   await waitForOnvifTestServer();
 });
 
 describe('Discovery (happytime-onvif-server)', () => {
   it('discovers the Happytimesoft NVT via WS-Discovery (default resolve)', async () => {
-    const cams = await Discovery.probe({ timeout: DISCOVERY_TIMEOUT_MS });
-    expect(cams.length).toBeGreaterThan(0);
-    const happy = await filterHappytimesoftDevices(cams);
+    const happy = await probeHappytime();
     expect(happy.length).toBeGreaterThan(0);
     for (const cam of happy) {
       expect(cam).toBeInstanceOf(Onvif);
@@ -97,7 +172,7 @@ describe('Discovery (happytime-onvif-server)', () => {
   });
 
   it('resolve: false returns raw SOAP body objects with probeMatches', async () => {
-    const cams = await Discovery.probe({ timeout: DISCOVERY_TIMEOUT_MS, resolve: false });
+    const cams = await probeRaw({ resolve: false });
     expect(cams.length).toBeGreaterThan(0);
     for (const row of cams) {
       expect(row).toEqual(
@@ -121,7 +196,7 @@ describe('Discovery (happytime-onvif-server)', () => {
     };
     Discovery.on('device', onDevice);
     try {
-      await Discovery.probe({ timeout: DISCOVERY_TIMEOUT_MS });
+      await probeRaw();
     } finally {
       Discovery.off('device', onDevice);
     }
@@ -131,11 +206,9 @@ describe('Discovery (happytime-onvif-server)', () => {
   });
 
   it('accepts a custom WS-Discovery messageId', async () => {
-    const cams = await Discovery.probe({
-      timeout: DISCOVERY_TIMEOUT_MS,
+    const happy = await probeHappytime({
       messageId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     });
-    const happy = await filterHappytimesoftDevices(cams);
     expect(happy.length).toBeGreaterThan(0);
   });
 
@@ -157,7 +230,14 @@ describe('Discovery (happytime-onvif-server)', () => {
         username: 'admin',
         password: 'admin',
       });
-      await cam.connect();
+      for (let attempt = 0; attempt < VERIFY_ATTEMPTS; attempt++) {
+        try {
+          await cam.connect();
+          break;
+        } catch {
+          await sleep(200 * (attempt + 1));
+        }
+      }
       liveScopes = (await cam.device.getScopes())
         .map((scope) => scope.scopeItem)
         .filter((item): item is Scopes => typeof item === 'string' && item.length > 0);
@@ -178,33 +258,25 @@ describe('Discovery (happytime-onvif-server)', () => {
       [['dn:NetworkVideoTransmitter'] as const],
       [['tds:Device', 'dn:NetworkVideoTransmitter'] as const],
     ])('discovers Happytimesoft with types %j', async (types) => {
-      const cams = await Discovery.probe({ timeout: DISCOVERY_TIMEOUT_MS, types: [...types] });
-      const happy = await filterHappytimesoftDevices(cams);
+      const happy = await probeHappytime({ types: [...types] });
       expect(happy.length).toBeGreaterThan(0);
     });
 
     it('discovers Happytimesoft with a live matchable scope', async () => {
-      const cams = await Discovery.probe({
-        timeout: DISCOVERY_TIMEOUT_MS,
-        scopes: [matchableScope],
-      });
-      const happy = await filterHappytimesoftDevices(cams);
+      const happy = await probeHappytime({ scopes: [matchableScope] });
       expect(happy.length).toBeGreaterThan(0);
     });
 
     it('discovers Happytimesoft with types and a live scope together', async () => {
-      const cams = await Discovery.probe({
-        timeout: DISCOVERY_TIMEOUT_MS,
+      const happy = await probeHappytime({
         types: ['dn:NetworkVideoTransmitter'],
         scopes: [matchableScope],
       });
-      const happy = await filterHappytimesoftDevices(cams);
       expect(happy.length).toBeGreaterThan(0);
     });
 
     it('ProbeMatch advertises Happytime Types and current Scopes', async () => {
-      const rows = await Discovery.probe({
-        timeout: DISCOVERY_TIMEOUT_MS,
+      const rows = await probeRaw({
         resolve: false,
         types: ['tds:Device'],
       });
