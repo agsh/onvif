@@ -586,9 +586,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public capabilities: Capabilities;
   /** Filled by {@link connect} Device.getServices without loading the full Device module. */
   public services: DeviceService[] = [];
-  /** Media1 profiles filled during connect (also copied onto Media when that module loads). */
+  /**
+   * Profiles filled during connect (also copied onto Media when that module loads).
+   * Media1 shape; Media2-only devices store profiles mapped from Media2 GetProfiles.
+   */
   public profiles: Profile[] = [];
-  /** Media1 video sources filled during connect. */
+  /** Video sources filled during connect (Media1 GetVideoSources or Media2 configuration fallback). */
   public videoSources: VideoSource[] = [];
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;

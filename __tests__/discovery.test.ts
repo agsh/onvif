@@ -18,12 +18,16 @@ const SERVER_WAIT_MS = 45_000;
 /** Probe / connect can miss under parallel Jest workers sharing one Happytime process. */
 const VERIFY_ATTEMPTS = 5;
 
-/** Scopes Happytime is known to match via WS-Discovery Probe (Profile/* often does not). */
+/**
+ * Scopes to try for Probe filters.
+ * Happytime advertises type/Profile/... in GetScopes / ProbeMatch but often only
+ * matches the ONVIF scope root in Probe — prefer root, then verify by probing.
+ */
 const PREFERRED_MATCHABLE_SCOPES: Scopes[] = [
+  'onvif://www.onvif.org',
+  'onvif://www.onvif.org/type',
   'onvif://www.onvif.org/type/video_encoder',
   'onvif://www.onvif.org/type/awesome',
-  'onvif://www.onvif.org/type',
-  'onvif://www.onvif.org',
 ];
 
 function httpPing(hostname: string, port: number): Promise<void> {
@@ -217,7 +221,8 @@ describe('Discovery (happytime-onvif-server)', () => {
    *
    * Do not hardcode onvif.cfg scopes: `device.test.ts` runs earlier (alphabetically) and
    * `setScopes` replaces configurable scopes (location/name/hardware from cfg are wiped).
-   * Read live scopes via GetScopes and probe with values Happytime still advertises/matches.
+   * Read live scopes via GetScopes; pick a Probe filter by actually probing — Happytime may
+   * advertise type/Profile scopes without matching them in WS-Discovery Probe.
    */
   describe('types and scopes filters', () => {
     let liveScopes: Scopes[] = [];
@@ -242,10 +247,15 @@ describe('Discovery (happytime-onvif-server)', () => {
         .map((scope) => scope.scopeItem)
         .filter((item): item is Scopes => typeof item === 'string' && item.length > 0);
 
-      const preferred = PREFERRED_MATCHABLE_SCOPES.find(
-        (scope) => scope === 'onvif://www.onvif.org' || liveScopes.includes(scope) || liveScopes.some((live) => live.startsWith(`${scope}/`)),
-      );
-      matchableScope = preferred ?? liveScopes[0] ?? 'onvif://www.onvif.org';
+      // Prefer scopes that Probe actually matches (not merely those listed by GetScopes).
+      matchableScope = 'onvif://www.onvif.org';
+      for (const scope of PREFERRED_MATCHABLE_SCOPES) {
+        const happy = await probeHappytime({ scopes: [scope] });
+        if (happy.length > 0) {
+          matchableScope = scope;
+          break;
+        }
+      }
     });
 
     it('reads live scopes from Happytime for Probe filters', () => {
@@ -262,12 +272,12 @@ describe('Discovery (happytime-onvif-server)', () => {
       expect(happy.length).toBeGreaterThan(0);
     });
 
-    it('discovers Happytimesoft with a live matchable scope', async () => {
+    it('discovers Happytimesoft with a Probe-matchable scope', async () => {
       const happy = await probeHappytime({ scopes: [matchableScope] });
       expect(happy.length).toBeGreaterThan(0);
     });
 
-    it('discovers Happytimesoft with types and a live scope together', async () => {
+    it('discovers Happytimesoft with types and a Probe-matchable scope together', async () => {
       const happy = await probeHappytime({
         types: ['dn:NetworkVideoTransmitter'],
         scopes: [matchableScope],
