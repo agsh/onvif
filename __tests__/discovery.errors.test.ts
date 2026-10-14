@@ -205,6 +205,79 @@ describe('Discovery error handling (mocked)', () => {
     expect(onError).toHaveBeenCalledWith(parseErr, undefined);
   });
 
+  describe('RelatesTo / MessageID filtering', () => {
+    const messageId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+    const matchingXml =
+      '<s:Envelope><s:Header><wsa:RelatesTo>urn:uuid:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</wsa:RelatesTo></s:Header></s:Envelope>';
+    const foreignXml =
+      '<s:Envelope><s:Header><wsa:RelatesTo>urn:uuid:00000000-0000-0000-0000-000000000000</wsa:RelatesTo></s:Header></s:Envelope>';
+
+    it('accepts ProbeMatch when RelatesTo matches our Probe MessageID', async () => {
+      mockedParseSOAPString.mockResolvedValue([validProbeBody, matchingXml]);
+      const onDevice = jest.fn();
+      Discovery.on('device', onDevice);
+
+      const probePromise = Discovery.probe({ timeout: 25, messageId });
+      await getMessageListener()(
+        Buffer.from('<soap/>'),
+        { address: '192.168.1.10', family: 'IPv4', port: 3702, size: 0 },
+      );
+      await jest.advanceTimersByTimeAsync(25);
+
+      const cams = await probePromise;
+      expect(cams).toHaveLength(1);
+      expect(onDevice).toHaveBeenCalled();
+      Discovery.off('device', onDevice);
+    });
+
+    it('ignores ProbeMatch meant for another Probe (mismatched RelatesTo)', async () => {
+      mockedParseSOAPString.mockResolvedValue([validProbeBody, foreignXml]);
+      const onDevice = jest.fn();
+      const onError = jest.fn();
+      Discovery.on('device', onDevice);
+      Discovery.on('error', onError);
+
+      const probePromise = Discovery.probe({ timeout: 25, messageId });
+      await getMessageListener()(
+        Buffer.from('<soap/>'),
+        { address: '192.168.1.10', family: 'IPv4', port: 3702, size: 0 },
+      );
+      await jest.advanceTimersByTimeAsync(25);
+
+      await expect(probePromise).resolves.toEqual([]);
+      expect(onDevice).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+      Discovery.off('device', onDevice);
+      Discovery.off('error', onError);
+    });
+
+    it('accepts ProbeMatch with no RelatesTo (broken devices)', async () => {
+      mockedParseSOAPString.mockResolvedValue([validProbeBody, '<s:Envelope><s:Body/></s:Envelope>']);
+      const probePromise = Discovery.probe({ timeout: 25, messageId });
+      await getMessageListener()(
+        Buffer.from('<soap/>'),
+        { address: '192.168.1.10', family: 'IPv4', port: 3702, size: 0 },
+      );
+      await jest.advanceTimersByTimeAsync(25);
+
+      await expect(probePromise).resolves.toHaveLength(1);
+    });
+
+    it('treats RelatesTo without urn:uuid: prefix as matching', async () => {
+      const bareXml =
+        '<s:Envelope><s:Header><RelatesTo>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</RelatesTo></s:Header></s:Envelope>';
+      mockedParseSOAPString.mockResolvedValue([validProbeBody, bareXml]);
+      const probePromise = Discovery.probe({ timeout: 25, messageId });
+      await getMessageListener()(
+        Buffer.from('<soap/>'),
+        { address: '192.168.1.10', family: 'IPv4', port: 3702, size: 0 },
+      );
+      await jest.advanceTimersByTimeAsync(25);
+
+      await expect(probePromise).resolves.toHaveLength(1);
+    });
+  });
+
   it('os.networkInterfaces is used when device option is set (bind path)', async () => {
     const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
       eth0 : [

@@ -90,6 +90,36 @@ function matchXAddr(xaddrs: URL[], address: string) {
   return ipMatch[0] || xaddrs[0];
 }
 
+/** Strip urn:uuid: / uuid: so Probe MessageID and ProbeMatch RelatesTo compare equal. */
+function normalizeWsAddressingId(id: string): string {
+  return id.replace(/^urn:uuid:/i, '').replace(/^uuid:/i, '').trim().toLowerCase();
+}
+
+/**
+ * RelatesTo lives in the SOAP Header; {@link parseSOAPString} returns only Body.
+ * Extract from raw XML (optional `wsa:` / other prefix).
+ */
+function relatesToFromSoapXml(xml: string | undefined): string | undefined {
+  if (!xml) {
+    return undefined;
+  }
+  const match = xml.match(/<(?:\w+:)?RelatesTo\b[^>]*>([^<]*)<\/(?:\w+:)?RelatesTo>/i);
+  const value = match?.[1]?.trim();
+  return value || undefined;
+}
+
+/**
+ * Accept ProbeMatch when RelatesTo is missing (some devices omit it) or matches our Probe MessageID.
+ * Drop replies clearly meant for another Probe (noisy LAN).
+ */
+function isProbeMatchForMessage(xml: string | undefined, messageId: string): boolean {
+  const relatesTo = relatesToFromSoapXml(xml);
+  if (!relatesTo) {
+    return true;
+  }
+  return normalizeWsAddressingId(relatesTo) === normalizeWsAddressingId(messageId);
+}
+
 /**
  * Class for `Discovery` singleton. Prefer the exported {@link Discovery} instance.
  *
@@ -264,7 +294,10 @@ export class DiscoverySingleton extends EventEmitter {
             this.emit('error', err, xml);
             return;
           }
-          // TODO check for matching RelatesTo field and messageId
+          if (!isProbeMatchForMessage(xml, messageID)) {
+            // ProbeMatch for another client's Probe — ignore quietly.
+            return;
+          }
           if (!data.probeMatches) {
             const err = new OnvifResponseError(`Wrong SOAP message from ${rinfo.address}:${rinfo.port}`, {
               xml,
