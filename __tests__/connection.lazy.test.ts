@@ -43,7 +43,7 @@ describe('connection module isolation', () => {
         cam.services = [];
         return { service: [] } as never;
       });
-      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(undefined);
+      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
         cam.profiles = [];
         return [];
@@ -61,6 +61,39 @@ describe('connection module isolation', () => {
       expect(connectSteps.probeMedia2Profiles).toHaveBeenCalled();
       expect(connectSteps.getMediaProfiles).toHaveBeenCalled();
       expect(connectSteps.getVideoSources).toHaveBeenCalled();
+    } finally {
+      tracker.restore();
+    }
+  });
+
+  it('Media2-only connect() does not load device, media, or media2 modules', async () => {
+    const tracker = trackServiceLoads();
+    try {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.media2Support = true;
+        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+        cam.services = [];
+        return { service: [] } as never;
+      });
+      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
+        { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
+      ]);
+      jest.spyOn(connectSteps, 'getVideoSources').mockImplementation(async (cam) => {
+        cam.videoSources = [{ token: 'src1', framerate: 0, resolution: { width: 1, height: 1 } }];
+        return cam.videoSources;
+      });
+      jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined);
+      const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
+
+      await onvif.connect();
+
+      expect(tracker.loaded.size).toBe(0);
+      expect(getMediaProfiles).not.toHaveBeenCalled();
+      expect(connectSteps.probeMedia2Profiles).toHaveBeenCalled();
+      expect(connectSteps.getVideoSources).toHaveBeenCalled();
+      expect(onvif.profiles[0]?.token).toBe('p1');
     } finally {
       tracker.restore();
     }

@@ -8,6 +8,7 @@ import type {
   Capabilities,
   CapabilitiesExtension,
   Profile,
+  VideoEncoderConfiguration,
   VideoSource,
   VideoSourceConfiguration,
 } from './interfaces/onvif';
@@ -18,6 +19,7 @@ import type {
   Service as DeviceService,
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
+import type { MediaProfile } from './interfaces/media.2';
 import type { LineraseOptions } from './utils';
 import { XMLNS } from './service';
 
@@ -200,9 +202,13 @@ function videoSourcesFromConfigurations(configurations: VideoSourceConfiguration
   return [...sources.values()];
 }
 
-/** Probe Media2 GetProfiles (D-Link workaround); does not keep the result. */
-export async function probeMedia2Profiles(onvif: Onvif): Promise<void> {
-  await serviceRequest(
+/**
+ * Media2 GetProfiles (Type=All).
+ * Used as a capability probe (D-Link workaround) and as the profile source for Media2-only devices.
+ * Returns profiles mapped to the Media1 {@link Profile} shape for {@link Onvif.profiles} / {@link getActiveSources}.
+ */
+export async function probeMedia2Profiles(onvif: Onvif): Promise<Profile[]> {
+  const response = await serviceRequest(
     onvif,
     'media2',
     {
@@ -212,6 +218,45 @@ export async function probeMedia2Profiles(onvif: Onvif): Promise<void> {
     },
     { array: ['profiles'] },
   );
+  const media2Profiles =
+    (response.getProfilesResponse?.profiles as MediaProfile[] | undefined) ?? [];
+  return media2Profiles.map(media2ProfileToMedia1);
+}
+
+/** Flatten Media2 `configurations.*` into Media1 profile fields used by connect / active sources. */
+export function media2ProfileToMedia1(profile: MediaProfile): Profile {
+  const configurations = profile.configurations;
+  const result: Profile = {
+    token: profile.token,
+    name: profile.name,
+    fixed: profile.fixed,
+  };
+  if (configurations?.videoSource) {
+    result.videoSourceConfiguration = configurations.videoSource;
+  }
+  if (configurations?.audioSource) {
+    result.audioSourceConfiguration = configurations.audioSource;
+  }
+  if (configurations?.videoEncoder) {
+    // Duck-compatible for ActiveSource (encoding, resolution, rateControl).
+    result.videoEncoderConfiguration = configurations.videoEncoder as unknown as VideoEncoderConfiguration;
+  }
+  if (configurations?.analytics) {
+    result.videoAnalyticsConfiguration = configurations.analytics;
+  }
+  if (configurations?.PTZ) {
+    result.PTZConfiguration = configurations.PTZ;
+  }
+  if (configurations?.metadata) {
+    result.metadataConfiguration = configurations.metadata;
+  }
+  if (configurations?.audioOutput || configurations?.audioDecoder) {
+    result.extension = {
+      audioOutputConfiguration: configurations.audioOutput,
+      audioDecoderConfiguration: configurations.audioDecoder,
+    };
+  }
+  return result;
 }
 
 /**
@@ -279,7 +324,7 @@ export async function getActiveSources(onvif: Onvif): Promise<void> {
 
 /**
  * Connect to the camera and fill device information properties.
- * Media / active-source discovery runs only when a Media service was advertised.
+ * Media / active-source discovery runs when Media1 and/or Media2 was advertised.
  */
 export async function connect(onvif: Onvif): Promise<Onvif> {
   await onvif.getSystemDateAndTime();
@@ -288,14 +333,17 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
   } catch {
     await connectSteps.getCapabilities(onvif);
   }
+
+  let media2Profiles: Profile[] | undefined;
   // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
   if (onvif.media2Support && onvif.uri.media2) {
     try {
-      await connectSteps.probeMedia2Profiles(onvif);
+      media2Profiles = await connectSteps.probeMedia2Profiles(onvif);
     } catch {
       onvif.media2Support = false;
     }
   }
+
   // Profile C / doorcontrol / etc. may advertise no Media service at all.
   // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
   // GetProfiles / GetVideoSources with "Optional action not implemented".
@@ -309,7 +357,19 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
       onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
     }
     await connectSteps.getActiveSources(onvif);
+  } else if (onvif.media2Support && onvif.uri.media2) {
+    // Media2-only (no Media1): reuse probed profiles; discover video sources via Media2.
+    try {
+      onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
+      await connectSteps.getVideoSources(onvif);
+    } catch (error) {
+      onvif.profiles = [];
+      onvif.videoSources = [];
+      onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
+    }
+    await connectSteps.getActiveSources(onvif);
   }
+
   onvif.emit('connect');
   return onvif;
 }
