@@ -195,6 +195,128 @@ describe('SOAP Content-Type action (#497 / v0 parity)', () => {
   });
 });
 
+describe('passwordDigest Created timestamp (timeShift)', () => {
+  function createOnvif() {
+    return new Onvif({
+      hostname: '127.0.0.1',
+      username: 'onvif',
+      password: 'secret',
+      autoConnect: false,
+      useWSSecurity: true,
+    });
+  }
+
+  function createdFromDigest(onvif: Onvif): string {
+    return (onvif as any).passwordDigest().timestamp as string;
+  }
+
+  it('uses wall-clock Date.now() when timeShift is not yet known', () => {
+    const onvif = createOnvif();
+    expect(onvif.timeShift).toBeUndefined();
+
+    const now = 1_700_000_000_000;
+    const dateNow = jest.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      expect(createdFromDigest(onvif)).toBe(new Date(now).toISOString());
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it('does not emit a ~1970 Created when timeShift is unset', () => {
+    const onvif = createOnvif();
+    const createdMs = Date.parse(createdFromDigest(onvif));
+    // process.uptime()*1000 alone is only a few hours past epoch; wall clock is current.
+    expect(createdMs).toBeGreaterThan(1_000_000_000_000);
+  });
+
+  it('uses monotonic uptime + timeShift once timeShift is known', () => {
+    const onvif = createOnvif();
+    const timeShift = 1_600_000_000_000;
+    onvif.timeShift = timeShift;
+
+    const uptimeSec = 42.5;
+    const uptime = jest.spyOn(process, 'uptime').mockReturnValue(uptimeSec);
+    const dateNow = jest.spyOn(Date, 'now').mockReturnValue(9_999_999_999_999);
+    try {
+      expect(createdFromDigest(onvif)).toBe(new Date(uptimeSec * 1000 + timeShift).toISOString());
+    } finally {
+      uptime.mockRestore();
+      dateNow.mockRestore();
+    }
+  });
+
+  it('puts the wall-clock Created into the Security header before time sync', async () => {
+    const onvif = createOnvif();
+    const now = 1_700_000_000_123;
+    const dateNow = jest.spyOn(Date, 'now').mockReturnValue(now);
+    let soap = '';
+    onvif.on('requestBody', (body) => {
+      soap = body;
+    });
+    jest.spyOn(onvif as any, 'rawRequest').mockResolvedValue([{}, '<ok/>']);
+
+    try {
+      await onvif.request({
+        body: {
+          GetServices: {
+            $: { xmlns: DEVICE_NS },
+            IncludeCapability: true,
+          },
+        },
+      });
+      expect(soap).toContain(`<Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${new Date(now).toISOString()}</Created>`);
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+});
+
+describe('setupSystemDateAndTime timeShift updates', () => {
+  function systemDatePayload(date: Date) {
+    return {
+      GetSystemDateAndTimeResponse: {
+        SystemDateAndTime: {
+          DateTimeType: 'Manual',
+          DaylightSavings: false,
+          UTCDateTime: {
+            Time: {
+              Hour: date.getUTCHours(),
+              Minute: date.getUTCMinutes(),
+              Second: date.getUTCSeconds(),
+            },
+            Date: {
+              Year: date.getUTCFullYear(),
+              Month: date.getUTCMonth() + 1,
+              Day: date.getUTCDate(),
+            },
+          },
+        },
+      },
+    };
+  }
+
+  it('always refreshes timeShift even when it was already set', () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.timeShift = 111;
+
+    const first = new Date(Date.UTC(2020, 0, 1, 12, 0, 0));
+    const uptimeSec = 10;
+    const uptime = jest.spyOn(process, 'uptime').mockReturnValue(uptimeSec);
+    try {
+      (onvif as any).setupSystemDateAndTime(systemDatePayload(first));
+      expect(onvif.timeShift).toBe(first.getTime() - uptimeSec * 1000);
+
+      const second = new Date(Date.UTC(2024, 5, 15, 8, 30, 45));
+      uptime.mockReturnValue(20);
+      (onvif as any).setupSystemDateAndTime(systemDatePayload(second));
+      expect(onvif.timeShift).toBe(second.getTime() - 20 * 1000);
+    } finally {
+      uptime.mockRestore();
+    }
+  });
+});
+
 describe('parseSOAPString empty / non-SOAP responses', () => {
   it('rejects an empty response body', async () => {
     await expect(parseSOAPString('')).rejects.toMatchObject({

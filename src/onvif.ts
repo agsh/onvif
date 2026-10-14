@@ -730,7 +730,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   private passwordDigest() {
-    const timestamp = new Date(process.uptime() * 1000 + (this.timeShift || 0)).toISOString();
+    // When timeShift is known (learned from getSystemDateAndTime) keep the monotonic
+    // process.uptime() base so the Created timestamp is immune to wall-clock/NTP jumps.
+    // When it is not yet known, fall back to the local wall clock: process.uptime()*1000
+    // alone is ~1970, which cameras enforcing Created-timestamp replay protection (Axis)
+    // reject as "Sender not authorized", triggering false auth failures. (domotz BT-6835)
+    const timestamp = new Date(this.timeShift ? process.uptime() * 1000 + this.timeShift : Date.now()).toISOString();
     const nonce = Buffer.allocUnsafe(16);
     nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 0, 4);
     nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 4, 4);
@@ -1051,25 +1056,27 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     // authenticated getSystemDateAndTime. So for these devices we need to do an authenticated getSystemDateAndTime.
     // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
     // to the correct time if the camera implements Replay Attack Protection (e.g. Axis)
+    // Try the Unauthenticated Request first. Do not use envelopeHeader() as we don't have timeShift yet.
+    const body = {
+      GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } },
+    };
     const [data, xml] = await this.rawRequest({
-      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
-      body:
-        '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
-        '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
-        '<GetSystemDateAndTime xmlns="http://www.onvif.org/ver10/device/wsdl"/>' +
-        '</s:Body>' +
-        '</s:Envelope>',
+      body: build({
+        's:Envelope': {
+          $: {
+            'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
+          },
+          's:Body': this.envelopeBody(body),
+        },
+      }),
+      action: soapActionFromBody(body),
     });
     try {
       return this.setupSystemDateAndTime(data);
     } catch (error) {
       if (xml && xml.toLowerCase().includes('sender not authorized')) {
         // Try again with a Username and Password
-        const [data] = await this.request({
-          body: {
-            GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } },
-          },
-        });
+        const [data] = await this.request({ body });
         return this.setupSystemDateAndTime(data);
       }
       throw error;
@@ -1108,9 +1115,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         ),
       );
     }
-    if (!this.timeShift) {
-      this.timeShift = dateTime.getTime() - process.uptime() * 1000;
-    }
+    this.timeShift = dateTime.getTime() - process.uptime() * 1000;
     systemDateAndTime.dateTime = dateTime;
     return systemDateAndTime;
   }
@@ -1124,9 +1129,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       throw new OnvifValidationError('DateTimeType should be `Manual` or `NTP`');
     }
     if (options.dateTimeType === 'Manual' && !options.dateTime && !options.UTCDateTime) {
-      throw new OnvifValidationError(
-        '`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`',
-      );
+      throw new OnvifValidationError('`dateTime` or `UTCDateTime` should be defined when the DateTimeType is `Manual`');
     }
     const body = {
       SetSystemDateAndTime: {
