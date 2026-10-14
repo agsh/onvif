@@ -60,6 +60,13 @@ export type Scopes =
   | 'onvif://www.onvif.org/location'
   | `onvif://www.onvif.org/location/${string}`;
 
+/** Default WS-Discovery IPv4 multicast (IANA / SOAP-over-UDP). */
+const WS_DISCOVERY_IPV4 = '239.255.255.250';
+/** Default WS-Discovery IPv6 link-local multicast. */
+const WS_DISCOVERY_IPV6 = 'FF02::C';
+/** Default WS-Discovery UDP port. */
+const WS_DISCOVERY_PORT = 3702;
+
 export interface DiscoveryOptions {
   /** Timeout in milliseconds for discovery responses, Default 5000 */
   timeout?: number;
@@ -69,6 +76,13 @@ export interface DiscoveryOptions {
   messageId?: string;
   /** Interface to bind on for discovery ex. `eth0` */
   device?: string;
+  /**
+   * Probe destination host. Default {@link WS_DISCOVERY_IPV4} (or {@link WS_DISCOVERY_IPV6} for IPv6 sockets).
+   * Pass a unicast IP for a directed Probe.
+   */
+  address?: string;
+  /** Probe destination UDP port. Default {@link WS_DISCOVERY_PORT}. */
+  port?: number;
   /** Client will listen to discovery data device sent */
   listeningPort?: number;
   /** Socket type */
@@ -92,7 +106,11 @@ function matchXAddr(xaddrs: URL[], address: string) {
 
 /** Strip urn:uuid: / uuid: so Probe MessageID and ProbeMatch RelatesTo compare equal. */
 function normalizeWsAddressingId(id: string): string {
-  return id.replace(/^urn:uuid:/i, '').replace(/^uuid:/i, '').trim().toLowerCase();
+  return id
+    .replace(/^urn:uuid:/i, '')
+    .replace(/^uuid:/i, '')
+    .trim()
+    .toLowerCase();
 }
 
 /**
@@ -396,14 +414,15 @@ export class DiscoverySingleton extends EventEmitter {
           if (options.bufferSize && options.bufferSize > 0) {
             socket.setRecvBufferSize(options.bufferSize);
           }
-          this.emit('status', `Sending ${sendItem.family} from ${sendItem.address}`);
-          if (sendItem.family == 'IPv4') socket.send(request, 0, request.length, 3702, '239.255.255.250');
-          if (sendItem.family == 'IPv6') socket.send(request, 0, request.length, 3702, '::ffff:239.255.255.250'); // untested
+          const destPort = options.port ?? WS_DISCOVERY_PORT;
+          const destAddress = options.address ?? (sendItem.family === 'IPv6' ? WS_DISCOVERY_IPV6 : WS_DISCOVERY_IPV4);
+          this.emit('status', `Sending ${sendItem.family} from ${sendItem.address} to ${destAddress}:${destPort}`);
+          socket.send(request, 0, request.length, destPort, destAddress);
         });
         socket.on('message', listener);
 
         // Bind to the local IP address and either an OS selected UDP Port, or the options.listeningPort UDP Port)
-        // This fires 'connected' which sends the discovery message
+        // This fires 'listening' which sends the discovery message
         socket.bind(options.listeningPort, sendItem.address);
       }
 
