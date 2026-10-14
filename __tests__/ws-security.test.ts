@@ -278,6 +278,21 @@ describe('passwordDigest Created timestamp (timeShift)', () => {
     }
   });
 
+  it('treats timeShift 0 as known (not unset)', () => {
+    const onvif = createOnvif();
+    onvif.timeShift = 0;
+
+    const uptimeSec = 12;
+    const uptime = jest.spyOn(process, 'uptime').mockReturnValue(uptimeSec);
+    const dateNow = jest.spyOn(Date, 'now').mockReturnValue(9_999_999_999_999);
+    try {
+      expect(createdFromDigest(onvif)).toBe(new Date(uptimeSec * 1000).toISOString());
+    } finally {
+      uptime.mockRestore();
+      dateNow.mockRestore();
+    }
+  });
+
   it('puts the wall-clock Created into the Security header before time sync', async () => {
     const onvif = createOnvif();
     const now = 1_700_000_000_123;

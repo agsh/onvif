@@ -735,12 +735,10 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     // When it is not yet known, fall back to the local wall clock: process.uptime()*1000
     // alone is ~1970, which cameras enforcing Created-timestamp replay protection (Axis)
     // reject as "Sender not authorized", triggering false auth failures. (domotz BT-6835)
-    const timestamp = new Date(this.timeShift ? process.uptime() * 1000 + this.timeShift : Date.now()).toISOString();
-    const nonce = Buffer.allocUnsafe(16);
-    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 0, 4);
-    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 4, 4);
-    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 8, 4);
-    nonce.writeUIntLE(Math.ceil(Math.random() * 0x100000000), 12, 4);
+    const timestamp = new Date(
+      this.timeShift !== undefined ? process.uptime() * 1000 + this.timeShift : Date.now(),
+    ).toISOString();
+    const nonce = crypto.randomBytes(16);
     const cryptoDigest = crypto.createHash('sha1');
     cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
     const passDigest = cryptoDigest.digest('base64');
