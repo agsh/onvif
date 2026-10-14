@@ -52,7 +52,7 @@ describe('getCapabilities', () => {
     const result = await cam.device.getCapabilities();
     ['PTZ', 'media', 'imaging', 'events', 'device', 'analytics'].forEach((name) => {
       expect((result as any)[name].XAddr).toMatch(URL_REGEX);
-      expect(cam.uri[name]).toBeInstanceOf(URL);
+      expect(cam.uri[name === 'PTZ' ? 'ptz' : name]).toBeInstanceOf(URL);
     });
   });
 

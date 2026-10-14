@@ -9,7 +9,7 @@ beforeAll(async () => {
 
 describe('Common', () => {
   it('should connect to the cam, fill startup properties', () => {
-    expect(cam.uri.PTZ?.href).toBeDefined();
+    expect(cam.uri.ptz?.href).toBeDefined();
     expect(cam.uri.media).toBeDefined();
     expect(cam.videoSources).toBeDefined();
     expect(cam.profiles).toBeDefined();

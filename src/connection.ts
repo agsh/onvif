@@ -71,9 +71,8 @@ export async function getServices(
         if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
           onvif.media2Support = true;
           namespaceSplitted[1] = 'media2';
-        } else if (namespaceSplitted[1] === 'ptz') {
-          namespaceSplitted[1] = 'PTZ';
         }
+        // Namespace path segment matches OnvifServices keys (ptz, media, deviceIO, …).
         onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = onvif.parseUrl(service.XAddr);
       }
     }
@@ -98,7 +97,8 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
     if (name in onvif.capabilities) {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in onvif.capabilities[capabilityName]!) {
-        onvif.uri[name as keyof OnvifServices] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
+        const uriKey = (name === 'PTZ' ? 'ptz' : name) as keyof OnvifServices;
+        onvif.uri[uriKey] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
       }
     }
   });
@@ -218,9 +218,20 @@ export async function probeMedia2Profiles(onvif: Onvif): Promise<Profile[]> {
     },
     { array: ['profiles'] },
   );
-  const media2Profiles =
-    (response.getProfilesResponse?.profiles as MediaProfile[] | undefined) ?? [];
-  return media2Profiles.map(media2ProfileToMedia1);
+  const media2Profiles = (response.getProfilesResponse?.profiles as MediaProfile[]) ?? [];
+  // A successful SOAP reply must keep media2Support; skip malformed entries instead of failing the probe.
+  const mapped: Profile[] = [];
+  for (const profile of media2Profiles) {
+    if (!profile || typeof profile !== 'object' || !profile.token) {
+      continue;
+    }
+    try {
+      mapped.push(media2ProfileToMedia1(profile));
+    } catch {
+      // ignore individual bad profiles
+    }
+  }
+  return mapped;
 }
 
 /** Flatten Media2 `configurations.*` into Media1 profile fields used by connect / active sources. */
@@ -347,14 +358,24 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
   // Profile C / doorcontrol / etc. may advertise no Media service at all.
   // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
   // GetProfiles / GetVideoSources with "Optional action not implemented".
-  // Both calls are required for active sources; if either fails, drop media state.
+  // If Media1 fails but Media2 probe already succeeded, fall back to Media2 (Profile T).
   if (onvif.uri.media) {
     try {
       await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
     } catch (error) {
       onvif.profiles = [];
       onvif.videoSources = [];
-      onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
+      const media1Error = error instanceof Error ? error : new Error(String(error));
+      if (onvif.media2Support && onvif.uri.media2) {
+        try {
+          onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
+          await connectSteps.getVideoSources(onvif);
+        } catch {
+          onvif.profiles = [];
+          onvif.videoSources = [];
+        }
+      }
+      onvif.emit('warn', media1Error);
     }
     await connectSteps.getActiveSources(onvif);
   } else if (onvif.media2Support && onvif.uri.media2) {

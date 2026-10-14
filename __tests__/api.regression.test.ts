@@ -182,7 +182,7 @@ describe('public API regression (breaking changes)', () => {
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
-        cam.uri.PTZ = new URL('http://127.0.0.1/onvif/ptz');
+        cam.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
         cam.services = [{ namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never];
         return { service: cam.services } as never;
       });
@@ -278,7 +278,7 @@ describe('public API regression (breaking changes)', () => {
 
       expect('getNodes' in onvif.ptz).toBe(true);
       expect(onvif.request).toHaveBeenCalledWith(
-        expect.objectContaining({ service: 'PTZ' }),
+        expect.objectContaining({ service: 'ptz' }),
       );
     });
   });

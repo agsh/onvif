@@ -195,7 +195,7 @@ export default class PTZ extends Service {
   }
 
   constructor(onvif: Onvif) {
-    super(onvif, 'PTZ');
+    super(onvif, 'ptz');
   }
 
   /**
