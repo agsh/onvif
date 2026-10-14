@@ -19,6 +19,7 @@ export { default as Events } from './events';
 export * from './discovery';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
+export type { ConnectOptions } from './connection';
 
 // Service classes are type-only here so CommonJS `require('onvif')` does not load them.
 // Runtime instances come from lazy getters on Onvif (e.g. onvif.recording).

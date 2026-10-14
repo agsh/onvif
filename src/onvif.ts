@@ -56,6 +56,7 @@ import type Search from './search';
 import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
 import { lazyService, XMLNS } from './service';
+import type { ConnectOptions } from './connection';
 
 /**
  * Cam constructor options
@@ -1190,10 +1191,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
-   * Connect to the camera and fill device information properties
+   * Connect to the camera and fill device information properties.
+   * Pass `{ media: false }` to skip profile / video-source discovery after GetServices.
    */
-  async connect() {
+  async connect(options?: ConnectOptions) {
     const { connect } = await import('./connection');
-    return connect(this);
+    return connect(this, options);
   }
 }

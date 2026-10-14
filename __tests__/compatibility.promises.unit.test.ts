@@ -222,6 +222,39 @@ describe('compatibility promises unit', () => {
       expect(onvif.uri.doorcontrol).toBeDefined();
     });
 
+    it('connect({ media: false }) skips probe and media discovery but still fills uri', async () => {
+      const { connectSteps } = await import('../src/connection');
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      const onConnect = jest.fn();
+      onvif.on('connect', onConnect);
+
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.media2Support = true;
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+        cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/doorcontrol');
+        return { service: [] } as never;
+      });
+      const probeMedia2Profiles = jest.spyOn(connectSteps, 'probeMedia2Profiles');
+      const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
+      const getVideoSources = jest.spyOn(connectSteps, 'getVideoSources');
+      const getActiveSources = jest.spyOn(connectSteps, 'getActiveSources');
+
+      await onvif.connect({ media: false });
+
+      expect(probeMedia2Profiles).not.toHaveBeenCalled();
+      expect(getMediaProfiles).not.toHaveBeenCalled();
+      expect(getVideoSources).not.toHaveBeenCalled();
+      expect(getActiveSources).not.toHaveBeenCalled();
+      expect(onvif.uri.media).toBeDefined();
+      expect(onvif.uri.doorcontrol).toBeDefined();
+      expect(onvif.media2Support).toBe(true);
+      expect(onvif.profiles).toEqual([]);
+      expect(onvif.activeSource).toBeUndefined();
+      expect(onConnect).toHaveBeenCalled();
+    });
+
     it('completes connect when Media is advertised but GetProfiles/GetVideoSources fail (Axis A1601)', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });

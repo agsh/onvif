@@ -20,7 +20,7 @@ import type {
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
 import type { MediaProfile } from './interfaces/media.2';
-import type { LineraseOptions } from './utils';
+import { OnvifError, OnvifValidationError, type LineraseOptions } from './utils';
 import { XMLNS } from './service';
 
 /** Same array/rawXML hints as Media.getProfiles for linerase. */
@@ -114,7 +114,7 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
     });
     if (onvif.uri.replay && !onvif.uri.recording) {
       const tempRecorderXaddr = onvif.uri.replay.href.replace('replay', 'recording');
-      onvif.emit('warn', new Error(`Adding ${tempRecorderXaddr} for bad Profile G device`));
+      onvif.emit('warn', new OnvifError(`Adding ${tempRecorderXaddr} for bad Profile G device`));
       onvif.uri.recording = new URL(tempRecorderXaddr);
     }
   }
@@ -156,14 +156,14 @@ export async function getVideoSources(onvif: Onvif): Promise<VideoSource[]> {
       return onvif.videoSources;
     } catch (error) {
       if (mediaError !== undefined) {
-        throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+        throw mediaError instanceof Error ? mediaError : new OnvifError(String(mediaError));
       }
       throw error;
     }
   }
 
   if (mediaError !== undefined) {
-    throw mediaError instanceof Error ? mediaError : new Error(String(mediaError));
+    throw mediaError instanceof Error ? mediaError : new OnvifError(String(mediaError));
   }
 
   onvif.videoSources ??= [];
@@ -294,7 +294,10 @@ export async function getActiveSources(onvif: Onvif): Promise<void> {
     }
     if (appropriateProfiles.length === 0) {
       if (idx === 0) {
-        onvif.emit('warn', new Error('Unrecognized configuration: no media profiles available for video sources'));
+        onvif.emit(
+          'warn',
+          new OnvifValidationError('Unrecognized configuration: no media profiles available for video sources'),
+        );
       }
       return;
     }
@@ -333,11 +336,23 @@ export async function getActiveSources(onvif: Onvif): Promise<void> {
   });
 }
 
+/** Options for {@link connect}. */
+export interface ConnectOptions {
+  /**
+   * When `false`, skip Media1/Media2 profile and video-source discovery (and the Media2 probe).
+   * Still syncs time and fills `services` / `uri` from GetServices (or GetCapabilities).
+   * Useful for access-control / door / mass-scan where streams are not needed.
+   * @default true
+   */
+  media?: boolean;
+}
+
 /**
  * Connect to the camera and fill device information properties.
- * Media / active-source discovery runs when Media1 and/or Media2 was advertised.
+ * Media / active-source discovery runs when Media1 and/or Media2 was advertised
+ * (unless {@link ConnectOptions.media} is `false`).
  */
-export async function connect(onvif: Onvif): Promise<Onvif> {
+export async function connect(onvif: Onvif, { media = true }: ConnectOptions = {}): Promise<Onvif> {
   await onvif.getSystemDateAndTime();
   try {
     await connectSteps.getServices(onvif);
@@ -345,50 +360,51 @@ export async function connect(onvif: Onvif): Promise<Onvif> {
     await connectSteps.getCapabilities(onvif);
   }
 
-  let media2Profiles: Profile[] | undefined;
-  // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
-  if (onvif.media2Support && onvif.uri.media2) {
-    try {
-      media2Profiles = await connectSteps.probeMedia2Profiles(onvif);
-    } catch {
-      onvif.media2Support = false;
-    }
-  }
-
-  // Profile C / doorcontrol / etc. may advertise no Media service at all.
-  // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
-  // GetProfiles / GetVideoSources with "Optional action not implemented".
-  // If Media1 fails but Media2 probe already succeeded, fall back to Media2 (Profile T).
-  if (onvif.uri.media) {
-    try {
-      await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
-    } catch (error) {
-      onvif.profiles = [];
-      onvif.videoSources = [];
-      const media1Error = error instanceof Error ? error : new Error(String(error));
-      if (onvif.media2Support && onvif.uri.media2) {
-        try {
-          onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
-          await connectSteps.getVideoSources(onvif);
-        } catch {
-          onvif.profiles = [];
-          onvif.videoSources = [];
-        }
+  if (media) {
+    let media2Profiles: Profile[] | undefined;
+    // D-Link DCS-8635LH (and similar): GetServices advertises Media2 but Media2 GetProfiles fails.
+    if (onvif.media2Support && onvif.uri.media2) {
+      try {
+        media2Profiles = await connectSteps.probeMedia2Profiles(onvif);
+      } catch {
+        onvif.media2Support = false;
       }
-      onvif.emit('warn', media1Error);
     }
-    await connectSteps.getActiveSources(onvif);
-  } else if (onvif.media2Support && onvif.uri.media2) {
-    // Media2-only (no Media1): reuse probed profiles; discover video sources via Media2.
-    try {
-      onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
-      await connectSteps.getVideoSources(onvif);
-    } catch (error) {
-      onvif.profiles = [];
-      onvif.videoSources = [];
-      onvif.emit('warn', error instanceof Error ? error : new Error(String(error)));
+
+    // Profile C / doorcontrol / etc. may advertise no Media service at all.
+    // Some devices (e.g. Axis A1601) still list Media in GetServices but reject
+    // GetProfiles / GetVideoSources with "Optional action not implemented".
+    // If Media1 fails but Media2 probe already succeeded, fall back to Media2 (Profile T).
+    if (onvif.uri.media) {
+      try {
+        await Promise.all([connectSteps.getMediaProfiles(onvif), connectSteps.getVideoSources(onvif)]);
+      } catch (error) {
+        onvif.profiles = [];
+        onvif.videoSources = [];
+        if (onvif.media2Support && onvif.uri.media2) {
+          try {
+            onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
+            await connectSteps.getVideoSources(onvif);
+          } catch {
+            onvif.profiles = [];
+            onvif.videoSources = [];
+          }
+        }
+        onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+      }
+      await connectSteps.getActiveSources(onvif);
+    } else if (onvif.media2Support && onvif.uri.media2) {
+      // Media2-only (no Media1): reuse probed profiles; discover video sources via Media2.
+      try {
+        onvif.profiles = media2Profiles ?? (await connectSteps.probeMedia2Profiles(onvif));
+        await connectSteps.getVideoSources(onvif);
+      } catch (error) {
+        onvif.profiles = [];
+        onvif.videoSources = [];
+        onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+      }
+      await connectSteps.getActiveSources(onvif);
     }
-    await connectSteps.getActiveSources(onvif);
   }
 
   onvif.emit('connect');
