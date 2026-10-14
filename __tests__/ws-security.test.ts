@@ -99,6 +99,38 @@ describe('WS-Security UsernameToken XML', () => {
     expect(soap).not.toContain('<Security');
     expect(soap).not.toContain('<Nonce');
   });
+
+  it('keeps soapHeaders when useWSSecurity is false', async () => {
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      username: 'onvif',
+      password: 'secret',
+      autoConnect: false,
+      useWSSecurity: false,
+    });
+
+    let soap = '';
+    onvif.on('requestBody', (body) => {
+      soap = body;
+    });
+    jest.spyOn(onvif as any, 'rawRequest').mockResolvedValue([{}, '<ok/>']);
+
+    await onvif.request({
+      body: {
+        Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
+      },
+      soapHeaders: {
+        'a:Action': {
+          $: { 's:mustUnderstand': '1' },
+          _: 'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
+        },
+      },
+    });
+
+    expect(soap).not.toContain('<Security');
+    expect(soap).toContain('UnsubscribeRequest');
+    expect(soap).toContain('a:Action');
+  });
 });
 
 describe('SOAP Content-Type action (#497 / v0 parity)', () => {

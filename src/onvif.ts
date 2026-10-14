@@ -134,7 +134,7 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   /** Tags that should be forced to be arrays */
   array?: string[];
   /** Values of these tags will be in xml2js format */
-  rawXML?: string[]; // TODO
+  rawXML?: string[];
 }
 
 export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'> {
@@ -724,8 +724,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             },
           },
         },
-        ...options?.soapHeaders,
       }),
+      ...options?.soapHeaders,
     };
   }
 
