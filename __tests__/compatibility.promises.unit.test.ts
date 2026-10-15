@@ -65,6 +65,39 @@ describe('compatibility promises unit', () => {
     });
   });
 
+  describe('Cam unwrap remaps via promises proxy', () => {
+    it('setNetworkInterfaces resolves to { rebootNeeded } (not bare boolean)', async () => {
+      const cam = new Cam({ hostname: '127.0.0.1', autoconnect: false });
+      const onvif = (cam._cam as unknown as { onvif: Onvif }).onvif;
+      const Device = (await import('../src/device')).default;
+      Object.defineProperty(onvif, 'device', { value: new Device(onvif), configurable: true });
+      jest.spyOn(onvif.device, 'setNetworkInterfaces').mockResolvedValue(false);
+
+      await expect(
+        cam.setNetworkInterfaces({ interfaceToken: 'eth0', networkInterface: { enabled: true } } as any),
+      ).resolves.toEqual({ rebootNeeded: false });
+    });
+
+    it('createOSD resolves to { OSDToken } (not bare token string)', async () => {
+      const cam = new Cam({ hostname: '127.0.0.1', autoconnect: false });
+      const onvif = (cam._cam as unknown as { onvif: Onvif }).onvif;
+      const Media = (await import('../src/media')).default;
+      Object.defineProperty(onvif, 'media', { value: new Media(onvif), configurable: true });
+      jest.spyOn(onvif.media, 'createOSD').mockResolvedValue('osd-p' as any);
+
+      await expect(cam.createOSD({ token: '' } as any)).resolves.toEqual({ OSDToken: 'osd-p' });
+    });
+
+    it('close forwards to Onvif.close and is promisified', async () => {
+      expect(promisifiedMethods).toContain('close');
+      const cam = new Cam({ hostname: '127.0.0.1', autoconnect: false });
+      const onvif = (cam._cam as unknown as { onvif: Onvif }).onvif;
+      const close = jest.spyOn(onvif, 'close').mockResolvedValue(undefined);
+      await expect(cam.close()).resolves.toBeUndefined();
+      expect(close).toHaveBeenCalled();
+    });
+  });
+
   describe('Cam event forwarding', () => {
     it('forwards rawRequest/rawResponse/connect/warning/eventsError from Onvif', () => {
       const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });

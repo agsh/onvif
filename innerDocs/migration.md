@@ -50,9 +50,10 @@ Runnable sample: [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/
 The promisified `Cam` wraps the callback implementation:
 
 - no auto-connect — call `await cam.connect()`
-- methods return Promises
-- getters and `EventEmitter` APIs are forwarded
+- methods return Promises (same callback `data` shapes — including remaps like `{ rebootNeeded }` / `{ OSDToken }`)
+- getters and `EventEmitter` APIs are forwarded (not wrapped as Promises)
 - `_cam` exposes the underlying callback instance
+- `await cam.close()` releases keep-alive / Events agents (forwards `Onvif.close`; reopen with `connect()`)
 
 Both entry points also export `Discovery` (callback or Promise `probe`), matching v0.x usage.
 Discovered cams include `xaddrs` (all ProbeMatch XAddrs as `URL[]`).
@@ -69,3 +70,13 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
 - `getPresets` / `cam.presets` follow token → preset (duplicate names kept; 0.8.1+ intent).  
   Note: published `onvif@0.8.2` still returns name → preset from the `getPresets` *callback* while storing
   token → preset on `cam.presets` — compatibility aligns both with the token-keyed shape.
+- **Return shapes after 1.x unwrap:** the modern `Onvif` API often returns a single useful value
+  (boolean / token / array). Callback `Cam` remaps the ones v0 apps commonly destructure; the
+  **promises** entry inherits the same shapes via the proxy:
+  - `setNetworkInterfaces` → `{ rebootNeeded }` (not a bare boolean)
+  - `createOSD` → `{ OSDToken }` (not a bare token string)
+  - `setPreset` → preset token string (v0 passed through raw SOAP; Cam matches practical 0.8.x usage)
+  - `getOSDs` → `OSD[]` (v0 returned `{ getOSDsResponse: { OSDs } }`)
+  - `getOSDOptions` → options object (v0 returned `{ getOSDOptionsResponse: { OSDOptions } }`)
+- `close()` is available on compatibility `Cam` (callback and promises) even though classic v0.x had no
+  equivalent — needed so keep-alive sockets do not keep the process alive after 1.x agent ownership.

@@ -352,6 +352,15 @@ export class Cam extends EventEmitter {
       .catch(callback);
   }
 
+  /**
+   * Release keep-alive / Events agents (forwards {@link Onvif.close}).
+   * Not present in classic v0.x Cam — added so compatibility clients can exit cleanly.
+   * Call {@link connect} again to reopen.
+   */
+  close(callback: Callback) {
+    this.invoke(this.onvif.close(), callback);
+  }
+
   _request(options: OnvifRequestOptions, callback: Callback) {
     if (typeof callback !== 'function') {
       throw new Error('`callback` must be a function');
@@ -477,7 +486,8 @@ export class Cam extends EventEmitter {
   }
 
   setNetworkInterfaces(options: Parameters<Onvif['device']['setNetworkInterfaces']>[0], callback: Callback) {
-    this.invoke(this.onvif.device.setNetworkInterfaces(options), callback);
+    // 1.x device returns boolean; v0 Cam callback data was `{ rebootNeeded }` (linerase of the SOAP response).
+    this.invoke(this.onvif.device.setNetworkInterfaces(options), callback, (rebootNeeded) => ({ rebootNeeded }));
   }
 
   getNetworkDefaultGateway(callback: Callback) {
@@ -836,7 +846,8 @@ export class Cam extends EventEmitter {
   }
 
   createOSD(options: Parameters<Onvif['media']['createOSD']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.createOSD(options), callback);
+    // 1.x media returns the token string; v0 Cam callers read `data.OSDToken` (CreateOSDResponse).
+    this.invoke(this.onvif.media.createOSD(options), callback, (OSDToken) => ({ OSDToken }));
   }
 
   setOSD(options: Parameters<Onvif['media']['setOSD']>[0], callback: Callback) {

@@ -167,6 +167,30 @@ describe('compatibility Cam methods (mocked)', () => {
     expect(spy).toHaveBeenCalledWith({ auxiliaryCommand: 'tt:Wiper|On' });
   });
 
+  it('setNetworkInterfaces remaps boolean → { rebootNeeded } for v0 Cam', async () => {
+    const { cam, onvif } = mockCam();
+    const Device = (await import('../src/device')).default;
+    Object.defineProperty(onvif, 'device', { value: new Device(onvif), configurable: true });
+    jest.spyOn(onvif.device, 'setNetworkInterfaces').mockResolvedValue(true);
+
+    await expect(
+      promisify<{ rebootNeeded: boolean }>((callback) =>
+        cam.setNetworkInterfaces({ interfaceToken: 'eth0', networkInterface: { enabled: true } } as any, callback),
+      ),
+    ).resolves.toEqual({ rebootNeeded: true });
+  });
+
+  it('createOSD remaps token → { OSDToken } for v0 Cam', async () => {
+    const { cam, onvif } = mockCam();
+    const Media = (await import('../src/media')).default;
+    Object.defineProperty(onvif, 'media', { value: new Media(onvif), configurable: true });
+    jest.spyOn(onvif.media, 'createOSD').mockResolvedValue('osd-9' as any);
+
+    await expect(
+      promisify<{ OSDToken: string }>((callback) => cam.createOSD({ token: '' } as any, callback)),
+    ).resolves.toEqual({ OSDToken: 'osd-9' });
+  });
+
   it('setCurrentImagingPreset', async () => {
     const { cam, onvif } = mockCam();
     const Imaging = (await import('../src/imaging')).default;

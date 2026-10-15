@@ -13,10 +13,10 @@ jest.setTimeout(60_000);
 
 const TEST_HOST = '127.0.0.1';
 const TEST_PORT = 8000;
-const DISCOVERY_TIMEOUT_MS = 1_000;
+const DISCOVERY_TIMEOUT_MS = 1_500;
 const SERVER_WAIT_MS = 45_000;
-/** Probe / connect can miss under parallel Jest workers sharing one Happytime process. */
-const VERIFY_ATTEMPTS = 5;
+/** Probe / connect can miss when Happytime is busy; keep retries generous. */
+const VERIFY_ATTEMPTS = 8;
 
 /**
  * Scopes to try for Probe filters.
@@ -205,7 +205,15 @@ describe('Discovery (happytime-onvif-server)', () => {
       Discovery.off('device', onDevice);
     }
     expect(devices.length).toBeGreaterThan(0);
-    const happy = await filterHappytimesoftDevices(devices);
+    // Verify can flake under HTTP load — retry manufacturer check on the emitted cams.
+    let happy: Onvif[] = [];
+    for (let attempt = 0; attempt < VERIFY_ATTEMPTS; attempt++) {
+      happy = await filterHappytimesoftDevices(devices);
+      if (happy.length > 0) {
+        break;
+      }
+      await sleep(250 * (attempt + 1));
+    }
     expect(happy.length).toBeGreaterThan(0);
   });
 
