@@ -124,6 +124,7 @@ import { Onvif } from 'onvif';
 const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
 await onvif.connect();
 await onvif.media.getProfiles();
+await onvif.close(); // release keep-alive sockets when done with the device
 ```
 
 ```js
@@ -163,10 +164,11 @@ const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin
 await onvif.connect();
 const info = await onvif.device.getDeviceInformation();
 console.log(info);
+await onvif.close(); // when finished with the device
 ```
 
 Same import works from CommonJS (`require('onvif')`) and ESM. Call `connect()` before service methods
-(or pass `autoConnect: true`).
+(or pass `autoConnect: true`). Call `close()` when you no longer need the connection.
 
 ### Example project
 
@@ -275,6 +277,12 @@ internal state so later SOAP requests are authenticated and routed to the correc
    succeeds with empty `profiles` / `videoSources` and emits `warn`.
 
 On success, `connect()` emits `connect` and returns the instance. See [Quick start](#quick-start) for a minimal example.
+
+When you are finished with the device, call `await onvif.close()`. That stops the pull-point event
+subscription (if running) and destroys the HTTP keep-alive agents so sockets are released. Without
+`close()`, idle keep-alive connections can keep a Node process from exiting (short scripts, tests).
+It is not an ONVIF logout call — only local cleanup. Safe to call more than once; a custom
+`agent: false` (or a shared agent you own) is not destroyed.
 
 ---
 

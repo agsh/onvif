@@ -126,6 +126,12 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   url?: URL;
   /** Timeout for pull-point event requests */
   timeout?: number;
+  /**
+   * Abort the HTTP request (useful for long-poll {@link Events} `PullMessages`).
+   * When aborted, the socket is destroyed and the promise rejects with `AbortError`.
+   * Passed through to Node's `http.request`.
+   */
+  signal?: AbortSignal;
   /** Additional SOAP-headers */
   soapHeaders?: Record<string, any>;
   /** Tags that should be forced to be arrays */
@@ -235,6 +241,9 @@ interface OnvifEvents {
  *   await new Promise((r) => setTimeout(r, 500));
  *   await onvif.ptz.stop();
  * }
+ *
+ * // When finished with the device, close the client (see {@link Onvif.close}).
+ * await onvif.close();
  * ```
  * @category Core
  */
@@ -602,6 +611,10 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       if (this.useSecure) {
         Object.assign(requestOptions, this.secureOptions);
       }
+      // After secureOptions so a custom ConnectionOptions bag cannot drop abort.
+      if (options.signal) {
+        requestOptions.signal = options.signal;
+      }
       const request = httpLibrary.request(requestOptions, async (response) => {
         if (response.statusCode === 401) {
           // Avoid racing with request 'error' from response.destroy() below
@@ -761,6 +774,51 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.nc = 1;
     }
     return String(this.nc).padStart(8, '0');
+  }
+
+  /**
+   * Close the client connection to the ONVIF device.
+   *
+   * Call this when you are done talking to the camera and want to release the
+   * session: stop the pull-point event subscription (if any) and tear down the
+   * HTTP agents. Until then, the default keep-alive agent may keep TCP sockets
+   * open so later SOAP calls reuse them — which also keeps a Node process from
+   * exiting (common in short scripts and Jest).
+   *
+   * What this method does:
+   * 1. Unsubscribes {@link Events.globalSubscription} (stops PullMessages / renew).
+   * 2. Destroys the Events HTTP agent and the main SOAP agent created by this instance.
+   *
+   * What it does **not** do: it is not an ONVIF “logout” RPC, and it does not
+   * destroy a custom or shared agent passed via {@link OnvifOptions.agent}
+   * (`agent: false` / non-Agent values are left alone). Safe to call more than once.
+   *
+   * @example
+   * ```ts
+   * await onvif.connect();
+   * // … use services …
+   * await onvif.close();
+   * ```
+   */
+  public async close(): Promise<void> {
+    try {
+      await this.events.globalSubscription.unsubscribe();
+    } catch {
+      // Device may already be gone; local pull loop is still stopped by unsubscribe.
+    }
+    Onvif.destroyHttpAgent(this.events.agent);
+    Onvif.destroyHttpAgent(this.agent);
+  }
+
+  private static destroyHttpAgent(agent: HttpsAgent | HttpAgent | boolean | undefined) {
+    // Skip `false` (no agent) and non-Agent values — never destroy http.globalAgent.
+    if (agent && typeof agent !== 'boolean' && typeof agent.destroy === 'function') {
+      try {
+        agent.destroy();
+      } catch {
+        // ignore
+      }
+    }
   }
 
   /**

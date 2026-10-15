@@ -3,6 +3,7 @@
  * @jest-environment node
  */
 
+import http from 'http';
 import AccessRules from '../src/accessrules';
 import Credential from '../src/credential';
 import Device from '../src/device';
@@ -131,6 +132,51 @@ describe('Service options and builders', () => {
     (secure as any).nc = 99999999;
     expect((secure as any).updateNC()).toBe('00000001');
     expect((secure as any).updateNC()).toBe('00000002');
+  });
+
+  it('aborts an in-flight SOAP request via AbortSignal', async () => {
+    const server = http.createServer((_req, res) => {
+      // Never respond — wait for client abort
+      res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.listen(0, '127.0.0.1', () => resolve());
+      server.on('error', reject);
+    });
+    const { port } = server.address() as import('net').AddressInfo;
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      port,
+      autoConnect: false,
+      useWSSecurity: false,
+      agent: false,
+      timeout: 30_000,
+    });
+    const ac = new AbortController();
+    const pending = onvif.request({
+      body: { GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } } },
+      signal: ac.signal,
+    });
+    setTimeout(() => ac.abort(), 20);
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  });
+
+  it('close unsubscribes events and destroys keep-alive agents', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const unsubscribe = jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    const destroyMain = jest.spyOn(onvif.agent as import('http').Agent, 'destroy');
+    const destroyEvents = jest.spyOn(onvif.events.agent, 'destroy');
+
+    await onvif.close();
+    expect(unsubscribe).toHaveBeenCalled();
+    expect(destroyMain).toHaveBeenCalled();
+    expect(destroyEvents).toHaveBeenCalled();
+
+    // agent: false must not throw (nothing to destroy on the main client)
+    const noAgent = new Onvif({ hostname: '127.0.0.1', autoConnect: false, agent: false });
+    jest.spyOn(noAgent.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    await expect(noAgent.close()).resolves.toBeUndefined();
   });
 
   it('serializes Device geo location entities with optional fields', () => {

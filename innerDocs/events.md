@@ -50,6 +50,47 @@ For a full interactive example, see
 
 This class is used internally by the `Onvif` class for the common `event` listener.
 
+## Cancelling a long-poll with `AbortSignal`
+
+`PullMessages` can block for up to a minute waiting for notifications. Pass an
+[`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) to abort the HTTP
+request early (shutdown, timeout you control, or switching subscriptions):
+
+```ts
+import { Onvif, Subscription } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+await onvif.connect();
+
+const sub = new Subscription(onvif, 'pullPoint');
+await sub.subscribe();
+
+const ac = new AbortController();
+// Abort after 5s even if the camera has not returned yet
+const timer = setTimeout(() => ac.abort(), 5_000);
+
+try {
+  const { notificationMessage } = await sub.pullMessages({
+    timeout: 'PT1M',
+    messageLimit: 10,
+    signal: ac.signal,
+  });
+  console.log('got', notificationMessage?.length ?? 0, 'messages');
+} catch (err) {
+  if (err instanceof Error && err.name === 'AbortError') {
+    console.log('pull cancelled');
+  } else {
+    throw err;
+  }
+} finally {
+  clearTimeout(timer);
+  await sub.unsubscribe();
+  await onvif.close();
+}
+```
+
+The same `signal` option works on any `onvif.request({ …, signal })` call, not only events.
+
 ## Push WS-BaseNotification
 
 With push (WS-BaseNotification), the camera sends event notifications to an HTTP endpoint you host, instead of you
