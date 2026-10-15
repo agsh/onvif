@@ -313,6 +313,9 @@ Full guide (including `Subscription` and push notifications): [innerDocs/events.
 ONVIF schemas use `xs:any` / `xs:anyAttribute` extension points. This library exposes them via `xsany` and `$`
 so vendor-specific XML can be read and written without losing data.
 
+After parse you get a camelCase view **and** a wire tree on `obj[xsany]`. Setters serialize **`[xsany]` only**
+(plus a few typed fields like `ElementItem.name`) — editing `elementItem.cellLayout` alone does not change the SOAP.
+
 Details and camera examples: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 
 ---

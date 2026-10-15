@@ -25,7 +25,14 @@ import {
   ModifyActions,
   SupportedActions,
 } from './interfaces/actionengine';
+import { ITEM_LIST_PARSE } from './utils';
 import { itemList } from './utils/toOnvifXMLSchemaObject';
+
+/** Get/CreateActions — Parameters ItemList for itemList() round-trip. */
+const ACTION_PARSE = {
+  array: ['action', ...ITEM_LIST_PARSE.array],
+  rawXML: ITEM_LIST_PARSE.rawXML,
+};
 
 /**
  * Action Engine service — device actions and event-driven triggers.
@@ -120,7 +127,7 @@ export default class ActionEngine extends Service {
    * Returns the configured actions.
    */
   async getActions(_options: GetActions = {}): Promise<Action[]> {
-    const response = await this.request({ GetActions: {} }, { array: ['action'] });
+    const response = await this.request({ GetActions: {} }, ACTION_PARSE);
     return response.getActionsResponse.action ?? [];
   }
 
@@ -130,7 +137,7 @@ export default class ActionEngine extends Service {
   async createActions({ action = [] }: CreateActions): Promise<Action[]> {
     const response = await this.request(
       { CreateActions: { Action: action.map(ActionEngine.actionConfigurationToBuild) } },
-      { array: ['action'] },
+      ACTION_PARSE,
     );
     return response.createActionsResponse.action ?? [];
   }

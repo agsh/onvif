@@ -159,6 +159,42 @@ export interface LineraseOptions {
 }
 
 /**
+ * Parse hints for `tt:ItemList` (`SimpleItem` / `ElementItem`).
+ * Use on Gets whose result may later go through `itemList()` / `config()`.
+ */
+export const ITEM_LIST_PARSE: LineraseOptions = {
+  array: ['simpleItem', 'elementItem'],
+  rawXML: ['elementItem'],
+};
+
+/**
+ * Parse hints for VideoAnalytics / Rule `Config` lists plus nested ItemList.
+ * (`AnalyticsModule` / `Rule` / `SimpleItem` / `ElementItem` are all maxOccurs unbounded.)
+ */
+export const ANALYTICS_CONFIG_PARSE: LineraseOptions = {
+  array: ['analyticsModule', 'rule', 'simpleItem', 'elementItem'],
+  rawXML: ['elementItem'],
+};
+
+/**
+ * Nested analytics / metadata inside one Profile or one Configuration entity.
+ * Do not include `configurations` / `profiles` — those are response-list wrappers.
+ * `Filter` and `SubscriptionPolicy` are single objects (rawXML only).
+ */
+export const MEDIA_NESTED_PARSE: LineraseOptions = {
+  array: ['analyticsModule', 'rule', 'simpleItem', 'elementItem'],
+  rawXML: ['elementItem', 'subscriptionPolicy', 'filter'],
+};
+
+/**
+ * Media Get*Configurations / GetCompatible* — `Configurations` is unbounded.
+ */
+export const MEDIA_CONFIGURATION_PARSE: LineraseOptions = {
+  array: ['configurations', ...MEDIA_NESTED_PARSE.array],
+  rawXML: MEDIA_NESTED_PARSE.rawXML,
+};
+
+/**
  * Parse SOAP object to pretty JS-object
  * @param xml xml2js object
  * @param options
@@ -356,16 +392,29 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
   if (Array.isArray(value)) {
     return value.map((item) => hydrateStopNode(item, options));
   }
-  const xmlToParse = `<root>${value._ ?? value}</root>`;
-  const parsed = parse(xmlToParse, { array: options.array }).root || {};
+  // Only use text content as inner XML — never stringify the attribute bag (`[object Object]`).
+  const innerXml =
+    typeof value === 'object' && value !== null ? String(value._ ?? '') : String(value ?? '');
+  const xmlToParse = `<root>${innerXml}</root>`;
+  let parsed: any = parse(xmlToParse, { array: options.array }).root;
   const wrapped = parse(xmlToParse, { attributesGroupName: '$' }).root;
-  let xsAnyParsed = (Array.isArray(wrapped) ? wrapped[0] : wrapped) || {};
-  if (typeof value === 'object') {
+  let xsAnyParsed: any = Array.isArray(wrapped) ? wrapped[0] : wrapped;
+
+  // Text-only / empty stop nodes: root may be a string, '', or undefined — always attach xsany to an object.
+  if (parsed == null || parsed === '') {
+    parsed = {};
+  } else if (typeof parsed !== 'object') {
+    parsed = { _: parsed };
+  }
+  if (xsAnyParsed == null || xsAnyParsed === '') {
+    xsAnyParsed = {};
+  } else if (typeof xsAnyParsed !== 'object') {
+    xsAnyParsed = { _: xsAnyParsed };
+  }
+
+  if (typeof value === 'object' && value !== null) {
     Object.assign(parsed, value);
     delete parsed._;
-    if (typeof xsAnyParsed !== 'object') {
-      xsAnyParsed = { _: xsAnyParsed };
-    }
     const $: Record<string, unknown> = {};
     for (const [key, attrValue] of Object.entries(value)) {
       if (key !== '_') {
@@ -374,6 +423,11 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
     }
     if (Object.keys($).length) {
       xsAnyParsed.$ = { ...$, ...xsAnyParsed.$ };
+    }
+    // Text-only ElementItem: keep payload on xsany._ when there are no child elements
+    const hasElementChildren = Object.keys(xsAnyParsed).some((k) => k !== '$' && k !== '_');
+    if (!hasElementChildren && typeof value._ === 'string' && value._ !== '') {
+      xsAnyParsed._ = value._;
     }
   }
   formatXMLValues(parsed, { array: options.array });

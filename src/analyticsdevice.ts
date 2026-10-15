@@ -38,7 +38,23 @@ import {
   SetAnalyticsEngineInput,
   SetVideoAnalyticsConfiguration,
 } from './interfaces/analyticsdevice';
+import { ANALYTICS_CONFIG_PARSE, ITEM_LIST_PARSE } from './utils';
 import { config, multicastConfiguration, streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
+
+/**
+ * Nested unbounded lists inside AnalyticsDevice entities (EngineConfiguration*, MetadataConfig*,
+ * AnalyticsModule*, Rule*, ItemList). Do not force `Configuration` — singular Gets return one object.
+ */
+const ANALYTICS_DEVICE_NESTED_PARSE = {
+  array: ['engineConfiguration', 'metadataConfig', ...ANALYTICS_CONFIG_PARSE.array],
+  rawXML: ITEM_LIST_PARSE.rawXML,
+};
+
+/** List responses: Configuration* / AnalyticsEngineControls* are unbounded. */
+const ANALYTICS_DEVICE_LIST_PARSE = {
+  array: ['configuration', 'analyticsEngineControls', ...ANALYTICS_DEVICE_NESTED_PARSE.array],
+  rawXML: ANALYTICS_DEVICE_NESTED_PARSE.rawXML,
+};
 
 /**
  * Analytics Device service — analytics engines, inputs, and controls.
@@ -270,7 +286,7 @@ export default class AnalyticsDevice extends Service {
           ForcePersistence: forcePersistence.length === 1 ? forcePersistence[0] : forcePersistence,
         },
       },
-      { array: ['configuration'] },
+      ANALYTICS_DEVICE_LIST_PARSE,
     );
     return response.createAnalyticsEngineInputsResponse.configuration ?? [];
   }
@@ -286,7 +302,7 @@ export default class AnalyticsDevice extends Service {
           Configuration: AnalyticsDevice.analyticsEngineControlToBuild(configuration),
         },
       },
-      { array: ['configuration'] },
+      ANALYTICS_DEVICE_LIST_PARSE,
     );
     return response.createAnalyticsEngineControlResponse.configuration ?? [];
   }
@@ -309,11 +325,14 @@ export default class AnalyticsDevice extends Service {
    * @param options
    */
   async getAnalyticsEngineControl({ configurationToken }: GetAnalyticsEngineControl): Promise<AnalyticsEngineControl> {
-    const response = await this.request({
-      GetAnalyticsEngineControl: {
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetAnalyticsEngineControl: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
+      ANALYTICS_DEVICE_NESTED_PARSE,
+    );
     return response.getAnalyticsEngineControlResponse.configuration;
   }
 
@@ -321,7 +340,7 @@ export default class AnalyticsDevice extends Service {
    * Returns all analytics engine control configurations.
    */
   async getAnalyticsEngineControls(): Promise<AnalyticsEngineControl[]> {
-    const response = await this.request({ GetAnalyticsEngineControls: {} }, { array: ['analyticsEngineControls'] });
+    const response = await this.request({ GetAnalyticsEngineControls: {} }, ANALYTICS_DEVICE_LIST_PARSE);
     return response.getAnalyticsEngineControlsResponse.analyticsEngineControls ?? [];
   }
 
@@ -330,11 +349,14 @@ export default class AnalyticsDevice extends Service {
    * @param options
    */
   async getAnalyticsEngine({ configurationToken }: GetAnalyticsEngine): Promise<AnalyticsEngine> {
-    const response = await this.request({
-      GetAnalyticsEngine: {
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetAnalyticsEngine: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
+      ANALYTICS_DEVICE_NESTED_PARSE,
+    );
     return response.getAnalyticsEngineResponse.configuration;
   }
 
@@ -342,7 +364,7 @@ export default class AnalyticsDevice extends Service {
    * Returns all analytics engine configurations.
    */
   async getAnalyticsEngines(): Promise<AnalyticsEngine[]> {
-    const response = await this.request({ GetAnalyticsEngines: {} }, { array: ['configuration'] });
+    const response = await this.request({ GetAnalyticsEngines: {} }, ANALYTICS_DEVICE_LIST_PARSE);
     return response.getAnalyticsEnginesResponse.configuration ?? [];
   }
 
@@ -380,11 +402,14 @@ export default class AnalyticsDevice extends Service {
    * @param options
    */
   async getAnalyticsEngineInput({ configurationToken }: GetAnalyticsEngineInput): Promise<AnalyticsEngineInput> {
-    const response = await this.request({
-      GetAnalyticsEngineInput: {
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetAnalyticsEngineInput: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
+      ANALYTICS_DEVICE_NESTED_PARSE,
+    );
     return response.getAnalyticsEngineInputResponse.configuration;
   }
 
@@ -392,7 +417,7 @@ export default class AnalyticsDevice extends Service {
    * Returns all analytics engine input configurations.
    */
   async getAnalyticsEngineInputs(): Promise<AnalyticsEngineInput[]> {
-    const response = await this.request({ GetAnalyticsEngineInputs: {} }, { array: ['configuration'] });
+    const response = await this.request({ GetAnalyticsEngineInputs: {} }, ANALYTICS_DEVICE_LIST_PARSE);
     return response.getAnalyticsEngineInputsResponse.configuration ?? [];
   }
 
@@ -420,11 +445,14 @@ export default class AnalyticsDevice extends Service {
   async getVideoAnalyticsConfiguration({
     configurationToken,
   }: GetVideoAnalyticsConfiguration): Promise<VideoAnalyticsConfiguration> {
-    const response = await this.request({
-      GetVideoAnalyticsConfiguration: {
-        ConfigurationToken: configurationToken,
+    const response = await this.request(
+      {
+        GetVideoAnalyticsConfiguration: {
+          ConfigurationToken: configurationToken,
+        },
       },
-    });
+      ANALYTICS_DEVICE_NESTED_PARSE,
+    );
     return response.getVideoAnalyticsConfigurationResponse.configuration;
   }
 

@@ -1,16 +1,24 @@
 import { Onvif } from '../src';
 import { Config } from '../src/interfaces/onvif';
+import { xsany } from '../src/utils/toOnvifXMLSchemaObject';
 import happytimeOnvifOptions from './happytime.json';
 
 const CONFIGURATION_TOKEN = 'VideoAnalyticsConfigurationToken_1';
+const CELL_MOTION_ENGINE = 'MyCellMotionEngine';
+
+function xsanyOf(obj: object): Record<string, any> {
+  return (obj as Record<symbol, unknown>)[xsany] as Record<string, any>;
+}
 
 let cam: Onvif;
 let baselineRules: Config[];
+let baselineModules: Config[];
 
 beforeAll(async () => {
   cam = new Onvif(happytimeOnvifOptions);
   await cam.connect();
   baselineRules = await cam.analytics.getRules({ configurationToken: CONFIGURATION_TOKEN });
+  baselineModules = await cam.analytics.getAnalyticsModules({ configurationToken: CONFIGURATION_TOKEN });
 });
 
 describe('Analytics', () => {
@@ -123,6 +131,55 @@ describe('Analytics', () => {
       expect(String(updatedRule?.parameters.simpleItem?.find((item) => item.name === 'MinCount')?.value)).toBe(
         newValue,
       );
+    });
+  });
+
+  describe('modifyAnalyticsModules ElementItem xs:any', () => {
+    afterEach(async () => {
+      await cam.analytics.modifyAnalyticsModules({
+        configurationToken: CONFIGURATION_TOKEN,
+        analyticsModule: baselineModules,
+      });
+    });
+
+    it('attaches xsany on Happytime Layout ElementItem (even when empty)', async () => {
+      const modules = await cam.analytics.getAnalyticsModules({ configurationToken: CONFIGURATION_TOKEN });
+      const module = modules.find((item) => item.name === CELL_MOTION_ENGINE);
+      const layout = module?.parameters.elementItem?.find((item) => item.name === 'Layout');
+      expect(layout).toBeDefined();
+      expect(xsanyOf(layout!)).toBeDefined();
+      expect(xsanyOf(layout!).$).toMatchObject({ Name: 'Layout' });
+    });
+
+    it('round-trips tt:CellLayout through elementItem[xsany] via modifyAnalyticsModules', async () => {
+      const modules = await cam.analytics.getAnalyticsModules({ configurationToken: CONFIGURATION_TOKEN });
+      const module = modules.find((item) => item.name === CELL_MOTION_ENGINE);
+      expect(module).toBeDefined();
+      const layout = module!.parameters.elementItem?.find((item) => item.name === 'Layout');
+      expect(layout).toBeDefined();
+
+      Object.defineProperty(layout!, xsany, {
+        value: {
+          $: { Name: 'Layout' },
+          'tt:CellLayout': [{ $: { Columns: '8', Rows: '6' } }],
+        },
+        enumerable: false,
+        configurable: true,
+        writable: true,
+      });
+
+      await cam.analytics.modifyAnalyticsModules({
+        configurationToken: CONFIGURATION_TOKEN,
+        analyticsModule: [module!],
+      });
+
+      const updated = await cam.analytics.getAnalyticsModules({ configurationToken: CONFIGURATION_TOKEN });
+      const updatedLayout = updated
+        .find((item) => item.name === CELL_MOTION_ENGINE)
+        ?.parameters.elementItem?.find((item) => item.name === 'Layout');
+      expect(updatedLayout).toBeDefined();
+      expect(xsanyOf(updatedLayout!)['tt:CellLayout'][0].$).toMatchObject({ Columns: '8', Rows: '6' });
+      expect(updatedLayout!.cellLayout).toMatchObject({ columns: 8, rows: 6 });
     });
   });
 });

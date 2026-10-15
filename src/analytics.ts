@@ -26,7 +26,14 @@ import {
   ModifyAnalyticsModules,
   ModifyRules,
 } from './interfaces/analytics.2';
+import { ITEM_LIST_PARSE } from './utils';
 import { config } from './utils/toOnvifXMLSchemaObject';
+
+/** GetRules / GetAnalyticsModules — Rule and AnalyticsModule lists + ItemList (all unbounded). */
+const CONFIG_LIST_PARSE = {
+  array: ['rule', 'analyticsModule', ...ITEM_LIST_PARSE.array],
+  rawXML: ITEM_LIST_PARSE.rawXML,
+};
 
 /**
  * Analytics service — rules and analytics modules on a configuration.
@@ -148,7 +155,7 @@ export default class Analytics extends Service {
           ConfigurationToken: configurationToken,
         },
       },
-      { array: ['rule'] },
+      CONFIG_LIST_PARSE,
     );
     return response.getRulesResponse.rule ?? [];
   }
@@ -225,7 +232,7 @@ export default class Analytics extends Service {
           ConfigurationToken: configurationToken,
         },
       },
-      { array: ['analyticsModule'] },
+      CONFIG_LIST_PARSE,
     );
     return response.getAnalyticsModulesResponse.analyticsModule ?? [];
   }

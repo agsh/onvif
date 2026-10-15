@@ -1099,6 +1099,42 @@ describe('setVideoAnalyticsConfiguration', () => {
       cam.media.setVideoAnalyticsConfiguration({ configuration, forcePersistence: true }),
     ).resolves.toBeUndefined();
   });
+
+  it('round-trips ElementItem CellLayout via xsany (Media Get/Set)', async () => {
+    const [baseline] = await cam.media.getVideoAnalyticsConfigurations();
+    expect(baseline).toBeDefined();
+    const [configuration] = await cam.media.getVideoAnalyticsConfigurations();
+    const module = configuration.analyticsEngineConfiguration?.analyticsModule?.find(
+      (item) => item.name === 'MyCellMotionEngine',
+    );
+    const layout = module?.parameters.elementItem?.find((item) => item.name === 'Layout');
+    expect(layout).toBeDefined();
+    expect((layout as Record<symbol, unknown>)[xsany]).toBeDefined();
+
+    Object.defineProperty(layout!, xsany, {
+      value: {
+        $: { Name: 'Layout' },
+        'tt:CellLayout': [{ $: { Columns: '13', Rows: '18' } }],
+      },
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
+
+    try {
+      await cam.media.setVideoAnalyticsConfiguration({ configuration, forcePersistence: true });
+      const [updated] = await cam.media.getVideoAnalyticsConfigurations();
+      const updatedLayout = updated.analyticsEngineConfiguration?.analyticsModule
+        ?.find((item) => item.name === 'MyCellMotionEngine')
+        ?.parameters.elementItem?.find((item) => item.name === 'Layout');
+      expect(updatedLayout).toBeDefined();
+      const anyTree = (updatedLayout as Record<symbol, any>)[xsany];
+      expect(anyTree['tt:CellLayout'][0].$).toMatchObject({ Columns: '13', Rows: '18' });
+      expect(updatedLayout!.cellLayout).toMatchObject({ columns: 13, rows: 18 });
+    } finally {
+      await cam.media.setVideoAnalyticsConfiguration({ configuration: baseline, forcePersistence: true });
+    }
+  });
 });
 
 describe('setMetadataConfiguration', () => {
