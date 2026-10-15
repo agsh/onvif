@@ -265,6 +265,30 @@ describe('Service options and builders', () => {
     await expect(noAgent.close()).resolves.toBeUndefined();
   });
 
+  it('ensureOpen keeps Events ctor agent on first open and resets digest nc after close', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const firstEventsAgent = onvif.events.agent;
+    const destroyCtorAgent = jest.spyOn(firstEventsAgent, 'destroy');
+    // First ensureOpen (constructor) must not destroy/replace the Events ctor agent.
+    expect(destroyCtorAgent).not.toHaveBeenCalled();
+    expect(onvif.events.agent).toBe(firstEventsAgent);
+
+    (onvif as any).nc = 42;
+    jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    await onvif.close();
+
+    jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+    const { connectSteps } = await import('../src/connection');
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
+
+    await onvif.connect({ media: false });
+    expect(destroyCtorAgent).toHaveBeenCalled();
+    expect(onvif.events.agent).not.toBe(firstEventsAgent);
+    expect((onvif as any).nc).toBe(0);
+    expect((onvif as any).updateNC()).toBe('00000001');
+  });
+
   it('close rejects request and blocks auto-subscribe until connect reopens', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);

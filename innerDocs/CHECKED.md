@@ -16,7 +16,7 @@ Plus new methods have been added in v1.x.
 - [x] getScopes
 - [x] setScopes
 - [x] systemReboot
-- [ ] setSystemFactoryDefault
+- [x] setSystemFactoryDefault
 - [x] _passwordDigest
 - [x] _envelopeHeader
 - [x] _envelopeFooter
@@ -25,27 +25,27 @@ Plus new methods have been added in v1.x.
 - [x] setNTP
 - [x] getNetworkInterfaces
 - [x] setNetworkInterfaces
-- [ ] getNetworkDefaultGateway
-- [ ] setNetworkDefaultGateway
+- [x] getNetworkDefaultGateway
+- [x] setNetworkDefaultGateway
 - [x] getDNS
 - [x] setDNS
-- [ ] getNetworkProtocols
-- [ ] getUsers
-- [ ] createUsers
-- [ ] setUsers
-- [ ] deleteUsers
-- [ ] sendAuxiliaryCommand
-- [ ] getEventProperties
-- [ ] getEventServiceCapabilities
-- [ ] subscribe
-- [ ] createPullPointSubscription
-- [ ] renew
-- [ ] pullMessages
-- [ ] unsubscribe
-- [ ] _eventRequest
-- [ ] _eventPull
-- [ ] _restartEventRequest
-- [ ] parseEventXML
+- [x] getNetworkProtocols
+- [x] getUsers
+- [x] createUsers
+- [x] setUsers → device.setUser
+- [x] deleteUsers
+- [x] sendAuxiliaryCommand
+- [x] getEventProperties
+- [x] getEventServiceCapabilities → events.getServiceCapabilities
+- [x] subscribe
+- [x] createPullPointSubscription
+- [x] renew
+- [x] pullMessages
+- [x] unsubscribe
+- [x] _eventRequest → Events / Subscription (v1)
+- [x] _eventPull → Subscription pull loop
+- [x] _restartEventRequest → Subscription soft-retry / resubscribe
+- [x] parseEventXML → compatibility/cam.parseEventXML
 - [x] getVideoSources.media1
 - [x] getAudioSources.media1
 - [x] getAudioOutputs.media1
@@ -137,12 +137,12 @@ Plus new methods have been added in v1.x.
 - [x] getSnapshotUri
 - [x] getSnapshotUri.media2
 - [x] setSynchronizationPoint
-- [ ] getOSDs cam.media.getOSDs (schema strict)
-- [ ] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
-- [ ] createOSD
-- [ ] setOSD
-- [ ] deleteOSD
-- [ ] getMediaServiceCapabilities
+- [x] getOSDs cam.media.getOSDs
+- [x] getOSDOptions cam.media.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
+- [x] createOSD
+- [x] setOSD
+- [x] deleteOSD
+- [x] getMediaServiceCapabilities
 - [x] getOSDs cam.media2.getOSDs (schema strict)
 - [x] getOSDOptions cam.media2.getOSDOptions (videoSourceConfigurationToken -> configurationToken)
 - [x] createOSD.media2
@@ -164,30 +164,30 @@ Plus new methods have been added in v1.x.
 - [x] continuousMove
 - [x] stop
 - [x] _panTiltZoomVectors
-- [ ] ptzSendAuxiliaryCommand
-- [ ] getImagingSettings
-- [ ] setImagingSettings
-- [ ] getImagingServiceCapabilities
-- [ ] getCurrentImagingPreset
-- [ ] setCurrentImagingPreset
-- [ ] getVideoSourceOptions
-- [ ] imagingGetMoveOptions
-- [ ] imagingGetStatus
-- [ ] imagingMove
-- [ ] imagingStop
-- [ ] getRecordings
-- [ ] getRecordingJobs
-- [ ] createRecordingJob
-- [ ] deleteRecordingJob
-- [ ] getRecordingSummary
-- [ ] getRecordingInformation
-- [ ] getRecordingConfiguration
-- [ ] getRecordingJobState
-- [ ] getRecordingOptions
-- [ ] getRecordingServiceCapabilities
-- [ ] getTrackConfiguration
-- [ ] getRecordingJobConfiguration
-- [ ] setRecordingJobMode
-- [ ] getReplayUri
+- [x] ptzSendAuxiliaryCommand → ptz.sendAuxiliaryCommand
+- [x] getImagingSettings
+- [x] setImagingSettings
+- [x] getImagingServiceCapabilities → imaging.getServiceCapabilities
+- [x] getCurrentImagingPreset → imaging.getCurrentPreset
+- [x] setCurrentImagingPreset → imaging.setCurrentPreset
+- [x] getVideoSourceOptions → imaging.getOptions
+- [x] imagingGetMoveOptions → imaging.getMoveOptions
+- [x] imagingGetStatus → imaging.getStatus
+- [x] imagingMove → imaging.move
+- [x] imagingStop → imaging.stop
+- [x] getRecordings
+- [x] getRecordingJobs
+- [x] createRecordingJob
+- [x] deleteRecordingJob
+- [x] getRecordingSummary → search.getRecordingSummary
+- [x] getRecordingInformation → search.getRecordingInformation
+- [x] getRecordingConfiguration
+- [x] getRecordingJobState
+- [x] getRecordingOptions
+- [x] getRecordingServiceCapabilities → recording.getServiceCapabilities
+- [x] getTrackConfiguration
+- [x] getRecordingJobConfiguration
+- [x] setRecordingJobMode
+- [x] getReplayUri
 
-122/174 (70.1%)
+180/180 (100%)

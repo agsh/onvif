@@ -436,6 +436,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /** True when the default keep-alive agent was created by this instance (not a caller-supplied agent). */
   private readonly ownsAgent: boolean;
   /**
+   * Set by {@link close} after destroying the Events agent; cleared by {@link ensureOpen}.
+   * Skips a redundant destroy/create on the first open (Events already built an agent in its ctor).
+   */
+  private eventsAgentNeedsReset = false;
+  /**
    * Set by {@link close}; cleared by {@link ensureOpen} (constructor and {@link connect}).
    * While closed, {@link request} rejects.
    */
@@ -859,6 +864,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       // Device may already be gone; local pull loop is still stopped by unsubscribe.
     }
     Onvif.destroyHttpAgent(this.events.agent);
+    this.eventsAgentNeedsReset = true;
     if (this.ownsAgent) {
       Onvif.destroyHttpAgent(this.agent);
     }
@@ -1060,7 +1066,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       // Reuse sockets for SOAP chatter. Events keep their own agent (keepAlive: false).
       this.agent = new httpLibrary.Agent({ keepAlive: true, keepAliveMsecs: 10000 });
     }
-    this.events.resetAgent();
+    // First open: keep the agent from Events' constructor. After close: replace the destroyed one.
+    if (this.eventsAgentNeedsReset) {
+      this.events.resetAgent();
+      this.eventsAgentNeedsReset = false;
+    }
+    // Fresh Digest nonce-count after (re)open — cameras reject reused nc after a new connection.
+    this.nc = 0;
     this.on('newListener', this.onEventNewListener);
     this.on('removeListener', this.onEventRemoveListener);
     this.closed = false;
