@@ -78,7 +78,15 @@ export interface OnvifOptions {
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: HttpsAgent | HttpAgent | boolean;
-  /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
+  /**
+   * Rewrite service / subscription XAddrs to this client's {@link hostname}:{@link port}
+   * (NAT / reverse-proxy). Defaults to `false`.
+   *
+   * TCP for normal service calls (`device`, `media`, ...) always uses the constructor
+   * host/port; from each XAddr only `pathname` (+ query) is used. Set this when XAddr
+   * host/port must also match the constructor — e.g. SOAP `a:To`, and PullMessages /
+   * Renew / Unsubscribe which dial `options.url` from the subscription Address.
+   */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */
   autoConnect?: boolean;
@@ -226,7 +234,7 @@ interface OnvifEvents {
 }
 
 /**
- * Main ONVIF client. Connect to a device, then use lazy service namespaces (`media`, `ptz`, …).
+ * Main ONVIF client. Connect to a device, then use lazy service namespaces (`media`, `ptz`, ...).
  *
  * @example Connect, inspect the device, then stream and move PTZ:
  * ```ts
@@ -425,8 +433,18 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public path: string;
   public timeout: number;
   public agent: HttpsAgent | HttpAgent | boolean;
+  /** True when the default keep-alive agent was created by this instance (not a caller-supplied agent). */
+  private readonly ownsAgent: boolean;
+  /**
+   * Set by {@link close}; cleared by {@link ensureOpen} (constructor and {@link connect}).
+   * While closed, {@link request} rejects.
+   */
+  public closed = true;
   public preserveAddress = false;
   public uri: OnvifServices;
+  /** Bound so {@link close} / {@link ensureOpen} can remove and reattach auto pull-point hooks. */
+  private readonly onEventNewListener: (name: string | symbol) => void;
+  private readonly onEventRemoveListener: (name: string | symbol) => void;
   /** Clock offset between the device and this host (ms), set during time sync. */
   public timeShift?: number;
   public capabilities: Capabilities;
@@ -468,10 +486,10 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.timeout = options.timeout ?? 120000;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
-    const httpLibrary = this.useSecure ? https : http;
-    // Reuse sockets for SOAP chatter. Events use their own agent with keepAlive: false
-    // (long-poll PullMessages). HappyTime tests pass `agent: false` — see __tests__/happytime.json.
-    this.agent = options.agent ?? new httpLibrary.Agent({ keepAlive: true, keepAliveMsecs: 10000 });
+    // Caller-supplied agent (incl. `false`) is kept across close/ensureOpen; otherwise ensureOpen owns it.
+    // HappyTime tests pass `agent: false` — see __tests__/happytime.json.
+    this.ownsAgent = options.agent === undefined;
+    this.agent = options.agent ?? false;
     this.preserveAddress = options.preserveAddress ?? false;
     this.uri = {};
     this.capabilities = {};
@@ -503,17 +521,24 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.receiver = lazyService<Receiver>(this, () => import('./receiver'));
 
     /** Bind event handling to the `event` event */
-    this.on('newListener', (name) => {
+    this.onEventNewListener = (name) => {
+      if (this.closed) {
+        return;
+      }
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
         this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
-    });
-    this.on('removeListener', (name) => {
+    };
+    this.onEventRemoveListener = (name) => {
+      if (this.closed) {
+        return;
+      }
       if (name === 'event' && this.listeners(name).length === 0) {
         this.events.globalSubscription.unsubscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
-    });
+    };
+    this.ensureOpen();
 
     if (options.autoConnect) {
       setImmediate(() => {
@@ -580,10 +605,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
+    if (this.closed) {
+      throw new OnvifValidationError('Onvif client is closed');
+    }
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
       // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
-      // Include search: pathname alone drops query (e.g. subscription XAddrs with ?…).
+      // Include search: pathname alone drops query (e.g. subscription XAddrs with ?).
       const requestPath = (url: URL) => `${url.pathname}${url.search}`;
       const requestOptions: RequestOptions = {
         ...(options.url
@@ -596,15 +624,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           : {
               // try to guess the right path for the requested service
               hostname: this.hostname,
-              path:
-                options.service && this.uri[options.service]
-                  ? requestPath(this.uri[options.service]!)
-                  : this.path,
+              path: options.service && this.uri[options.service] ? requestPath(this.uri[options.service]!) : this.path,
               port: this.port,
             }),
         // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections
         agent: options.agent ?? this.agent,
-        timeout: this.timeout,
         method: 'POST',
         headers: {
           ...options.headers,
@@ -714,11 +738,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         return undefined;
       });
 
-      // let handle timeout by itself and produce network error to catch below
+      // Single timeout path (not also via requestOptions.timeout) so per-call overrides
+      // like PullMessages `options.timeout` win over this.timeout.
       request.setTimeout(options.timeout ?? this.timeout, () => {
-        const err = new Error('Network timeout') as NodeJS.ErrnoException;
-        err.code = 'ETIMEDOUT';
-        err.syscall = 'connect';
+        const err = Object.assign(new Error('Network timeout'), {
+          code: 'ETIMEDOUT',
+          syscall: 'connect',
+        }) as NodeJS.ErrnoException;
         request.destroy(err);
       });
 
@@ -799,28 +825,41 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * exiting (common in short scripts and Jest).
    *
    * What this method does:
-   * 1. Unsubscribes {@link Events.globalSubscription} (stops PullMessages / renew).
-   * 2. Destroys the Events HTTP agent and the main SOAP agent created by this instance.
+   * 1. Marks the client {@link closed} (further {@link request} fail until {@link connect}).
+   * 2. Removes auto `event` subscribe/unsubscribe hooks so later `on('event')` is a no-op.
+   * 3. Clears WS-BaseNotification push renew timers.
+   * 4. Unsubscribes {@link Events.globalSubscription} (stops PullMessages / renew).
+   * 5. Destroys the Events HTTP agent and the main SOAP agent **created by this instance**.
    *
-   * What it does **not** do: it is not an ONVIF “logout” RPC, and it does not
-   * destroy a custom or shared agent passed via {@link OnvifOptions.agent}
+   * Call {@link connect} again to reopen via {@link ensureOpen} (new agents + hooks).
+   * What it does not do: it is not an ONVIF “logout” RPC, and it does not destroy a
+   * custom or shared agent passed via {@link OnvifOptions.agent}
    * (`agent: false` / non-Agent values are left alone). Safe to call more than once.
    *
    * @example
    * ```ts
    * await onvif.connect();
-   * // … use services …
+   * // ... use services
    * await onvif.close();
    * ```
    */
   public async close(): Promise<void> {
+    if (this.closed) {
+      return;
+    }
+    this.closed = true;
+    this.off('newListener', this.onEventNewListener);
+    this.off('removeListener', this.onEventRemoveListener);
+    this.events.clearPushRenew();
     try {
       await this.events.globalSubscription.unsubscribe();
     } catch {
       // Device may already be gone; local pull loop is still stopped by unsubscribe.
     }
     Onvif.destroyHttpAgent(this.events.agent);
-    Onvif.destroyHttpAgent(this.agent);
+    if (this.ownsAgent) {
+      Onvif.destroyHttpAgent(this.agent);
+    }
   }
 
   private static destroyHttpAgent(agent: HttpsAgent | HttpAgent | boolean | undefined) {
@@ -847,14 +886,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
-   * Parse url with an eye on `preserveAddress` property
-   * @param address
-   * @private
+   * Parse a device XAddr into a {@link URL}.
+   * When {@link OnvifOptions.preserveAddress} is set, replace host/port with the
+   * constructor values (path and query kept). Used when filling {@link uri} and for
+   * event subscription Addresses.
    */
   public parseUrl(address: string) {
     const parsedAddress = new URL(address);
-    // When preserveAddress is set, rewrite host/port to constructor values if they differ
-    // from the XAddr (proxy / NAT). Compare effective ports, not URL.port strings.
+    // Compare effective ports, not URL.port strings ("" means scheme default 80/443).
     if (
       this.preserveAddress &&
       (this.hostname !== parsedAddress.hostname || this.port !== Onvif.urlPort(parsedAddress))
@@ -1006,10 +1045,36 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
+   * Bring the client online: owned keep-alive agent, Events agent, auto-`event` hooks.
+   * Shared by the constructor and {@link connect} after {@link close}.
+   * Caller-supplied {@link OnvifOptions.agent} is left as-is.
+   */
+  private ensureOpen() {
+    if (!this.closed) {
+      return;
+    }
+    if (this.ownsAgent) {
+      const httpLibrary = this.useSecure ? https : http;
+      // Reuse sockets for SOAP chatter. Events keep their own agent (keepAlive: false).
+      this.agent = new httpLibrary.Agent({ keepAlive: true, keepAliveMsecs: 10000 });
+    }
+    this.events.resetAgent();
+    this.on('newListener', this.onEventNewListener);
+    this.on('removeListener', this.onEventRemoveListener);
+    this.closed = false;
+    // Listeners that survived close do not re-fire newListener — restart pull-point if needed.
+    if (this.listeners('event').length > 0) {
+      this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
+    }
+  }
+
+  /**
    * Connect to the camera and fill device information properties.
    * Pass `{ media: false }` to skip profile / video-source discovery after GetServices.
+   * After {@link close}, {@link ensureOpen} recreates owned agents and event hooks first.
    */
   async connect(options?: ConnectOptions) {
+    this.ensureOpen();
     const { connect } = await import('./connection');
     return connect(this, options);
   }

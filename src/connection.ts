@@ -294,8 +294,15 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
 /**
  * Check and find out video configuration for device.
  * No-op when the device has no video sources (e.g. Profile C door stations).
+ * Always resets prior {@link Onvif.activeSources} / defaults so a reconnect with fewer
+ * sources cannot leave stale slots from the previous session.
  */
 export async function getActiveSources(onvif: Onvif): Promise<void> {
+  onvif.activeSources = [];
+  onvif.defaultProfiles = [];
+  onvif.activeSource = undefined;
+  onvif.defaultProfile = undefined;
+
   if (!onvif.videoSources.length) {
     return;
   }

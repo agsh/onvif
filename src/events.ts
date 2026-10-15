@@ -212,6 +212,8 @@ export default class Events {
   private readonly onvif: Onvif;
   public agent: HttpsAgent | HttpAgent;
   public globalSubscription: Subscription;
+  /** Timer for WS-BaseNotification `subscribe({ renew: true })`; cleared by {@link clearPushRenew}. */
+  private pushRenewTimer?: ReturnType<typeof setTimeout>;
 
   constructor(onvif: Onvif) {
     this.onvif = onvif;
@@ -239,6 +241,14 @@ export default class Events {
       // ignore
     }
     this.agent = this.createAgent();
+  }
+
+  /** Cancel a pending push-notification renew scheduled by {@link subscribe}. */
+  clearPushRenew() {
+    if (this.pushRenewTimer !== undefined) {
+      clearTimeout(this.pushRenewTimer);
+      this.pushRenewTimer = undefined;
+    }
   }
 
   /**
@@ -424,8 +434,12 @@ export default class Events {
       },
     });
     if (options.renew) {
-      setTimeout(() => {
-        this.subscribe(options);
+      this.clearPushRenew();
+      this.pushRenewTimer = setTimeout(() => {
+        this.pushRenewTimer = undefined;
+        if (!this.onvif.closed) {
+          this.subscribe(options).catch(() => undefined);
+        }
       }, toMs(initialTerminationTime));
     }
     return data.subscribeResponse;

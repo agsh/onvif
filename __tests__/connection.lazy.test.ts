@@ -1,6 +1,6 @@
 import Module from 'module';
 import { Onvif } from '../src';
-import { connectSteps, getCapabilities, getServices, serviceUriKey } from '../src/connection';
+import { connectSteps, getActiveSources, getCapabilities, getServices, serviceUriKey } from '../src/connection';
 
 function trackServiceLoads() {
   const loaded = new Set<string>();
@@ -206,5 +206,52 @@ describe('getServices uri keys', () => {
 
     expect(onvif.uri.analyticsdevice?.href).toBe(xaddr);
     expect((onvif.uri as Record<string, unknown>).analyticsDevice).toBeUndefined();
+  });
+});
+
+describe('getActiveSources reconnect', () => {
+  it('clears stale activeSources / defaults when source count shrinks', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.videoSources = [{ token: 'vs1' } as never, { token: 'vs2' } as never];
+    onvif.profiles = [
+      {
+        token: 'p1',
+        videoSourceConfiguration: { token: 'vsc1', sourceToken: 'vs1' },
+        videoEncoderConfiguration: { encoding: 'H264', resolution: { width: 640, height: 480 } },
+      } as never,
+      {
+        token: 'p2',
+        videoSourceConfiguration: { token: 'vsc2', sourceToken: 'vs2' },
+        videoEncoderConfiguration: { encoding: 'H264', resolution: { width: 320, height: 240 } },
+      } as never,
+    ];
+
+    await getActiveSources(onvif);
+    expect(onvif.activeSources).toHaveLength(2);
+    expect(onvif.defaultProfiles).toHaveLength(2);
+
+    onvif.videoSources = [{ token: 'vs1' } as never];
+    await getActiveSources(onvif);
+
+    expect(onvif.activeSources).toHaveLength(1);
+    expect(onvif.activeSources[0].sourceToken).toBe('vs1');
+    expect(onvif.defaultProfiles).toHaveLength(1);
+    expect(onvif.activeSource?.sourceToken).toBe('vs1');
+  });
+
+  it('clears prior activeSources when there are no video sources', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.activeSources = [{ sourceToken: 'old' } as never];
+    onvif.defaultProfiles = [{ token: 'old' } as never];
+    onvif.activeSource = onvif.activeSources[0];
+    onvif.defaultProfile = onvif.defaultProfiles[0];
+    onvif.videoSources = [];
+
+    await getActiveSources(onvif);
+
+    expect(onvif.activeSources).toEqual([]);
+    expect(onvif.defaultProfiles).toEqual([]);
+    expect(onvif.activeSource).toBeUndefined();
+    expect(onvif.defaultProfile).toBeUndefined();
   });
 });
