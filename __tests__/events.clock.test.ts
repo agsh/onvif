@@ -104,7 +104,35 @@ describe('subscription URL preserveAddress', () => {
           pathname: '/Subscription',
           search: '?id=1',
         }),
+        agent: events.agent,
       }),
     );
+  });
+
+  it('Subscription renew and setSynchronizationPoint use the Events agent', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const sub = onvif.events.globalSubscription;
+    (sub as any).subscription = {
+      subscriptionReference: { address: 'http://127.0.0.1/Subscription' },
+      currentTime: new Date(),
+      terminationTime: new Date(Date.now() + 60_000),
+    };
+    const request = jest.spyOn(onvif, 'request').mockResolvedValue([
+      {
+        renewResponse: {
+          currentTime: new Date(),
+          terminationTime: new Date(Date.now() + 60_000),
+        },
+      },
+      '',
+    ] as never);
+
+    await sub.renew();
+    await sub.setSynchronizationPoint();
+
+    expect(request).toHaveBeenCalledTimes(2);
+    for (const [opts] of request.mock.calls) {
+      expect(opts).toEqual(expect.objectContaining({ agent: onvif.events.agent }));
+    }
   });
 });

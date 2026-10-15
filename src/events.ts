@@ -461,6 +461,7 @@ export default class Events {
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      agent: this.agent,
     });
   }
 
@@ -482,6 +483,7 @@ export default class Events {
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      agent: this.agent,
     });
     return data.renewResponse;
   }
@@ -502,6 +504,7 @@ export default class Events {
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      agent: this.agent,
     });
     return data.getStatusResponse;
   }
@@ -768,6 +771,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      // Same Events agent as PullMessages so resetAgent aborts in-flight Renew/SyncPoint too.
+      agent: this.onvif.events.agent,
     });
   }
 
@@ -786,6 +791,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       url: subscriptionParams.url,
       body,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
+      agent: this.onvif.events.agent,
     });
     return data.renewResponse;
   }
@@ -820,6 +826,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         url: subscriptionParams.url,
         body,
         soapHeaders: subscriptionParams.additionalSoapHeaders,
+        agent: this.onvif.events.agent,
       });
     } catch {
       // Subscription may already be gone on the device; local state is cleared.
