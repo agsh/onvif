@@ -300,8 +300,10 @@ The options are:
 *Media.* Obtain a JPEG snapshot URI from the device.
 
 ### getPresets(options, callback)
-Returns the saved presets as a key-value object where the key is the preset token and the value is an object holding preset information with the preset name and other optional information.
-This method also stores the presets information in a `#presets` property of an object.
+Returns two items
+a) The saved presests as a key-value object where the key is the preset name.
+b) The saved presets as a key-value object where the key is the preset token and the value is an object holding preset information with the preset name and other optional information.
+This method also stores the presets information in a `#presets` property of an object (where the key is the preset name)
 
 The options are:
 
