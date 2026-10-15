@@ -91,6 +91,15 @@ export default class Service {
   }
 }
 
+/**
+ * Lazy namespace proxy for {@link Onvif} service fields (`media`, `ptz`, …).
+ *
+ * - Methods: `await onvif.media.getProfiles()` — first call loads the module.
+ * - Data properties before load: `await onvif.media.profiles` (thenable accessor).
+ *   Sync reads before load are still a callable/thenable (not the raw value); prefer
+ *   `onvif.profiles` on the client, or await a method that hydrates the service first.
+ * - The proxy itself is not thenable (`.then` is undefined) so `Promise.resolve(onvif.media)` is safe.
+ */
 export function lazyService<T extends object>(
   onvif: Onvif,
   loader: () => Promise<{ default: new (onvif: Onvif) => T }>,
@@ -104,8 +113,8 @@ export function lazyService<T extends object>(
       return Promise.resolve(instance);
     }
 
-    return (loading ??= loader().then(({ default: Service }) => {
-      instance = new Service(onvif);
+    return (loading ??= loader().then(({ default: ServiceClass }) => {
+      instance = new ServiceClass(onvif);
       for (const [property, value] of overrides) {
         Reflect.set(instance, property, value, instance);
       }
@@ -124,10 +133,28 @@ export function lazyService<T extends object>(
     return value;
   };
 
+  /** Callable for methods; also thenable so `await proxy.prop` loads a data field. */
+  const unloadedAccessor = (property: string | symbol) => {
+    const accessor = ((...args: unknown[]) =>
+      load().then((service) => resolveProperty(service, property, args))) as ((
+      ...args: unknown[]
+    ) => Promise<unknown>) &
+      PromiseLike<unknown>;
+    accessor.then = (onFulfilled, onRejected) =>
+      load()
+        .then((service) => Reflect.get(service, property, service))
+        .then(onFulfilled, onRejected);
+    return accessor;
+  };
+
   return new Proxy(
     {},
     {
       get(_target, property) {
+        // Do not make the proxy itself a thenable.
+        if (property === 'then' || typeof property === 'symbol') {
+          return undefined;
+        }
         if (overrides.has(property)) {
           return overrides.get(property);
         }
@@ -142,7 +169,7 @@ export function lazyService<T extends object>(
           }
           return value;
         }
-        return (...args: unknown[]) => load().then((service) => resolveProperty(service, property, args));
+        return unloadedAccessor(property);
       },
       set(_target, property, value) {
         if (instance) {

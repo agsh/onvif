@@ -369,10 +369,16 @@ describe('Service options and builders', () => {
     }
     const proxy = lazyService(onvif, async () => ({ default: Dummy }));
     expect('ping' in proxy).toBe(false);
-    await expect((proxy as any).value(1)).rejects.toThrow(/not a method/);
-    expect(await (proxy as any).ping()).toBe('pong');
+    // Proxy root must not be thenable (Promise.resolve would otherwise unwrap it).
+    expect((proxy as any).then).toBeUndefined();
+    // Data field before load: await without calling.
+    expect(await (proxy as any).value).toBe(42);
     expect('ping' in proxy).toBe(true);
     expect((proxy as any).value).toBe(42);
+    expect(await (proxy as any).ping()).toBe('pong');
+    await expect(
+      (lazyService(onvif, async () => ({ default: Dummy })) as any).value(1),
+    ).rejects.toThrow(/not a method/);
     (proxy as any).value = 7;
     expect((proxy as any).value).toBe(7);
 
