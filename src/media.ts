@@ -101,23 +101,8 @@ import {
   CreateOSDResponse,
 } from './interfaces/media';
 import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
+import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE } from './utils';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
-
-const ConfigurationArraysAndExtensions = {
-  array: [
-    // 'extension', // common
-    'configurations',
-    'analyticsModule', // analytics
-    'rule', // analytics
-    'simpleItem', // analytics
-    'elementItem', // analytics
-  ],
-  rawXML: [
-    'elementItem',
-    'subscriptionPolicy', // metadata
-    'filter', // metadata
-  ],
-};
 
 export interface GetStreamUriOptions {
   profileToken?: ReferenceToken;
@@ -254,7 +239,7 @@ export default class Media extends Service {
           ProfileToken: profileToken,
         },
       },
-      ConfigurationArraysAndExtensions,
+      MEDIA_NESTED_PARSE,
     );
     return response.getProfileResponse.profile;
   }
@@ -599,7 +584,7 @@ export default class Media extends Service {
       {
         [`Get${entityName}Configurations`]: {},
       },
-      ConfigurationArraysAndExtensions,
+      MEDIA_CONFIGURATION_PARSE,
     );
     return response[`get${entityName}ConfigurationsResponse`].configurations;
   }
@@ -700,7 +685,7 @@ export default class Media extends Service {
           ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
         },
       },
-      { array: ['configurations', 'analyticsModule', 'rule'] },
+      MEDIA_CONFIGURATION_PARSE,
     );
     return response[`getCompatible${entityName}ConfigurationsResponse`].configurations;
   }
@@ -839,7 +824,7 @@ export default class Media extends Service {
           ConfigurationToken: configurationToken,
         },
       },
-      ConfigurationArraysAndExtensions,
+      MEDIA_NESTED_PARSE,
     );
     return response[`get${entityName}ConfigurationResponse`].configuration;
   }

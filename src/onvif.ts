@@ -9,10 +9,10 @@ import { ConnectionOptions } from 'tls';
 import https, { Agent as HttpsAgent, RequestOptions } from 'https';
 import http, { Agent as HttpAgent } from 'http';
 import { Buffer } from 'buffer';
-import crypto from 'crypto';
 import {
   build,
   getDigestHeaders,
+  isSenderNotAuthorizedFault,
   linerase,
   OnvifAuthError,
   OnvifResponse,
@@ -21,8 +21,8 @@ import {
   parseSOAPString,
   soapActionFromBody,
   soapActionFromXml,
-  splitArgs,
 } from './utils';
+import { digestAuth as buildDigestAuth, passwordDigest as createPasswordDigest } from './auth';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
@@ -30,6 +30,7 @@ import type PTZ from './ptz';
 import type { Capabilities, Profile, SystemDateTime, VideoSource } from './interfaces/onvif';
 import type {
   GetDeviceInformationResponse,
+  GetSystemDateAndTimeResponse,
   SetSystemDateAndTime,
   Service as DeviceService,
 } from './interfaces/devicemgmt';
@@ -59,7 +60,7 @@ import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
 
 /**
- * Cam constructor options
+ * Onvif constructor options
  */
 export interface OnvifOptions {
   /** Set true if using `https` protocol, defaults to false. */
@@ -79,7 +80,7 @@ export interface OnvifOptions {
   agent?: HttpsAgent | HttpAgent | boolean;
   /** Force using hostname and port from constructor for the services (ex.: for proxying), defaults to false. */
   preserveAddress?: boolean;
-  /** Set false if the camera should not connect automatically, defaults false. */
+  /** Set true if the camera should connect automatically, defaults false. */
   autoConnect?: boolean;
   /**
    * All XAddrs from WS-Discovery (set by {@link Discovery}).
@@ -117,20 +118,30 @@ export interface OnvifServices {
   [key: string]: URL | undefined;
 }
 
+/**
+ * SOAP Body tree for {@link build} / {@link Onvif.request}
+ * (operation element name → children and `$` attributes).
+ */
+export type OnvifSoapBody = Record<string, unknown>;
+
 export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   headers?: http.OutgoingHttpHeaders;
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
-  body: Record<string, any>;
+  body: OnvifSoapBody;
   /** Defines another url to request */
   url?: URL;
-  /** Make request to PTZ uri or not */
-  ptz?: boolean;
   /** Timeout for pull-point event requests */
   timeout?: number;
+  /**
+   * Abort the HTTP request (useful for long-poll {@link Events} `PullMessages`).
+   * When aborted, the socket is destroyed and the promise rejects with `AbortError`.
+   * Passed through to Node's `http.request`.
+   */
+  signal?: AbortSignal;
   /** Additional SOAP-headers */
-  soapHeaders?: Record<string, any>;
+  soapHeaders?: OnvifSoapBody;
   /** Tags that should be forced to be arrays */
   array?: string[];
   /** Values of these tags will be in xml2js format */
@@ -196,6 +207,11 @@ export interface SystemDateTimeExtended extends SystemDateTime {
   dateTime: Date;
 }
 
+/** Parsed SOAP Body for GetSystemDateAndTime (camelCase from the XML parser). */
+interface GetSystemDateAndTimeSoapBody {
+  getSystemDateAndTimeResponse: GetSystemDateAndTimeResponse;
+}
+
 interface OnvifEvents {
   [Onvif.EVENT]: [msg: NotificationMessage];
   [Onvif.ERROR]: [error: Error];
@@ -238,6 +254,9 @@ interface OnvifEvents {
  *   await new Promise((r) => setTimeout(r, 500));
  *   await onvif.ptz.stop();
  * }
+ *
+ * // When finished with the device, close the client (see {@link Onvif.close}).
+ * await onvif.close();
  * ```
  * @category Core
  */
@@ -318,229 +337,55 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   static readonly CONNECT = 'connect';
 
-  /**
-   * Core device namespace for device v1.0 methods
-   * @example
-   * ```typescript
-   * const date = await onvif.device.getSystemDateAndTime();
-   * console.log(date.toLocaleString());
-   * ```
-   */
+  /** Lazy {@link Device} service namespace. */
   public readonly device: Device;
-  /**
-   * Media namespace for media v1.0 methods
-   * @example
-   * ```typescript
-   * const profiles = await onvif.media.getProfiles();
-   * console.log(profiles);
-   * ```
-   */
+  /** Lazy {@link Media} service namespace. */
   public readonly media: Media;
-  /**
-   * Media2 namespace for media2 v1.0 methods
-   * @example
-   * ```typescript
-   * const profiles = await onvif.media2.getProfiles();
-   * console.log(profiles);
-   * ```
-   */
+  /** Lazy {@link Media2} service namespace. */
   public readonly media2: Media2;
-  /**
-   * PTZ namespace for ptz v1.0 methods
-   * @example
-   * ```typescript
-   * const ptz = await onvif.ptz.getPTZStatus();
-   * console.log(ptz);
-   * ```
-   */
+  /** Lazy {@link PTZ} service namespace. */
   public readonly ptz: PTZ;
-  /**
-   * Events namespace for events v1.0 methods
-   * @example
-   * ```typescript
-   * onvif.on('event', (msg) => { console.log('-> request was', xml); });
-   * ```
-   */
+  /** Eager {@link Events} service (pull-point / WS-BaseNotification). */
   public readonly events: Events;
-  /**
-   * Replay namespace for replay v1.0 methods
-   * @example
-   * ```typescript
-   * const replay = await onvif.replay.getReplayConfiguration();
-   * console.log(replay);
-   * ```
-   */
+  /** Lazy {@link Replay} service namespace. */
   public readonly replay: Replay;
-  /**
-   * Imaging namespace for imaging v1.0 methods
-   * @example
-   * ```typescript
-   * const imaging = await onvif.imaging.getImagingSettings();
-   * console.log(imaging);
-   * ```
-   */
+  /** Lazy {@link Imaging} service namespace. */
   public readonly imaging: Imaging;
-  /**
-   * Recording namespace for recording v1.0 methods
-   * @example
-   * ```typescript
-   * const recording = await onvif.recording.getRecordingConfiguration();
-   * console.log(recording);
-   * ```
-   */
+  /** Lazy {@link Recording} service namespace. */
   public readonly recording: Recording;
-  /**
-   * DoorControl namespace for doorcontrol v1.0 methods
-   * @example
-   * ```typescript
-   * const doorControl = await onvif.doorControl.getDoorControlConfiguration();
-   * console.log(doorControl);
-   * ```
-   */
+  /** Lazy {@link DoorControl} service namespace. */
   public readonly doorControl: DoorControl;
-  /**
-   * AccessControl namespace for accesscontrol v1.0 methods
-   * @example
-   * ```typescript
-   * const list = await onvif.accessControl.getAccessPointInfoList();
-   * console.log(list);
-   * ```
-   */
+  /** Lazy {@link AccessControl} service namespace. */
   public readonly accessControl: AccessControl;
-  /**
-   * Credential namespace for credential v1.0 methods
-   * @example
-   * ```typescript
-   * const list = await onvif.credential.getCredentialInfoList();
-   * console.log(list);
-   * ```
-   */
+  /** Lazy {@link Credential} service namespace. */
   public readonly credential: Credential;
-  /**
-   * AccessRules namespace for accessrules v1.0 methods
-   * @example
-   * ```typescript
-   * const list = await onvif.accessRules.getAccessProfileInfoList();
-   * console.log(list);
-   * ```
-   */
+  /** Lazy {@link AccessRules} service namespace. */
   public readonly accessRules: AccessRules;
-  /**
-   * Schedule namespace for schedule v1.0 methods
-   * @example
-   * ```typescript
-   * const list = await onvif.schedule.getScheduleInfoList();
-   * console.log(list);
-   * ```
-   */
+  /** Lazy {@link Schedule} service namespace. */
   public readonly schedule: Schedule;
-  /**
-   * Provisioning namespace for provisioning v1.0 methods
-   * @example
-   * ```typescript
-   * const caps = await onvif.provisioning.getServiceCapabilities();
-   * console.log(caps);
-   * ```
-   */
+  /** Lazy {@link Provisioning} service namespace. */
   public readonly provisioning: Provisioning;
-  /**
-   * AdvancedSecurity namespace for advancedsecurity v1.0 methods
-   * @example
-   * ```typescript
-   * const caps = await onvif.advancedSecurity.getServiceCapabilities();
-   * console.log(caps);
-   * ```
-   */
+  /** Lazy {@link AdvancedSecurity} service namespace. */
   public readonly advancedSecurity: AdvancedSecurity;
-  /**
-   * Thermal namespace for thermal v1.0 methods
-   * @example
-   * ```typescript
-   * const thermal = await onvif.thermal.getConfigurations();
-   * console.log(thermal);
-   * ```
-   */
+  /** Lazy {@link Thermal} service namespace. */
   public readonly thermal: Thermal;
-  /**
-   * Uplink namespace for uplink v1.0 methods
-   * @example
-   * ```typescript
-   * const uplinks = await onvif.uplink.getUplinks();
-   * console.log(uplinks);
-   * ```
-   */
+  /** Lazy {@link Uplink} service namespace. */
   public readonly uplink: Uplink;
-  /**
-   * AppManagement namespace for appmgmt v1.0 methods
-   * @example
-   * ```typescript
-   * const apps = await onvif.appManagement.getInstalledApps();
-   * console.log(apps);
-   * ```
-   */
+  /** Lazy {@link AppManagement} service namespace. */
   public readonly appManagement: AppManagement;
-  /**
-   * Analytics namespace for analytics v1.0 methods
-   * @example
-   * ```typescript
-   * const analytics = await onvif.analytics.getAnalyticsConfiguration();
-   * console.log(analytics);
-   * ```
-   */
+  /** Lazy {@link Analytics} service namespace. */
   public readonly analytics: Analytics;
-  /**
-   * DeviceIO namespace for deviceio v1.0 methods
-   * @example
-   * ```typescript
-   * const deviceIO = await onvif.deviceIO.getDeviceIOConfiguration();
-   * console.log(deviceIO);
-   * ```
-   */
+  /** Lazy {@link DeviceIO} service namespace. */
   public readonly deviceIO: DeviceIO;
-  /**
-   * Display namespace for display v1.0 methods
-   * @example
-   * ```typescript
-   * const display = await onvif.display.getDisplayConfiguration();
-   * console.log(display);
-   * ```
-   */
+  /** Lazy {@link Display} service namespace. */
   public readonly display: Display;
-  /**
-   * ActionEngine namespace for actionengine v1.0 methods
-   * @example
-   * ```typescript
-   * const actionEngine = await onvif.actionEngine.getActionEngineConfiguration();
-   * console.log(actionEngine);
-   * ```
-   */
+  /** Lazy {@link ActionEngine} service namespace. */
   public readonly actionEngine: ActionEngine;
-  /**
-   * Search namespace for search v1.0 methods
-   * @example
-   * ```typescript
-   * const summary = await onvif.search.getRecordingSummary();
-   * console.log(summary);
-   * ```
-   */
+  /** Lazy {@link Search} service namespace. */
   public readonly search: Search;
-  /**
-   * AnalyticsDevice namespace for analytics device v1.0 methods
-   * @example
-   * ```typescript
-   * const controls = await onvif.analyticsDevice.getAnalyticsEngineControls();
-   * console.log(controls);
-   * ```
-   */
+  /** Lazy {@link AnalyticsDevice} service namespace. */
   public readonly analyticsDevice: AnalyticsDevice;
-  /**
-   * Receiver namespace for receiver v1.0 methods
-   * @example
-   * ```typescript
-   * const receivers = await onvif.receiver.getReceivers();
-   * console.log(receivers);
-   * ```
-   */
+  /** Lazy {@link Receiver} service namespace. */
   public readonly receiver: Receiver;
   /**
    * Indicates if the device is using secure connection
@@ -620,7 +465,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.password = options.password;
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
-    this.timeout = options.timeout || 120000;
+    this.timeout = options.timeout ?? 120000;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
     const httpLibrary = this.useSecure ? https : http;
@@ -661,12 +506,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.subscribe().catch((error) => this.emit('error', error));
+        this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
     });
     this.on('removeListener', (name) => {
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.unsubscribe().catch((error) => this.emit('error', error));
+        this.events.globalSubscription.unsubscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
     });
 
@@ -677,7 +522,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  envelopeBody(body: Record<string, any>) {
+  envelopeBody(body: OnvifSoapBody) {
     return {
       $: {
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -729,68 +574,59 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     };
   }
 
+  /** WS-Security PasswordDigest; see `createPasswordDigest` in `auth.ts`. */
   private passwordDigest() {
-    // When timeShift is known (learned from getSystemDateAndTime) keep the monotonic
-    // process.uptime() base so the Created timestamp is immune to wall-clock/NTP jumps.
-    // When it is not yet known, fall back to the local wall clock: process.uptime()*1000
-    // alone is ~1970, which cameras enforcing Created-timestamp replay protection (Axis)
-    // reject as "Sender not authorized", triggering false auth failures. (domotz BT-6835)
-    const timestamp = new Date(
-      this.timeShift !== undefined ? process.uptime() * 1000 + this.timeShift : Date.now(),
-    ).toISOString();
-    const nonce = crypto.randomBytes(16);
-    const cryptoDigest = crypto.createHash('sha1');
-    cryptoDigest.update(Buffer.concat([nonce, Buffer.from(timestamp, 'ascii'), Buffer.from(this.password!, 'ascii')]));
-    const passDigest = cryptoDigest.digest('base64');
-    return {
-      passDigest,
-      nonce: nonce.toString('base64'),
-      timestamp,
-    };
+    return createPasswordDigest(this.password!, this.timeShift);
   }
 
   private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
+      // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
+      // Include search: pathname alone drops query (e.g. subscription XAddrs with ?…).
+      const requestPath = (url: URL) => `${url.pathname}${url.search}`;
       const requestOptions: RequestOptions = {
-        ...options,
         ...(options.url
           ? {
               // if we have url property for pull-point event requests
               hostname: options.url.hostname,
-              path: options.url.pathname,
+              path: requestPath(options.url),
               port: options.url.port,
             }
           : {
               // try to guess the right path for the requested service
               hostname: this.hostname,
-              path: options.service
-                ? this.uri[options.service]
-                  ? this.uri[options.service]!.pathname
-                  : this.path
-                : this.path,
+              path:
+                options.service && this.uri[options.service]
+                  ? requestPath(this.uri[options.service]!)
+                  : this.path,
               port: this.port,
             }),
-        agent: options.agent ?? this.agent, // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections}
+        // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections
+        agent: options.agent ?? this.agent,
         timeout: this.timeout,
+        method: 'POST',
+        headers: {
+          ...options.headers,
+          // Match v0.x: charset + SOAP action. Some devices (Pelco) reject requests without action
+          // and return an empty body (#497).
+          'Content-Type': (() => {
+            const soapAction = options.action ?? soapActionFromXml(options.body);
+            return soapAction
+              ? `application/soap+xml;charset=utf-8;action="${soapAction}"`
+              : 'application/soap+xml;charset=utf-8';
+          })(),
+          'Content-Length': Buffer.byteLength(options.body, 'utf8').toString(),
+          charset: 'utf-8',
+        },
       };
-      requestOptions.headers = {
-        ...options.headers,
-        // Match v0.x: charset + SOAP action. Some devices (Pelco) reject requests without action
-        // and return an empty body (#497).
-        'Content-Type': (() => {
-          const action = options.action ?? soapActionFromXml(options.body);
-          return action
-            ? `application/soap+xml;charset=utf-8;action="${action}"`
-            : 'application/soap+xml;charset=utf-8';
-        })(),
-        'Content-Length': Buffer.byteLength(options.body, 'utf8').toString(),
-        charset: 'utf-8',
-      };
-      requestOptions.method = 'POST';
       const httpLibrary = this.useSecure ? https : http;
       if (this.useSecure) {
         Object.assign(requestOptions, this.secureOptions);
+      }
+      // After secureOptions so a custom ConnectionOptions bag cannot drop abort.
+      if (options.signal) {
+        requestOptions.signal = options.signal;
       }
       const request = httpLibrary.request(requestOptions, async (response) => {
         if (response.statusCode === 401) {
@@ -814,11 +650,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             alreadyReturned = true;
             response.destroy();
             try {
-              options.headers = {
-                ...options.headers,
-                authorization: this.digestAuth(digestHeadersArray, requestOptions),
-              };
-              const digestResponse = await this.rawRequest<T>(options);
+              const digestResponse = await this.rawRequest<T>({
+                ...options,
+                headers: {
+                  ...options.headers,
+                  authorization: this.digestAuth(digestHeadersArray, requestOptions),
+                },
+              });
               return resolve(digestResponse);
             } catch (e) {
               return reject(e);
@@ -859,6 +697,18 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             );
             return;
           }
+          // Non-2xx with HTML/proxy noise: fail before xml2js. SOAP-looking bodies still parse
+          // (some stacks return Fault with HTTP 500).
+          const httpOk = statusCode !== undefined && statusCode >= 200 && statusCode < 300;
+          if (!httpOk && !/<\s*(?:\w+:)?(?:Envelope|Fault)\b/i.test(xml)) {
+            reject(
+              new OnvifResponseError(`Unexpected HTTP ${statusCode ?? 'unknown'} response (non-SOAP body)`, {
+                xml,
+                statusCode,
+              }),
+            );
+            return;
+          }
           resolve(parseSOAPString(xml, options));
         });
         return undefined;
@@ -877,15 +727,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           return;
         }
         alreadyReturned = true;
-        /* address, port number or IPCam error */
-        if (error.code === 'ECONNREFUSED' && error.syscall === 'connect') {
-          reject(error);
-          /* network error */
-        } else if (error.code === 'ECONNRESET' && error.syscall === 'read') {
-          reject(error);
-        } else {
-          reject(error);
-        }
+        reject(error);
       });
 
       this.emit('rawRequest', options.body, requestOptions);
@@ -900,83 +742,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * Public for v0.x Cam compatibility (`digestAuth`).
    */
   public digestAuth(digestHeadersArray: string[], requestOptions: RequestOptions): string {
-    // Process each item in the wwwAuthenticateArray
-    // Most cameras have only 1 item.
-    // HikVision implementing the new MD5-then-SHA256 have two items
-    let bestResult;
-    let bestAlgorithm;
-
-    for (const digestHeader of digestHeadersArray) {
-      const challenge = this.parseChallenge(digestHeader);
-      // if 'algorithm' is undefined, the Digest RFC says we default to MD5
-      const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
-      const ha1 = crypto.createHash(algorithm);
-      ha1.update([this.username, challenge.realm, this.password].join(':'));
-      // Sony SRG-XP1 sends qop="auth,auth-int" it means the Server will accept either "auth" or "auth-int". We select "auth"
-      // We also need to handle spaces in the string e.g.like "auth, auth-int"
-      // So we split the QOP and then see if one item is "auth" using a trim to remove whitespace
-      if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
-        challenge.qop = 'auth';
-      }
-      const ha2 = crypto.createHash(algorithm);
-      ha2.update([requestOptions.method, requestOptions.path].join(':'));
-
-      let cnonce;
-      let nc;
-      if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
-        cnonce = crypto.randomBytes(4).toString('hex');
-        nc = this.updateNC();
-      }
-
-      // HASH_ALG is usually MD5 but can also be SHA256
-      // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
-      // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
-      const response = crypto.createHash(algorithm);
-      const responseParams = [ha1.digest('hex'), challenge.nonce];
-      if (cnonce && nc) {
-        responseParams.push(nc);
-        responseParams.push(cnonce);
-        responseParams.push(challenge.qop);
-      }
-      responseParams.push(ha2.digest('hex'));
-      response.update(responseParams.join(':'));
-
-      const authParams: Record<string, string> = {
-        username: `"${this.username}"`,
-        realm: `"${challenge.realm}"`,
-        nonce: `"${challenge.nonce}"`,
-        uri: `"${requestOptions.path}"`,
-      };
-      // Send back the original algorithm value, if we received one.
-      if ('algorithm' in challenge) {
-        authParams.algorithm = challenge.algorithm;
-      }
-      // RFC says only send qop, nc and cnonce if there was a QOP in the Header
-      // 'qop' and 'nc' do not have quotes around the Values
-      if ('qop' in challenge && nc) {
-        authParams.qop = challenge.qop; // no quotes
-        authParams.nc = nc; // no quotes
-        authParams.cnonce = `"${cnonce}"`;
-      }
-      authParams.response = `"${response.digest('hex')}"`;
-      if (challenge.opaque) {
-        authParams.opaque = `"${challenge.opaque}"`;
-      }
-      // Values that need quotes already include them; qop/nc stay unquoted per RFC
-      const result = `Digest ${Object.entries(authParams)
-        .map(([key, value]) => `${key}=${value}`)
-        .join(',')}`;
-      if (bestResult == null || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
-        // set bestResult or upgrade the bestResult to the stronger algorithm
-        bestResult = result;
-        bestAlgorithm = algorithm;
-      }
-    }
-    return bestResult as string;
+    return buildDigestAuth(
+      digestHeadersArray,
+      requestOptions,
+      { username: this.username, password: this.password },
+      () => this.updateNC(),
+    );
   }
 
   public request(options: OnvifRequestOptions): OnvifResponse {
-    options.headers = options.headers ?? {};
     const bodyObject = {
       's:Envelope': {
         $: {
@@ -994,20 +768,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.emit('requestBody', body);
     return this.rawRequest<Record<string, any>>({
       ...options,
+      headers: { ...options.headers },
       body,
       action,
     }).then((result) => {
       this.lastResponseXml = result[1];
       return result;
     });
-  }
-
-  private parseChallenge(digest: string): { [key: string]: string } {
-    const prefix = 'Digest ';
-    const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
-    const partsArray = splitArgs(challenge);
-    const parts = partsArray.map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
-    return Object.fromEntries(parts);
   }
 
   /**
@@ -1023,22 +790,77 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
+   * Close the client connection to the ONVIF device.
+   *
+   * Call this when you are done talking to the camera and want to release the
+   * session: stop the pull-point event subscription (if any) and tear down the
+   * HTTP agents. Until then, the default keep-alive agent may keep TCP sockets
+   * open so later SOAP calls reuse them — which also keeps a Node process from
+   * exiting (common in short scripts and Jest).
+   *
+   * What this method does:
+   * 1. Unsubscribes {@link Events.globalSubscription} (stops PullMessages / renew).
+   * 2. Destroys the Events HTTP agent and the main SOAP agent created by this instance.
+   *
+   * What it does **not** do: it is not an ONVIF “logout” RPC, and it does not
+   * destroy a custom or shared agent passed via {@link OnvifOptions.agent}
+   * (`agent: false` / non-Agent values are left alone). Safe to call more than once.
+   *
+   * @example
+   * ```ts
+   * await onvif.connect();
+   * // … use services …
+   * await onvif.close();
+   * ```
+   */
+  public async close(): Promise<void> {
+    try {
+      await this.events.globalSubscription.unsubscribe();
+    } catch {
+      // Device may already be gone; local pull loop is still stopped by unsubscribe.
+    }
+    Onvif.destroyHttpAgent(this.events.agent);
+    Onvif.destroyHttpAgent(this.agent);
+  }
+
+  private static destroyHttpAgent(agent: HttpsAgent | HttpAgent | boolean | undefined) {
+    // Skip `false` (no agent) and non-Agent values — never destroy http.globalAgent.
+    if (agent && typeof agent !== 'boolean' && typeof agent.destroy === 'function') {
+      try {
+        agent.destroy();
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /**
+   * Effective TCP port from a WHATWG URL.
+   * `URL.port` is `""` for scheme defaults (http→80, https→443), so string compare with
+   * `this.port` would always look different under {@link OnvifOptions.preserveAddress}.
+   */
+  private static urlPort(url: URL): number {
+    if (url.port) {
+      return Number(url.port);
+    }
+    return url.protocol === 'https:' ? 443 : 80;
+  }
+
+  /**
    * Parse url with an eye on `preserveAddress` property
    * @param address
    * @private
    */
   public parseUrl(address: string) {
     const parsedAddress = new URL(address);
-    // If host for service and default host differs, also if preserve address property set
-    // we substitute host, hostname and port from settings then rebuild the href using .format
+    // When preserveAddress is set, rewrite host/port to constructor values if they differ
+    // from the XAddr (proxy / NAT). Compare effective ports, not URL.port strings.
     if (
       this.preserveAddress &&
-      (this.hostname !== parsedAddress.hostname || this.port.toString() !== parsedAddress.port)
+      (this.hostname !== parsedAddress.hostname || this.port !== Onvif.urlPort(parsedAddress))
     ) {
       parsedAddress.hostname = this.hostname;
-      parsedAddress.host = `${this.hostname}:${this.port}`;
-      parsedAddress.port = this.port.toString();
-      parsedAddress.href = parsedAddress.toString();
+      parsedAddress.port = String(this.port);
     }
     return parsedAddress;
   }
@@ -1055,27 +877,27 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
     // to the correct time if the camera implements Replay Attack Protection (e.g. Axis)
     // Try the Unauthenticated Request first. Do not use envelopeHeader() as we don't have timeShift yet.
-    const body = {
+    const body: OnvifSoapBody = {
       GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } },
     };
-    const [data, xml] = await this.rawRequest({
-      body: build({
-        's:Envelope': {
-          $: {
-            'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
-          },
-          's:Body': this.envelopeBody(body),
-        },
-      }),
-      action: soapActionFromBody(body),
-    });
     try {
+      const [data] = await this.rawRequest<GetSystemDateAndTimeSoapBody>({
+        body: build({
+          's:Envelope': {
+            $: {
+              'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
+            },
+            's:Body': this.envelopeBody(body),
+          },
+        }),
+        action: soapActionFromBody(body),
+      });
       return this.setupSystemDateAndTime(data);
     } catch (error) {
-      if (xml && xml.toLowerCase().includes('sender not authorized')) {
-        // Try again with a Username and Password
+      // Real devices return a SOAP Fault (parsed as OnvifSoapFaultError), not a soft body + reason string.
+      if (isSenderNotAuthorizedFault(error)) {
         const [data] = await this.request({ body });
-        return this.setupSystemDateAndTime(data);
+        return this.setupSystemDateAndTime(data as GetSystemDateAndTimeSoapBody);
       }
       throw error;
     }
@@ -1090,14 +912,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Add time shift to use with ONVIF timestamps
-   * @param data
+   * @param data parsed SOAP Body containing GetSystemDateAndTimeResponse
    * @private
    */
-  private setupSystemDateAndTime(data: any): SystemDateTimeExtended {
-    const { systemDateAndTime } = linerase(data).getSystemDateAndTimeResponse;
+  private setupSystemDateAndTime(data: GetSystemDateAndTimeSoapBody): SystemDateTimeExtended {
+    const { systemDateAndTime } = linerase<GetSystemDateAndTimeSoapBody>(data).getSystemDateAndTimeResponse;
     // UTCDateTime is mandatory since version 2.0
     const UTCDateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
-    let dateTime;
+    let dateTime: Date;
     if (UTCDateTime === undefined) {
       // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
       dateTime = new Date();
@@ -1114,8 +936,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       );
     }
     this.timeShift = dateTime.getTime() - process.uptime() * 1000;
-    systemDateAndTime.dateTime = dateTime;
-    return systemDateAndTime;
+    return { ...systemDateAndTime, dateTime };
   }
 
   /**
@@ -1139,46 +960,39 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             TZ: options.timezone || options.timeZone?.TZ,
           },
         }),
-        ...(options.dateTime !== undefined && options.dateTime instanceof Date
-          ? {
-              UTCDateTime: {
-                Time: {
-                  Hour: options.dateTime.getUTCHours(),
-                  Minute: options.dateTime.getUTCMinutes(),
-                  Second: options.dateTime.getUTCSeconds(),
+        ...(options.dateTimeType === 'Manual' &&
+          (options.dateTime !== undefined && options.dateTime instanceof Date
+            ? {
+                UTCDateTime: {
+                  Time: {
+                    Hour: options.dateTime.getUTCHours(),
+                    Minute: options.dateTime.getUTCMinutes(),
+                    Second: options.dateTime.getUTCSeconds(),
+                  },
+                  Date: {
+                    Year: options.dateTime.getUTCFullYear(),
+                    Month: options.dateTime.getUTCMonth() + 1,
+                    Day: options.dateTime.getUTCDate(),
+                  },
                 },
-                Date: {
-                  Year: options.dateTime.getUTCFullYear(),
-                  Month: options.dateTime.getUTCMonth() + 1,
-                  Day: options.dateTime.getUTCDate(),
+              }
+            : {
+                UTCDateTime: {
+                  Time: {
+                    Hour: options.UTCDateTime?.time?.hour,
+                    Minute: options.UTCDateTime?.time?.minute,
+                    Second: options.UTCDateTime?.time?.second,
+                  },
+                  Date: {
+                    Year: options.UTCDateTime?.date?.year,
+                    Month: options.UTCDateTime?.date?.month,
+                    Day: options.UTCDateTime?.date?.day,
+                  },
                 },
-              },
-            }
-          : {
-              UTCDateTime: {
-                Time: {
-                  Hour: options.UTCDateTime?.time?.hour,
-                  Minute: options.UTCDateTime?.time?.minute,
-                  Second: options.UTCDateTime?.time?.second,
-                },
-                Date: {
-                  Year: options.UTCDateTime?.date?.year,
-                  Month: options.UTCDateTime?.date?.month,
-                  Day: options.UTCDateTime?.date?.day,
-                },
-              },
-            }),
+              })),
       },
     };
-    const [data] = await this.request({
-      // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
-      body,
-    });
-    if (data.setSystemDateAndTimeResponse.length !== 0) {
-      throw new OnvifResponseError(
-        `Wrong 'SetSystemDateAndTime' response: '${linerase(data).setSystemDateAndTimeResponse}'`,
-      );
-    }
+    await this.request({ body });
     // get new system time from device
     return this.getSystemDateAndTime();
   }

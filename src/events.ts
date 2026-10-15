@@ -676,10 +676,29 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   }
 
   /**
-   * Pull messages from the subscription
-   * @param options
+   * Pull messages from the subscription (long-poll).
+   *
+   * @param options ONVIF PullMessages fields, plus optional `signal` to cancel the HTTP request
+   * before the device Timeout elapses (see [innerDocs/events.md](../innerDocs/events.md)).
+   *
+   * @example Abort a one-minute pull after 5 seconds:
+   * ```ts
+   * const ac = new AbortController();
+   * const timer = setTimeout(() => ac.abort(), 5000);
+   * try {
+   *   const { notificationMessage } = await sub.pullMessages({
+   *     timeout: 'PT1M',
+   *     signal: ac.signal,
+   *   });
+   * } catch (err) {
+   *   if (!(err instanceof Error) || err.name !== 'AbortError') throw err;
+   *   // cancelled
+   * } finally {
+   *   clearTimeout(timer);
+   * }
+   * ```
    */
-  async pullMessages(options?: PullMessages): Promise<PullMessagesResponse> {
+  async pullMessages(options?: Partial<PullMessages> & { signal?: AbortSignal }): Promise<PullMessagesResponse> {
     const subscriptionParams = this.getSubscriptionUrlAndHeaders(
       'http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesRequest',
     );
@@ -701,6 +720,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       // timeout + 2 sec
       // ensures the socket does not get closed too early while the camera has up to 1 minute to reply
       timeout: toMs(timeout) + 2 * 1000,
+      signal: options?.signal,
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.onvif.events.agent,
       array: ['notificationMessage'],

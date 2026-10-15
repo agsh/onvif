@@ -298,8 +298,19 @@ describe('AnalyticsDevice (mocked)', () => {
       });
       expect(created[0].token).toBe(INPUT_TOKEN);
 
-      const { body, array } = (cam.request as jest.Mock).mock.calls[0][0];
-      expect(array).toEqual(['configuration']);
+      const { body, array, rawXML } = (cam.request as jest.Mock).mock.calls[0][0];
+      expect(array).toEqual(
+        expect.arrayContaining([
+          'configuration',
+          'engineConfiguration',
+          'metadataConfig',
+          'simpleItem',
+          'elementItem',
+          'analyticsModule',
+          'rule',
+        ]),
+      );
+      expect(rawXML).toEqual(['elementItem']);
       expect(body.CreateAnalyticsEngineInputs.ForcePersistence).toBe(true);
     });
 

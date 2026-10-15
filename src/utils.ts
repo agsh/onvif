@@ -50,6 +50,8 @@ export class OnvifResponseError extends OnvifError {}
  */
 export class OnvifSoapFaultError extends OnvifError {
   public readonly faultCode?: string;
+  /** SOAP 1.2 Subcode Value when present (e.g. `ter:NotAuthorized`). */
+  public readonly faultSubcode?: string;
   public readonly faultReason?: string;
   public readonly faultDetail?: string;
 
@@ -57,12 +59,14 @@ export class OnvifSoapFaultError extends OnvifError {
     message: string,
     options?: OnvifErrorOptions & {
       faultCode?: string;
+      faultSubcode?: string;
       faultReason?: string;
       faultDetail?: string;
     },
   ) {
     super(message, options);
     this.faultCode = options?.faultCode;
+    this.faultSubcode = options?.faultSubcode;
     this.faultReason = options?.faultReason;
     this.faultDetail = options?.faultDetail;
   }
@@ -93,6 +97,7 @@ function soapFaultText(value: unknown): string {
 
 function extractSoapFault(fault: Record<string, any>): {
   faultCode?: string;
+  faultSubcode?: string;
   faultReason: string;
   faultDetail: string;
 } {
@@ -101,8 +106,13 @@ function extractSoapFault(fault: Record<string, any>): {
   if (typeof codeValue === 'string') {
     faultCode = codeValue;
   } else if (codeValue != null && typeof codeValue === 'object') {
-    faultCode = soapFaultText(codeValue) || JSON.stringify(codeValue);
+    // Prefer the top-level Code/Value string; nested objects may be Subcode bags
+    const asText = soapFaultText(codeValue);
+    faultCode = asText || undefined;
   }
+
+  const subcodeRaw = fault.code?.subcode?.value ?? fault.code?.Subcode?.Value ?? fault.code?.subcode;
+  const faultSubcode = soapFaultText(subcodeRaw) || undefined;
 
   let faultReason = '';
   try {
@@ -123,7 +133,23 @@ function extractSoapFault(fault: Record<string, any>): {
     // ignore malformed detail
   }
 
-  return { faultCode, faultReason, faultDetail };
+  return { faultCode, faultSubcode, faultReason, faultDetail };
+}
+
+/**
+ * True when a SOAP Fault means the unauthenticated (or unauthorized) request was rejected
+ * and should be retried with credentials — e.g. Panasonic / Digital Barriers GetSystemDateAndTime.
+ */
+export function isSenderNotAuthorizedFault(error: unknown): boolean {
+  if (!(error instanceof OnvifSoapFaultError)) {
+    return false;
+  }
+  const normalized = [error.faultCode, error.faultSubcode, error.faultReason, error.faultDetail]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .map((part) => part.toLowerCase().replace(/[\s_-]+/g, ''));
+  return normalized.some(
+    (part) => part.includes('notauthorized') || part.includes('sendernotauthorized'),
+  );
 }
 
 export interface LineraseOptions {
@@ -131,6 +157,42 @@ export interface LineraseOptions {
   rawXML?: string[];
   name?: string;
 }
+
+/**
+ * Parse hints for `tt:ItemList` (`SimpleItem` / `ElementItem`).
+ * Use on Gets whose result may later go through `itemList()` / `config()`.
+ */
+export const ITEM_LIST_PARSE: LineraseOptions = {
+  array: ['simpleItem', 'elementItem'],
+  rawXML: ['elementItem'],
+};
+
+/**
+ * Parse hints for VideoAnalytics / Rule `Config` lists plus nested ItemList.
+ * (`AnalyticsModule` / `Rule` / `SimpleItem` / `ElementItem` are all maxOccurs unbounded.)
+ */
+export const ANALYTICS_CONFIG_PARSE: LineraseOptions = {
+  array: ['analyticsModule', 'rule', 'simpleItem', 'elementItem'],
+  rawXML: ['elementItem'],
+};
+
+/**
+ * Nested analytics / metadata inside one Profile or one Configuration entity.
+ * Do not include `configurations` / `profiles` — those are response-list wrappers.
+ * `Filter` and `SubscriptionPolicy` are single objects (rawXML only).
+ */
+export const MEDIA_NESTED_PARSE: LineraseOptions = {
+  array: ['analyticsModule', 'rule', 'simpleItem', 'elementItem'],
+  rawXML: ['elementItem', 'subscriptionPolicy', 'filter'],
+};
+
+/**
+ * Media Get*Configurations / GetCompatible* — `Configurations` is unbounded.
+ */
+export const MEDIA_CONFIGURATION_PARSE: LineraseOptions = {
+  array: ['configurations', ...MEDIA_NESTED_PARSE.array],
+  rawXML: MEDIA_NESTED_PARSE.rawXML,
+};
 
 /**
  * Parse SOAP object to pretty JS-object
@@ -330,16 +392,29 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
   if (Array.isArray(value)) {
     return value.map((item) => hydrateStopNode(item, options));
   }
-  const xmlToParse = `<root>${value._ ?? value}</root>`;
-  const parsed = parse(xmlToParse, { array: options.array }).root || {};
+  // Only use text content as inner XML — never stringify the attribute bag (`[object Object]`).
+  const innerXml =
+    typeof value === 'object' && value !== null ? String(value._ ?? '') : String(value ?? '');
+  const xmlToParse = `<root>${innerXml}</root>`;
+  let parsed: any = parse(xmlToParse, { array: options.array }).root;
   const wrapped = parse(xmlToParse, { attributesGroupName: '$' }).root;
-  let xsAnyParsed = (Array.isArray(wrapped) ? wrapped[0] : wrapped) || {};
-  if (typeof value === 'object') {
+  let xsAnyParsed: any = Array.isArray(wrapped) ? wrapped[0] : wrapped;
+
+  // Text-only / empty stop nodes: root may be a string, '', or undefined — always attach xsany to an object.
+  if (parsed == null || parsed === '') {
+    parsed = {};
+  } else if (typeof parsed !== 'object') {
+    parsed = { _: parsed };
+  }
+  if (xsAnyParsed == null || xsAnyParsed === '') {
+    xsAnyParsed = {};
+  } else if (typeof xsAnyParsed !== 'object') {
+    xsAnyParsed = { _: xsAnyParsed };
+  }
+
+  if (typeof value === 'object' && value !== null) {
     Object.assign(parsed, value);
     delete parsed._;
-    if (typeof xsAnyParsed !== 'object') {
-      xsAnyParsed = { _: xsAnyParsed };
-    }
     const $: Record<string, unknown> = {};
     for (const [key, attrValue] of Object.entries(value)) {
       if (key !== '_') {
@@ -348,6 +423,11 @@ function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
     }
     if (Object.keys($).length) {
       xsAnyParsed.$ = { ...$, ...xsAnyParsed.$ };
+    }
+    // Text-only ElementItem: keep payload on xsany._ when there are no child elements
+    const hasElementChildren = Object.keys(xsAnyParsed).some((k) => k !== '$' && k !== '_');
+    if (!hasElementChildren && typeof value._ === 'string' && value._ !== '') {
+      xsAnyParsed._ = value._;
     }
   }
   formatXMLValues(parsed, { array: options.array });
@@ -382,10 +462,11 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
     });
   }
   if (body.fault) {
-    const { faultCode, faultReason, faultDetail } = extractSoapFault(body.fault);
+    const { faultCode, faultSubcode, faultReason, faultDetail } = extractSoapFault(body.fault);
     throw new OnvifSoapFaultError(`ONVIF SOAP Fault: ${faultReason}${faultDetail}`, {
       xml,
       faultCode,
+      faultSubcode,
       faultReason,
       faultDetail,
     });
@@ -434,13 +515,20 @@ export function build(object: any) {
  * Derive SOAP 1.2 `action` URI from a request body object (first child of Body + its xmlns).
  * Matches v0.x Content-Type `action="namespace/Operation"` behaviour.
  */
-export function soapActionFromBody(body: Record<string, any>, fallbackXmlns?: string): string | undefined {
+export function soapActionFromBody(body: Record<string, unknown>, fallbackXmlns?: string): string | undefined {
   const keys = Object.keys(body).filter((key) => key !== '$');
   if (keys.length === 0) {
     return undefined;
   }
   const operation = keys[0];
-  const xmlns = body[operation]?.$?.xmlns ?? fallbackXmlns;
+  const operationNode = body[operation];
+  const xmlns =
+    (typeof operationNode === 'object' &&
+      operationNode !== null &&
+      '$' in operationNode &&
+      typeof (operationNode as { $?: { xmlns?: unknown } }).$?.xmlns === 'string' &&
+      (operationNode as { $: { xmlns: string } }).$.xmlns) ||
+    fallbackXmlns;
   if (!xmlns || typeof xmlns !== 'string') {
     return undefined;
   }

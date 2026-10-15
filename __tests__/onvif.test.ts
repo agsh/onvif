@@ -1,4 +1,5 @@
 import { Onvif } from '../src';
+import { OnvifSoapFaultError } from '../src/utils';
 import happytimeOnvifOptions from './happytime.json';
 
 let cam: Onvif;
@@ -43,10 +44,17 @@ describe('Date and time', () => {
     });
 
     it('should try to send request with WSSecurity if authorization is required', async () => {
-      jest.spyOn(cam as any, 'rawRequest').mockImplementationOnce(() => Promise.resolve([{}, 'sender not authorized']));
+      jest.spyOn(cam as any, 'rawRequest').mockImplementationOnce(() =>
+        Promise.reject(
+          new OnvifSoapFaultError('ONVIF SOAP Fault: Sender not authorized', {
+            faultCode: 's:Sender',
+            faultSubcode: 'ter:NotAuthorized',
+            faultReason: 'Sender not authorized',
+          }),
+        ),
+      );
       jest.spyOn(cam as any, 'request').mockImplementationOnce(() =>
         (cam as any).rawRequest({
-          // Try the Unauthenticated Request first. Do not use this._envelopeHeader() as we don't have timeShift yet.
           body:
             '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
             '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
@@ -94,16 +102,6 @@ describe('Date and time', () => {
         // @ts-expect-error UTCDateTime is required when dateTimeType is manual
         cam.setSystemDateAndTime({
           dateTimeType: 'Manual',
-        }),
-      ).rejects.toThrow();
-    });
-
-    it('should throw an error when the response from the device is not empty string', async () => {
-      jest.spyOn(cam as any, 'request').mockReturnValueOnce('whatever');
-      await expect(
-        cam.setSystemDateAndTime({
-          dateTimeType: 'NTP',
-          daylightSavings: false,
         }),
       ).rejects.toThrow();
     });

@@ -20,13 +20,21 @@ import type {
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
 import type { MediaProfile } from './interfaces/media.2';
-import { OnvifError, OnvifValidationError, type LineraseOptions } from './utils';
+import { MEDIA_NESTED_PARSE, OnvifError, OnvifValidationError, type LineraseOptions } from './utils';
 import { XMLNS } from './service';
 
-/** Same array/rawXML hints as Media.getProfiles for linerase. */
+/** Media1 GetProfiles — `Profiles` unbounded; nested configs are single entities. */
 const MEDIA_PROFILE_PARSE: LineraseOptions = {
-  array: ['profiles', 'configurations', 'analyticsModule', 'rule', 'simpleItem', 'elementItem'],
-  rawXML: ['elementItem', 'subscriptionPolicy', 'filter'],
+  array: ['profiles', ...MEDIA_NESTED_PARSE.array],
+  rawXML: MEDIA_NESTED_PARSE.rawXML,
+};
+
+/**
+ * Media2 GetProfiles — `Profiles` unbounded; `Configurations` is one ConfigurationSet (object).
+ */
+const MEDIA2_PROFILE_PARSE: LineraseOptions = {
+  array: ['profiles', ...MEDIA_NESTED_PARSE.array],
+  rawXML: MEDIA_NESTED_PARSE.rawXML,
 };
 
 async function serviceRequest(
@@ -216,7 +224,7 @@ export async function probeMedia2Profiles(onvif: Onvif): Promise<Profile[]> {
         Type: 'All',
       },
     },
-    { array: ['profiles'] },
+    MEDIA2_PROFILE_PARSE,
   );
   const media2Profiles = (response.getProfilesResponse?.profiles as MediaProfile[]) ?? [];
   // A successful SOAP reply must keep media2Support; skip malformed entries instead of failing the probe.

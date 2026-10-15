@@ -3,12 +3,14 @@
  * @jest-environment node
  */
 
+import http from 'http';
 import AccessRules from '../src/accessrules';
 import Credential from '../src/credential';
 import Device from '../src/device';
 import { Onvif } from '../src/onvif';
 import { lazyService } from '../src/service';
 import Events from '../src/events';
+import { OnvifSoapFaultError } from '../src/utils';
 
 describe('Service options and builders', () => {
   it('builds and manages AccessRules profiles with optional fields', async () => {
@@ -98,10 +100,14 @@ describe('Service options and builders', () => {
 
     const defaultsHttp = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     expect(defaultsHttp.port).toBe(80);
+    expect(defaultsHttp.timeout).toBe(120000);
     expect((defaultsHttp.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
     const defaultsHttps = new Onvif({ hostname: '127.0.0.1', useSecure: true, autoConnect: false });
     expect(defaultsHttps.port).toBe(443);
     expect((defaultsHttps.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
+    // timeout: 0 must be kept (|| would replace it with 120000)
+    const zeroTimeout = new Onvif({ hostname: '127.0.0.1', timeout: 0, autoConnect: false });
+    expect(zeroTimeout.timeout).toBe(0);
 
     const preserved = secure.parseUrl('http://other.host:8000/onvif/media_service');
     expect(preserved.hostname).toBe('cam.local');
@@ -110,9 +116,105 @@ describe('Service options and builders', () => {
     const unchanged = defaultsHttp.parseUrl('http://127.0.0.1/onvif/device_service');
     expect(unchanged.hostname).toBe('127.0.0.1');
 
+    // Default http port: URL.port is "" — must not treat that as "different from 80"
+    const sameDefaultPort = new Onvif({
+      hostname: '127.0.0.1',
+      port: 80,
+      preserveAddress: true,
+      autoConnect: false,
+    });
+    const sameHost = sameDefaultPort.parseUrl('http://127.0.0.1/onvif/device_service');
+    expect(sameHost.hostname).toBe('127.0.0.1');
+    expect(sameHost.port).toBe(''); // WHATWG omits default port
+    const otherHostDefaultPort = sameDefaultPort.parseUrl('http://camera.lan/onvif/device_service');
+    expect(otherHostDefaultPort.hostname).toBe('127.0.0.1');
+    expect(otherHostDefaultPort.port).toBe(''); // rewritten host, still default http port
+
     (secure as any).nc = 99999999;
     expect((secure as any).updateNC()).toBe('00000001');
     expect((secure as any).updateNC()).toBe('00000002');
+  });
+
+  it('retries getSystemDateAndTime when SOAP Fault is NotAuthorized', async () => {
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      autoConnect: false,
+      useWSSecurity: true,
+      username: 'admin',
+      password: 'secret',
+    });
+    jest.spyOn(onvif as any, 'rawRequest').mockRejectedValueOnce(
+      new OnvifSoapFaultError('ONVIF SOAP Fault: Sender not authorized', {
+        faultCode: 's:Sender',
+        faultSubcode: 'ter:NotAuthorized',
+        faultReason: 'Sender not authorized',
+      }),
+    );
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getSystemDateAndTimeResponse: {
+          systemDateAndTime: {
+            dateTimeType: 'Manual',
+            daylightSavings: false,
+            UTCDateTime: {
+              date: { year: 2024, month: 6, day: 15 },
+              time: { hour: 12, minute: 30, second: 45 },
+            },
+          },
+        },
+      },
+      '<ok/>',
+    ]);
+
+    const result = await onvif.getSystemDateAndTime();
+    expect(result.dateTime).toEqual(new Date(Date.UTC(2024, 5, 15, 12, 30, 45)));
+    expect(onvif.timeShift).toBeDefined();
+    expect(onvif.request).toHaveBeenCalled();
+  });
+
+  it('aborts an in-flight SOAP request via AbortSignal', async () => {
+    const server = http.createServer((_req, res) => {
+      // Never respond — wait for client abort
+      res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.listen(0, '127.0.0.1', () => resolve());
+      server.on('error', reject);
+    });
+    const { port } = server.address() as import('net').AddressInfo;
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      port,
+      autoConnect: false,
+      useWSSecurity: false,
+      agent: false,
+      timeout: 30_000,
+    });
+    const ac = new AbortController();
+    const pending = onvif.request({
+      body: { GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } } },
+      signal: ac.signal,
+    });
+    setTimeout(() => ac.abort(), 20);
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  });
+
+  it('close unsubscribes events and destroys keep-alive agents', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const unsubscribe = jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    const destroyMain = jest.spyOn(onvif.agent as import('http').Agent, 'destroy');
+    const destroyEvents = jest.spyOn(onvif.events.agent, 'destroy');
+
+    await onvif.close();
+    expect(unsubscribe).toHaveBeenCalled();
+    expect(destroyMain).toHaveBeenCalled();
+    expect(destroyEvents).toHaveBeenCalled();
+
+    // agent: false must not throw (nothing to destroy on the main client)
+    const noAgent = new Onvif({ hostname: '127.0.0.1', autoConnect: false, agent: false });
+    jest.spyOn(noAgent.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    await expect(noAgent.close()).resolves.toBeUndefined();
   });
 
   it('serializes Device geo location entities with optional fields', () => {

@@ -69,8 +69,16 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
-import { OnvifValidationError } from './utils';
+import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
 import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
+
+/**
+ * Media2 GetProfiles — `Configurations` is one ConfigurationSet (object), not a list.
+ */
+const MEDIA2_PROFILE_PARSE = {
+  array: ['profiles', ...MEDIA_NESTED_PARSE.array],
+  rawXML: MEDIA_NESTED_PARSE.rawXML,
+};
 
 /**
  * Configurations as defined by tr2:ConfigurationEnumeration
@@ -176,7 +184,7 @@ export default class Media2 extends Service {
           Type: type !== undefined ? type : 'All',
         },
       },
-      { array: ['profiles'] },
+      MEDIA2_PROFILE_PARSE,
     );
     return response.getProfilesResponse.profiles;
   }
@@ -293,7 +301,7 @@ export default class Media2 extends Service {
           ...(configurationToken !== undefined && { ConfigurationToken: configurationToken }),
         },
       },
-      { array: ['configurations'] },
+      MEDIA_CONFIGURATION_PARSE,
     );
     return response[`get${entityName}ConfigurationsResponse`].configurations;
   }

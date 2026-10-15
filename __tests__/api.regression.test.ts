@@ -13,9 +13,13 @@ import pkg from '../package.json';
 
 /** Runtime value exports from `require('onvif')` / `import * as onvif`. Service classes are type-only. */
 const MAIN_RUNTIME_EXPORTS = [
+  'ANALYTICS_CONFIG_PARSE',
   'Discovery',
   'DiscoverySingleton',
   'Events',
+  'ITEM_LIST_PARSE',
+  'MEDIA_CONFIGURATION_PARSE',
+  'MEDIA_NESTED_PARSE',
   'Onvif',
   'OnvifAuthError',
   'OnvifError',
@@ -28,6 +32,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'formatXMLValues',
   'getDigestHeaders',
   'guid',
+  'isSenderNotAuthorizedFault',
   'linerase',
   'parseSOAPString',
   'soapActionFromBody',

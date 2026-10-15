@@ -124,6 +124,7 @@ import { Onvif } from 'onvif';
 const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
 await onvif.connect();
 await onvif.media.getProfiles();
+await onvif.close(); // release keep-alive sockets when done with the device
 ```
 
 ```js
@@ -163,10 +164,11 @@ const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin
 await onvif.connect();
 const info = await onvif.device.getDeviceInformation();
 console.log(info);
+await onvif.close(); // when finished with the device
 ```
 
 Same import works from CommonJS (`require('onvif')`) and ESM. Call `connect()` before service methods
-(or pass `autoConnect: true`).
+(or pass `autoConnect: true`). Call `close()` when you no longer need the connection.
 
 ### Example project
 
@@ -276,6 +278,12 @@ internal state so later SOAP requests are authenticated and routed to the correc
 
 On success, `connect()` emits `connect` and returns the instance. See [Quick start](#quick-start) for a minimal example.
 
+When you are finished with the device, call `await onvif.close()`. That stops the pull-point event
+subscription (if running) and destroys the HTTP keep-alive agents so sockets are released. Without
+`close()`, idle keep-alive connections can keep a Node process from exiting (short scripts, tests).
+It is not an ONVIF logout call — only local cleanup. Safe to call more than once; a custom
+`agent: false` (or a shared agent you own) is not destroyed.
+
 ---
 
 # Services
@@ -304,6 +312,9 @@ Full guide (including `Subscription` and push notifications): [innerDocs/events.
 
 ONVIF schemas use `xs:any` / `xs:anyAttribute` extension points. This library exposes them via `xsany` and `$`
 so vendor-specific XML can be read and written without losing data.
+
+After parse you get a camelCase view **and** a wire tree on `obj[xsany]`. Setters serialize **`[xsany]` only**
+(plus a few typed fields like `ElementItem.name`) — editing `elementItem.cellLayout` alone does not change the SOAP.
 
 Details and camera examples: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 
