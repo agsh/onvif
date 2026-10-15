@@ -43,8 +43,8 @@ describe('DoorControl', () => {
 
     it('should return door info for requested tokens', async () => {
       const response = await cam.doorControl.getDoorInfo({ token: [DOOR_TOKEN_1, DOOR_TOKEN_2] });
-      expect(response.doorInfo?.length).toBe(2);
-      expect(response.doorInfo?.map((d) => d.token)).toEqual(expect.arrayContaining([DOOR_TOKEN_1, DOOR_TOKEN_2]));
+      expect(response.length).toBe(2);
+      expect(response.map((d) => d.token)).toEqual(expect.arrayContaining([DOOR_TOKEN_1, DOOR_TOKEN_2]));
     });
   });
 
@@ -58,9 +58,9 @@ describe('DoorControl', () => {
 
     it('should return doors for requested tokens', async () => {
       const response = await cam.doorControl.getDoors({ token: [DOOR_TOKEN_1] });
-      expect(response.door?.length).toBe(1);
-      expect(response.door?.[0].token).toBe(DOOR_TOKEN_1);
-      expect(response.door?.[0].name).toBe('DoorName_1');
+      expect(response.length).toBe(1);
+      expect(response[0].token).toBe(DOOR_TOKEN_1);
+      expect(response[0].name).toBe('DoorName_1');
     });
   });
 

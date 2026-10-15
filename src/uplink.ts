@@ -11,7 +11,6 @@ import {
   Capabilities,
   Configuration,
   DeleteUplink,
-  GetUplinksResponse,
   SetUplink,
 } from './interfaces/uplink';
 
@@ -26,14 +25,14 @@ import {
  * await onvif.connect();
  *
  * const caps = await onvif.uplink.getServiceCapabilities();
- * const { configuration } = await onvif.uplink.getUplinks();
- * console.log(caps, configuration?.map((c) => c.remoteAddress));
+ * const configurations = await onvif.uplink.getUplinks();
+ * console.log(caps, configurations.map((c) => c.remoteAddress));
  *
  * await onvif.uplink.setUplink({
  *   configuration: {
  *     remoteAddress: 'https://uplink.example.com/path',
  *     userLevel: ['Administrator'],
- *     ...(configuration?.[0]?.certificateID && { certificateID: configuration[0].certificateID }),
+ *     ...(configurations[0]?.certificateID && { certificateID: configurations[0].certificateID }),
  *   },
  * });
  * // await onvif.uplink.deleteUplink({ remoteAddress: 'https://uplink.example.com/path' });
@@ -72,15 +71,16 @@ export default class Uplink extends Service {
 
   /**
    * Returns the configured uplink configurations.
+   * @returns Uplink configurations
    */
-  async getUplinks(): Promise<GetUplinksResponse> {
+  async getUplinks(): Promise<Configuration[]> {
     const response = await this.request(
       {
         GetUplinks: {},
       },
       { array: ['configuration'] },
     );
-    return response.getUplinksResponse ?? {};
+    return response.getUplinksResponse?.configuration ?? [];
   }
 
   /**

@@ -35,20 +35,20 @@ describe('Optional payloads and empty responses', () => {
     expect(await accessControl.getServiceCapabilities()).toEqual({});
     expect(await accessControl.getAccessPointInfoList(page)).toEqual({});
     expect(await accessControl.getAccessPointList(page)).toEqual({});
-    expect(await accessControl.getAccessPointInfo({ token: ['ap1'] })).toEqual({});
-    expect(await accessControl.getAccessPoints({ token: ['ap1'] })).toEqual({});
+    expect(await accessControl.getAccessPointInfo({ token: ['ap1'] })).toEqual([]);
+    expect(await accessControl.getAccessPoints({ token: ['ap1'] })).toEqual([]);
     expect(await accessControl.getAreaInfoList(page)).toEqual({});
     expect(await accessControl.getAreaList(page)).toEqual({});
-    expect(await accessControl.getAreaInfo({ token: ['a1'] })).toEqual({});
-    expect(await accessControl.getAreas({ token: ['a1'] })).toEqual({});
+    expect(await accessControl.getAreaInfo({ token: ['a1'] })).toEqual([]);
+    expect(await accessControl.getAreas({ token: ['a1'] })).toEqual([]);
 
     const doorControl = new DoorControl(onvif);
     mockEmpty(doorControl);
     expect(await doorControl.getServiceCapabilities()).toEqual({});
     expect(await doorControl.getDoorInfoList(page)).toEqual({});
     expect(await doorControl.getDoorList(page)).toEqual({});
-    expect(await doorControl.getDoorInfo({ token: ['d1'] })).toEqual({});
-    expect(await doorControl.getDoors({ token: ['d1'] })).toEqual({});
+    expect(await doorControl.getDoorInfo({ token: ['d1'] })).toEqual([]);
+    expect(await doorControl.getDoors({ token: ['d1'] })).toEqual([]);
     await doorControl.createDoor({
       door: {
         token: '',
@@ -81,9 +81,9 @@ describe('Optional payloads and empty responses', () => {
     mockEmpty(credential);
     expect(await credential.getServiceCapabilities()).toEqual({});
     expect(await credential.getSupportedFormatTypes({ credentialIdentifierTypeName: 'pt:Card' })).toEqual([]);
-    expect(await credential.getCredentialInfo({ token: ['c1'] })).toEqual({});
+    expect(await credential.getCredentialInfo({ token: ['c1'] })).toEqual([]);
     expect(await credential.getCredentialInfoList(page)).toEqual({});
-    expect(await credential.getCredentials({ token: ['c1'] })).toEqual({});
+    expect(await credential.getCredentials({ token: ['c1'] })).toEqual([]);
     expect(await credential.getCredentialList(page)).toEqual({});
     expect(await credential.getCredentialIdentifiers({ credentialToken: 'c1' })).toEqual([]);
     expect(await credential.getCredentialAccessProfiles({ credentialToken: 'c1' })).toEqual([]);
@@ -97,12 +97,12 @@ describe('Optional payloads and empty responses', () => {
     expect(await schedule.getServiceCapabilities()).toEqual({});
     expect(await schedule.getScheduleInfoList(page)).toEqual({});
     expect(await schedule.getScheduleList(page)).toEqual({});
-    expect(await schedule.getScheduleInfo({ token: ['s1'] })).toEqual({});
-    expect(await schedule.getSchedules({ token: ['s1'] })).toEqual({});
+    expect(await schedule.getScheduleInfo({ token: ['s1'] })).toEqual([]);
+    expect(await schedule.getSchedules({ token: ['s1'] })).toEqual([]);
     expect(await schedule.getSpecialDayGroupInfoList(page)).toEqual({});
     expect(await schedule.getSpecialDayGroupList(page)).toEqual({});
-    expect(await schedule.getSpecialDayGroupInfo({ token: ['g1'] })).toEqual({});
-    expect(await schedule.getSpecialDayGroups({ token: ['g1'] })).toEqual({});
+    expect(await schedule.getSpecialDayGroupInfo({ token: ['g1'] })).toEqual([]);
+    expect(await schedule.getSpecialDayGroups({ token: ['g1'] })).toEqual([]);
     await schedule.createSchedule({
       schedule: {
         token: '',
@@ -122,8 +122,8 @@ describe('Optional payloads and empty responses', () => {
     const accessRules = new AccessRules(onvif);
     mockEmpty(accessRules);
     expect(await accessRules.getServiceCapabilities()).toEqual({});
-    expect(await accessRules.getAccessProfileInfo({ token: ['ap1'] })).toEqual({});
-    expect(await accessRules.getAccessProfiles({ token: ['ap1'] })).toEqual({});
+    expect(await accessRules.getAccessProfileInfo({ token: ['ap1'] })).toEqual([]);
+    expect(await accessRules.getAccessProfiles({ token: ['ap1'] })).toEqual([]);
   });
 
   it('covers Device builder optional fields and empty user/protocol responses', async () => {

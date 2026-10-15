@@ -254,8 +254,8 @@ interface OnvifEvents {
  * console.log(await onvif.device.getDeviceInformation());
  * console.log(onvif.profiles.map((p) => p.name));
  *
- * const { uri } = await onvif.media.getStreamUri({ protocol: 'RTSP' });
- * console.log('RTSP', uri);
+ * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+ * console.log('RTSP', stream.mediaUri.uri);
  *
  * if (onvif.uri.ptz) {
  *   await onvif.ptz.continuousMove({ velocity: { x: 0.2, y: 0, zoom: 0 } });

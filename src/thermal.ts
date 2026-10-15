@@ -12,9 +12,9 @@ import {
   Configuration,
   ConfigurationOptions,
   Cooler,
+  Configurations,
   GetConfiguration,
   GetConfigurationOptions,
-  GetConfigurationsResponse,
   GetRadiometryConfiguration,
   GetRadiometryConfigurationOptions,
   NUCTable,
@@ -35,8 +35,8 @@ import {
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
  * await onvif.connect();
  *
- * const { configurations } = await onvif.thermal.getConfigurations();
- * const videoSourceToken = configurations![0].token;
+ * const configurations = await onvif.thermal.getConfigurations();
+ * const videoSourceToken = configurations[0].token;
  * const current = await onvif.thermal.getConfiguration({ videoSourceToken });
  * const options = await onvif.thermal.getConfigurationOptions({ videoSourceToken });
  * console.log(current.polarity, options.colorPalette?.map((p) => p.name));
@@ -44,7 +44,7 @@ import {
  * await onvif.thermal.setConfiguration({
  *   videoSourceToken,
  *   configuration: {
- *     colorPalette: configurations![0].configuration.colorPalette,
+ *     colorPalette: configurations[0].configuration.colorPalette,
  *     polarity: current.polarity === 'WhiteHot' ? 'BlackHot' : 'WhiteHot',
  *   },
  * });
@@ -165,15 +165,16 @@ export default class Thermal extends Service {
 
   /**
    * Gets the Thermal Configuration for all thermal VideoSources of the Device.
+   * @returns Thermal configurations for all video sources
    */
-  async getConfigurations(): Promise<GetConfigurationsResponse> {
+  async getConfigurations(): Promise<Configurations[]> {
     const response = await this.request(
       {
         GetConfigurations: {},
       },
       { array: ['configurations'] },
     );
-    return response.getConfigurationsResponse ?? {};
+    return response.getConfigurationsResponse?.configurations ?? [];
   }
 
   /**

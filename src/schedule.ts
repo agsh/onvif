@@ -17,20 +17,16 @@ import {
   GetScheduleInfo,
   GetScheduleInfoList,
   GetScheduleInfoListResponse,
-  GetScheduleInfoResponse,
   GetScheduleList,
   GetScheduleListResponse,
   GetSchedules,
-  GetSchedulesResponse,
   GetScheduleState,
   GetSpecialDayGroupInfo,
   GetSpecialDayGroupInfoList,
   GetSpecialDayGroupInfoListResponse,
-  GetSpecialDayGroupInfoResponse,
   GetSpecialDayGroupList,
   GetSpecialDayGroupListResponse,
   GetSpecialDayGroups,
-  GetSpecialDayGroupsResponse,
   ModifySchedule,
   ModifySpecialDayGroup,
   Schedule as ScheduleEntity,
@@ -58,9 +54,9 @@ import {
  * const list = await onvif.schedule.getScheduleInfoList();
  * const groups = await onvif.schedule.getSpecialDayGroupInfoList();
  * const token = list.scheduleInfo![0].token;
- * const { schedule } = await onvif.schedule.getSchedules({ token: [token] });
+ * const schedules = await onvif.schedule.getSchedules({ token: [token] });
  * const state = await onvif.schedule.getScheduleState({ token });
- * console.log(caps, schedule?.[0]?.standard, groups.specialDayGroupInfo?.length, state.active);
+ * console.log(caps, schedules[0]?.standard, groups.specialDayGroupInfo?.length, state.active);
  * ```
  * @category Services
  */
@@ -142,10 +138,11 @@ export default class Schedule extends Service {
   /**
    * Returns schedule info items for the requested tokens.
    * @param options
+   * @returns Schedule info items
    */
-  async getScheduleInfo({ token }: GetScheduleInfo): Promise<GetScheduleInfoResponse> {
+  async getScheduleInfo({ token }: GetScheduleInfo): Promise<ScheduleInfo[]> {
     const response = await this.request({ GetScheduleInfo: { Token: token } }, { array: ['scheduleInfo'] });
-    return response.getScheduleInfoResponse || {};
+    return response.getScheduleInfoResponse?.scheduleInfo ?? [];
   }
 
   /**
@@ -168,13 +165,14 @@ export default class Schedule extends Service {
   /**
    * Returns schedule items for the requested tokens.
    * @param options
+   * @returns Schedules
    */
-  async getSchedules({ token }: GetSchedules): Promise<GetSchedulesResponse> {
+  async getSchedules({ token }: GetSchedules): Promise<ScheduleEntity[]> {
     const response = await this.request(
       { GetSchedules: { Token: token } },
       { array: ['schedule', 'specialDays', 'timeRange'] },
     );
-    return response.getSchedulesResponse || {};
+    return response.getSchedulesResponse?.schedule ?? [];
   }
 
   /**
@@ -230,13 +228,14 @@ export default class Schedule extends Service {
   /**
    * Returns special day group info items for the requested tokens.
    * @param options
+   * @returns Special day group info items
    */
-  async getSpecialDayGroupInfo({ token }: GetSpecialDayGroupInfo): Promise<GetSpecialDayGroupInfoResponse> {
+  async getSpecialDayGroupInfo({ token }: GetSpecialDayGroupInfo): Promise<SpecialDayGroupInfo[]> {
     const response = await this.request(
       { GetSpecialDayGroupInfo: { Token: token } },
       { array: ['specialDayGroupInfo'] },
     );
-    return response.getSpecialDayGroupInfoResponse || {};
+    return response.getSpecialDayGroupInfoResponse?.specialDayGroupInfo ?? [];
   }
 
   /**
@@ -261,10 +260,11 @@ export default class Schedule extends Service {
   /**
    * Returns special day group items for the requested tokens.
    * @param options
+   * @returns Special day groups
    */
-  async getSpecialDayGroups({ token }: GetSpecialDayGroups): Promise<GetSpecialDayGroupsResponse> {
+  async getSpecialDayGroups({ token }: GetSpecialDayGroups): Promise<SpecialDayGroup[]> {
     const response = await this.request({ GetSpecialDayGroups: { Token: token } }, { array: ['specialDayGroup'] });
-    return response.getSpecialDayGroupsResponse || {};
+    return response.getSpecialDayGroupsResponse?.specialDayGroup ?? [];
   }
 
   /**

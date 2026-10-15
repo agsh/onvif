@@ -8,12 +8,12 @@ import { Onvif } from './onvif';
 import Service from './service';
 import {
   Activate,
+  App,
+  AppInfo,
   Capabilities,
   Deactivate,
   GetAppsInfo,
-  GetAppsInfoResponse,
   GetDeviceIdResponse,
-  GetInstalledAppsResponse,
   InstallLicense,
   Uninstall,
 } from './interfaces/appmgmt';
@@ -30,12 +30,12 @@ import {
  *
  * const caps = await onvif.appManagement.getServiceCapabilities();
  * const deviceId = await onvif.appManagement.getDeviceId();
- * const { app } = await onvif.appManagement.getInstalledApps();
- * console.log(caps, deviceId, app?.map((a) => a.appID));
+ * const apps = await onvif.appManagement.getInstalledApps();
+ * console.log(caps, deviceId, apps.map((a) => a.appID));
  *
- * const appID = app![0].appID;
- * const { info } = await onvif.appManagement.getAppsInfo({ appID });
- * console.log(info?.[0]?.state, info?.[0]?.name);
+ * const appID = apps[0].appID;
+ * const info = await onvif.appManagement.getAppsInfo({ appID });
+ * console.log(info[0]?.state, info[0]?.name);
  *
  * await onvif.appManagement.activate({ appID });
  * // await onvif.appManagement.deactivate({ appID });
@@ -59,17 +59,19 @@ export default class AppManagement extends Service {
 
   /**
    * Returns the list of installed applications.
+   * @returns Installed applications
    */
-  async getInstalledApps(): Promise<GetInstalledAppsResponse> {
+  async getInstalledApps(): Promise<App[]> {
     const response = await this.request({ GetInstalledApps: {} }, { array: ['app'] });
-    return response.getInstalledAppsResponse ?? {};
+    return response.getInstalledAppsResponse?.app ?? [];
   }
 
   /**
    * Returns detailed information for installed applications.
    * @param options
+   * @returns Application info items
    */
-  async getAppsInfo(options: GetAppsInfo = {}): Promise<GetAppsInfoResponse> {
+  async getAppsInfo(options: GetAppsInfo = {}): Promise<AppInfo[]> {
     const response = await this.request(
       {
         GetAppsInfo: {
@@ -78,7 +80,7 @@ export default class AppManagement extends Service {
       },
       { array: ['info', 'licenses', 'privileges', 'interfaceDescription'] },
     );
-    return response.getAppsInfoResponse ?? {};
+    return response.getAppsInfoResponse?.info ?? [];
   }
 
   /**

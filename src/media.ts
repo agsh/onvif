@@ -21,6 +21,7 @@ import {
   MetadataConfiguration,
   MetadataConfigurationOptions,
   OSDConfiguration,
+  OSDConfigurationOptions,
   Profile,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
@@ -95,12 +96,10 @@ import {
   GetVideoSourceModes,
   VideoSourceMode,
   SetVideoSourceMode,
-  SetVideoSourceModeResponse,
   GetOSD,
   GetVideoSourceConfigurationOptions,
-  CreateOSDResponse,
 } from './interfaces/media';
-import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
+import { DeleteOSD, GetOSDOptions, GetOSDs, TransportProtocol } from './interfaces/media.2';
 import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE } from './utils';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
 
@@ -179,9 +178,9 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
  * const profileToken = profiles[0]!.token;
  * console.log(profiles.map((p) => ({ name: p.name, token: p.token })));
  *
- * const { uri } = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
+ * const stream = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
  * const snapshot = await onvif.media.getSnapshotUri({ profileToken });
- * console.log(uri, snapshot.uri);
+ * console.log(stream.mediaUri.uri, snapshot.mediaUri.uri);
  *
  * const encoders = await onvif.media.getVideoEncoderConfigurations();
  * const cfg = encoders[0]!;
@@ -1639,15 +1638,16 @@ export default class Media extends Service {
    * A device that indicates a capability of VideoSourceModes shall support this command. The behavior after changing
    * the mode is not defined in this specification.
    * @param options
+   * @returns Whether a reboot is required after changing the mode
    */
-  async setVideoSourceMode(options: SetVideoSourceMode): Promise<SetVideoSourceModeResponse> {
+  async setVideoSourceMode(options: SetVideoSourceMode): Promise<boolean> {
     const response = await this.request({
       SetVideoSourceMode: {
         VideoSourceToken: options.videoSourceToken,
         VideoSourceModeToken: options.videoSourceModeToken,
       },
     });
-    return response.setVideoSourceModeResponse;
+    return response.setVideoSourceModeResponse.reboot;
   }
 
   /**
@@ -1740,8 +1740,9 @@ export default class Media extends Service {
   /**
    * Create the OSD.
    * @param options
+   * @returns Token of the newly created OSD
    */
-  async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
+  async createOSD(options: OSDConfiguration): Promise<ReferenceToken> {
     const response = await this.request({
       CreateOSD: {
         OSD: {
@@ -1788,7 +1789,7 @@ export default class Media extends Service {
         },
       },
     });
-    return response.createOSDResponse;
+    return response.createOSDResponse.OSDToken;
   }
 
   /**
@@ -1806,19 +1807,19 @@ export default class Media extends Service {
   /**
    * Get the OSD Options.
    * @param options
+   * @returns OSD configuration options
    */
-  async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
+  async getOSDOptions(options?: GetOSDOptions): Promise<OSDConfigurationOptions> {
     const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
     if (this.onvif.media2Support) {
-      const osdOptions = await this.onvif.media2.getOSDOptions({ configurationToken });
-      return { OSDOptions: osdOptions };
+      return this.onvif.media2.getOSDOptions({ configurationToken });
     }
     const response = await this.request({
       GetOSDOptions: {
         ConfigurationToken: configurationToken,
       },
     });
-    return response.getOSDOptionsResponse;
+    return response.getOSDOptionsResponse.OSDOptions;
   }
 }
 

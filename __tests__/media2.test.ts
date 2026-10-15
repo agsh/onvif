@@ -4,7 +4,6 @@ import happytimeOnvifOptions from './happytime.json';
 import {
   Capabilities2,
   ConfigurationEnumeration,
-  CreateOSDResponse,
   Mask,
   MediaProfile,
   VideoSourceMode,
@@ -1044,7 +1043,7 @@ describe('OSD', () => {
         return;
       }
 
-      const createResponse: CreateOSDResponse = await cam.media2.createOSD({
+      const osdToken = await cam.media2.createOSD({
         token: `jest_req_${Date.now()}`,
         videoSourceConfigurationToken,
         type: 'Text',
@@ -1052,12 +1051,12 @@ describe('OSD', () => {
         textString: { type: 'Plain', plainText: 'jest osd' },
       });
 
-      expect(createResponse.OSDToken).toBeDefined();
+      expect(osdToken).toBeDefined();
 
-      await cam.media2.deleteOSD({ OSDToken: createResponse.OSDToken });
+      await cam.media2.deleteOSD({ OSDToken: osdToken });
 
       const afterDelete = await cam.media2.getOSDs();
-      expect(afterDelete?.some((o) => o.token === createResponse.OSDToken)).toBe(false);
+      expect(afterDelete?.some((o) => o.token === osdToken)).toBe(false);
     });
 
     it('should fail createOSD if media ver20 is not supported', () => {
@@ -1281,9 +1280,8 @@ describe('Masks', () => {
 
       let maskToken: ReferenceToken;
       try {
-        const createResponse = await cam.media2.createMask(maskPayload);
-        expect(createResponse.token).toBeDefined();
-        maskToken = createResponse.token;
+        maskToken = await cam.media2.createMask(maskPayload);
+        expect(maskToken).toBeDefined();
 
         const updated: Mask = {
           token: maskToken,

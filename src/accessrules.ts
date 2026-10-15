@@ -17,11 +17,9 @@ import {
   GetAccessProfileInfo,
   GetAccessProfileInfoList,
   GetAccessProfileInfoListResponse,
-  GetAccessProfileInfoResponse,
   GetAccessProfileList,
   GetAccessProfileListResponse,
   GetAccessProfiles,
-  GetAccessProfilesResponse,
   ModifyAccessProfile,
   SetAccessProfile,
 } from './interfaces/accessrules';
@@ -39,11 +37,11 @@ import {
  * const caps = await onvif.accessRules.getServiceCapabilities();
  * const list = await onvif.accessRules.getAccessProfileInfoList();
  * const token = list.accessProfileInfo![0].token;
- * const { accessProfile } = await onvif.accessRules.getAccessProfiles({ token: [token] });
+ * const accessProfiles = await onvif.accessRules.getAccessProfiles({ token: [token] });
  * console.log(
  *   caps,
  *   list.accessProfileInfo?.map((p) => p.name),
- *   accessProfile?.[0]?.accessPolicy,
+ *   accessProfiles[0]?.accessPolicy,
  * );
  * ```
  * @category Services
@@ -91,10 +89,11 @@ export default class AccessRules extends Service {
   /**
    * Returns access profile info items for the requested tokens.
    * @param options
+   * @returns Access profile info items
    */
-  async getAccessProfileInfo({ token }: GetAccessProfileInfo): Promise<GetAccessProfileInfoResponse> {
+  async getAccessProfileInfo({ token }: GetAccessProfileInfo): Promise<AccessProfileInfo[]> {
     const response = await this.request({ GetAccessProfileInfo: { Token: token } }, { array: ['accessProfileInfo'] });
-    return response.getAccessProfileInfoResponse ?? {};
+    return response.getAccessProfileInfoResponse?.accessProfileInfo ?? [];
   }
 
   /**
@@ -117,13 +116,14 @@ export default class AccessRules extends Service {
   /**
    * Returns access profile items for the requested tokens.
    * @param options
+   * @returns Access profiles
    */
-  async getAccessProfiles({ token }: GetAccessProfiles): Promise<GetAccessProfilesResponse> {
+  async getAccessProfiles({ token }: GetAccessProfiles): Promise<AccessProfile[]> {
     const response = await this.request(
       { GetAccessProfiles: { Token: token } },
       { array: ['accessProfile', 'accessPolicy'] },
     );
-    return response.getAccessProfilesResponse ?? {};
+    return response.getAccessProfilesResponse?.accessProfile ?? [];
   }
 
   /**

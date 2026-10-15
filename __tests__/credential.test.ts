@@ -73,10 +73,10 @@ describe('Credential', () => {
     });
 
     it('should return credential info for requested tokens', async () => {
-      const response = await cam.credential.getCredentialInfo({ token: [CREDENTIAL_TOKEN_1] });
-      expect(response.credentialInfo?.length).toBe(1);
-      expect(response.credentialInfo?.[0].token).toBe(CREDENTIAL_TOKEN_1);
-      expect(response.credentialInfo?.[0].credentialHolderReference).toBe('testuser');
+      const credentialInfo = await cam.credential.getCredentialInfo({ token: [CREDENTIAL_TOKEN_1] });
+      expect(credentialInfo.length).toBe(1);
+      expect(credentialInfo[0].token).toBe(CREDENTIAL_TOKEN_1);
+      expect(credentialInfo[0].credentialHolderReference).toBe('testuser');
     });
   });
 
@@ -89,13 +89,11 @@ describe('Credential', () => {
     });
 
     it('should return credentials for requested tokens', async () => {
-      const response = await cam.credential.getCredentials({ token: [CREDENTIAL_TOKEN_1] });
-      expect(response.credential?.length).toBe(1);
-      expect(response.credential?.[0].token).toBe(CREDENTIAL_TOKEN_1);
-      expect(response.credential?.[0].description).toBe('Credentia');
-      expect(response.credential?.[0].credentialAccessProfile?.[0].accessProfileToken).toBe(
-        ACCESS_PROFILE_TOKEN_1,
-      );
+      const credentials = await cam.credential.getCredentials({ token: [CREDENTIAL_TOKEN_1] });
+      expect(credentials.length).toBe(1);
+      expect(credentials[0].token).toBe(CREDENTIAL_TOKEN_1);
+      expect(credentials[0].description).toBe('Credentia');
+      expect(credentials[0].credentialAccessProfile?.[0].accessProfileToken).toBe(ACCESS_PROFILE_TOKEN_1);
     });
   });
 
@@ -211,8 +209,8 @@ describe('Credential', () => {
 
   describe('setCredential and identifier helpers', () => {
     it('should set credential state/data helpers for existing token', async () => {
-      const response = await cam.credential.getCredentials({ token: [CREDENTIAL_TOKEN_1] });
-      const credential = response.credential?.[0];
+      const credentials = await cam.credential.getCredentials({ token: [CREDENTIAL_TOKEN_1] });
+      const credential = credentials[0];
       expect(credential).toBeDefined();
       await expect(
         cam.credential.setCredential({
@@ -255,15 +253,15 @@ describe('Credential', () => {
         },
       });
 
-      const response = await cam.credential.getCredentials({ token: [token] });
-      expect(response.credential?.[0].description).toBe('Temp credential modified');
-      expect(response.credential?.[0].credentialHolderReference).toBe('holder-temp');
+      const credentials = await cam.credential.getCredentials({ token: [token] });
+      expect(credentials[0].description).toBe('Temp credential modified');
+      expect(credentials[0].credentialHolderReference).toBe('holder-temp');
 
       await cam.credential.deleteCredential({ token });
       createdCredentialTokens.pop();
 
       const afterDelete = await cam.credential.getCredentials({ token: [token] });
-      expect(afterDelete.credential ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 });

@@ -298,14 +298,13 @@ describe('Network interfaces', () => {
           },
         },
       });
-      expect(result).toHaveProperty('rebootNeeded');
-      expect(typeof result.rebootNeeded).toBe('boolean');
+      expect(typeof result).toBe('boolean');
     });
 
     it('should do nothing when there is no network interfaces in options', async () => {
       // @ts-expect-error interfaceToken, networkInterface are required in the interface
       const result = await cam.device.setNetworkInterfaces({});
-      expect(result.rebootNeeded).toBe(false);
+      expect(result).toBe(false);
     });
   });
 });
@@ -330,7 +329,7 @@ describe('Discovery and scopes', () => {
 describe('Endpoint and WSDL', () => {
   it('should return endpoint reference GUID', async () => {
     const result = await cam.device.getEndpointReference();
-    expect(result.GUID).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(result).toMatch(/^[0-9a-f-]{36}$/i);
   });
 
   it('should return WSDL url', async () => {

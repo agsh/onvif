@@ -39,7 +39,6 @@ import {
   RelayOutputOptions,
   SerialData,
   SendReceiveSerialCommand,
-  SendReceiveSerialCommandResponse,
   SerialPort,
   SerialPortConfiguration,
   SerialPortConfigurationOptions,
@@ -549,8 +548,9 @@ export default class DeviceIO extends Service {
   /**
    * Sends data to a serial port and optionally receives a response.
    * @param options
+   * @returns Serial data received from the port, if any
    */
-  async sendReceiveSerialCommand(options: SendReceiveSerialCommand): Promise<SendReceiveSerialCommandResponse> {
+  async sendReceiveSerialCommand(options: SendReceiveSerialCommand): Promise<SerialData | undefined> {
     const response = await this.request({
       SendReceiveSerialCommand: {
         ...(options.token && { Token: options.token }),
@@ -560,6 +560,6 @@ export default class DeviceIO extends Service {
         ...(options.delimiter !== undefined && { Delimiter: options.delimiter }),
       },
     });
-    return response.sendReceiveSerialCommandResponse ?? {};
+    return response.sendReceiveSerialCommandResponse?.serialData;
   }
 }

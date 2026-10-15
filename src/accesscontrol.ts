@@ -28,20 +28,16 @@ import {
   GetAccessPointInfo,
   GetAccessPointInfoList,
   GetAccessPointInfoListResponse,
-  GetAccessPointInfoResponse,
   GetAccessPointList,
   GetAccessPointListResponse,
   GetAccessPoints,
-  GetAccessPointsResponse,
   GetAccessPointState,
   GetAreaInfo,
   GetAreaInfoList,
   GetAreaInfoListResponse,
-  GetAreaInfoResponse,
   GetAreaList,
   GetAreaListResponse,
   GetAreas,
-  GetAreasResponse,
   ModifyAccessPoint,
   ModifyArea,
   SetAccessPoint,
@@ -171,10 +167,11 @@ export default class AccessControl extends Service {
   /**
    * Returns access point info items for the requested tokens.
    * @param options
+   * @returns Access point info items
    */
-  async getAccessPointInfo({ token }: GetAccessPointInfo): Promise<GetAccessPointInfoResponse> {
+  async getAccessPointInfo({ token }: GetAccessPointInfo): Promise<AccessPointInfo[]> {
     const response = await this.request({ GetAccessPointInfo: { Token: token } }, { array: ['accessPointInfo'] });
-    return response.getAccessPointInfoResponse ?? {};
+    return response.getAccessPointInfoResponse?.accessPointInfo ?? [];
   }
 
   /**
@@ -197,10 +194,11 @@ export default class AccessControl extends Service {
   /**
    * Returns access point items for the requested tokens.
    * @param options
+   * @returns Access points
    */
-  async getAccessPoints({ token }: GetAccessPoints): Promise<GetAccessPointsResponse> {
+  async getAccessPoints({ token }: GetAccessPoints): Promise<AccessPoint[]> {
     const response = await this.request({ GetAccessPoints: { Token: token } }, { array: ['accessPoint'] });
-    return response.getAccessPointsResponse ?? {};
+    return response.getAccessPointsResponse?.accessPoint ?? [];
   }
 
   /**
@@ -282,10 +280,11 @@ export default class AccessControl extends Service {
   /**
    * Returns area info items for the requested tokens.
    * @param options
+   * @returns Area info items
    */
-  async getAreaInfo({ token }: GetAreaInfo): Promise<GetAreaInfoResponse> {
+  async getAreaInfo({ token }: GetAreaInfo): Promise<AreaInfo[]> {
     const response = await this.request({ GetAreaInfo: { Token: token } }, { array: ['areaInfo'] });
-    return response.getAreaInfoResponse ?? {};
+    return response.getAreaInfoResponse?.areaInfo ?? [];
   }
 
   /**
@@ -308,10 +307,11 @@ export default class AccessControl extends Service {
   /**
    * Returns area items for the requested tokens.
    * @param options
+   * @returns Areas
    */
-  async getAreas({ token }: GetAreas): Promise<GetAreasResponse> {
+  async getAreas({ token }: GetAreas): Promise<Area[]> {
     const response = await this.request({ GetAreas: { Token: token } }, { array: ['area'] });
-    return response.getAreasResponse ?? {};
+    return response.getAreasResponse?.area ?? [];
   }
 
   /**

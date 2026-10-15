@@ -22,11 +22,9 @@ import {
   GetDoorInfo,
   GetDoorInfoList,
   GetDoorInfoListResponse,
-  GetDoorInfoResponse,
   GetDoorList,
   GetDoorListResponse,
   GetDoors,
-  GetDoorsResponse,
   GetDoorState,
   LockDoor,
   LockDownDoor,
@@ -50,8 +48,8 @@ import {
  * await onvif.connect();
  *
  * const caps = await onvif.doorControl.getServiceCapabilities();
- * const { door } = await onvif.doorControl.getDoorList();
- * const token = door![0].token;
+ * const list = await onvif.doorControl.getDoorList();
+ * const token = list.door![0].token;
  * console.log(caps, await onvif.doorControl.getDoorInfo({ token: [token] }));
  *
  * console.log((await onvif.doorControl.getDoorState({ token })).doorMode);
@@ -161,13 +159,14 @@ export default class DoorControl extends Service {
   /**
    * Returns door info items for the requested tokens.
    * @param options
+   * @returns Door info items
    */
-  async getDoorInfo({ token }: GetDoorInfo): Promise<GetDoorInfoResponse> {
+  async getDoorInfo({ token }: GetDoorInfo): Promise<DoorInfo[]> {
     const response = await this.request(
       { GetDoorInfo: { Token: DoorControl.tokensToBuild(token) } },
       { array: ['doorInfo'] },
     );
-    return response.getDoorInfoResponse ?? {};
+    return response.getDoorInfoResponse?.doorInfo ?? [];
   }
 
   /**
@@ -190,10 +189,11 @@ export default class DoorControl extends Service {
   /**
    * Returns door items for the requested tokens.
    * @param options
+   * @returns Doors
    */
-  async getDoors({ token }: GetDoors): Promise<GetDoorsResponse> {
+  async getDoors({ token }: GetDoors): Promise<Door[]> {
     const response = await this.request({ GetDoors: { Token: DoorControl.tokensToBuild(token) } }, { array: ['door'] });
-    return response.getDoorsResponse ?? {};
+    return response.getDoorsResponse?.door ?? [];
   }
 
   /**

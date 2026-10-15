@@ -73,11 +73,11 @@ describe('AccessControl', () => {
     });
 
     it('should return access point info for requested tokens', async () => {
-      const response = await cam.accessControl.getAccessPointInfo({
+      const accessPointInfo = await cam.accessControl.getAccessPointInfo({
         token: [ACCESS_POINT_TOKEN_1, ACCESS_POINT_TOKEN_2],
       });
-      expect(response.accessPointInfo?.length).toBe(2);
-      expect(response.accessPointInfo?.map((item) => item.token)).toEqual(
+      expect(accessPointInfo.length).toBe(2);
+      expect(accessPointInfo.map((item) => item.token)).toEqual(
         expect.arrayContaining([ACCESS_POINT_TOKEN_1, ACCESS_POINT_TOKEN_2]),
       );
     });
@@ -92,13 +92,13 @@ describe('AccessControl', () => {
     });
 
     it('should return access points for requested tokens', async () => {
-      const response = await cam.accessControl.getAccessPoints({ token: [ACCESS_POINT_TOKEN_1] });
-      expect(response.accessPoint?.length).toBe(1);
-      expect(response.accessPoint?.[0].token).toBe(ACCESS_POINT_TOKEN_1);
-      expect(response.accessPoint?.[0].name).toBe('AccessPointName_1');
-      expect(response.accessPoint?.[0].entity).toBe(DOOR_TOKEN_1);
-      expect(response.accessPoint?.[0].areaFrom).toBe(AREA_TOKEN_1);
-      expect(response.accessPoint?.[0].areaTo).toBe(AREA_TOKEN_2);
+      const accessPoints = await cam.accessControl.getAccessPoints({ token: [ACCESS_POINT_TOKEN_1] });
+      expect(accessPoints.length).toBe(1);
+      expect(accessPoints[0].token).toBe(ACCESS_POINT_TOKEN_1);
+      expect(accessPoints[0].name).toBe('AccessPointName_1');
+      expect(accessPoints[0].entity).toBe(DOOR_TOKEN_1);
+      expect(accessPoints[0].areaFrom).toBe(AREA_TOKEN_1);
+      expect(accessPoints[0].areaTo).toBe(AREA_TOKEN_2);
     });
   });
 
@@ -111,11 +111,11 @@ describe('AccessControl', () => {
     });
 
     it('should return area info for requested tokens', async () => {
-      const response = await cam.accessControl.getAreaInfo({
+      const areaInfo = await cam.accessControl.getAreaInfo({
         token: [AREA_TOKEN_1, AREA_TOKEN_2],
       });
-      expect(response.areaInfo?.length).toBe(2);
-      expect(response.areaInfo?.map((item) => item.token)).toEqual(
+      expect(areaInfo.length).toBe(2);
+      expect(areaInfo.map((item) => item.token)).toEqual(
         expect.arrayContaining([AREA_TOKEN_1, AREA_TOKEN_2]),
       );
     });
@@ -130,10 +130,10 @@ describe('AccessControl', () => {
     });
 
     it('should return areas for requested tokens', async () => {
-      const response = await cam.accessControl.getAreas({ token: [AREA_TOKEN_1] });
-      expect(response.area?.length).toBe(1);
-      expect(response.area?.[0].token).toBe(AREA_TOKEN_1);
-      expect(response.area?.[0].description).toBe('Area 1');
+      const areas = await cam.accessControl.getAreas({ token: [AREA_TOKEN_1] });
+      expect(areas.length).toBe(1);
+      expect(areas[0].token).toBe(AREA_TOKEN_1);
+      expect(areas[0].description).toBe('Area 1');
     });
   });
 
@@ -144,9 +144,7 @@ describe('AccessControl', () => {
     });
 
     it('should reject an invalid access point token', async () => {
-      await expect(cam.accessControl.getAccessPointState({ token: 'InvalidToken' })).rejects.toThrow(
-        'Not found',
-      );
+      await expect(cam.accessControl.getAccessPointState({ token: 'InvalidToken' })).rejects.toThrow('Not found');
     });
   });
 
@@ -196,15 +194,15 @@ describe('AccessControl', () => {
         },
       });
 
-      const response = await cam.accessControl.getAccessPoints({ token: [token] });
-      expect(response.accessPoint?.[0].name).toBe('TempAccessPointModified');
-      expect(response.accessPoint?.[0].description).toBe('modified access point');
+      const accessPoints = await cam.accessControl.getAccessPoints({ token: [token] });
+      expect(accessPoints[0].name).toBe('TempAccessPointModified');
+      expect(accessPoints[0].description).toBe('modified access point');
 
       await cam.accessControl.deleteAccessPoint({ token });
       createdAccessPointTokens.pop();
 
       const afterDelete = await cam.accessControl.getAccessPoints({ token: [token] });
-      expect(afterDelete.accessPoint ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 
@@ -229,15 +227,15 @@ describe('AccessControl', () => {
         },
       });
 
-      const response = await cam.accessControl.getAreas({ token: [token] });
-      expect(response.area?.[0].name).toBe('TempAreaModified');
-      expect(response.area?.[0].description).toBe('modified area');
+      const areas = await cam.accessControl.getAreas({ token: [token] });
+      expect(areas[0].name).toBe('TempAreaModified');
+      expect(areas[0].description).toBe('modified area');
 
       await cam.accessControl.deleteArea({ token });
       createdAreaTokens.pop();
 
       const afterDelete = await cam.accessControl.getAreas({ token: [token] });
-      expect(afterDelete.area ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 });

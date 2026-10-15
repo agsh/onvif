@@ -41,7 +41,6 @@ import {
   OverrideSegmentDuration,
   SetRecordingConfiguration,
   SetRecordingJobConfiguration,
-  SetRecordingJobConfigurationResponse,
   SetRecordingJobMode,
   SetTrackConfiguration,
   StopExportRecordedData,
@@ -359,18 +358,19 @@ export default class Recording extends Service {
   /**
    * Change the configuration for a recording job.
    * @param options
+   * @returns Job configuration as used by the device
    */
   async setRecordingJobConfiguration({
     jobToken,
     jobConfiguration,
-  }: SetRecordingJobConfiguration): Promise<SetRecordingJobConfigurationResponse> {
+  }: SetRecordingJobConfiguration): Promise<RecordingJobConfiguration> {
     const response = await this.request({
       SetRecordingJobConfiguration: {
         JobToken: jobToken,
         JobConfiguration: Recording.recordingJobConfigurationToBuild(jobConfiguration),
       },
     });
-    return response.setRecordingJobConfigurationResponse;
+    return response.setRecordingJobConfigurationResponse.jobConfiguration;
   }
 
   /**

@@ -42,8 +42,6 @@ import {
   DeleteOSD,
   GetMasks,
   Mask,
-  CreateOSDResponse,
-  CreateMaskResponse,
   GetMaskOptions,
   MaskOptions,
   DeleteMask,
@@ -1016,12 +1014,13 @@ export default class Media2 extends Service {
 
   /**
    * Create the OSD.
-   * NB!: Unlike the reference implementation, this method returns the generated configuration, since not all
+   * NB!: Unlike the reference implementation, this method returns the generated token, since not all
    * implementations allow you to specify the token yourself; it is often generated on the server side.
    * @param options
+   * @returns Token of the newly created OSD
    */
   @v2
-  async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
+  async createOSD(options: OSDConfiguration): Promise<ReferenceToken> {
     const response = await this.request({
       CreateOSD: {
         OSD: {
@@ -1068,7 +1067,7 @@ export default class Media2 extends Service {
         },
       },
     });
-    return response.createOSDResponse;
+    return response.createOSDResponse.OSDToken;
   }
 
   /**
@@ -1109,8 +1108,9 @@ export default class Media2 extends Service {
   /**
    * Create the Mask.
    * @param options
+   * @returns Token of the newly created mask
    * @example
-   * const { token } = await cam.media2.createMask({
+   * const token = await cam.media2.createMask({
    *     type: 'Color',
    *     token: 'mask_token_1',
    *     color: { x: 1, y: 2, z: 3, colorspace: 'http://www.onvif.org/ver10/colorspace/YCbCr' },
@@ -1121,7 +1121,7 @@ export default class Media2 extends Service {
    *     }
    *   });
    */
-  async createMask(options: Mask): Promise<CreateMaskResponse> {
+  async createMask(options: Mask): Promise<ReferenceToken> {
     const response = await this.request({
       CreateMask: {
         Mask: {
@@ -1154,7 +1154,7 @@ export default class Media2 extends Service {
         },
       },
     });
-    return response.createMaskResponse;
+    return response.createMaskResponse.token;
   }
 
   /**
