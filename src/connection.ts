@@ -291,6 +291,14 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
   return result;
 }
 
+/** Clear {@link Onvif.activeSources} and default profile pointers. */
+function resetActiveSourceState(onvif: Onvif): void {
+  onvif.activeSources = [];
+  onvif.defaultProfiles = [];
+  onvif.activeSource = undefined;
+  onvif.defaultProfile = undefined;
+}
+
 /**
  * Check and find out video configuration for device.
  * No-op when the device has no video sources (e.g. Profile C door stations).
@@ -298,10 +306,7 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
  * sources cannot leave stale slots from the previous session.
  */
 export async function getActiveSources(onvif: Onvif): Promise<void> {
-  onvif.activeSources = [];
-  onvif.defaultProfiles = [];
-  onvif.activeSource = undefined;
-  onvif.defaultProfile = undefined;
+  resetActiveSourceState(onvif);
 
   if (!onvif.videoSources.length) {
     return;
@@ -376,11 +381,27 @@ export interface ConnectOptions {
 }
 
 /**
+ * Drop discovery state left from a previous {@link connect} so disappeared services
+ * (e.g. PTZ after reboot) cannot leave stale {@link Onvif.uri} keys / flags.
+ */
+export function resetConnectState(onvif: Onvif): void {
+  onvif.uri = {};
+  onvif.services = [];
+  onvif.media2Support = false;
+  onvif.capabilities = {};
+  onvif.profiles = [];
+  onvif.videoSources = [];
+  resetActiveSourceState(onvif);
+}
+
+/**
  * Connect to the camera and fill device information properties.
  * Media / active-source discovery runs when Media1 and/or Media2 was advertised
  * (unless {@link ConnectOptions.media} is `false`).
+ * Always clears prior discovery state first (see {@link resetConnectState}).
  */
 export async function connect(onvif: Onvif, { media = true }: ConnectOptions = {}): Promise<Onvif> {
+  resetConnectState(onvif);
   await onvif.getSystemDateAndTime();
   try {
     await connectSteps.getServices(onvif);

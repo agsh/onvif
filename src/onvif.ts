@@ -644,8 +644,10 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           charset: 'utf-8',
         },
       };
-      const httpLibrary = this.useSecure ? https : http;
-      if (this.useSecure) {
+      // Prefer options.url scheme (PullMessages / subscription XAddr may differ from useSecure).
+      const useHttps = options.url ? options.url.protocol === 'https:' : this.useSecure;
+      const httpLibrary = useHttps ? https : http;
+      if (useHttps) {
         Object.assign(requestOptions, this.secureOptions);
       }
       // After secureOptions so a custom ConnectionOptions bag cannot drop abort.

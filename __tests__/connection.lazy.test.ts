@@ -1,6 +1,13 @@
 import Module from 'module';
 import { Onvif } from '../src';
-import { connectSteps, getActiveSources, getCapabilities, getServices, serviceUriKey } from '../src/connection';
+import {
+  connectSteps,
+  getActiveSources,
+  getCapabilities,
+  getServices,
+  resetConnectState,
+  serviceUriKey,
+} from '../src/connection';
 
 function trackServiceLoads() {
   const loaded = new Set<string>();
@@ -206,6 +213,71 @@ describe('getServices uri keys', () => {
 
     expect(onvif.uri.analyticsdevice?.href).toBe(xaddr);
     expect((onvif.uri as Record<string, unknown>).analyticsDevice).toBeUndefined();
+  });
+});
+
+describe('resetConnectState / reconnect', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('clears stale uri keys and media2Support before refill', () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    onvif.services = [{ namespace: 'x', XAddr: 'http://x' } as never];
+    onvif.media2Support = true;
+    onvif.capabilities = { device: { XAddr: 'http://old' } } as never;
+    onvif.profiles = [{ token: 'old' } as never];
+    onvif.videoSources = [{ token: 'old' } as never];
+    onvif.activeSources = [{ sourceToken: 'old' } as never];
+    onvif.defaultProfiles = [{ token: 'old' } as never];
+    onvif.activeSource = onvif.activeSources[0];
+    onvif.defaultProfile = onvif.defaultProfiles[0];
+
+    resetConnectState(onvif);
+
+    expect(onvif.uri).toEqual({});
+    expect(onvif.services).toEqual([]);
+    expect(onvif.media2Support).toBe(false);
+    expect(onvif.capabilities).toEqual({});
+    expect(onvif.profiles).toEqual([]);
+    expect(onvif.videoSources).toEqual([]);
+    expect(onvif.activeSources).toEqual([]);
+    expect(onvif.defaultProfiles).toEqual([]);
+    expect(onvif.activeSource).toBeUndefined();
+    expect(onvif.defaultProfile).toBeUndefined();
+  });
+
+  it('connect() drops previous uri.ptz when the device no longer advertises PTZ', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
+    onvif.media2Support = true;
+
+    jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+    jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+      // Only media — no PTZ, no media2
+      cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+      cam.services = [];
+      return { service: [] } as never;
+    });
+    jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
+      cam.profiles = [];
+      return [];
+    });
+    jest.spyOn(connectSteps, 'getVideoSources').mockImplementation(async (cam) => {
+      cam.videoSources = [];
+      return [];
+    });
+    jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined);
+    const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles');
+
+    await onvif.connect();
+
+    expect(onvif.uri.ptz).toBeUndefined();
+    expect(onvif.uri.media).toBeDefined();
+    expect(onvif.media2Support).toBe(false);
+    expect(probeMedia2).not.toHaveBeenCalled();
   });
 });
 

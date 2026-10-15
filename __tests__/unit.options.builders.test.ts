@@ -4,6 +4,8 @@
  */
 
 import http from 'http';
+import https from 'https';
+import { EventEmitter } from 'events';
 import AccessRules from '../src/accessrules';
 import Credential from '../src/credential';
 import Device from '../src/device';
@@ -198,6 +200,50 @@ describe('Service options and builders', () => {
     setTimeout(() => ac.abort(), 20);
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
     await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  });
+
+  it('uses https for options.url even when useSecure is false', async () => {
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      autoConnect: false,
+      useSecure: false,
+      useWSSecurity: false,
+      agent: false,
+    });
+    const soap =
+      `<?xml version="1.0"?>` +
+      `<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body>` +
+      `<UnsubscribeResponse xmlns="http://docs.oasis-open.org/wsn/b-2"/>` +
+      `</s:Body></s:Envelope>`;
+
+    const httpsRequest = jest.spyOn(https, 'request').mockImplementation((_opts: any, cb: any) => {
+      const req = new EventEmitter() as any;
+      req.setTimeout = jest.fn();
+      req.write = jest.fn();
+      req.end = jest.fn(() => {
+        const res = new EventEmitter() as any;
+        res.statusCode = 200;
+        res.rawHeaders = [];
+        queueMicrotask(() => {
+          cb(res);
+          res.emit('data', Buffer.from(soap));
+          res.emit('end');
+        });
+      });
+      req.destroy = jest.fn();
+      return req;
+    });
+    const httpRequest = jest.spyOn(http, 'request');
+
+    await onvif.request({
+      url: new URL('https://camera.lan/Subscription?id=1'),
+      body: { Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } } },
+    });
+
+    expect(httpsRequest).toHaveBeenCalled();
+    expect(httpRequest).not.toHaveBeenCalled();
+    httpsRequest.mockRestore();
+    httpRequest.mockRestore();
   });
 
   it('close unsubscribes events and destroys keep-alive agents', async () => {
