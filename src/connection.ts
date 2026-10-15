@@ -58,6 +58,21 @@ async function serviceRequest(
 }
 
 /**
+ * Map GetCapabilities field names / GetServices namespace path segments onto {@link OnvifServices} keys.
+ * Caps use `PTZ` / linerase `analyticsDevice`; services request with `ptz` / `analyticsdevice`.
+ */
+export function serviceUriKey(name: string): keyof OnvifServices {
+  switch (name) {
+    case 'PTZ':
+      return 'ptz';
+    case 'analyticsDevice':
+      return 'analyticsdevice';
+    default:
+      return name as keyof OnvifServices;
+  }
+}
+
+/**
  * Returns information about services of the device (Device.GetServices).
  */
 export async function getServices(
@@ -81,7 +96,7 @@ export async function getServices(
           namespaceSplitted[1] = 'media2';
         }
         // Namespace path segment matches OnvifServices keys (ptz, media, deviceIO, …).
-        onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = onvif.parseUrl(service.XAddr);
+        onvif.uri[serviceUriKey(namespaceSplitted[1])] = onvif.parseUrl(service.XAddr);
       }
     }
   });
@@ -105,25 +120,23 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
     if (name in onvif.capabilities) {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in onvif.capabilities[capabilityName]!) {
-        const uriKey = (name === 'PTZ' ? 'ptz' : name) as keyof OnvifServices;
-        onvif.uri[uriKey] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
+        onvif.uri[serviceUriKey(name)] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
       }
     }
   });
   if (onvif.capabilities.extension) {
     Object.keys(onvif.capabilities.extension).forEach((ext) => {
       const extensionName = ext as keyof CapabilitiesExtension;
-      if (
-        'XAddr' in onvif.capabilities.extension![extensionName]! &&
-        onvif.capabilities.extension![extensionName]!.XAddr
-      ) {
-        onvif.uri[extensionName] = new URL(onvif.capabilities.extension![extensionName]!.XAddr as string);
+      const extension = onvif.capabilities.extension![extensionName];
+      if (extension && typeof extension === 'object' && 'XAddr' in extension && extension.XAddr) {
+        // Same parseUrl path as core capabilities so preserveAddress rewrites host/port.
+        onvif.uri[serviceUriKey(ext)] = onvif.parseUrl(extension.XAddr as string);
       }
     });
     if (onvif.uri.replay && !onvif.uri.recording) {
       const tempRecorderXaddr = onvif.uri.replay.href.replace('replay', 'recording');
       onvif.emit('warn', new OnvifError(`Adding ${tempRecorderXaddr} for bad Profile G device`));
-      onvif.uri.recording = new URL(tempRecorderXaddr);
+      onvif.uri.recording = onvif.parseUrl(tempRecorderXaddr);
     }
   }
   return onvif.capabilities;

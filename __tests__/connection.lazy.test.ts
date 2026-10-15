@@ -1,6 +1,6 @@
 import Module from 'module';
 import { Onvif } from '../src';
-import { connectSteps } from '../src/connection';
+import { connectSteps, getCapabilities, getServices, serviceUriKey } from '../src/connection';
 
 function trackServiceLoads() {
   const loaded = new Set<string>();
@@ -108,5 +108,103 @@ describe('connection module isolation', () => {
     const media = new Media(onvif);
     expect(media.profiles).toEqual(onvif.profiles);
     expect(media.videoSources).toEqual(onvif.videoSources);
+  });
+});
+
+describe('serviceUriKey', () => {
+  it('maps GetCapabilities / namespace aliases onto OnvifServices keys', () => {
+    expect(serviceUriKey('PTZ')).toBe('ptz');
+    expect(serviceUriKey('analyticsDevice')).toBe('analyticsdevice');
+    expect(serviceUriKey('analyticsdevice')).toBe('analyticsdevice');
+    expect(serviceUriKey('deviceIO')).toBe('deviceIO');
+    expect(serviceUriKey('media')).toBe('media');
+  });
+});
+
+describe('getCapabilities uri keys', () => {
+  it('stores analyticsDevice extension XAddr under uri.analyticsdevice', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const xaddr = 'http://192.168.1.10/onvif/analyticsdevice_service';
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getCapabilitiesResponse: {
+          capabilities: {
+            device: { XAddr: 'http://192.168.1.10/onvif/device_service' },
+            extension: {
+              analyticsDevice: { XAddr: xaddr },
+              deviceIO: { XAddr: 'http://192.168.1.10/onvif/deviceIO' },
+            },
+          },
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await getCapabilities(onvif);
+
+    expect(onvif.uri.analyticsdevice?.href).toBe(xaddr);
+    expect((onvif.uri as Record<string, unknown>).analyticsDevice).toBeUndefined();
+    expect(onvif.uri.deviceIO?.href).toContain('deviceIO');
+    expect(onvif.request).toHaveBeenCalledWith(expect.objectContaining({ service: 'device' }));
+  });
+
+  it('applies preserveAddress to extension and synthetic recording XAddrs', async () => {
+    const onvif = new Onvif({
+      hostname: 'proxy.local',
+      port: 8080,
+      preserveAddress: true,
+      autoConnect: false,
+    });
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getCapabilitiesResponse: {
+          capabilities: {
+            device: { XAddr: 'http://192.168.1.10/onvif/device_service' },
+            extension: {
+              replay: { XAddr: 'http://192.168.1.10/onvif/replay' },
+              deviceIO: { XAddr: 'http://192.168.1.10:8000/onvif/deviceIO' },
+            },
+          },
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await getCapabilities(onvif);
+
+    expect(onvif.uri.deviceIO?.hostname).toBe('proxy.local');
+    expect(onvif.uri.deviceIO?.port).toBe('8080');
+    expect(onvif.uri.deviceIO?.pathname).toBe('/onvif/deviceIO');
+    expect(onvif.uri.replay?.hostname).toBe('proxy.local');
+    expect(onvif.uri.replay?.port).toBe('8080');
+    expect(onvif.uri.recording?.hostname).toBe('proxy.local');
+    expect(onvif.uri.recording?.port).toBe('8080');
+    expect(onvif.uri.recording?.pathname).toBe('/onvif/recording');
+  });
+});
+
+describe('getServices uri keys', () => {
+  it('normalizes analyticsDevice namespace path to uri.analyticsdevice', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const xaddr = 'http://192.168.1.10/onvif/analyticsdevice_service';
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getServicesResponse: {
+          service: [
+            {
+              namespace: 'http://www.onvif.org/ver10/analyticsDevice/wsdl',
+              XAddr: xaddr,
+              version: { major: 1, minor: 0 },
+            },
+          ],
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await getServices(onvif);
+
+    expect(onvif.uri.analyticsdevice?.href).toBe(xaddr);
+    expect((onvif.uri as Record<string, unknown>).analyticsDevice).toBeUndefined();
   });
 });
