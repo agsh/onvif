@@ -440,9 +440,10 @@ configuration object
 *Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
 
 ## Changelog
-- Master...
-  Fix example3.js to use the new GetPrests API
-- 0.8.1 BREAKING CHANGES TO GetPresets()
+- V0.x BRANCH...
+- 15th October 2026 - Restore the original GetPresets API (the API used form v0.1 to v0.7.1)
+- 
+- 0.8.1 BREAKING CHANGES TO GetPresets() [Which have since been returned to the original API]
 The original API of 9 years returned an array indexed by the Preset Name. This does not work with cameras that have duplicate preset names (thanks to @Craytor for the fix). In addition ONVIF now includes extra Preset parameters added by @momoAmch. Note example3.js was missed and is broken in 0.8.1 but is now fixed in the master branch
  So in this version, GetPresets() returns an array indexed by Preset Token. The result is an array of Objects where Objects include a .name value
 - 0.8.0 Only Digest Auth support
