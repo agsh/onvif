@@ -159,8 +159,9 @@ const alive = await onvif.device.getDeviceInformation().catch(() => null);
 
 ### 6. Reconnect
 
-`connect()` clears prior discovery state (`uri`, `services`, `media2Support`, profiles, active sources, …) then
-refills. After `close()`, the next `connect()` recreates owned agents and reattaches auto-event hooks.
+`connect()` clears prior discovery state (`uri`, `services`, `media2Support`, profiles, `deviceInformation`,
+active sources, ...) then refills. After `close()`, the next `connect()` recreates owned agents and reattaches
+auto-event hooks.
 
 ```ts
 await onvif.close();

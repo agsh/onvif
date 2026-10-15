@@ -624,7 +624,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
               // if we have url property for pull-point event requests
               hostname: options.url.hostname,
               path: requestPath(options.url),
-              port: options.url.port,
+              // URL.port is "" for scheme defaults — Node needs a numeric port.
+              port: Onvif.urlPort(options.url),
             }
           : {
               // try to guess the right path for the requested service
@@ -859,7 +860,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.off('removeListener', this.onEventRemoveListener);
     this.events.clearPushRenew();
     try {
-      await this.events.globalSubscription.unsubscribe();
+      // false: skip Subscription.resetAgent — we destroy the Events agent below once.
+      await this.events.globalSubscription.unsubscribe(false);
     } catch {
       // Device may already be gone; local pull loop is still stopped by unsubscribe.
     }

@@ -391,6 +391,7 @@ export function resetConnectState(onvif: Onvif): void {
   onvif.capabilities = {};
   onvif.profiles = [];
   onvif.videoSources = [];
+  onvif.deviceInformation = undefined;
   resetActiveSourceState(onvif);
 }
 

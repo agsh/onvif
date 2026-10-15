@@ -275,6 +275,8 @@ internal state so later SOAP requests are authenticated and routed to the correc
    `defaultProfiles`. Devices without video (e.g. Profile C door stations) skip this when Media is absent.
    If Media is listed but a call fails (e.g. Axis A1601 “Optional action not implemented”), `connect()` still
    succeeds with empty `profiles` / `videoSources` and emits `warn`.
+   Pass `{ media: false }` to skip profile / video-source probing after GetServices (useful for door stations or
+   “is the camera alive?” sweeps).
 
 On success, `connect()` emits `connect` and returns the instance. See [Quick start](#quick-start) for a minimal example.
 
@@ -283,6 +285,9 @@ subscription (if running) and destroys the HTTP keep-alive agents so sockets are
 `close()`, idle keep-alive connections can keep a Node process from exiting (short scripts, tests).
 It is not an ONVIF logout call — only local cleanup. Safe to call more than once; a custom
 `agent: false` (or a shared agent you own) is not destroyed.
+
+Call `await onvif.connect()` again to reopen after `close()` (new agents, event hooks, and a fresh handshake).
+`connect()` always clears prior discovery state (`uri`, profiles, `deviceInformation`, ...) before refilling.
 
 ---
 

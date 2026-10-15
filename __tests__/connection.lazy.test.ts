@@ -234,6 +234,7 @@ describe('resetConnectState / reconnect', () => {
     onvif.defaultProfiles = [{ token: 'old' } as never];
     onvif.activeSource = onvif.activeSources[0];
     onvif.defaultProfile = onvif.defaultProfiles[0];
+    onvif.deviceInformation = { manufacturer: 'Old', model: 'X' } as never;
 
     resetConnectState(onvif);
 
@@ -247,6 +248,7 @@ describe('resetConnectState / reconnect', () => {
     expect(onvif.defaultProfiles).toEqual([]);
     expect(onvif.activeSource).toBeUndefined();
     expect(onvif.defaultProfile).toBeUndefined();
+    expect(onvif.deviceInformation).toBeUndefined();
   });
 
   it('connect() drops previous uri.ptz when the device no longer advertises PTZ', async () => {
