@@ -124,11 +124,14 @@ describe('compatibility promises unit', () => {
     it('disables media2Support when Media2 GetProfiles fails (D-Link workaround)', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-      onvif.media2Support = true;
-      onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
-      onvif.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+      // resetConnectState clears uri / media2Support — refill via getServices like a real device.
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
-      jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.media2Support = true;
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+        return { service: [] } as never;
+      });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockRejectedValue(new Error('media2 broken'));
       jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
@@ -142,11 +145,13 @@ describe('compatibility promises unit', () => {
     it('keeps media2Support when Media2 GetProfiles succeeds', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-      onvif.media2Support = true;
-      onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
-      onvif.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
-      jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.media2Support = true;
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+        return { service: [] } as never;
+      });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);

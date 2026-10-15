@@ -94,7 +94,7 @@ function mockAnalyticsDeviceResponse(body: Record<string, unknown>) {
 
 beforeEach(() => {
   cam = new Onvif(happytimeOnvifOptions);
-  cam.uri.analyticsDevice = new URL('http://127.0.0.1:8000/onvif/analyticsdevice_service');
+  cam.uri.analyticsdevice = new URL('http://127.0.0.1:8000/onvif/analyticsdevice_service');
 });
 
 afterEach(() => {

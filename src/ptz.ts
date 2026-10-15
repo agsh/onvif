@@ -182,17 +182,11 @@ export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
  */
 export default class PTZ extends Service {
   #nodes: GetNodesExtended = {};
-  get nodes() {
-    return this.#nodes;
-  }
+  get nodes() { return this.#nodes; }
   #configurations: GetConfigurationsExtended = {};
-  get configurations() {
-    return this.#configurations;
-  }
-  #presets: Record<ReferenceToken, PTZPreset> = {};
-  get presets() {
-    return this.#presets;
-  }
+  get configurations() { return this.#configurations; }
+  #presets: GetPresetsExtended = {};
+  get presets() { return this.#presets; }
 
   constructor(onvif: Onvif) {
     super(onvif, 'ptz');

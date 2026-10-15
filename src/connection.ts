@@ -58,6 +58,21 @@ async function serviceRequest(
 }
 
 /**
+ * Map GetCapabilities field names / GetServices namespace path segments onto {@link OnvifServices} keys.
+ * Caps use `PTZ` / linerase `analyticsDevice`; services request with `ptz` / `analyticsdevice`.
+ */
+export function serviceUriKey(name: string): keyof OnvifServices {
+  switch (name) {
+    case 'PTZ':
+      return 'ptz';
+    case 'analyticsDevice':
+      return 'analyticsdevice';
+    default:
+      return name as keyof OnvifServices;
+  }
+}
+
+/**
  * Returns information about services of the device (Device.GetServices).
  */
 export async function getServices(
@@ -81,7 +96,7 @@ export async function getServices(
           namespaceSplitted[1] = 'media2';
         }
         // Namespace path segment matches OnvifServices keys (ptz, media, deviceIO, …).
-        onvif.uri[namespaceSplitted[1] as keyof OnvifServices] = onvif.parseUrl(service.XAddr);
+        onvif.uri[serviceUriKey(namespaceSplitted[1])] = onvif.parseUrl(service.XAddr);
       }
     }
   });
@@ -105,25 +120,23 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
     if (name in onvif.capabilities) {
       const capabilityName = name as keyof Capabilities;
       if ('XAddr' in onvif.capabilities[capabilityName]!) {
-        const uriKey = (name === 'PTZ' ? 'ptz' : name) as keyof OnvifServices;
-        onvif.uri[uriKey] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
+        onvif.uri[serviceUriKey(name)] = onvif.parseUrl(onvif.capabilities[capabilityName]!.XAddr as string);
       }
     }
   });
   if (onvif.capabilities.extension) {
     Object.keys(onvif.capabilities.extension).forEach((ext) => {
       const extensionName = ext as keyof CapabilitiesExtension;
-      if (
-        'XAddr' in onvif.capabilities.extension![extensionName]! &&
-        onvif.capabilities.extension![extensionName]!.XAddr
-      ) {
-        onvif.uri[extensionName] = new URL(onvif.capabilities.extension![extensionName]!.XAddr as string);
+      const extension = onvif.capabilities.extension![extensionName];
+      if (extension && typeof extension === 'object' && 'XAddr' in extension && extension.XAddr) {
+        // Same parseUrl path as core capabilities so preserveAddress rewrites host/port.
+        onvif.uri[serviceUriKey(ext)] = onvif.parseUrl(extension.XAddr as string);
       }
     });
     if (onvif.uri.replay && !onvif.uri.recording) {
       const tempRecorderXaddr = onvif.uri.replay.href.replace('replay', 'recording');
       onvif.emit('warn', new OnvifError(`Adding ${tempRecorderXaddr} for bad Profile G device`));
-      onvif.uri.recording = new URL(tempRecorderXaddr);
+      onvif.uri.recording = onvif.parseUrl(tempRecorderXaddr);
     }
   }
   return onvif.capabilities;
@@ -278,11 +291,23 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
   return result;
 }
 
+/** Clear {@link Onvif.activeSources} and default profile pointers. */
+function resetActiveSourceState(onvif: Onvif): void {
+  onvif.activeSources = [];
+  onvif.defaultProfiles = [];
+  onvif.activeSource = undefined;
+  onvif.defaultProfile = undefined;
+}
+
 /**
  * Check and find out video configuration for device.
  * No-op when the device has no video sources (e.g. Profile C door stations).
+ * Always resets prior {@link Onvif.activeSources} / defaults so a reconnect with fewer
+ * sources cannot leave stale slots from the previous session.
  */
 export async function getActiveSources(onvif: Onvif): Promise<void> {
+  resetActiveSourceState(onvif);
+
   if (!onvif.videoSources.length) {
     return;
   }
@@ -356,11 +381,27 @@ export interface ConnectOptions {
 }
 
 /**
+ * Drop discovery state left from a previous {@link connect} so disappeared services
+ * (e.g. PTZ after reboot) cannot leave stale {@link Onvif.uri} keys / flags.
+ */
+export function resetConnectState(onvif: Onvif): void {
+  onvif.uri = {};
+  onvif.services = [];
+  onvif.media2Support = false;
+  onvif.capabilities = {};
+  onvif.profiles = [];
+  onvif.videoSources = [];
+  resetActiveSourceState(onvif);
+}
+
+/**
  * Connect to the camera and fill device information properties.
  * Media / active-source discovery runs when Media1 and/or Media2 was advertised
  * (unless {@link ConnectOptions.media} is `false`).
+ * Always clears prior discovery state first (see {@link resetConnectState}).
  */
 export async function connect(onvif: Onvif, { media = true }: ConnectOptions = {}): Promise<Onvif> {
+  resetConnectState(onvif);
   await onvif.getSystemDateAndTime();
   try {
     await connectSteps.getServices(onvif);

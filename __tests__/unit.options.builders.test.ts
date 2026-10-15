@@ -4,6 +4,8 @@
  */
 
 import http from 'http';
+import https from 'https';
+import { EventEmitter } from 'events';
 import AccessRules from '../src/accessrules';
 import Credential from '../src/credential';
 import Device from '../src/device';
@@ -200,6 +202,50 @@ describe('Service options and builders', () => {
     await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
   });
 
+  it('uses https for options.url even when useSecure is false', async () => {
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      autoConnect: false,
+      useSecure: false,
+      useWSSecurity: false,
+      agent: false,
+    });
+    const soap =
+      `<?xml version="1.0"?>` +
+      `<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body>` +
+      `<UnsubscribeResponse xmlns="http://docs.oasis-open.org/wsn/b-2"/>` +
+      `</s:Body></s:Envelope>`;
+
+    const httpsRequest = jest.spyOn(https, 'request').mockImplementation((_opts: any, cb: any) => {
+      const req = new EventEmitter() as any;
+      req.setTimeout = jest.fn();
+      req.write = jest.fn();
+      req.end = jest.fn(() => {
+        const res = new EventEmitter() as any;
+        res.statusCode = 200;
+        res.rawHeaders = [];
+        queueMicrotask(() => {
+          cb(res);
+          res.emit('data', Buffer.from(soap));
+          res.emit('end');
+        });
+      });
+      req.destroy = jest.fn();
+      return req;
+    });
+    const httpRequest = jest.spyOn(http, 'request');
+
+    await onvif.request({
+      url: new URL('https://camera.lan/Subscription?id=1'),
+      body: { Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } } },
+    });
+
+    expect(httpsRequest).toHaveBeenCalled();
+    expect(httpRequest).not.toHaveBeenCalled();
+    httpsRequest.mockRestore();
+    httpRequest.mockRestore();
+  });
+
   it('close unsubscribes events and destroys keep-alive agents', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     const unsubscribe = jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
@@ -207,14 +253,111 @@ describe('Service options and builders', () => {
     const destroyEvents = jest.spyOn(onvif.events.agent, 'destroy');
 
     await onvif.close();
+    expect(onvif.closed).toBe(true);
     expect(unsubscribe).toHaveBeenCalled();
     expect(destroyMain).toHaveBeenCalled();
     expect(destroyEvents).toHaveBeenCalled();
+    await expect(onvif.close()).resolves.toBeUndefined();
 
     // agent: false must not throw (nothing to destroy on the main client)
     const noAgent = new Onvif({ hostname: '127.0.0.1', autoConnect: false, agent: false });
     jest.spyOn(noAgent.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
     await expect(noAgent.close()).resolves.toBeUndefined();
+  });
+
+  it('ensureOpen keeps Events ctor agent on first open and resets digest nc after close', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const firstEventsAgent = onvif.events.agent;
+    const destroyCtorAgent = jest.spyOn(firstEventsAgent, 'destroy');
+    // First ensureOpen (constructor) must not destroy/replace the Events ctor agent.
+    expect(destroyCtorAgent).not.toHaveBeenCalled();
+    expect(onvif.events.agent).toBe(firstEventsAgent);
+
+    (onvif as any).nc = 42;
+    jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    await onvif.close();
+
+    jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+    const { connectSteps } = await import('../src/connection');
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
+
+    await onvif.connect({ media: false });
+    expect(destroyCtorAgent).toHaveBeenCalled();
+    expect(onvif.events.agent).not.toBe(firstEventsAgent);
+    expect((onvif as any).nc).toBe(0);
+    expect((onvif as any).updateNC()).toBe('00000001');
+  });
+
+  it('close rejects request and blocks auto-subscribe until connect reopens', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+    const subscribe = jest.spyOn(onvif.events.globalSubscription, 'subscribe').mockResolvedValue(undefined);
+
+    await onvif.close();
+
+    await expect(
+      onvif.request({
+        body: { GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } } },
+      }),
+    ).rejects.toThrow(/closed/);
+
+    onvif.on('event', () => undefined);
+    expect(subscribe).not.toHaveBeenCalled();
+
+    jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+    const { connectSteps } = await import('../src/connection');
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
+
+    await onvif.connect({ media: false });
+    expect(onvif.closed).toBe(false);
+    expect(onvif.agent).toBeInstanceOf((await import('http')).Agent);
+    expect(subscribe).toHaveBeenCalled();
+  });
+
+  it('close does not destroy a caller-supplied HTTP agent', async () => {
+    const http = await import('http');
+    const shared = new http.Agent({ keepAlive: true });
+    const destroy = jest.spyOn(shared, 'destroy');
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false, agent: shared });
+    jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+
+    await onvif.close();
+    expect(destroy).not.toHaveBeenCalled();
+    shared.destroy();
+  });
+
+  it('clearPushRenew cancels WS-BaseNotification renew timer on close', async () => {
+    jest.useFakeTimers();
+    try {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+      onvif.uri.events = new URL('http://127.0.0.1/onvif/events');
+      const request = jest.spyOn(onvif, 'request').mockResolvedValue([
+        {
+          subscribeResponse: {
+            subscriptionReference: { address: 'http://127.0.0.1/Subscription' },
+            currentTime: new Date(),
+            terminationTime: new Date(Date.now() + 60_000),
+          },
+        },
+        '',
+      ] as never);
+      jest.spyOn(onvif.events.globalSubscription, 'unsubscribe').mockResolvedValue(undefined);
+
+      await onvif.events.subscribe({
+        url: 'http://127.0.0.1:9999/notify',
+        terminationTime: 1000,
+        renew: true,
+      });
+      expect(request).toHaveBeenCalledTimes(1);
+
+      await onvif.close();
+      await jest.advanceTimersByTimeAsync(2000);
+      expect(request).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('serializes Device geo location entities with optional fields', () => {
@@ -250,10 +393,16 @@ describe('Service options and builders', () => {
     }
     const proxy = lazyService(onvif, async () => ({ default: Dummy }));
     expect('ping' in proxy).toBe(false);
-    await expect((proxy as any).value(1)).rejects.toThrow(/not a method/);
-    expect(await (proxy as any).ping()).toBe('pong');
+    // Proxy root must not be thenable (Promise.resolve would otherwise unwrap it).
+    expect((proxy as any).then).toBeUndefined();
+    // Data field before load: await without calling.
+    expect(await (proxy as any).value).toBe(42);
     expect('ping' in proxy).toBe(true);
     expect((proxy as any).value).toBe(42);
+    expect(await (proxy as any).ping()).toBe('pong');
+    await expect(
+      (lazyService(onvif, async () => ({ default: Dummy })) as any).value(1),
+    ).rejects.toThrow(/not a method/);
     (proxy as any).value = 7;
     expect((proxy as any).value).toBe(7);
 
