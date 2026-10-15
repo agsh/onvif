@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/profiles/specifications/
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif, OnvifServices, type OnvifSoapBody } from './onvif';
 import { linerase, LineraseOptions } from './utils';
 
 export const XMLNS: Record<keyof OnvifServices, string> = {
@@ -70,11 +70,16 @@ export default class Service {
     this.xmlns = XMLNS[this.service];
   }
 
-  async request<T = any>(body: Record<string, any>, options?: LineraseOptions): Promise<T> {
+  async request<T = any>(body: OnvifSoapBody, options?: LineraseOptions): Promise<T> {
     const root = Object.keys(body)[0];
-    body[root].$ = {
+    const rootNode = body[root];
+    if (typeof rootNode !== 'object' || rootNode === null) {
+      throw new TypeError(`SOAP body root "${root}" must be an object`);
+    }
+    const node = rootNode as Record<string, unknown>;
+    node.$ = {
       xmlns: this.xmlns,
-      ...body[root].$,
+      ...(typeof node.$ === 'object' && node.$ !== null ? node.$ : {}),
     };
     const [data] = await this.onvif.request({
       service: this.service,

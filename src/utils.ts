@@ -50,6 +50,8 @@ export class OnvifResponseError extends OnvifError {}
  */
 export class OnvifSoapFaultError extends OnvifError {
   public readonly faultCode?: string;
+  /** SOAP 1.2 Subcode Value when present (e.g. `ter:NotAuthorized`). */
+  public readonly faultSubcode?: string;
   public readonly faultReason?: string;
   public readonly faultDetail?: string;
 
@@ -57,12 +59,14 @@ export class OnvifSoapFaultError extends OnvifError {
     message: string,
     options?: OnvifErrorOptions & {
       faultCode?: string;
+      faultSubcode?: string;
       faultReason?: string;
       faultDetail?: string;
     },
   ) {
     super(message, options);
     this.faultCode = options?.faultCode;
+    this.faultSubcode = options?.faultSubcode;
     this.faultReason = options?.faultReason;
     this.faultDetail = options?.faultDetail;
   }
@@ -93,6 +97,7 @@ function soapFaultText(value: unknown): string {
 
 function extractSoapFault(fault: Record<string, any>): {
   faultCode?: string;
+  faultSubcode?: string;
   faultReason: string;
   faultDetail: string;
 } {
@@ -101,8 +106,13 @@ function extractSoapFault(fault: Record<string, any>): {
   if (typeof codeValue === 'string') {
     faultCode = codeValue;
   } else if (codeValue != null && typeof codeValue === 'object') {
-    faultCode = soapFaultText(codeValue) || JSON.stringify(codeValue);
+    // Prefer the top-level Code/Value string; nested objects may be Subcode bags
+    const asText = soapFaultText(codeValue);
+    faultCode = asText || undefined;
   }
+
+  const subcodeRaw = fault.code?.subcode?.value ?? fault.code?.Subcode?.Value ?? fault.code?.subcode;
+  const faultSubcode = soapFaultText(subcodeRaw) || undefined;
 
   let faultReason = '';
   try {
@@ -123,7 +133,23 @@ function extractSoapFault(fault: Record<string, any>): {
     // ignore malformed detail
   }
 
-  return { faultCode, faultReason, faultDetail };
+  return { faultCode, faultSubcode, faultReason, faultDetail };
+}
+
+/**
+ * True when a SOAP Fault means the unauthenticated (or unauthorized) request was rejected
+ * and should be retried with credentials — e.g. Panasonic / Digital Barriers GetSystemDateAndTime.
+ */
+export function isSenderNotAuthorizedFault(error: unknown): boolean {
+  if (!(error instanceof OnvifSoapFaultError)) {
+    return false;
+  }
+  const normalized = [error.faultCode, error.faultSubcode, error.faultReason, error.faultDetail]
+    .filter((part): part is string => typeof part === 'string' && part.length > 0)
+    .map((part) => part.toLowerCase().replace(/[\s_-]+/g, ''));
+  return normalized.some(
+    (part) => part.includes('notauthorized') || part.includes('sendernotauthorized'),
+  );
 }
 
 export interface LineraseOptions {
@@ -382,10 +408,11 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
     });
   }
   if (body.fault) {
-    const { faultCode, faultReason, faultDetail } = extractSoapFault(body.fault);
+    const { faultCode, faultSubcode, faultReason, faultDetail } = extractSoapFault(body.fault);
     throw new OnvifSoapFaultError(`ONVIF SOAP Fault: ${faultReason}${faultDetail}`, {
       xml,
       faultCode,
+      faultSubcode,
       faultReason,
       faultDetail,
     });
@@ -434,13 +461,20 @@ export function build(object: any) {
  * Derive SOAP 1.2 `action` URI from a request body object (first child of Body + its xmlns).
  * Matches v0.x Content-Type `action="namespace/Operation"` behaviour.
  */
-export function soapActionFromBody(body: Record<string, any>, fallbackXmlns?: string): string | undefined {
+export function soapActionFromBody(body: Record<string, unknown>, fallbackXmlns?: string): string | undefined {
   const keys = Object.keys(body).filter((key) => key !== '$');
   if (keys.length === 0) {
     return undefined;
   }
   const operation = keys[0];
-  const xmlns = body[operation]?.$?.xmlns ?? fallbackXmlns;
+  const operationNode = body[operation];
+  const xmlns =
+    (typeof operationNode === 'object' &&
+      operationNode !== null &&
+      '$' in operationNode &&
+      typeof (operationNode as { $?: { xmlns?: unknown } }).$?.xmlns === 'string' &&
+      (operationNode as { $: { xmlns: string } }).$.xmlns) ||
+    fallbackXmlns;
   if (!xmlns || typeof xmlns !== 'string') {
     return undefined;
   }

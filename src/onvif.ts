@@ -12,6 +12,7 @@ import { Buffer } from 'buffer';
 import {
   build,
   getDigestHeaders,
+  isSenderNotAuthorizedFault,
   linerase,
   OnvifAuthError,
   OnvifResponse,
@@ -29,6 +30,7 @@ import type PTZ from './ptz';
 import type { Capabilities, Profile, SystemDateTime, VideoSource } from './interfaces/onvif';
 import type {
   GetDeviceInformationResponse,
+  GetSystemDateAndTimeResponse,
   SetSystemDateAndTime,
   Service as DeviceService,
 } from './interfaces/devicemgmt';
@@ -116,12 +118,18 @@ export interface OnvifServices {
   [key: string]: URL | undefined;
 }
 
+/**
+ * SOAP Body tree for {@link build} / {@link Onvif.request}
+ * (operation element name → children and `$` attributes).
+ */
+export type OnvifSoapBody = Record<string, unknown>;
+
 export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
   headers?: http.OutgoingHttpHeaders;
   /** Name of service (ptz, media, etc) */
   service?: keyof OnvifServices;
   /** SOAP body */
-  body: Record<string, any>;
+  body: OnvifSoapBody;
   /** Defines another url to request */
   url?: URL;
   /** Timeout for pull-point event requests */
@@ -133,7 +141,7 @@ export interface OnvifRequestOptions extends Omit<RequestOptions, 'headers'> {
    */
   signal?: AbortSignal;
   /** Additional SOAP-headers */
-  soapHeaders?: Record<string, any>;
+  soapHeaders?: OnvifSoapBody;
   /** Tags that should be forced to be arrays */
   array?: string[];
   /** Values of these tags will be in xml2js format */
@@ -197,6 +205,11 @@ export interface SystemDateTimeExtended extends SystemDateTime {
    * Javascript Date object to use instead of UTCDateTime
    */
   dateTime: Date;
+}
+
+/** Parsed SOAP Body for GetSystemDateAndTime (camelCase from the XML parser). */
+interface GetSystemDateAndTimeSoapBody {
+  getSystemDateAndTimeResponse: GetSystemDateAndTimeResponse;
 }
 
 interface OnvifEvents {
@@ -509,7 +522,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     }
   }
 
-  envelopeBody(body: Record<string, any>) {
+  envelopeBody(body: OnvifSoapBody) {
     return {
       $: {
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -864,27 +877,27 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     // As 'timeShift' is not set, the local clock MUST be set to the correct time AND the NVT/Camera MUST be set
     // to the correct time if the camera implements Replay Attack Protection (e.g. Axis)
     // Try the Unauthenticated Request first. Do not use envelopeHeader() as we don't have timeShift yet.
-    const body = {
+    const body: OnvifSoapBody = {
       GetSystemDateAndTime: { $: { xmlns: 'http://www.onvif.org/ver10/device/wsdl' } },
     };
-    const [data, xml] = await this.rawRequest({
-      body: build({
-        's:Envelope': {
-          $: {
-            'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
-          },
-          's:Body': this.envelopeBody(body),
-        },
-      }),
-      action: soapActionFromBody(body),
-    });
     try {
+      const [data] = await this.rawRequest<GetSystemDateAndTimeSoapBody>({
+        body: build({
+          's:Envelope': {
+            $: {
+              'xmlns:s': 'http://www.w3.org/2003/05/soap-envelope',
+            },
+            's:Body': this.envelopeBody(body),
+          },
+        }),
+        action: soapActionFromBody(body),
+      });
       return this.setupSystemDateAndTime(data);
     } catch (error) {
-      if (xml && xml.toLowerCase().includes('sender not authorized')) {
-        // Try again with a Username and Password
+      // Real devices return a SOAP Fault (parsed as OnvifSoapFaultError), not a soft body + reason string.
+      if (isSenderNotAuthorizedFault(error)) {
         const [data] = await this.request({ body });
-        return this.setupSystemDateAndTime(data);
+        return this.setupSystemDateAndTime(data as GetSystemDateAndTimeSoapBody);
       }
       throw error;
     }
@@ -899,14 +912,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Add time shift to use with ONVIF timestamps
-   * @param data
+   * @param data parsed SOAP Body containing GetSystemDateAndTimeResponse
    * @private
    */
-  private setupSystemDateAndTime(data: any): SystemDateTimeExtended {
-    const { systemDateAndTime } = linerase(data).getSystemDateAndTimeResponse;
+  private setupSystemDateAndTime(data: GetSystemDateAndTimeSoapBody): SystemDateTimeExtended {
+    const { systemDateAndTime } = linerase<GetSystemDateAndTimeSoapBody>(data).getSystemDateAndTimeResponse;
     // UTCDateTime is mandatory since version 2.0
     const UTCDateTime = systemDateAndTime.UTCDateTime || systemDateAndTime.localDateTime;
-    let dateTime;
+    let dateTime: Date;
     if (UTCDateTime === undefined) {
       // Seen on a cheap Chinese camera from GWellTimes-IPC. Use the current time.
       dateTime = new Date();
@@ -923,8 +936,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       );
     }
     this.timeShift = dateTime.getTime() - process.uptime() * 1000;
-    systemDateAndTime.dateTime = dateTime;
-    return systemDateAndTime;
+    return { ...systemDateAndTime, dateTime };
   }
 
   /**

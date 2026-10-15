@@ -10,6 +10,7 @@ import Device from '../src/device';
 import { Onvif } from '../src/onvif';
 import { lazyService } from '../src/service';
 import Events from '../src/events';
+import { OnvifSoapFaultError } from '../src/utils';
 
 describe('Service options and builders', () => {
   it('builds and manages AccessRules profiles with optional fields', async () => {
@@ -132,6 +133,43 @@ describe('Service options and builders', () => {
     (secure as any).nc = 99999999;
     expect((secure as any).updateNC()).toBe('00000001');
     expect((secure as any).updateNC()).toBe('00000002');
+  });
+
+  it('retries getSystemDateAndTime when SOAP Fault is NotAuthorized', async () => {
+    const onvif = new Onvif({
+      hostname: '127.0.0.1',
+      autoConnect: false,
+      useWSSecurity: true,
+      username: 'admin',
+      password: 'secret',
+    });
+    jest.spyOn(onvif as any, 'rawRequest').mockRejectedValueOnce(
+      new OnvifSoapFaultError('ONVIF SOAP Fault: Sender not authorized', {
+        faultCode: 's:Sender',
+        faultSubcode: 'ter:NotAuthorized',
+        faultReason: 'Sender not authorized',
+      }),
+    );
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getSystemDateAndTimeResponse: {
+          systemDateAndTime: {
+            dateTimeType: 'Manual',
+            daylightSavings: false,
+            UTCDateTime: {
+              date: { year: 2024, month: 6, day: 15 },
+              time: { hour: 12, minute: 30, second: 45 },
+            },
+          },
+        },
+      },
+      '<ok/>',
+    ]);
+
+    const result = await onvif.getSystemDateAndTime();
+    expect(result.dateTime).toEqual(new Date(Date.UTC(2024, 5, 15, 12, 30, 45)));
+    expect(onvif.timeShift).toBeDefined();
+    expect(onvif.request).toHaveBeenCalled();
   });
 
   it('aborts an in-flight SOAP request via AbortSignal', async () => {
