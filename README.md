@@ -293,9 +293,18 @@ Call `await onvif.connect()` again to reopen after `close()` (new agents, event 
 
 # Services
 
-Methods take typed ONVIF request options and return the corresponding response data (often unwrapped when there is a
-single property). Some helpers accept more convenient fields (for example `dateTime?: Date` on
-`SetSystemDateAndTimeExtended`).
+Methods take typed ONVIF request options and return the corresponding response data. Some helpers accept more convenient
+fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
+
+**Return unwrapping**
+
+- **Single useful value** — unwrapped (e.g. `getDeviceInformation()` → info object, `systemReboot()` → message string,
+  `setNetworkInterfaces()` → `rebootNeeded` boolean).
+- **By-token getters** (`getAccessPoints`, `getDoors`, `getCredentials`, ...) — unwrapped to an **array** of items
+  (`[]` when the device returns none).
+- **Paginated `*List` methods** (`getAccessPointList`, `getDoorInfoList`, ...) — keep the ONVIF **list response** object
+  (`{ accessPoint?, nextStartReference? }`, etc.). The optional `nextStartReference` is required for paging; do not
+  treat these like by-token getters.
 
 See the [API documentation](https://agsh.github.io/onvif/) for per-service methods.
 

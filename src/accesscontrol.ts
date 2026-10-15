@@ -148,7 +148,8 @@ export default class AccessControl extends Service {
   }
 
   /**
-   * Returns a list of access point info items.
+   * Paginated access point info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAccessPointInfo}, which unwraps to an array.
    * @param options
    */
   async getAccessPointInfoList(options: GetAccessPointInfoList = {}): Promise<GetAccessPointInfoListResponse> {
@@ -175,7 +176,8 @@ export default class AccessControl extends Service {
   }
 
   /**
-   * Returns a list of access point items.
+   * Paginated access point list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAccessPoints}, which unwraps to an array.
    * @param options
    */
   async getAccessPointList(options: GetAccessPointList = {}): Promise<GetAccessPointListResponse> {
@@ -261,7 +263,8 @@ export default class AccessControl extends Service {
   }
 
   /**
-   * Returns a list of area info items.
+   * Paginated area info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAreaInfo}, which unwraps to an array.
    * @param options
    */
   async getAreaInfoList(options: GetAreaInfoList = {}): Promise<GetAreaInfoListResponse> {
@@ -288,7 +291,8 @@ export default class AccessControl extends Service {
   }
 
   /**
-   * Returns a list of area items.
+   * Paginated area list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAreas}, which unwraps to an array.
    * @param options
    */
   async getAreaList(options: GetAreaList = {}): Promise<GetAreaListResponse> {

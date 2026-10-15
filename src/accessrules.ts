@@ -97,7 +97,8 @@ export default class AccessRules extends Service {
   }
 
   /**
-   * Returns a list of access profile info items.
+   * Paginated access profile info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAccessProfileInfo}, which unwraps to an array.
    * @param options
    */
   async getAccessProfileInfoList(options: GetAccessProfileInfoList = {}): Promise<GetAccessProfileInfoListResponse> {
@@ -127,7 +128,8 @@ export default class AccessRules extends Service {
   }
 
   /**
-   * Returns a list of access profile items.
+   * Paginated access profile list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getAccessProfiles}, which unwraps to an array.
    * @param options
    */
   async getAccessProfileList(options: GetAccessProfileList = {}): Promise<GetAccessProfileListResponse> {

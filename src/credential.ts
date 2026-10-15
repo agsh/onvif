@@ -195,7 +195,8 @@ export default class Credential extends Service {
   }
 
   /**
-   * Returns a list of credential info items.
+   * Paginated credential info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getCredentialInfo}, which unwraps to an array.
    * @param options
    */
   async getCredentialInfoList(options: GetCredentialInfoList = {}): Promise<GetCredentialInfoListResponse> {
@@ -225,7 +226,8 @@ export default class Credential extends Service {
   }
 
   /**
-   * Returns a list of credential items.
+   * Paginated credential list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getCredentials}, which unwraps to an array.
    * @param options
    */
   async getCredentialList(options: GetCredentialList = {}): Promise<GetCredentialListResponse> {

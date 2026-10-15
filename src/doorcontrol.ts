@@ -140,7 +140,8 @@ export default class DoorControl extends Service {
   }
 
   /**
-   * Returns a list of door info items.
+   * Paginated door info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getDoorInfo}, which unwraps to an array.
    * @param options
    */
   async getDoorInfoList(options: GetDoorInfoList = {}): Promise<GetDoorInfoListResponse> {
@@ -170,7 +171,8 @@ export default class DoorControl extends Service {
   }
 
   /**
-   * Returns a list of door items.
+   * Paginated door list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getDoors}, which unwraps to an array.
    * @param options
    */
   async getDoorList(options: GetDoorList = {}): Promise<GetDoorListResponse> {

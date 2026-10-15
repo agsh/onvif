@@ -146,7 +146,8 @@ export default class Schedule extends Service {
   }
 
   /**
-   * Returns a list of schedule info items.
+   * Paginated schedule info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getScheduleInfo}, which unwraps to an array.
    * @param options
    */
   async getScheduleInfoList(options: GetScheduleInfoList = {}): Promise<GetScheduleInfoListResponse> {
@@ -176,7 +177,8 @@ export default class Schedule extends Service {
   }
 
   /**
-   * Returns a list of schedule items.
+   * Paginated schedule list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getSchedules}, which unwraps to an array.
    * @param options
    */
   async getScheduleList(options: GetScheduleList = {}): Promise<GetScheduleListResponse> {
@@ -239,7 +241,8 @@ export default class Schedule extends Service {
   }
 
   /**
-   * Returns a list of special day group info items.
+   * Paginated special day group info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getSpecialDayGroupInfo}, which unwraps to an array.
    * @param options
    */
   async getSpecialDayGroupInfoList(
@@ -268,7 +271,8 @@ export default class Schedule extends Service {
   }
 
   /**
-   * Returns a list of special day group items.
+   * Paginated special day group list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getSpecialDayGroups}, which unwraps to an array.
    * @param options
    */
   async getSpecialDayGroupList(options: GetSpecialDayGroupList = {}): Promise<GetSpecialDayGroupListResponse> {
