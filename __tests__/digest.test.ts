@@ -366,5 +366,63 @@ describe('Digest authentication (mock server)', () => {
         await closeServer(server);
       }
     });
+
+    it('escapes quotes and backslashes in Digest username (RFC 7616 quoted-string)', () => {
+      const onvif = new Onvif({
+        hostname: '127.0.0.1',
+        username: 'a"b\\c',
+        password: 'secret',
+        autoConnect: false,
+        useWSSecurity: false,
+      });
+      const header = onvif.digestAuth(['Digest realm="r", nonce="n"'], {
+        method: 'POST',
+        path: '/onvif/device_service',
+      });
+      // Wire form escapes \ and "; HA1 still uses the raw username a"b\c
+      expect(header).toContain('username="a\\"b\\\\c"');
+      const expected = expectedDigestResponse('md5', {
+        username: 'a"b\\c',
+        password: 'secret',
+        realm: 'r',
+        method: 'POST',
+        path: '/onvif/device_service',
+        nonce: 'n',
+      });
+      expect(header).toContain(`response="${expected}"`);
+    });
+
+    it('skips malformed Digest tokens and still builds auth from valid params', () => {
+      const onvif = new Onvif({
+        hostname: '127.0.0.1',
+        username: USERNAME,
+        password: PASSWORD,
+        autoConnect: false,
+        useWSSecurity: false,
+      });
+      // Garbage token must not throw; realm/nonce still parse
+      const header = onvif.digestAuth(['Digest realm="r", !!!broken!!!, nonce="n"'], {
+        method: 'POST',
+        path: PATH,
+      });
+      expect(header).toContain('realm="r"');
+      expect(header).toContain('nonce="n"');
+    });
+
+    it('throws OnvifAuthError when no challenge has realm and nonce', () => {
+      const onvif = new Onvif({
+        hostname: '127.0.0.1',
+        username: USERNAME,
+        password: PASSWORD,
+        autoConnect: false,
+        useWSSecurity: false,
+      });
+      expect(() =>
+        onvif.digestAuth(['Digest stale="FALSE"', 'NotDigest at-all'], {
+          method: 'POST',
+          path: PATH,
+        }),
+      ).toThrow('Unable to parse Digest authentication challenge');
+    });
   });
 });

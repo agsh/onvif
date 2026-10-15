@@ -98,10 +98,14 @@ describe('Service options and builders', () => {
 
     const defaultsHttp = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     expect(defaultsHttp.port).toBe(80);
+    expect(defaultsHttp.timeout).toBe(120000);
     expect((defaultsHttp.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
     const defaultsHttps = new Onvif({ hostname: '127.0.0.1', useSecure: true, autoConnect: false });
     expect(defaultsHttps.port).toBe(443);
     expect((defaultsHttps.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
+    // timeout: 0 must be kept (|| would replace it with 120000)
+    const zeroTimeout = new Onvif({ hostname: '127.0.0.1', timeout: 0, autoConnect: false });
+    expect(zeroTimeout.timeout).toBe(0);
 
     const preserved = secure.parseUrl('http://other.host:8000/onvif/media_service');
     expect(preserved.hostname).toBe('cam.local');
@@ -109,6 +113,20 @@ describe('Service options and builders', () => {
 
     const unchanged = defaultsHttp.parseUrl('http://127.0.0.1/onvif/device_service');
     expect(unchanged.hostname).toBe('127.0.0.1');
+
+    // Default http port: URL.port is "" — must not treat that as "different from 80"
+    const sameDefaultPort = new Onvif({
+      hostname: '127.0.0.1',
+      port: 80,
+      preserveAddress: true,
+      autoConnect: false,
+    });
+    const sameHost = sameDefaultPort.parseUrl('http://127.0.0.1/onvif/device_service');
+    expect(sameHost.hostname).toBe('127.0.0.1');
+    expect(sameHost.port).toBe(''); // WHATWG omits default port
+    const otherHostDefaultPort = sameDefaultPort.parseUrl('http://camera.lan/onvif/device_service');
+    expect(otherHostDefaultPort.hostname).toBe('127.0.0.1');
+    expect(otherHostDefaultPort.port).toBe(''); // rewritten host, still default http port
 
     (secure as any).nc = 99999999;
     expect((secure as any).updateNC()).toBe('00000001');

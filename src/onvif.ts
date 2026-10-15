@@ -444,7 +444,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.password = options.password;
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
-    this.timeout = options.timeout || 120000;
+    this.timeout = options.timeout ?? 120000;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
     const httpLibrary = this.useSecure ? https : http;
@@ -485,12 +485,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.on('newListener', (name) => {
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.subscribe().catch((error) => this.emit('error', error));
+        this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
     });
     this.on('removeListener', (name) => {
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.unsubscribe().catch((error) => this.emit('error', error));
+        this.events.globalSubscription.unsubscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
       }
     });
 
@@ -743,11 +743,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     // Process each item in the wwwAuthenticateArray
     // Most cameras have only 1 item.
     // HikVision implementing the new MD5-then-SHA256 have two items
-    let bestResult;
-    let bestAlgorithm;
+    let bestResult: string | undefined;
+    let bestAlgorithm: string | undefined;
 
     for (const digestHeader of digestHeadersArray) {
       const challenge = this.parseChallenge(digestHeader);
+      // Skip unusable challenges (malformed WWW-Authenticate / missing required fields)
+      if (!challenge.realm || !challenge.nonce) {
+        continue;
+      }
       // if 'algorithm' is undefined, the Digest RFC says we default to MD5
       const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
       const ha1 = crypto.createHash(algorithm);
@@ -806,13 +810,16 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       const result = `Digest ${Object.entries(authParams)
         .map(([key, value]) => `${key}=${value}`)
         .join(',')}`;
-      if (bestResult == null || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
+      if (bestResult === undefined || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
         // set bestResult or upgrade the bestResult to the stronger algorithm
         bestResult = result;
         bestAlgorithm = algorithm;
       }
     }
-    return bestResult as string;
+    if (bestResult === undefined) {
+      throw new OnvifAuthError('Unable to parse Digest authentication challenge');
+    }
+    return bestResult;
   }
 
   public request(options: OnvifRequestOptions): OnvifResponse {
@@ -844,9 +851,16 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   private parseChallenge(digest: string): { [key: string]: string } {
     const prefix = 'Digest ';
-    const challenge = digest.substring(digest.indexOf(prefix) + prefix.length);
-    const partsArray = splitArgs(challenge);
-    const parts = partsArray.map((part) => part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/)!.slice(1));
+    const prefixAt = digest.indexOf(prefix);
+    const challenge = prefixAt === -1 ? digest : digest.substring(prefixAt + prefix.length);
+    const parts: [string, string][] = [];
+    for (const part of splitArgs(challenge)) {
+      // Soft-skip malformed tokens instead of throwing on match(...)!
+      const match = part.match(/^\s*?([a-zA-Z0-9]+)="?([^"]*)"?\s*?$/);
+      if (match) {
+        parts.push([match[1], match[2]]);
+      }
+    }
     return Object.fromEntries(parts);
   }
 

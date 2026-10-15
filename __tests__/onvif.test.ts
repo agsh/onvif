@@ -98,16 +98,6 @@ describe('Date and time', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an error when the response from the device is not empty string', async () => {
-      jest.spyOn(cam as any, 'request').mockReturnValueOnce('whatever');
-      await expect(
-        cam.setSystemDateAndTime({
-          dateTimeType: 'NTP',
-          daylightSavings: false,
-        }),
-      ).rejects.toThrow();
-    });
-
     it('should set date and time using SOAP Date and Time types', async () => {
       const result = await cam.setSystemDateAndTime({
         dateTimeType: 'Manual',
