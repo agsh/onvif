@@ -577,18 +577,23 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
       // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
+      // Include search: pathname alone drops query (e.g. subscription XAddrs with ?…).
+      const requestPath = (url: URL) => `${url.pathname}${url.search}`;
       const requestOptions: RequestOptions = {
         ...(options.url
           ? {
               // if we have url property for pull-point event requests
               hostname: options.url.hostname,
-              path: options.url.pathname,
+              path: requestPath(options.url),
               port: options.url.port,
             }
           : {
               // try to guess the right path for the requested service
               hostname: this.hostname,
-              path: options.service ? (this.uri[options.service]?.pathname ?? this.path) : this.path,
+              path:
+                options.service && this.uri[options.service]
+                  ? requestPath(this.uri[options.service]!)
+                  : this.path,
               port: this.port,
             }),
         // Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections
@@ -858,22 +863,32 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
+   * Effective TCP port from a WHATWG URL.
+   * `URL.port` is `""` for scheme defaults (http→80, https→443), so string compare with
+   * `this.port` would always look different under {@link OnvifOptions.preserveAddress}.
+   */
+  private static urlPort(url: URL): number {
+    if (url.port) {
+      return Number(url.port);
+    }
+    return url.protocol === 'https:' ? 443 : 80;
+  }
+
+  /**
    * Parse url with an eye on `preserveAddress` property
    * @param address
    * @private
    */
   public parseUrl(address: string) {
     const parsedAddress = new URL(address);
-    // If host for service and default host differs, also if preserve address property set
-    // we substitute host, hostname and port from settings then rebuild the href using .format
+    // When preserveAddress is set, rewrite host/port to constructor values if they differ
+    // from the XAddr (proxy / NAT). Compare effective ports, not URL.port strings.
     if (
       this.preserveAddress &&
-      (this.hostname !== parsedAddress.hostname || this.port.toString() !== parsedAddress.port)
+      (this.hostname !== parsedAddress.hostname || this.port !== Onvif.urlPort(parsedAddress))
     ) {
       parsedAddress.hostname = this.hostname;
-      parsedAddress.host = `${this.hostname}:${this.port}`;
-      parsedAddress.port = this.port.toString();
-      parsedAddress.href = parsedAddress.toString();
+      parsedAddress.port = String(this.port);
     }
     return parsedAddress;
   }
