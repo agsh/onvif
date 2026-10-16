@@ -143,9 +143,41 @@ describe('public API regression (breaking changes)', () => {
     });
 
     it('keeps package.json export map for consumers', () => {
-      expect(Object.keys(pkg.exports).sort()).toEqual(['.', './compatibility', './compatibility/promises']);
+      expect(Object.keys(pkg.exports).sort()).toEqual([
+        '.',
+        './compatibility',
+        './compatibility/promises',
+        './package.json',
+      ]);
       expect(pkg.main).toBe('build/index.js');
       expect(pkg.types).toBe('build/index.d.ts');
+      expect(pkg.files).toEqual(expect.arrayContaining(['build', 'CHANGELOG.md']));
+      expect(pkg.engines?.node).toBe('>=18.0');
+      for (const [subpath, entry] of Object.entries(pkg.exports) as Array<[string, Record<string, string>]>) {
+        if (subpath === './package.json') {
+          expect(entry).toBe('./package.json');
+          continue;
+        }
+        expect(entry).toEqual(
+          expect.objectContaining({
+            types: expect.stringMatching(/\.d\.ts$/),
+            require: expect.stringMatching(/\.js$/),
+            import: expect.stringMatching(/\.js$/),
+            default: expect.stringMatching(/\.js$/),
+          }),
+        );
+      }
+    });
+
+    it('compiled build entry matches the public runtime surface (no stale utils.js shadow)', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const built = require('../build') as typeof mainApi;
+      expect(Object.keys(built).sort()).toEqual(MAIN_RUNTIME_EXPORTS);
+      expect(built.soapXml).toBeDefined();
+      expect(typeof built.soapXml.run).toBe('function');
+      // Node resolves require('./utils') to utils.js before utils/ — orphans break soapXml.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      expect(() => require('../build/utils.js')).toThrow(/Cannot find module/);
     });
 
     it('exposes Cam via compatibility subpaths', () => {

@@ -5,22 +5,33 @@
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "files": [
+    "build",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
+      "require": "./build/index.js",
+      "import": "./build/index.js",
       "default": "./build/index.js"
     },
     "./compatibility": {
       "types": "./build/compatibility/index.d.ts",
+      "require": "./build/compatibility/index.js",
+      "import": "./build/compatibility/index.js",
       "default": "./build/compatibility/index.js"
     },
     "./compatibility/promises": {
       "types": "./build/compatibility/promises/index.d.ts",
+      "require": "./build/compatibility/promises/index.js",
+      "import": "./build/compatibility/promises/index.js",
       "default": "./build/compatibility/promises/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "rm -rf build && tsc --build",
     "prepublishOnly": "npm run build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "eslint . --no-warn-ignored",

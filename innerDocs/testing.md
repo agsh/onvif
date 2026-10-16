@@ -7,7 +7,7 @@ All tests use Jest. Suites live under `__tests__/`.
 ```bash
 npm test          # lint + HappyTime mock server + full Jest suite
 npm run test-local  # Jest only (expects HappyTime already running on :8000)
-npm run build
+npm run build       # rm -rf build && tsc (avoids stale files shadowing dirs, e.g. utils.js vs utils/)
 npm run lint
 ```
 

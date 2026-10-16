@@ -18,11 +18,22 @@ TypeScript-first ONVIF client for Node.js.
 
 ## Installation
 
-Requires Node.js 18+.
+Requires Node.js 18+. The published package ships compiled `build/` (CommonJS + `.d.ts`),
+`README`, `LICENSE`, and `CHANGELOG` — no need to clone this repository for normal use.
 
 ```shell
 npm install onvif
 ```
+
+```js
+const { Onvif } = require('onvif'); // CommonJS
+```
+
+```ts
+import { Onvif } from 'onvif'; // ESM / TypeScript (Node loads the CJS build)
+```
+
+Subpaths: `onvif/compatibility`, `onvif/compatibility/promises`.
 
 For existing projects on the mature **0.x** line (~10 years):
 

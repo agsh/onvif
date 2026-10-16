@@ -32,5 +32,4 @@ jest.config.js
 tsconfig.json
 typedoc.json
 package-lock.json
-CHANGELOG.md
 CONTRIBUTING.md
