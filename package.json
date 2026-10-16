@@ -1,6 +1,6 @@
 {
   "name": "onvif",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
@@ -107,6 +107,6 @@
     "xml2js": "^0.6.2"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "esbuild@0.27.2": true
   }
 }
