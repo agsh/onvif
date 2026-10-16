@@ -68,9 +68,27 @@ function extractSoapFault(fault: Record<string, any>): {
   return { faultCode, faultSubcode, faultReason, faultDetail };
 }
 
-function parse(xml: string, options?: ParseSOAPStringOptions) {
+/** Module-level cache: one {@link XMLParser} per distinct `array` / `rawXML` / xml2js mode. */
+const xmlParserCache = new Map<string, XMLParser>();
+
+function xmlParserCacheKey(options?: ParseSOAPStringOptions): string {
+  if (options?.attributesGroupName === '$') {
+    return `$\0${options.attributeNamePrefix ?? ''}`;
+  }
+  const array = options?.array;
+  const rawXML = options?.rawXML;
+  // Sort so the same tag set hits one entry regardless of call-site order.
+  const arrayKey = array?.length ? [...array].sort().join('\0') : '';
+  const rawKey = rawXML?.length ? [...rawXML].sort().join('\0') : '';
+  return `${arrayKey}\0\0${rawKey}`;
+}
+
+function createXmlParser(options?: ParseSOAPStringOptions): XMLParser {
   const xml2jsMode = options?.attributesGroupName === '$';
-  const parser = new XMLParser({
+  // Capture tags at creation time (callers may reuse / mutate option objects).
+  const arrayTags = new Set(options?.array ?? []);
+  const stopNodes = options?.rawXML?.length ? options.rawXML.map((tag) => `..${tag}`) : undefined;
+  return new XMLParser({
     ignoreAttributes: false,
     attributesGroupName: options?.attributesGroupName,
     attributeNamePrefix: options?.attributeNamePrefix ?? '',
@@ -80,15 +98,38 @@ function parse(xml: string, options?: ParseSOAPStringOptions) {
     trimValues: true,
     isArray: xml2jsMode
       ? (_tagName, _jPath, _isLeafNode, isAttribute) => !isAttribute
-      : (tagName) => !!options?.array?.includes(tagName),
+      : (tagName) => arrayTags.has(tagName),
     removeNSPrefix: !xml2jsMode,
     ...(!xml2jsMode && {
       transformTagName: toCamelCase,
       transformAttributeName: toCamelCase,
     }),
-    stopNodes: options?.rawXML?.map((tag) => `..${tag}`),
+    stopNodes,
   });
-  return parser.parse(xml);
+}
+
+function getXmlParser(options?: ParseSOAPStringOptions): XMLParser {
+  const key = xmlParserCacheKey(options);
+  let parser = xmlParserCache.get(key);
+  if (!parser) {
+    parser = createXmlParser(options);
+    xmlParserCache.set(key, parser);
+  }
+  return parser;
+}
+
+function parse(xml: string, options?: ParseSOAPStringOptions) {
+  return getXmlParser(options).parse(xml);
+}
+
+/** @internal Test helper — size of the shared {@link XMLParser} cache. */
+export function xmlParserCacheSize(): number {
+  return xmlParserCache.size;
+}
+
+/** @internal Test helper — drop all cached parsers. */
+export function clearXmlParserCache(): void {
+  xmlParserCache.clear();
 }
 
 function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
