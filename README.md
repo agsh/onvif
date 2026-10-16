@@ -12,6 +12,7 @@ TypeScript-first ONVIF client for Node.js.
 - WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256)
 - Lazy-loaded service modules
 
+> [!IMPORTANT]
 > Looking for **0.x / 0.8**? Docs and source: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 [![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
@@ -19,7 +20,7 @@ TypeScript-first ONVIF client for Node.js.
 ## Installation
 
 Requires Node.js 18+. The published package ships compiled `build/` (CommonJS + `.d.ts`),
-`README`, `LICENSE`, and `CHANGELOG` — no need to clone this repository for normal use.
+`README`, `LICENSE`, and `CHANGELOG` - no need to clone this repository for normal use.
 
 ```shell
 npm install onvif
@@ -45,10 +46,10 @@ README for 0.x: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 ## Documentation
 
-API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** —
+API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** -
 start from the [`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) class.
 
-After `connect()`, call methods on lazy-loaded service namespaces (`onvif.media`, `onvif.ptz`, …; `events` is eager) —
+After `connect()`, call methods on lazy-loaded service namespaces (`onvif.media`, `onvif.ptz`, ...; `events` is eager) -
 see [Services](#services). Also exported: [`Discovery`](https://agsh.github.io/onvif/variables/Discovery.html).
 
 ## Quick start
@@ -83,7 +84,7 @@ const { Onvif } = require('onvif');
 ### Example project
 
 > [!NOTE]
-> **Node.js** — works with plain JavaScript (`require` / `import`). TypeScript is optional;
+> **Node.js** - works with plain JavaScript (`require` / `import`). TypeScript is optional;
 > types ship with the package.
 
 ONVIF with FFmpeg, RTSP and Socket.IO (http://localhost:6147):
@@ -149,25 +150,30 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - Typed request/response interfaces from the latest ONVIF WSDL
   ([onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces))
 - [API documentation](https://agsh.github.io/onvif/)
-- Events: pull-point, WS-BaseNotification, filters, `EventEmitter` — [innerDocs/events.md](innerDocs/events.md)
+- Events: pull-point, WS-BaseNotification, filters, `EventEmitter` - [innerDocs/events.md](innerDocs/events.md)
 - Lazy-loaded services
 - Auth: WS-Security, Digest; Advanced Security (experimental)
 - WS-Discovery on the LAN
-- Vendor XML extensions (`xs:any` / `xs:anyAttribute`) — [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
-- SOAP XML (`build` / `parseSOAPString` / `request` / `soapXml`) — [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
-- Services — see [Services](#services)
+- Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
+- SOAP XML (`build` / `parseSOAPString` / `request` / `soapXml`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
+- Services - see [Services](#services)
 
 ## Connection
 
 Call `connect()` before most methods. It synchronizes time (for WS-Security), discovers service URLs
-(`GetServices` / `GetCapabilities`), and — when Media is available — loads profiles and video sources.
+(`GetServices` / `GetCapabilities`), and - when Media is available - loads profiles and video sources.
 Pass `{ media: false }` to skip media probing (door stations, reachability checks).
 
-On success, `connect()` emits `connect` and returns the instance.
+On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after
+clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
+connect. Details: [innerDocs/connection.md](innerDocs/connection.md).
 
 When finished, call `await onvif.close()` to stop the pull-point subscription (if any) and release
 HTTP keep-alive sockets. Without `close()`, idle connections can keep a Node process from exiting.
 Safe to call more than once. Call `await onvif.connect()` again to reopen after `close()`.
+
+Agents, renew/reconnect timers, and custom `Subscription` teardown:
+[innerDocs/resources.md](innerDocs/resources.md).
 
 ## Services
 
@@ -189,22 +195,22 @@ fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
 | [Search](https://agsh.github.io/onvif/interfaces/Search.html) | `onvif.search` | [G](https://www.onvif.org/profiles/profile-g/) |
 | [Receiver](https://agsh.github.io/onvif/interfaces/Receiver.html) | `onvif.receiver` | [G](https://www.onvif.org/profiles/profile-g/) |
 | [DeviceIO](https://agsh.github.io/onvif/interfaces/DeviceIO.html) | `onvif.deviceIO` | [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/), [C](https://www.onvif.org/profiles/profile-c/) |
-| [Display](https://agsh.github.io/onvif/interfaces/Display.html) | `onvif.display` | — |
-| [ActionEngine](https://agsh.github.io/onvif/interfaces/ActionEngine.html) | `onvif.actionEngine` | — |
-| [Thermal](https://agsh.github.io/onvif/interfaces/Thermal.html) | `onvif.thermal` | — |
+| [Display](https://agsh.github.io/onvif/interfaces/Display.html) | `onvif.display` | - |
+| [ActionEngine](https://agsh.github.io/onvif/interfaces/ActionEngine.html) | `onvif.actionEngine` | - |
+| [Thermal](https://agsh.github.io/onvif/interfaces/Thermal.html) | `onvif.thermal` | - |
 | [DoorControl](https://agsh.github.io/onvif/interfaces/DoorControl.html) | `onvif.doorControl` | [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/) |
 | [AccessControl](https://agsh.github.io/onvif/interfaces/AccessControl.html) | `onvif.accessControl` | [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/) |
 | [Credential](https://agsh.github.io/onvif/interfaces/Credential.html) | `onvif.credential` | [A](https://www.onvif.org/profiles/profile-a/), [C](https://www.onvif.org/profiles/profile-c/) |
 | [AccessRules](https://agsh.github.io/onvif/interfaces/AccessRules.html) | `onvif.accessRules` | [A](https://www.onvif.org/profiles/profile-a/) |
 | [Schedule](https://agsh.github.io/onvif/interfaces/Schedule.html) | `onvif.schedule` | [A](https://www.onvif.org/profiles/profile-a/) |
-| [Provisioning](https://agsh.github.io/onvif/interfaces/Provisioning.html) | `onvif.provisioning` | — |
-| [AdvancedSecurity](https://agsh.github.io/onvif/interfaces/AdvancedSecurity.html) | `onvif.advancedSecurity` | — |
+| [Provisioning](https://agsh.github.io/onvif/interfaces/Provisioning.html) | `onvif.provisioning` | - |
+| [AdvancedSecurity](https://agsh.github.io/onvif/interfaces/AdvancedSecurity.html) | `onvif.advancedSecurity` | - |
 
 **Return unwrapping**
 
-- **Single useful value** — unwrapped (e.g. `getDeviceInformation()` → info object, `systemReboot()` → message string)
-- **By-token getters** (`getAccessPoints`, `getDoors`, …) — unwrapped to an **array** (`[]` when empty)
-- **Paginated `*List` methods** — keep the ONVIF list response object (`{ accessPoint?, nextStartReference? }`, …)
+- **Single useful value** - unwrapped (e.g. `getDeviceInformation()` -> info object, `systemReboot()` -> message string)
+- **By-token getters** (`getAccessPoints`, `getDoors`, ...) - unwrapped to an **array** (`[]` when empty)
+- **Paginated `*List` methods** - keep the ONVIF list response object (`{ accessPoint?, nextStartReference? }`, ...)
 
 ## Events
 
@@ -229,7 +235,7 @@ capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 ## Migration from v0.x
 
 Prefer the new `Onvif` API. For existing `Cam`-based apps, a compatibility layer
-(`onvif/compatibility`, `onvif/compatibility/promises`) is available — see
+(`onvif/compatibility`, `onvif/compatibility/promises`) is available - see
 [innerDocs/migration.md](innerDocs/migration.md).  
 0.x docs: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
@@ -237,22 +243,22 @@ Prefer the new `Onvif` API. For existing `Cam`-based apps, a compatibility layer
 
 Samples in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) folder (1.x `Onvif` API):
 
-- [device.info.js](https://github.com/agsh/onvif/blob/master/examples/device.info.js) — device info, hostname, scopes, services
-- [media.stream.js](https://github.com/agsh/onvif/blob/master/examples/media.stream.js) — profiles, RTSP stream and snapshot URIs
-- [media2.profiles.js](https://github.com/agsh/onvif/blob/master/examples/media2.profiles.js) — Profile T Media2 profiles / encoders
-- [imaging.settings.js](https://github.com/agsh/onvif/blob/master/examples/imaging.settings.js) — imaging settings and options
-- [analytics.rules.js](https://github.com/agsh/onvif/blob/master/examples/analytics.rules.js) — analytics rules and modules
-- [deviceio.relay.js](https://github.com/agsh/onvif/blob/master/examples/deviceio.relay.js) — DeviceIO relays / digital inputs
-- [door.unlock.js](https://github.com/agsh/onvif/blob/master/examples/door.unlock.js) — Profile C/A door unlock / lock
-- [rtsp.socketio.ptz.js](https://github.com/agsh/onvif/blob/master/examples/rtsp.socketio.ptz.js) — RTSP preview over Socket.IO with PTZ
-- [ptz.keyboard.js](https://github.com/agsh/onvif/blob/master/examples/ptz.keyboard.js) — keyboard PTZ + presets
-- [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js) — WS-Discovery
-- [scan.ip.range.js](https://github.com/agsh/onvif/blob/master/examples/scan.ip.range.js) — IP range scan
-- [proxy.socks5.js](https://github.com/agsh/onvif/blob/master/examples/proxy.socks5.js) — SOCKS5 proxy
-- [https.digest.mjs](https://github.com/agsh/onvif/blob/master/examples/https.digest.mjs) — HTTPS + Digest (SHA-1 / SHA-256) with in-process mock (ESM)
-- [events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) — events with topic filters
-- [osd.js](https://github.com/agsh/onvif/blob/master/examples/osd.js) — on-screen text overlays
-- [replay.uri.js](https://github.com/agsh/onvif/blob/master/examples/replay.uri.js) — Profile G replay URI
+- [device.info.js](https://github.com/agsh/onvif/blob/master/examples/device.info.js) - device info, hostname, scopes, services
+- [media.stream.js](https://github.com/agsh/onvif/blob/master/examples/media.stream.js) - profiles, RTSP stream and snapshot URIs
+- [media2.profiles.js](https://github.com/agsh/onvif/blob/master/examples/media2.profiles.js) - Profile T Media2 profiles / encoders
+- [imaging.settings.js](https://github.com/agsh/onvif/blob/master/examples/imaging.settings.js) - imaging settings and options
+- [analytics.rules.js](https://github.com/agsh/onvif/blob/master/examples/analytics.rules.js) - analytics rules and modules
+- [deviceio.relay.js](https://github.com/agsh/onvif/blob/master/examples/deviceio.relay.js) - DeviceIO relays / digital inputs
+- [door.unlock.js](https://github.com/agsh/onvif/blob/master/examples/door.unlock.js) - Profile C/A door unlock / lock
+- [rtsp.socketio.ptz.js](https://github.com/agsh/onvif/blob/master/examples/rtsp.socketio.ptz.js) - RTSP preview over Socket.IO with PTZ
+- [ptz.keyboard.js](https://github.com/agsh/onvif/blob/master/examples/ptz.keyboard.js) - keyboard PTZ + presets
+- [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js) - WS-Discovery
+- [scan.ip.range.js](https://github.com/agsh/onvif/blob/master/examples/scan.ip.range.js) - IP range scan
+- [proxy.socks5.js](https://github.com/agsh/onvif/blob/master/examples/proxy.socks5.js) - SOCKS5 proxy
+- [https.digest.mjs](https://github.com/agsh/onvif/blob/master/examples/https.digest.mjs) - HTTPS + Digest (SHA-1 / SHA-256) with in-process mock (ESM)
+- [events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) - events with topic filters
+- [osd.js](https://github.com/agsh/onvif/blob/master/examples/osd.js) - on-screen text overlays
+- [replay.uri.js](https://github.com/agsh/onvif/blob/master/examples/replay.uri.js) - Profile G replay URI
 
 Compatibility-layer demos: [`compatibility.cjs`](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs), [`compatibilityPromises.cjs`](https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs).
 

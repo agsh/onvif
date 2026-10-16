@@ -20,8 +20,8 @@ Example fragment:
 ```ts
 {
   Password: {
-    $: { Type: '…#PasswordDigest' },
-    _: 'base64digest…',
+    $: { Type: '...#PasswordDigest' },
+    _: 'base64digest...',
   },
 }
 ```
@@ -29,10 +29,10 @@ Example fragment:
 becomes:
 
 ```xml
-<Password Type="…#PasswordDigest">base64digest…</Password>
+<Password Type="...#PasswordDigest">base64digest...</Password>
 ```
 
-## Building XML — `build()`
+## Building XML - `build()`
 
 ```ts
 import { build } from 'onvif';
@@ -51,7 +51,7 @@ const xml = build({
 - `build` is a thin wrapper around `fast-xml-parser` `XMLBuilder` with `attributesGroupName: '$'`
   and `textNodeName: '_'`.
 
-## Parsing XML — `parseSOAPString()`
+## Parsing XML - `parseSOAPString()`
 
 ```ts
 import { parseSOAPString } from 'onvif';
@@ -63,18 +63,18 @@ const [body, xml] = await parseSOAPString(rawSoapString, {
 ```
 
 - Expects a SOAP `Envelope` / `Body`. Empty or non-SOAP bodies throw `OnvifResponseError`.
-- SOAP Faults throw `OnvifSoapFaultError` (with `faultCode`, `faultReason`, …).
+- SOAP Faults throw `OnvifSoapFaultError` (with `faultCode`, `faultReason`, ...).
 - Returns `[body, originalXmlString]`. Tag names are camelCased; namespaces are stripped on the
   normal parse path (except under `rawXML` / `xsany`).
 - Typed service methods usually run the body through `linerase()` and unwrap a single useful value.
 
-## `Onvif.request()` — public SOAP API
+## `Onvif.request()` - public SOAP API
 
 ```ts
 const [body, xml] = await onvif.request({
   service: 'device', // optional; selects path from onvif.uri[service]
   body: {
-    GetHostname: {}, // operation name → children; xmlns often injected by Service.request
+    GetHostname: {}, // operation name -> children; xmlns often injected by Service.request
   },
   array: ['scopes'],
   rawXML: ['elementItem'],
@@ -91,21 +91,21 @@ What it sends on the wire:
 
 1. Wraps `body` in SOAP 1.2 envelope:
    - `s:Envelope` with `xmlns:s` + `xmlns:a` (WS-Addressing)
-   - `s:Header` from `envelopeHeader()` — WS-Security UsernameToken PasswordDigest when
+   - `s:Header` from `envelopeHeader()` - WS-Security UsernameToken PasswordDigest when
      `useWSSecurity` and credentials are set, plus optional `soapHeaders`
    - `s:Body` with XSD/XSI xmlns plus your operation tree (`envelopeBody`)
-2. Serializes with `build()` → **one compact XML string**.
+2. Serializes with `build()` -> **one compact XML string**.
 3. POSTs with
    `Content-Type: application/soap+xml;charset=utf-8;action="<namespace>/<Operation>"`
    (action derived from the body root + xmlns, like v0.x).
 4. Parses the HTTP response with `parseSOAPString` and resolves to `[parsedBody, responseXml]`.
 
 Typical app code uses service helpers (`onvif.device.getHostname()`), which call
-`Service.request` → `onvif.request` and return unwrapped data. Use `onvif.request` when you need
+`Service.request` -> `onvif.request` and return unwrapped data. Use `onvif.request` when you need
 a raw body / XML pair or an operation without a typed wrapper.
 
 ```ts
-// Escape hatch — same transport as typed methods
+// Escape hatch - same transport as typed methods
 const [data, xml] = await onvif.request({
   service: 'device',
   body: {
@@ -115,7 +115,7 @@ const [data, xml] = await onvif.request({
 console.log(data.getHostnameResponse, xml);
 ```
 
-## `rawRequest()` — private transport
+## `rawRequest()` - private transport
 
 `Onvif.rawRequest` is **not** part of the public API (TypeScript `private`). It is the HTTP/Digest
 layer used by `request()` and a few internal paths (e.g. unauthenticated `GetSystemDateAndTime`
@@ -133,7 +133,7 @@ Differences from `request()`:
 Internal example shape (do not rely on calling this from app code):
 
 ```ts
-// Conceptual — rawRequest is private
+// Conceptual - rawRequest is private
 await this.rawRequest({
   body: build({
     's:Envelope': {
@@ -148,14 +148,14 @@ await this.rawRequest({
 ```
 
 For custom envelopes from application code, prefer `build(...)` + the public surface you need, or
-open an issue if a typed/public escape hatch is missing — do not depend on `rawRequest`.
+open an issue if a typed/public escape hatch is missing - do not depend on `rawRequest`.
 
-## Inspecting request / response XML — `soapXml`
+## Inspecting request / response XML - `soapXml`
 
 Service methods return parsed data only. To read the raw SOAP **request** and **response** envelopes
 for a specific call (including under `Promise.all`), wrap the call in `soapXml`
 ([`AsyncLocalStorage`](https://nodejs.org/api/async_context.html#class-asynclocalstorage)).
-Keep a store object you own — `Onvif.request` writes into it when the call runs inside `soapXml.run`:
+Keep a store object you own - `Onvif.request` writes into it when the call runs inside `soapXml.run`:
 
 ```ts
 import { Onvif, soapXml, type SoapXmlStore } from 'onvif';
@@ -188,7 +188,7 @@ await onvif.close();
 | `responseXml` | HTTP response body has been received and paired with that call |
 
 Events `rawRequest` / `rawResponse` still fire for every HTTP exchange, but they are **not**
-correlated to a particular `Promise.all` caller — prefer `soapXml` when you need that pairing.
+correlated to a particular `Promise.all` caller - prefer `soapXml` when you need that pairing.
 
 The v0 compatibility `Cam` callback third argument (`xml`) is the **response** envelope for that
 call (same per-request store).

@@ -32,20 +32,20 @@ Plus new methods have been added in v1.x.
 - [x] getNetworkProtocols
 - [x] getUsers
 - [x] createUsers
-- [x] setUsers → device.setUser
+- [x] setUsers -> device.setUser
 - [x] deleteUsers
 - [x] sendAuxiliaryCommand
 - [x] getEventProperties
-- [x] getEventServiceCapabilities → events.getServiceCapabilities
+- [x] getEventServiceCapabilities -> events.getServiceCapabilities
 - [x] subscribe
 - [x] createPullPointSubscription
 - [x] renew
 - [x] pullMessages
 - [x] unsubscribe
-- [x] _eventRequest → Events / Subscription (v1)
-- [x] _eventPull → Subscription pull loop
-- [x] _restartEventRequest → Subscription soft-retry / resubscribe
-- [x] parseEventXML → compatibility/cam.parseEventXML
+- [x] _eventRequest -> Events / Subscription (v1)
+- [x] _eventPull -> Subscription pull loop
+- [x] _restartEventRequest -> Subscription soft-retry / resubscribe
+- [x] parseEventXML -> compatibility/cam.parseEventXML
 - [x] getVideoSources.media1
 - [x] getAudioSources.media1
 - [x] getAudioOutputs.media1
@@ -164,27 +164,27 @@ Plus new methods have been added in v1.x.
 - [x] continuousMove
 - [x] stop
 - [x] _panTiltZoomVectors
-- [x] ptzSendAuxiliaryCommand → ptz.sendAuxiliaryCommand
+- [x] ptzSendAuxiliaryCommand -> ptz.sendAuxiliaryCommand
 - [x] getImagingSettings
 - [x] setImagingSettings
-- [x] getImagingServiceCapabilities → imaging.getServiceCapabilities
-- [x] getCurrentImagingPreset → imaging.getCurrentPreset
-- [x] setCurrentImagingPreset → imaging.setCurrentPreset
-- [x] getVideoSourceOptions → imaging.getOptions
-- [x] imagingGetMoveOptions → imaging.getMoveOptions
-- [x] imagingGetStatus → imaging.getStatus
-- [x] imagingMove → imaging.move
-- [x] imagingStop → imaging.stop
+- [x] getImagingServiceCapabilities -> imaging.getServiceCapabilities
+- [x] getCurrentImagingPreset -> imaging.getCurrentPreset
+- [x] setCurrentImagingPreset -> imaging.setCurrentPreset
+- [x] getVideoSourceOptions -> imaging.getOptions
+- [x] imagingGetMoveOptions -> imaging.getMoveOptions
+- [x] imagingGetStatus -> imaging.getStatus
+- [x] imagingMove -> imaging.move
+- [x] imagingStop -> imaging.stop
 - [x] getRecordings
 - [x] getRecordingJobs
 - [x] createRecordingJob
 - [x] deleteRecordingJob
-- [x] getRecordingSummary → search.getRecordingSummary
-- [x] getRecordingInformation → search.getRecordingInformation
+- [x] getRecordingSummary -> search.getRecordingSummary
+- [x] getRecordingInformation -> search.getRecordingInformation
 - [x] getRecordingConfiguration
 - [x] getRecordingJobState
 - [x] getRecordingOptions
-- [x] getRecordingServiceCapabilities → recording.getServiceCapabilities
+- [x] getRecordingServiceCapabilities -> recording.getServiceCapabilities
 - [x] getTrackConfiguration
 - [x] getRecordingJobConfiguration
 - [x] setRecordingJobMode
