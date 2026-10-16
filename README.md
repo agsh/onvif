@@ -180,6 +180,30 @@ On success, `connect()` emits `connect` and returns the instance. A failed `conn
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
 connect. Details: [innerDocs/connection.md](innerDocs/connection.md).
 
+### `preserveAddress` (NAT / wrong XAddr host or port)
+
+Devices often return service or subscription XAddrs that you cannot reach as written —
+`http://127.0.0.1/...` behind a vendor proxy, an internal LAN IP while you connect through
+NAT or a port-forward, or a different port than the one in the constructor / `url`.
+
+By default (`preserveAddress: false`) ordinary SOAP still works: TCP always goes to the
+constructor `hostname`:`port` (or host/port from `url`); from each XAddr only the path
+(and query) is used. Set `preserveAddress: true` when the full URL must be rewritten to
+that constructor host/port (path/query kept) — needed for SOAP `a:To` and for PullMessages /
+Renew / Unsubscribe, which dial the subscription Address as `options.url`. Effective ports
+are compared (empty `URL.port` means 80/443). This does not rewrite RTSP/snapshot URI
+strings inside Media response bodies.
+
+```ts
+const onvif = new Onvif({
+  hostname: '203.0.113.10', // public / NAT address you can reach
+  port: 8080, // forwarded port (camera may advertise :80 in XAddr)
+  username: 'admin',
+  password: 'admin',
+  preserveAddress: true,
+});
+```
+
 When finished, call `await onvif.close()` to stop the pull-point subscription (if any) and release
 HTTP keep-alive sockets. Without `close()`, idle connections can keep a Node process from exiting.
 Safe to call more than once. Call `await onvif.connect()` again to reopen after `close()`.

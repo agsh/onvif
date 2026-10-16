@@ -153,13 +153,22 @@ export interface OnvifOptions {
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: HttpsAgent | HttpAgent | boolean;
   /**
-   * Rewrite service / subscription XAddrs to this client's {@link hostname}:{@link port}
-   * (NAT / reverse-proxy). Defaults to `false`.
+   * Rewrite host/port on service and subscription XAddrs to this client's
+   * {@link hostname}:{@link port} (pathname and query kept). Defaults to `false`.
    *
-   * TCP for normal service calls (`device`, `media`, ...) always uses the constructor
-   * host/port; from each XAddr only `pathname` (+ query) is used. Set this when XAddr
-   * host/port must also match the constructor — e.g. SOAP `a:To`, and PullMessages /
-   * Renew / Unsubscribe which dial `options.url` from the subscription Address.
+   * Cameras often advertise unreachable XAddrs: `127.0.0.1` behind a vendor proxy,
+   * a private LAN IP while you connect through NAT/port-forward, or a different
+   * published port than the one you dial. Ordinary SOAP calls (`device`, `media`, …)
+   * always TCP to the constructor host/port and take only `pathname` (+ query) from
+   * each XAddr — so they work without this flag. Set `preserveAddress: true` when
+   * the **full** URL must match the constructor address as well:
+   * - SOAP `a:To` / addressing headers built from the XAddr
+   * - PullMessages / Renew / Unsubscribe, which dial `options.url` from the
+   *   subscription Address
+   *
+   * Comparison uses the effective port (scheme defaults 80/443), not the empty
+   * `URL.port` string. Does not rewrite raw RTSP/snapshot URI strings inside Media
+   * responses — only URLs passed through {@link Onvif.parseUrl}.
    */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */

@@ -36,8 +36,23 @@ A failed SOAP call (`ETIMEDOUT`, `ECONNRESET`, SOAP Fault, ...) rejects that Pro
 
 Pull-point / events reconnection is separate - see [events.md](events.md).
 
+## `preserveAddress` (NAT / loopback / wrong port in XAddr)
+
+`GetServices` / capabilities / event subscription Addresses often advertise a host or port
+the client cannot use: `127.0.0.1`, a private IP behind NAT, or the camera's local `:80`
+while you dial a forwarded `:8080`.
+
+| `preserveAddress` | Behaviour |
+| --- | --- |
+| `false` (default) | `parseUrl` keeps the XAddr host/port. Normal service HTTP still uses the constructor host/port; only pathname (+ query) is taken from the XAddr. |
+| `true` | `parseUrl` replaces XAddr host/port with the constructor `hostname` / `port` (pathname + query kept). Use for SOAP `a:To` and pull-point URLs that are dialed as a full `options.url`. |
+
+Port comparison uses the effective port (scheme default 80/443 when `URL.port` is empty).
+Raw RTSP / snapshot URI strings in Media SOAP bodies are **not** rewritten — only URLs that
+go through `parseUrl` (service `uri` map, subscription Address, etc.).
+
 ## Related
 
 - Agents and timers: [resources.md](resources.md)
 - Lazy connect (no service class modules): [performance.md](performance.md)
-- Tests: `__tests__/connection.errors.test.ts`, `__tests__/connection.lazy.test.ts`
+- Tests: `__tests__/connection.errors.test.ts`, `__tests__/connection.lazy.test.ts`, `__tests__/events.clock.test.ts`
