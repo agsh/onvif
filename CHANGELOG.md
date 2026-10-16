@@ -25,6 +25,7 @@ Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + 
 - **Lazy-loaded service modules** - `device` / `media` / `media2` / ... load on first use so `connect()` does not pull in every service class.
 - **Connect options** - `{ media: false }` skips media/profile probing (door stations, mass scan); Media2-only devices and Media1→Media2 fallbacks are supported.
 - **Leaner `connect()`** - `GetServices` uses `IncludeCapability: false` by default (pass `{ includeCapability: true }` on `device.getServices` when needed); Media2 `GetProfiles` runs only as fallback when Media1 is missing or fails (saves one RTT on typical Media1 cameras).
+- **`OnvifOptions.url`** - pass a device service URL (`http(s)://host[:port]/path]`) instead of separate hostname/port/path/useSecure; credentials must stay in `username`/`password`, not in the URL.
 - **Events** - pull-point / notification flow with clearer reconnection and agent ownership; see [innerDocs/events.md](innerDocs/events.md).
 - **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256), including multi-challenge cameras; Digest challenge reuse after the first 401; time-shift handling for clocks that jump.
 - **Default SOAP timeout** - ordinary calls default to **10 s** (`DEFAULT_TIMEOUT_MS`); PullMessages still uses its own long-poll timeout (pull wait + margin). Pass `timeout` in the constructor for slower devices.

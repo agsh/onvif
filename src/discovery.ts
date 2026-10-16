@@ -334,9 +334,7 @@ export class DiscoverySingleton extends EventEmitter {
                   .map((href: string) => new URL(href.trim()));
                 const camUri = matchXAddr(camUris, rinfo.address);
                 cam = new Onvif({
-                  hostname: camUri.hostname,
-                  port: camUri.port === '' ? undefined : parseInt(camUri.port, 10),
-                  path: camUri.pathname,
+                  url: camUri,
                   urn: camAddr,
                   // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
                   xaddrs: camUris,

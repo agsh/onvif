@@ -61,7 +61,12 @@ Call `connect()` before service methods (or pass `autoConnect: true`). Call `clo
 ```ts
 import { Onvif } from 'onvif';
 
-const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+const onvif = new Onvif({
+  url: 'http://192.168.1.13:8000/onvif/device_service',
+  username: 'admin',
+  password: 'admin',
+});
+// or: { hostname, port, path?, useSecure? }
 await onvif.connect();
 const info = await onvif.device.getDeviceInformation();
 console.log(info);
@@ -74,7 +79,11 @@ await onvif.close();
 const { Onvif } = require('onvif');
 
 (async () => {
-  const onvif = new Onvif({ hostname: '192.168.1.13', port: 8000, username: 'admin', password: 'admin' });
+  const onvif = new Onvif({
+    url: 'http://192.168.1.13:8000/onvif/device_service',
+    username: 'admin',
+    password: 'admin',
+  });
   await onvif.connect();
   console.log(await onvif.device.getDeviceInformation());
   await onvif.close();

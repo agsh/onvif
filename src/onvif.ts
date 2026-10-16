@@ -68,20 +68,79 @@ import { soapXml } from './utils/helpers';
 /** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
 export const DEFAULT_TIMEOUT_MS = 10_000;
 
+const DEFAULT_DEVICE_PATH = '/onvif/device_service';
+
+/** Resolve hostname/port/path/useSecure from {@link OnvifOptions.url} or discrete fields. */
+function resolveDeviceLocation(options: OnvifOptions): {
+  hostname: string;
+  port: number;
+  path: string;
+  useSecure: boolean;
+} {
+  if (options.url !== undefined && options.hostname !== undefined) {
+    throw new OnvifValidationError('Pass either `url` or `hostname`, not both');
+  }
+  if (options.url !== undefined) {
+    let parsed: URL;
+    try {
+      parsed = options.url instanceof URL ? options.url : new URL(options.url);
+    } catch {
+      throw new OnvifValidationError('Invalid `url`');
+    }
+    if (parsed.username !== '' || parsed.password !== '') {
+      throw new OnvifValidationError('Credentials must not be embedded in `url`; use username/password options');
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new OnvifValidationError('`url` must use http: or https:');
+    }
+    const useSecure = parsed.protocol === 'https:';
+    const path =
+      parsed.pathname && parsed.pathname !== '/'
+        ? parsed.pathname + parsed.search
+        : DEFAULT_DEVICE_PATH;
+    const port =
+      parsed.port !== ''
+        ? Number.parseInt(parsed.port, 10)
+        : useSecure
+          ? 443
+          : 80;
+    return { hostname: parsed.hostname, port, path, useSecure };
+  }
+  if (!options.hostname) {
+    throw new OnvifValidationError('`hostname` or `url` is required');
+  }
+  const useSecure = options.useSecure ?? false;
+  return {
+    hostname: options.hostname,
+    port: options.port ?? (useSecure ? 443 : 80),
+    path: options.path ?? DEFAULT_DEVICE_PATH,
+    useSecure,
+  };
+}
+
 /**
- * Onvif constructor options
+ * Onvif constructor options.
+ * Pass either {@link OnvifOptions.url} or {@link OnvifOptions.hostname} (not both).
  */
 export interface OnvifOptions {
-  /** Set true if using `https` protocol, defaults to false. */
+  /**
+   * Device service URL (`http(s)://host[:port]/path]`).
+   * Sets hostname, port, path, and useSecure. Must not include userinfo; use username/password.
+   */
+  url?: string | URL;
+  /** Set true if using `https` protocol, defaults to false. Ignored when {@link url} is set. */
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
   secureOptions?: ConnectionOptions;
   /** Use WS-Security SOAP headers */
   useWSSecurity?: boolean;
-  hostname: string;
+  /** Device host. Required when {@link url} is omitted. */
+  hostname?: string;
   username?: string;
   password?: string;
+  /** Defaults to 80 or 443 from useSecure / url scheme. */
   port?: number;
+  /** Device service path. Defaults to `/onvif/device_service`. */
   path?: string;
   /**
    * HTTP socket timeout for ordinary SOAP calls, in milliseconds.
@@ -500,14 +559,15 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   constructor(options: OnvifOptions) {
     super();
-    this.useSecure = options.useSecure ?? false;
+    const location = resolveDeviceLocation(options);
+    this.useSecure = location.useSecure;
     this.secureOptions = options.secureOptions ?? {};
     this.useWSSecurity = options.useWSSecurity ?? true;
-    this.hostname = options.hostname;
+    this.hostname = location.hostname;
     this.username = options.username;
     this.password = options.password;
-    this.port = options.port ?? (options.useSecure ? 443 : 80);
-    this.path = options.path ?? '/onvif/device_service';
+    this.port = location.port;
+    this.path = location.path;
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
