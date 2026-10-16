@@ -65,6 +65,9 @@ import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
 import { soapXml } from './utils/helpers';
 
+/** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
+export const DEFAULT_TIMEOUT_MS = 10_000;
+
 /**
  * Onvif constructor options
  */
@@ -80,6 +83,11 @@ export interface OnvifOptions {
   password?: string;
   port?: number;
   path?: string;
+  /**
+   * HTTP socket timeout for ordinary SOAP calls, in milliseconds.
+   * Defaults to {@link DEFAULT_TIMEOUT_MS} (10 s). PullMessages sets its own longer
+   * timeout (pull wait + margin) and is not limited by this value.
+   */
   timeout?: number;
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
@@ -500,7 +508,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.password = options.password;
     this.port = options.port ?? (options.useSecure ? 443 : 80);
     this.path = options.path ?? '/onvif/device_service';
-    this.timeout = options.timeout ?? 120000;
+    this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
     // Caller-supplied agent (incl. `false`) is kept across close/ensureOpen; otherwise ensureOpen owns it.

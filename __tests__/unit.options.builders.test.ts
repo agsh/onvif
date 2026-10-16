@@ -102,12 +102,12 @@ describe('Service options and builders', () => {
 
     const defaultsHttp = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     expect(defaultsHttp.port).toBe(80);
-    expect(defaultsHttp.timeout).toBe(120000);
+    expect(defaultsHttp.timeout).toBe(10_000);
     expect((defaultsHttp.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
     const defaultsHttps = new Onvif({ hostname: '127.0.0.1', useSecure: true, autoConnect: false });
     expect(defaultsHttps.port).toBe(443);
     expect((defaultsHttps.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
-    // timeout: 0 must be kept (|| would replace it with 120000)
+    // timeout: 0 must be kept (|| would replace it with the default)
     const zeroTimeout = new Onvif({ hostname: '127.0.0.1', timeout: 0, autoConnect: false });
     expect(zeroTimeout.timeout).toBe(0);
 

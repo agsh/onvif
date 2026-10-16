@@ -15,8 +15,8 @@ await onvif.connect(); // reopen after close
 1. `ensureOpen` - owned agents + auto-`event` hooks (after a prior `close()`)
 2. `resetConnectState` - drops previous `uri` / services / profiles / active sources
 3. Time sync (`getSystemDateAndTime`) for WS-Security
-4. `GetServices`, or `GetCapabilities` if that fails
-5. Optional Media1 / Media2 profile probing (unless `{ media: false }`)
+4. `GetServices` (`IncludeCapability: false`), or `GetCapabilities` if that fails
+5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails
 6. Emits `connect` and returns the same instance
 
 ## Errors during `connect()`

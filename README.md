@@ -161,8 +161,11 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 ## Connection
 
 Call `connect()` before most methods. It synchronizes time (for WS-Security), discovers service URLs
-(`GetServices` / `GetCapabilities`), and - when Media is available - loads profiles and video sources.
-Pass `{ media: false }` to skip media probing (door stations, reachability checks).
+via `GetServices` with `IncludeCapability: false` (or `GetCapabilities` if that fails), and - when
+Media is available - loads profiles and video sources. Media1 is preferred; Media2 `GetProfiles` runs
+only if Media1 is missing or fails. Pass `{ media: false }` to skip media probing (door stations,
+reachability checks). For capability blocks from GetServices, call
+`device.getServices({ includeCapability: true })` after connect.
 
 On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete

@@ -65,7 +65,7 @@ describe('connection module isolation', () => {
 
       expect(tracker.loaded.size).toBe(0);
       expect(connectSteps.getServices).toHaveBeenCalled();
-      expect(connectSteps.probeMedia2Profiles).toHaveBeenCalled();
+      expect(connectSteps.probeMedia2Profiles).not.toHaveBeenCalled();
       expect(connectSteps.getMediaProfiles).toHaveBeenCalled();
       expect(connectSteps.getVideoSources).toHaveBeenCalled();
     } finally {
@@ -213,6 +213,11 @@ describe('getServices uri keys', () => {
 
     expect(onvif.uri.analyticsdevice?.href).toBe(xaddr);
     expect((onvif.uri as Record<string, unknown>).analyticsDevice).toBeUndefined();
+    expect(onvif.request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { GetServices: expect.objectContaining({ IncludeCapability: false }) },
+      }),
+    );
   });
 });
 

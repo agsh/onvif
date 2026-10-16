@@ -23,9 +23,11 @@ Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + 
 - **TypeScript-first** - typed request/response interfaces generated from current ONVIF WSDL; TypeDoc API docs.
 - **Broader profile coverage** - Profiles S, T, G, M, C, A (Media2, recording/replay/search, access control / door / credential / schedule, analytics, etc.), plus helpers such as Uplink and AppManagement.
 - **Lazy-loaded service modules** - `device` / `media` / `media2` / ... load on first use so `connect()` does not pull in every service class.
-- **Connect options** - `{ media: false }` skips media/profile probing (door stations, mass scan); Media2-only devices and Media1->Media2 fallbacks are supported.
+- **Connect options** - `{ media: false }` skips media/profile probing (door stations, mass scan); Media2-only devices and Media1→Media2 fallbacks are supported.
+- **Leaner `connect()`** - `GetServices` uses `IncludeCapability: false` by default (pass `{ includeCapability: true }` on `device.getServices` when needed); Media2 `GetProfiles` runs only as fallback when Media1 is missing or fails (saves one RTT on typical Media1 cameras).
 - **Events** - pull-point / notification flow with clearer reconnection and agent ownership; see [innerDocs/events.md](innerDocs/events.md).
-- **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256), including multi-challenge cameras; time-shift handling for clocks that jump.
+- **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256), including multi-challenge cameras; Digest challenge reuse after the first 401; time-shift handling for clocks that jump.
+- **Default SOAP timeout** - ordinary calls default to **10 s** (`DEFAULT_TIMEOUT_MS`); PullMessages still uses its own long-poll timeout (pull wait + margin). Pass `timeout` in the constructor for slower devices.
 - **Vendor extensions** - `xs:any` / `xs:anyAttribute` via `xsany` (parse + serialize); see [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 - **Discovery** - WS-Discovery improvements (RelatesTo / MessageID matching, multi-interface / buffer sizing, scopes & types).
 - **SOAP / transport** - structured fault fields, Digest retry on Sender NotAuthorized, keep-alive / agent control, proxy-friendly request path; see [innerDocs/soap-xml.md](innerDocs/soap-xml.md).

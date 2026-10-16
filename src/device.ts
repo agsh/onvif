@@ -413,8 +413,10 @@ export default class Device extends Service {
 
   /**
    * Returns information about services of the device.
+   * Defaults to `IncludeCapability: false` (same as {@link connect}); pass
+   * `{ includeCapability: true }` when capability blocks are needed.
    */
-  async getServices({ includeCapability }: GetServices = { includeCapability: true }): Promise<GetServicesResponse> {
+  async getServices({ includeCapability }: GetServices = { includeCapability: false }): Promise<GetServicesResponse> {
     const { getServices } = await import('./connection');
     const result = await getServices(this.onvif, { includeCapability });
     this.#services = this.onvif.services;

@@ -154,10 +154,30 @@ describe('compatibility promises unit', () => {
       jest.restoreAllMocks();
     });
 
-    it('disables media2Support when Media2 GetProfiles fails (D-Link workaround)', async () => {
+    it('does not probe Media2 when Media1 succeeds (skips eager Media2 RTT)', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-      // resetConnectState clears uri / media2Support — refill via getServices like a real device.
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.media2Support = true;
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+        return { service: [] } as never;
+      });
+      const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined as never);
+
+      await onvif.connect();
+      expect(onvif.media2Support).toBe(true);
+      expect(connectSteps.getMediaProfiles).toHaveBeenCalled();
+      expect(probeMedia2).not.toHaveBeenCalled();
+    });
+
+    it('disables media2Support when Media1 fails and Media2 probe fails (D-Link)', async () => {
+      const { connectSteps } = await import('../src/connection');
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.media2Support = true;
@@ -166,33 +186,14 @@ describe('compatibility promises unit', () => {
         return { service: [] } as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockRejectedValue(new Error('media2 broken'));
-      jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
-      jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getMediaProfiles').mockRejectedValue(new Error('Media1 GetProfiles failed'));
+      jest.spyOn(connectSteps, 'getVideoSources').mockRejectedValue(new Error('Media1 GetVideoSources failed'));
       jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined as never);
 
       await onvif.connect();
       expect(onvif.media2Support).toBe(false);
-      expect(connectSteps.getMediaProfiles).toHaveBeenCalled();
-    });
-
-    it('keeps media2Support when Media2 GetProfiles succeeds', async () => {
-      const { connectSteps } = await import('../src/connection');
-      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
-      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
-        cam.media2Support = true;
-        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
-        cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
-      });
-      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
-      jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
-      jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
-      jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined as never);
-
-      await onvif.connect();
-      expect(onvif.media2Support).toBe(true);
       expect(connectSteps.probeMedia2Profiles).toHaveBeenCalled();
+      expect(onvif.profiles).toEqual([]);
     });
 
     it('fills profiles and active sources for Media2-only devices', async () => {
@@ -323,7 +324,7 @@ describe('compatibility promises unit', () => {
       expect(warnings[0].message).toMatch(/Optional action not implemented/);
     });
 
-    it('falls back to Media2 when Media1 fails but Media2 probe succeeded', async () => {
+    it('falls back to Media2 when Media1 fails (probe only then)', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       const warnings: Error[] = [];
@@ -532,7 +533,7 @@ describe('compatibility promises unit', () => {
       });
     });
 
-    it('Media1+Media2 keeps Media1 profiles (does not overwrite with Media2 probe)', async () => {
+    it('Media1+Media2 keeps Media1 profiles without calling Media2 probe', async () => {
       const { connectSteps } = await import('../src/connection');
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       const media1Profiles = [{ token: 'media1-profile', name: 'Media1' }] as never;
@@ -545,7 +546,7 @@ describe('compatibility promises unit', () => {
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
         return { service: [] } as never;
       });
-      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(media2Profiles);
+      const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(media2Profiles);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
         cam.profiles = media1Profiles;
         return media1Profiles;
@@ -560,7 +561,7 @@ describe('compatibility promises unit', () => {
       expect(onvif.profiles).toEqual(media1Profiles);
       expect(onvif.profiles[0].token).toBe('media1-profile');
       expect(connectSteps.getMediaProfiles).toHaveBeenCalled();
-      expect(connectSteps.probeMedia2Profiles).toHaveBeenCalled();
+      expect(probeMedia2).not.toHaveBeenCalled();
     });
   });
 
