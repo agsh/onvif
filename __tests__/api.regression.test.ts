@@ -155,6 +155,7 @@ describe('public API regression (breaking changes)', () => {
       expect(pkg.engines?.node).toBe('>=18.0');
       for (const [subpath, entry] of Object.entries(pkg.exports) as Array<[string, Record<string, string>]>) {
         if (subpath === './package.json') {
+          // eslint-disable-next-line jest/no-conditional-expect
           expect(entry).toBe('./package.json');
           continue;
         }
@@ -176,7 +177,7 @@ describe('public API regression (breaking changes)', () => {
       expect(built.soapXml).toBeDefined();
       expect(typeof built.soapXml.run).toBe('function');
       // Node resolves require('./utils') to utils.js before utils/ — orphans break soapXml.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      // eslint-disable-next-line @typescript-eslint/no-require-imports,n/no-missing-require
       expect(() => require('../build/utils.js')).toThrow(/Cannot find module/);
     });
 
@@ -221,7 +222,9 @@ describe('public API regression (breaking changes)', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
-        cam.services = [{ namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never];
+        cam.services = [
+          { namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never,
+        ];
         return { service: cam.services } as never;
       });
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
@@ -315,9 +318,7 @@ describe('public API regression (breaking changes)', () => {
       await expect(onvif.ptz.getNodes()).resolves.toEqual([]);
 
       expect('getNodes' in onvif.ptz).toBe(true);
-      expect(onvif.request).toHaveBeenCalledWith(
-        expect.objectContaining({ service: 'ptz' }),
-      );
+      expect(onvif.request).toHaveBeenCalledWith(expect.objectContaining({ service: 'ptz' }));
     });
   });
 
