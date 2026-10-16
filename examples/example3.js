@@ -90,9 +90,8 @@ new Cam({
 	cam_obj.getPresets({}, // use 'default' profileToken
 		// Completion callback function
 		// This callback is executed once we have a list of presets
-		// October 2026 - callback returns the original PresetsByName
-		// and now PresetsByToken (to handle cases with duplicate names)
-		function(err, presetsByName, xml, presetsByToken) {
+		// 0.8.4+ callback: (err, presetsByName, presetsByToken, xml)
+		function(err, presetsByName, presetsByToken, xml) {
 			if (err) {
 				console.log("GetPreset Error " + err);
 				return;
