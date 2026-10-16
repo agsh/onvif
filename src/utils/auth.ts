@@ -59,6 +59,33 @@ export function parseChallenge(digest: string): Record<string, string> {
 }
 
 /**
+ * Pick the strongest usable Digest challenge from `WWW-Authenticate` values.
+ * Prefers SHA-256 when both MD5 and SHA-256 are offered (HikVision dual headers).
+ */
+export function preferredDigestChallenge(digestHeadersArray: string[]): Record<string, string> | undefined {
+  let best: Record<string, string> | undefined;
+  let bestAlgorithm: string | undefined;
+
+  for (const digestHeader of digestHeadersArray) {
+    const challenge = parseChallenge(digestHeader);
+    if (!challenge.realm || !challenge.nonce) {
+      continue;
+    }
+    const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
+    if (best === undefined || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
+      best = challenge;
+      bestAlgorithm = algorithm;
+    }
+  }
+  return best;
+}
+
+/** True when the challenge marks the previous nonce as stale (RFC 7616). */
+export function isDigestChallengeStale(challenge: Record<string, string> | undefined): boolean {
+  return challenge?.stale?.toLowerCase() === 'true';
+}
+
+/**
  * Build Digest Authorization header.
  * Prefers SHA-256 when both MD5 and SHA-256 challenges are present.
  */
@@ -68,76 +95,62 @@ export function digestAuth(
   credentials: { username?: string; password?: string },
   nextNc: () => string,
 ): string {
-  // Most cameras have only 1 WWW-Authenticate item.
-  // HikVision MD5-then-SHA256 sends two.
-  let bestResult: string | undefined;
-  let bestAlgorithm: string | undefined;
-
-  for (const digestHeader of digestHeadersArray) {
-    const challenge = parseChallenge(digestHeader);
-    if (!challenge.realm || !challenge.nonce) {
-      continue;
-    }
-    // if 'algorithm' is undefined, the Digest RFC says we default to MD5
-    const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
-    const ha1 = crypto.createHash(algorithm);
-    ha1.update([credentials.username, challenge.realm, credentials.password].join(':'));
-    // Sony SRG-XP1 sends qop="auth,auth-int" — accept either; we select "auth".
-    // Also handle spaces: "auth, auth-int".
-    if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
-      challenge.qop = 'auth';
-    }
-    const ha2 = crypto.createHash(algorithm);
-    ha2.update([requestOptions.method, requestOptions.path].join(':'));
-
-    let cnonce: string | undefined;
-    let nc: string | undefined;
-    if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
-      cnonce = crypto.randomBytes(4).toString('hex');
-      nc = nextNc();
-    }
-
-    // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
-    // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
-    const response = crypto.createHash(algorithm);
-    const responseParams = [ha1.digest('hex'), challenge.nonce];
-    if (cnonce && nc) {
-      responseParams.push(nc);
-      responseParams.push(cnonce);
-      responseParams.push(challenge.qop);
-    }
-    responseParams.push(ha2.digest('hex'));
-    response.update(responseParams.join(':'));
-
-    const authParams: Record<string, string> = {
-      username: quoteDigestParam(credentials.username ?? ''),
-      realm: quoteDigestParam(challenge.realm),
-      nonce: quoteDigestParam(challenge.nonce),
-      uri: quoteDigestParam(requestOptions.path ?? ''),
-    };
-    if ('algorithm' in challenge) {
-      authParams.algorithm = challenge.algorithm;
-    }
-    // RFC: only send qop, nc and cnonce if challenge had QOP; qop/nc unquoted
-    if ('qop' in challenge && nc) {
-      authParams.qop = challenge.qop;
-      authParams.nc = nc;
-      authParams.cnonce = quoteDigestParam(cnonce!);
-    }
-    authParams.response = quoteDigestParam(response.digest('hex'));
-    if (challenge.opaque) {
-      authParams.opaque = quoteDigestParam(challenge.opaque);
-    }
-    const result = `Digest ${Object.entries(authParams)
-      .map(([key, value]) => `${key}=${value}`)
-      .join(',')}`;
-    if (bestResult === undefined || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
-      bestResult = result;
-      bestAlgorithm = algorithm;
-    }
-  }
-  if (bestResult === undefined) {
+  const challenge = preferredDigestChallenge(digestHeadersArray);
+  if (challenge === undefined) {
     throw new OnvifAuthError('Unable to parse Digest authentication challenge');
   }
-  return bestResult;
+
+  // if 'algorithm' is undefined, the Digest RFC says we default to MD5
+  const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
+  const ha1 = crypto.createHash(algorithm);
+  ha1.update([credentials.username, challenge.realm, credentials.password].join(':'));
+  // Sony SRG-XP1 sends qop="auth,auth-int" — accept either; we select "auth".
+  // Also handle spaces: "auth, auth-int".
+  if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
+    challenge.qop = 'auth';
+  }
+  const ha2 = crypto.createHash(algorithm);
+  ha2.update([requestOptions.method, requestOptions.path].join(':'));
+
+  let cnonce: string | undefined;
+  let nc: string | undefined;
+  if (typeof challenge.qop === 'string' && challenge.qop === 'auth') {
+    cnonce = crypto.randomBytes(4).toString('hex');
+    nc = nextNc();
+  }
+
+  // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
+  // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
+  const response = crypto.createHash(algorithm);
+  const responseParams = [ha1.digest('hex'), challenge.nonce];
+  if (cnonce && nc) {
+    responseParams.push(nc);
+    responseParams.push(cnonce);
+    responseParams.push(challenge.qop);
+  }
+  responseParams.push(ha2.digest('hex'));
+  response.update(responseParams.join(':'));
+
+  const authParams: Record<string, string> = {
+    username: quoteDigestParam(credentials.username ?? ''),
+    realm: quoteDigestParam(challenge.realm),
+    nonce: quoteDigestParam(challenge.nonce),
+    uri: quoteDigestParam(requestOptions.path ?? ''),
+  };
+  if ('algorithm' in challenge) {
+    authParams.algorithm = challenge.algorithm;
+  }
+  // RFC: only send qop, nc and cnonce if challenge had QOP; qop/nc unquoted
+  if ('qop' in challenge && nc) {
+    authParams.qop = challenge.qop;
+    authParams.nc = nc;
+    authParams.cnonce = quoteDigestParam(cnonce!);
+  }
+  authParams.response = quoteDigestParam(response.digest('hex'));
+  if (challenge.opaque) {
+    authParams.opaque = quoteDigestParam(challenge.opaque);
+  }
+  return `Digest ${Object.entries(authParams)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(',')}`;
 }

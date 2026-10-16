@@ -324,6 +324,87 @@ describe('Digest authentication (mock server)', () => {
     });
   });
 
+  describe('digest challenge cache', () => {
+    it('reuses Digest Authorization on the next call without a second 401', async () => {
+      const captured: { authHeaders: (string | undefined)[]; requestCount: number } = {
+        authHeaders: [],
+        requestCount: 0,
+      };
+      const server = http.createServer((req, res) => {
+        captured.requestCount += 1;
+        captured.authHeaders.push(req.headers.authorization);
+        if (!req.headers.authorization) {
+          res.writeHead(401, { 'WWW-Authenticate': CHALLENGE_MD5 });
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+        res.end(SOAP_OK);
+      });
+      await new Promise<void>((resolve, reject) => {
+        server.listen(0, '127.0.0.1', () => resolve());
+        server.on('error', reject);
+      });
+      const { port } = server.address() as AddressInfo;
+      try {
+        const cam = createCam(port);
+        await requestGetSystemDateAndTime(cam);
+        expect(captured.requestCount).toBe(2);
+        expect(captured.authHeaders[0]).toBeUndefined();
+        expect(captured.authHeaders[1]).toBeDefined();
+
+        await requestGetSystemDateAndTime(cam);
+        // Cached challenge → Authorization on the first hop of the second RPC
+        expect(captured.requestCount).toBe(3);
+        expect(captured.authHeaders[2]).toBeDefined();
+        const firstAuth = parseAuthorizationHeader(captured.authHeaders[1]!);
+        const secondAuth = parseAuthorizationHeader(captured.authHeaders[2]!);
+        expect(secondAuth.nonce).toBe(firstAuth.nonce);
+        expect(Number.parseInt(secondAuth.nc!, 10)).toBeGreaterThan(Number.parseInt(firstAuth.nc!, 10));
+      } finally {
+        await closeServer(server);
+      }
+    });
+
+    it('retries once when the camera rotates the nonce with stale=true', async () => {
+      const staleChallenge =
+        'Digest qop="auth", realm="IP Camera", nonce="newnoncevalue0001", algorithm="MD5", stale="TRUE"';
+      let hits = 0;
+      const server = http.createServer((req, res) => {
+        hits += 1;
+        if (hits === 1) {
+          res.writeHead(401, { 'WWW-Authenticate': CHALLENGE_MD5 });
+          res.end();
+          return;
+        }
+        if (hits === 2) {
+          // First Authorization accepted into cache path; then camera rotates nonce
+          expect(req.headers.authorization).toBeDefined();
+          res.writeHead(401, { 'WWW-Authenticate': staleChallenge });
+          res.end();
+          return;
+        }
+        expect(req.headers.authorization).toBeDefined();
+        const auth = parseAuthorizationHeader(req.headers.authorization!);
+        expect(auth.nonce).toBe('newnoncevalue0001');
+        res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+        res.end(SOAP_OK);
+      });
+      await new Promise<void>((resolve, reject) => {
+        server.listen(0, '127.0.0.1', () => resolve());
+        server.on('error', reject);
+      });
+      const { port } = server.address() as AddressInfo;
+      try {
+        const cam = createCam(port);
+        await requestGetSystemDateAndTime(cam);
+        expect(hits).toBe(3);
+      } finally {
+        await closeServer(server);
+      }
+    });
+  });
+
   describe('401 without digest', () => {
     it('should reject when 401 has no Digest WWW-Authenticate headers', async () => {
       const server = http.createServer((_req, res) => {

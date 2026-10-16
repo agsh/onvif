@@ -22,7 +22,12 @@ import {
   soapActionFromBody,
   soapActionFromXml,
 } from './utils';
-import { digestAuth as buildDigestAuth, passwordDigest as createPasswordDigest } from './utils/auth';
+import {
+  digestAuth as buildDigestAuth,
+  isDigestChallengeStale,
+  passwordDigest as createPasswordDigest,
+  preferredDigestChallenge,
+} from './utils/auth';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
@@ -165,6 +170,11 @@ export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'
    * When omitted, derived from the envelope Body like v0.x.
    */
   action?: string;
+  /**
+   * Internal: already retried once after a 401 with Authorization present
+   * (stale / rotated Digest nonce). Prevents an infinite challenge loop.
+   */
+  digestStaleRetried?: boolean;
 }
 
 /**
@@ -413,6 +423,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   private nc: number = 0;
   /**
+   * Cached `WWW-Authenticate: Digest ...` values from the last successful challenge.
+   * Reused so later SOAP calls send `Authorization` without an extra 401 round-trip.
+   * Cleared on {@link ensureOpen} / failed Digest auth.
+   */
+  private digestChallengeHeaders?: string[];
+  /**
    * Hostname of the ONVIF device
    */
   public hostname: string;
@@ -614,6 +630,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
       // Include search: pathname alone drops query (e.g. subscription XAddrs with ?).
       const requestPath = (url: URL) => `${url.pathname}${url.search}`;
+      const hadCallerAuth = Boolean(options.headers?.authorization || options.headers?.Authorization);
       const requestOptions: RequestOptions = {
         ...(options.url
           ? {
@@ -646,6 +663,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           charset: 'utf-8',
         },
       };
+      let sentDigestAuth = hadCallerAuth;
+      if (!hadCallerAuth && this.digestChallengeHeaders && this.username !== undefined && this.password !== undefined) {
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          authorization: this.digestAuth(this.digestChallengeHeaders, requestOptions),
+        };
+        sentDigestAuth = true;
+      }
       // Prefer options.url scheme (PullMessages / subscription XAddr may differ from useSecure).
       const useHttps = options.url ? options.url.protocol === 'https:' : this.useSecure;
       const httpLibrary = useHttps ? https : http;
@@ -662,34 +687,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           if (alreadyReturned) {
             return undefined;
           }
-          // Digest credentials were already sent and rejected — do not retry forever
-          if (options.headers?.authorization || options.headers?.Authorization) {
-            alreadyReturned = true;
-            response.destroy();
-            return reject(
-              new OnvifAuthError('Digest authentication failed', {
-                statusCode: response.statusCode,
-              }),
-            );
-          }
           const digestHeadersArray = getDigestHeaders(response.rawHeaders);
-          if (digestHeadersArray.length > 0) {
-            // Re-request with the digest auth header
-            alreadyReturned = true;
-            response.destroy();
-            try {
-              const digestResponse = await this.rawRequest<T>({
-                ...options,
-                headers: {
-                  ...options.headers,
-                  authorization: this.digestAuth(digestHeadersArray, requestOptions),
-                },
-              });
-              return resolve(digestResponse);
-            } catch (e) {
-              return reject(e);
-            }
-          } else {
+          if (digestHeadersArray.length === 0) {
             alreadyReturned = true;
             response.destroy();
             return reject(
@@ -697,6 +696,47 @@ export class Onvif extends EventEmitter<OnvifEvents> {
                 statusCode: response.statusCode,
               }),
             );
+          }
+
+          const sentAuth = sentDigestAuth;
+          const nextChallenge = preferredDigestChallenge(digestHeadersArray);
+          const cachedChallenge = this.digestChallengeHeaders
+            ? preferredDigestChallenge(this.digestChallengeHeaders)
+            : undefined;
+          const sameNonce = nextChallenge?.nonce !== undefined && nextChallenge.nonce === cachedChallenge?.nonce;
+          const stale = isDigestChallengeStale(nextChallenge);
+
+          // Same nonce and not stale → credentials rejected. Or we already retried once for stale.
+          if (sentAuth && ((sameNonce && !stale) || options.digestStaleRetried)) {
+            alreadyReturned = true;
+            response.destroy();
+            this.digestChallengeHeaders = undefined;
+            return reject(
+              new OnvifAuthError('Digest authentication failed', {
+                statusCode: response.statusCode,
+              }),
+            );
+          }
+
+          // New / first / stale challenge — cache and retry with Authorization.
+          alreadyReturned = true;
+          response.destroy();
+          if (!sameNonce || stale || !this.digestChallengeHeaders) {
+            this.nc = 0;
+          }
+          this.digestChallengeHeaders = digestHeadersArray;
+          try {
+            const digestResponse = await this.rawRequest<T>({
+              ...options,
+              digestStaleRetried: sentAuth || options.digestStaleRetried,
+              headers: {
+                ...options.headers,
+                authorization: this.digestAuth(digestHeadersArray, requestOptions),
+              },
+            });
+            return resolve(digestResponse);
+          } catch (e) {
+            return reject(e);
           }
         }
 
@@ -1076,8 +1116,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.events.resetAgent();
       this.eventsAgentNeedsReset = false;
     }
-    // Fresh Digest nonce-count after (re)open — cameras reject reused nc after a new connection.
+    // Fresh Digest nonce-count / challenge after (re)open — cameras reject reused nc after a new connection.
     this.nc = 0;
+    this.digestChallengeHeaders = undefined;
     this.on('newListener', this.onEventNewListener);
     this.on('removeListener', this.onEventRemoveListener);
     this.closed = false;
