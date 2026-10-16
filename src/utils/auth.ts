@@ -59,22 +59,59 @@ export function parseChallenge(digest: string): Record<string, string> {
 }
 
 /**
+ * Map a Digest `algorithm` token to a Node `crypto.createHash` name.
+ *
+ * RFC 7616 defines MD5, SHA-256, SHA-512-256. SHA-1 appears on some cameras (not in 7616).
+ * `*-sess` variants are not implemented and are treated as unsupported.
+ */
+export function digestHashName(algorithmField?: string): string | undefined {
+  const normalized = (algorithmField ?? 'MD5').trim().toUpperCase().replace(/-/g, '');
+  if (normalized.endsWith('SESS')) {
+    return undefined;
+  }
+  switch (normalized) {
+    case 'MD5':
+      return 'md5';
+    case 'SHA1':
+      return 'sha1';
+    case 'SHA256':
+      return 'sha256';
+    case 'SHA512256':
+      return 'sha512-256';
+    default:
+      return undefined;
+  }
+}
+
+/** Higher is stronger; used when a camera offers several Digest challenges. */
+const DIGEST_HASH_STRENGTH: Record<string, number> = {
+  md5: 1,
+  sha1: 2,
+  sha256: 3,
+  'sha512-256': 4,
+};
+
+/**
  * Pick the strongest usable Digest challenge from `WWW-Authenticate` values.
- * Prefers SHA-256 when both MD5 and SHA-256 are offered (HikVision dual headers).
+ * Order: SHA-512-256 > SHA-256 > SHA-1 > MD5. Unsupported / `*-sess` challenges are skipped.
  */
 export function preferredDigestChallenge(digestHeadersArray: string[]): Record<string, string> | undefined {
   let best: Record<string, string> | undefined;
-  let bestAlgorithm: string | undefined;
+  let bestStrength = -1;
 
   for (const digestHeader of digestHeadersArray) {
     const challenge = parseChallenge(digestHeader);
     if (!challenge.realm || !challenge.nonce) {
       continue;
     }
-    const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
-    if (best === undefined || (algorithm === 'SHA256' && bestAlgorithm === 'MD5')) {
+    const hashName = digestHashName(challenge.algorithm);
+    if (hashName === undefined) {
+      continue;
+    }
+    const strength = DIGEST_HASH_STRENGTH[hashName] ?? 0;
+    if (strength > bestStrength) {
       best = challenge;
-      bestAlgorithm = algorithm;
+      bestStrength = strength;
     }
   }
   return best;
@@ -87,7 +124,7 @@ export function isDigestChallengeStale(challenge: Record<string, string> | undef
 
 /**
  * Build Digest Authorization header.
- * Prefers SHA-256 when both MD5 and SHA-256 challenges are present.
+ * Prefers the strongest supported challenge when several are offered.
  */
 export function digestAuth(
   digestHeadersArray: string[],
@@ -100,16 +137,19 @@ export function digestAuth(
     throw new OnvifAuthError('Unable to parse Digest authentication challenge');
   }
 
-  // if 'algorithm' is undefined, the Digest RFC says we default to MD5
-  const algorithm = challenge.algorithm === undefined ? 'MD5' : challenge.algorithm.replace(/-/g, '');
-  const ha1 = crypto.createHash(algorithm);
+  const hashName = digestHashName(challenge.algorithm);
+  if (hashName === undefined) {
+    throw new OnvifAuthError('Unable to parse Digest authentication challenge');
+  }
+
+  const ha1 = crypto.createHash(hashName);
   ha1.update([credentials.username, challenge.realm, credentials.password].join(':'));
   // Sony SRG-XP1 sends qop="auth,auth-int" — accept either; we select "auth".
   // Also handle spaces: "auth, auth-int".
   if (typeof challenge.qop === 'string' && challenge.qop.split(',').some((item) => item.trim() === 'auth')) {
     challenge.qop = 'auth';
   }
-  const ha2 = crypto.createHash(algorithm);
+  const ha2 = crypto.createHash(hashName);
   ha2.update([requestOptions.method, requestOptions.path].join(':'));
 
   let cnonce: string | undefined;
@@ -121,7 +161,7 @@ export function digestAuth(
 
   // No qop   -> Response = HASH_ALG(HA1:nonce:HA2);
   // With qop -> Response = HASH_ALG(HA1:nonce:nonceCount:cnonce:qop:HA2)
-  const response = crypto.createHash(algorithm);
+  const response = crypto.createHash(hashName);
   const responseParams = [ha1.digest('hex'), challenge.nonce];
   if (cnonce && nc) {
     responseParams.push(nc);
