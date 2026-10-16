@@ -22,7 +22,7 @@ import {
   soapActionFromBody,
   soapActionFromXml,
 } from './utils';
-import { digestAuth as buildDigestAuth, passwordDigest as createPasswordDigest } from './auth';
+import { digestAuth as buildDigestAuth, passwordDigest as createPasswordDigest } from './utils/auth';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';

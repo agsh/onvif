@@ -5,7 +5,8 @@
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
 import type { RequestOptions } from 'http';
-import { OnvifAuthError, splitArgs } from './utils';
+import { splitArgs } from './digest';
+import { OnvifAuthError } from './errors';
 
 export interface PasswordDigest {
   passDigest: string;

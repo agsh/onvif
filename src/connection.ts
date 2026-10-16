@@ -20,7 +20,8 @@ import type {
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
 import type { MediaProfile } from './interfaces/media.2';
-import { MEDIA_NESTED_PARSE, OnvifError, OnvifValidationError, type LineraseOptions } from './utils';
+import { OnvifError, OnvifValidationError } from './utils/errors';
+import { MEDIA_NESTED_PARSE, type LineraseOptions } from './utils/linerase';
 import { XMLNS } from './service';
 
 /** Media1 GetProfiles — `Profiles` unbounded; nested configs are single entities. */

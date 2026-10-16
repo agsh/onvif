@@ -1,35 +1,36 @@
-## Changelog
-- 0.8.2 Probably the last stable v0.x before v1. Digest auth RFC fixes (@RogerHardiman, @anupamme).
-  Discovery UDP buffer fix and undefined props checks (@momoAmch). Replace splitargs with own implementation,
-  promises probe return (@agsh). CI on Node 22/24 (@bryopsida).
-- 0.8.1 Skip invalid presets (#367, @agsh). Get complete information about preset points (@momoAmch).
-- 0.8.0 Media2 support for video encoders (@momoAmch). PTZ presets object token fix (@Craytor).
-  Digest Authentication support (`useWSSecurity: false`) (@agsh). Cleanup unnecessary libraries,
-  remove lodash.get, minimal Node version is 14 (@agsh).
-- 0.7.4 Ability to set font size and color in `setOSD` and `createOSD` (@RotemDoar).
-- 0.7.3 `setOSD` support for DateAndTime (@RotemDoar).
-- 0.7.2 Promises API via `onvif/promises` (@agsh).
-- 0.7.1 Large catch-up release: network interfaces and NTP improvements, HTTPS, HTTP agents,
-  Profile T / Media2 review, custom OSD position, `SendAuxiliaryCommand`, imaging focus/irCutFilter/GetStatus,
-  recording service methods, event pull retry/restart on connection drops, CI workflows and many bugfixes
-  (see GitHub release notes for full contributor list).
-- 0.6.6 A lot of fixes (@RogerHardiman). Stable and tested, next step for new version
-- 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples.
-  Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command.
-  API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases.
-  Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
-- 0.6.1 Workaround for cams that don't send date-time
-- 0.6.0 Refactor modules for proper import in electron-based environment
-- 0.5.5 Added ptz.`gotoHomePosition`, ptz.`setHomePosition`. Fixed exceptions in ptz.`getConfigurations` and utils.`parseSOAPString`.
-  Added tests for ptz.`setPreset`, ptz.`removePreset`, ptz.`gotoHomePosition`, and ptz.`setHomePosition`.
-- 0.5.4 Bumped for NPM.
-- 0.5.3 Some fixes. Tests
-- 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
-- 0.5.1 Critical bugfix in SOAP-auth for some cams
-- 0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
-- 0.4.2 Bugfixes
-- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman)
-- 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
-- 0.3.1 EventEmitter-based events
-- 0.3.0 Refactoring, documentation, event service basics
-- 0.2.7 WS-Discovery
+# Changelog
+
+## 1.0.0
+
+Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + callbacks / `onvif/promises`), the public API and packaging change in several important ways.
+
+### Breaking changes
+
+- **Primary API is `Onvif`**, not `Cam`. Methods are Promises (`async`/`await`); the default entry (`require('onvif')` / `import { Onvif } from 'onvif'`) no longer exports the classic callback `Cam`.
+- **`Cam` lives in a compatibility layer** (not loaded by default):
+  - `onvif/compatibility` - callbacks (v0-style)
+  - `onvif/compatibility/promises` - Promise wrapper around that layer
+  See [innerDocs/migration.md](innerDocs/migration.md) for known behavioral differences vs 0.8.
+- **Service methods are namespaced** - e.g. `onvif.device.getDeviceInformation()`, `onvif.media.getStreamUri()`, `onvif.ptz.absoluteMove()` instead of flat `cam.getDeviceInformation()` / `cam.getStreamUri()`.
+- **Connection lifecycle** - call `await onvif.connect()` before service use (or `autoConnect: true`); call `await onvif.close()` to tear down keep-alive / events agents so the process can exit. Re-open with `connect()` after `close()`.
+- **Return shapes are often unwrapped** - single useful values (object, token, boolean, array) instead of full SOAP response wrappers. Paginated `*List` responses keep the ONVIF list object.
+- **Node.js >= 18** required.
+- **XML stack** - `xml2js` replaced with `fast-xml-parser`; SOAP is built/parsed differently (compact XML; vendor cameras that were sensitive to indentation are handled more like 0.x compact envelopes).
+- **Typed errors** - failures use `OnvifError` subclasses (`OnvifSoapFaultError`, `OnvifAuthError`, `OnvifResponseError`, `OnvifValidationError`) instead of generic `Error` / ad-hoc objects.
+
+### New / improved features
+
+- **TypeScript-first** - typed request/response interfaces generated from current ONVIF WSDL; TypeDoc API docs.
+- **Broader profile coverage** - Profiles S, T, G, M, C, A (Media2, recording/replay/search, access control / door / credential / schedule, analytics, etc.), plus helpers such as Uplink and AppManagement.
+- **Lazy-loaded service modules** - `device` / `media` / `media2` / ... load on first use so `connect()` does not pull in every service class.
+- **Connect options** - `{ media: false }` skips media/profile probing (door stations, mass scan); Media2-only devices and Media1->Media2 fallbacks are supported.
+- **Events** - pull-point / notification flow with clearer reconnection and agent ownership; see [innerDocs/events.md](innerDocs/events.md).
+- **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256), including multi-challenge cameras; time-shift handling for clocks that jump.
+- **Vendor extensions** - `xs:any` / `xs:anyAttribute` via `xsany` (parse + serialize); see [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
+- **Discovery** - WS-Discovery improvements (RelatesTo / MessageID matching, multi-interface / buffer sizing, scopes & types).
+- **SOAP / transport** - structured fault fields, Digest retry on Sender NotAuthorized, keep-alive / agent control, proxy-friendly request path.
+
+### Migration
+
+Prefer the new `Onvif` API. Existing 0.x apps can keep using `Cam` via `onvif/compatibility` or `onvif/compatibility/promises`. Details and known differences: [innerDocs/migration.md](innerDocs/migration.md).
+0.x docs and source remain on [branch v0.x](https://github.com/agsh/onvif/tree/v0.x); install with `npm install onvif@previous` if you need to stay on 0.8.
