@@ -316,6 +316,7 @@ Samples in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) 
 
 - [device.info.js](https://github.com/agsh/onvif/blob/master/examples/device.info.js) - device info, hostname, scopes, services
 - [media.stream.js](https://github.com/agsh/onvif/blob/master/examples/media.stream.js) - profiles, RTSP stream and snapshot URIs
+- [media.snapshot.ts](https://github.com/agsh/onvif/blob/master/examples/media.snapshot.ts) - GetSnapshotUri + HTTP Digest download (`digestAuth` / `getDigestHeaders`)
 - [media2.profiles.js](https://github.com/agsh/onvif/blob/master/examples/media2.profiles.js) - Profile T Media2 profiles / encoders
 - [imaging.settings.js](https://github.com/agsh/onvif/blob/master/examples/imaging.settings.js) - imaging settings and options
 - [analytics.rules.js](https://github.com/agsh/onvif/blob/master/examples/analytics.rules.js) - analytics rules and modules
