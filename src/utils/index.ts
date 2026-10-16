@@ -7,7 +7,7 @@ export {
   OnvifValidationError,
   isSenderNotAuthorizedFault,
 } from './errors';
-export { CommonDuration, toIsoDuration, toMs, guid, struct } from './helpers';
+export { CommonDuration, toIsoDuration, toMs, guid, struct, soapXml, type SoapXmlStore } from './helpers';
 export { splitArgs, getDigestHeaders } from './digest';
 export { camelCase } from './naming';
 

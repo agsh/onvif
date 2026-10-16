@@ -143,6 +143,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - Auth: WS-Security, Digest; Advanced Security (experimental)
 - WS-Discovery on the LAN
 - Vendor XML extensions (`xs:any` / `xs:anyAttribute`) — [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
+- SOAP XML (`build` / `parseSOAPString` / `request` / `soapXml`) — [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
 - Services — see [Services](#services)
 
 ## Connection
@@ -208,6 +209,11 @@ ONVIF `xs:any` / `xs:anyAttribute` extension points are exposed via `xsany` and 
 After parse you get a camelCase view **and** a wire tree on `obj[xsany]`. Setters serialize **`[xsany]` only**.
 
 Details: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
+
+## SOAP XML
+
+`build` / `parseSOAPString`, public `onvif.request()`, and per-call `soapXml` request/response
+capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 
 ## Migration from v0.x
 

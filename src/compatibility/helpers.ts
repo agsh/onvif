@@ -11,14 +11,14 @@ export function invoke<T>(
   promise: Promise<T>,
   callback: Callback,
   transform?: (result: T) => unknown,
-  getXml?: () => string | undefined,
+  getXml?: (result: T) => string | undefined,
 ): void {
   // Use then(onFulfilled, onRejected) so a throw inside `callback` is not fed back into
   // `.catch(callback)` (which would invoke the user callback a second time).
   promise
     .then(
       (result) => {
-        callback(null, transform ? transform(result) : result, getXml?.());
+        callback(null, transform ? transform(result) : result, getXml?.(result));
       },
       (error) => {
         callback(error);

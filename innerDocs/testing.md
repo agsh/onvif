@@ -27,3 +27,9 @@ post-connect properties, and `rawRequest` / `rawResponse` events.
 Default connection options are in `__tests__/happytime.json` (`127.0.0.1:8000`). To exercise a different
 ONVIF device, start or configure that endpoint and adjust hostname / port / credentials accordingly before
 `npm run test-local`.
+
+## Debugging SOAP during tests
+
+To assert or log the exact envelopes for one call (including under `Promise.all`), wrap it in
+`soapXml.run` and read `requestXml` / `responseXml`. Full API (`build`, `parseSOAPString`,
+`Onvif.request`, private `rawRequest`): [soap-xml.md](soap-xml.md).

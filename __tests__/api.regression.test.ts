@@ -37,6 +37,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'parseSOAPString',
   'soapActionFromBody',
   'soapActionFromXml',
+  'soapXml',
   'splitArgs',
   'struct',
   'toIsoDuration',

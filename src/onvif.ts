@@ -58,6 +58,7 @@ import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
 import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
+import { soapXml } from './utils/helpers';
 
 /**
  * Onvif constructor options
@@ -472,11 +473,6 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public deviceInformation?: GetDeviceInformationResponse;
   /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
   public xaddrs?: URL[];
-  /**
-   * Raw SOAP XML from the most recent {@link Onvif.request}.
-   * Used by the v0.x compatibility layer for the third callback argument.
-   */
-  public lastResponseXml?: string;
 
   constructor(options: OnvifOptions) {
     super();
@@ -800,13 +796,20 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     const action = soapActionFromBody(options.body, fallbackXmlns);
 
     this.emit('requestBody', body);
+    // Capture store by reference at call time so http callbacks need not preserve ALS.
+    const xmlStore = soapXml.getStore();
+    if (xmlStore) {
+      xmlStore.requestXml = body;
+    }
     return this.rawRequest<Record<string, any>>({
       ...options,
       headers: { ...options.headers },
       body,
       action,
     }).then((result) => {
-      this.lastResponseXml = result[1];
+      if (xmlStore) {
+        xmlStore.responseXml = result[1];
+      }
       return result;
     });
   }

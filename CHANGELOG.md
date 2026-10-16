@@ -28,7 +28,7 @@ Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + 
 - **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256), including multi-challenge cameras; time-shift handling for clocks that jump.
 - **Vendor extensions** - `xs:any` / `xs:anyAttribute` via `xsany` (parse + serialize); see [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 - **Discovery** - WS-Discovery improvements (RelatesTo / MessageID matching, multi-interface / buffer sizing, scopes & types).
-- **SOAP / transport** - structured fault fields, Digest retry on Sender NotAuthorized, keep-alive / agent control, proxy-friendly request path.
+- **SOAP / transport** - structured fault fields, Digest retry on Sender NotAuthorized, keep-alive / agent control, proxy-friendly request path; see [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 
 ### Migration
 
