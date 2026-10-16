@@ -33,6 +33,7 @@
   "scripts": {
     "build": "rm -rf build && tsc --build",
     "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "eslint . --no-warn-ignored",
     "pretest": "npm run build; npm run lint",
