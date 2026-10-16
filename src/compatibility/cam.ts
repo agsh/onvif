@@ -36,7 +36,7 @@ import { PullMessages, GetEventPropertiesResponse } from '../interfaces/event';
 import { CreateRecordingJob } from '../interfaces/recording';
 import { GetReplayUriOptions } from '../replay';
 import { parseSOAPString } from '../utils';
-import { soapXml, type SoapXmlStore } from '../utils/helpers';
+import { requestContext, type OnvifRequestContext } from '../utils/request-context';
 import {
   Callback,
   ensureArray,
@@ -346,8 +346,8 @@ export class Cam extends EventEmitter {
     transform?: (result: T) => unknown,
     getXml?: (result: T) => string | undefined,
   ): void {
-    const store: SoapXmlStore = {};
-    soapXml.run(store, () => {
+    const store: OnvifRequestContext = {};
+    requestContext.run(store, () => {
       invokeHelper(factory(), callback, transform, (result) => getXml?.(result) ?? store.responseXml);
     });
   }

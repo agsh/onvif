@@ -1,18 +1,5 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import { Duration } from '../interfaces/basics';
 import { OnvifValidationError } from './errors';
-
-/**
- * Per-SOAP-call envelope XML (request + response).
- * Filled by {@link Onvif.request} when the call runs inside {@link soapXml}.run(...).
- */
-export type SoapXmlStore = { requestXml?: string; responseXml?: string };
-
-/**
- * AsyncLocalStorage for correlating SOAP request/response XML with a single call
- * (safe under parallel requests). See [innerDocs/soap-xml.md](../../innerDocs/soap-xml.md).
- */
-export const soapXml = new AsyncLocalStorage<SoapXmlStore>();
 
 /** Shared patterns for coercing XML text nodes to JS values */
 export const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;

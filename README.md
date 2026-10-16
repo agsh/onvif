@@ -164,7 +164,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - Auth: WS-Security, Digest; Advanced Security (experimental)
 - WS-Discovery on the LAN - see [Discovery](#discovery)
 - Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
-- SOAP XML (`build` / `parseSOAPString` / `request` / `soapXml`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
+- SOAP XML (`build` / `parseSOAPString` / `request` / `requestContext`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
 - Services - see [Services](#services)
 
 ## Connection
@@ -276,7 +276,7 @@ Details: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 
 ## SOAP XML
 
-`build` / `parseSOAPString`, public `onvif.request()`, and per-call `soapXml` request/response
+`build` / `parseSOAPString`, public `onvif.request()`, and per-call `requestContext` request/response
 capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 
 ## Migration from v0.x

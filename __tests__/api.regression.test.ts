@@ -28,6 +28,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'OnvifSoapFaultError',
   'OnvifValidationError',
   'Subscription',
+  'assignErrorContext',
   'build',
   'camelCase',
   'formatXMLValues',
@@ -36,9 +37,9 @@ const MAIN_RUNTIME_EXPORTS = [
   'isSenderNotAuthorizedFault',
   'linerase',
   'parseSOAPString',
+  'requestContext',
   'soapActionFromBody',
   'soapActionFromXml',
-  'soapXml',
   'splitArgs',
   'struct',
   'toIsoDuration',
@@ -175,9 +176,9 @@ describe('public API regression (breaking changes)', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const built = require('../build') as typeof mainApi;
       expect(Object.keys(built).sort()).toEqual(MAIN_RUNTIME_EXPORTS);
-      expect(built.soapXml).toBeDefined();
-      expect(typeof built.soapXml.run).toBe('function');
-      // Node resolves require('./utils') to utils.js before utils/ — orphans break soapXml.
+      expect(built.requestContext).toBeDefined();
+      expect(typeof built.requestContext.run).toBe('function');
+      // Node resolves require('./utils') to utils.js before utils/ — orphans break requestContext.
       // eslint-disable-next-line @typescript-eslint/no-require-imports,n/no-missing-require
       expect(() => require('../build/utils.js')).toThrow(/Cannot find module/);
     });

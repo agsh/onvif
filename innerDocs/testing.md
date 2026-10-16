@@ -31,5 +31,5 @@ ONVIF device, start or configure that endpoint and adjust hostname / port / cred
 ## Debugging SOAP during tests
 
 To assert or log the exact envelopes for one call (including under `Promise.all`), wrap it in
-`soapXml.run` and read `requestXml` / `responseXml`. Full API (`build`, `parseSOAPString`,
+`requestContext.run` and read `requestXml` / `responseXml`. Full API (`build`, `parseSOAPString`,
 `Onvif.request`, private `rawRequest`): [soap-xml.md](soap-xml.md).

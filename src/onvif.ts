@@ -13,6 +13,7 @@ import {
   build,
   getDigestHeaders,
   isSenderNotAuthorizedFault,
+  assignErrorContext,
   linerase,
   OnvifAuthError,
   OnvifResponse,
@@ -63,7 +64,7 @@ import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
 import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
-import { soapXml } from './utils/helpers';
+import { requestContext } from './utils/request-context';
 
 /** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
 export const DEFAULT_TIMEOUT_MS = 10_000;
@@ -689,13 +690,39 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return createPasswordDigest(this.password!, this.timeShift);
   }
 
+  /** Active {@link requestContext} values for this transport call. */
+  private requestErrorContext(options: OnvifRawRequestOptions) {
+    const host = options.url?.hostname ?? this.hostname;
+    const action = options.action ?? soapActionFromXml(options.body);
+    return {
+      host,
+      ...(options.service !== undefined && { service: String(options.service) }),
+      ...(action !== undefined && { action }),
+    };
+  }
+
   private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
+    const ctx = this.requestErrorContext(options);
+    const active = requestContext.getStore();
+    // Prefer the caller-owned store (requestContext.run) so XML fields stay on
+    // the same object; otherwise enter a fresh ALS frame for this call.
+    if (active) {
+      Object.assign(active, ctx);
+      return this.rawRequestBody(options);
+    }
+    return requestContext.run(ctx, () => this.rawRequestBody(options));
+  }
+
+  private rawRequestBody<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
     if (this.closed) {
-      throw new OnvifValidationError('Onvif client is closed');
+      return Promise.reject(new OnvifValidationError('Onvif client is closed'));
     }
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
-      // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
+      const fail = (error: unknown) => {
+        reject(assignErrorContext(error));
+      };
+      // Build HTTP options explicitly - do not spread OnvifRawRequestOptions into http.request.
       // Include search: pathname alone drops query (e.g. subscription XAddrs with ?).
       const requestPath = (url: URL) => `${url.pathname}${url.search}`;
       const hadCallerAuth = Boolean(options.headers?.authorization || options.headers?.Authorization);
@@ -705,7 +732,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
               // if we have url property for pull-point event requests
               hostname: options.url.hostname,
               path: requestPath(options.url),
-              // URL.port is "" for scheme defaults — Node needs a numeric port.
+              // URL.port is "" for scheme defaults - Node needs a numeric port.
               port: Onvif.urlPort(options.url),
             }
           : {
@@ -759,7 +786,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           if (digestHeadersArray.length === 0) {
             alreadyReturned = true;
             response.destroy();
-            return reject(
+            return fail(
               new OnvifAuthError('Digest authentication headers not found in the server response', {
                 statusCode: response.statusCode,
               }),
@@ -774,19 +801,19 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           const sameNonce = nextChallenge?.nonce !== undefined && nextChallenge.nonce === cachedChallenge?.nonce;
           const stale = isDigestChallengeStale(nextChallenge);
 
-          // Same nonce and not stale → credentials rejected. Or we already retried once for stale.
+          // Same nonce and not stale -> credentials rejected. Or we already retried once for stale.
           if (sentAuth && ((sameNonce && !stale) || options.digestStaleRetried)) {
             alreadyReturned = true;
             response.destroy();
             this.digestChallengeHeaders = undefined;
-            return reject(
+            return fail(
               new OnvifAuthError('Digest authentication failed', {
                 statusCode: response.statusCode,
               }),
             );
           }
 
-          // New / first / stale challenge — cache and retry with Authorization.
+          // New / first / stale challenge - cache and retry with Authorization.
           alreadyReturned = true;
           response.destroy();
           if (!sameNonce || stale || !this.digestChallengeHeaders) {
@@ -804,7 +831,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             });
             return resolve(digestResponse);
           } catch (e) {
-            return reject(e);
+            return fail(e);
           }
         }
 
@@ -825,7 +852,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           const xml = Buffer.concat(bufs, length).toString('utf8');
           this.emit('rawResponse', xml);
           if (!xml.trim()) {
-            reject(
+            fail(
               new OnvifResponseError(`Empty ONVIF SOAP response (HTTP ${statusCode ?? 'unknown'})`, {
                 xml,
                 statusCode,
@@ -837,7 +864,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           // (some stacks return Fault with HTTP 500).
           const httpOk = statusCode !== undefined && statusCode >= 200 && statusCode < 300;
           if (!httpOk && !/<\s*(?:\w+:)?(?:Envelope|Fault)\b/i.test(xml)) {
-            reject(
+            fail(
               new OnvifResponseError(`Unexpected HTTP ${statusCode ?? 'unknown'} response (non-SOAP body)`, {
                 xml,
                 statusCode,
@@ -845,7 +872,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             );
             return;
           }
-          resolve(parseSOAPString(xml, options));
+          parseSOAPString<T>(xml, options).then(resolve, (error) => fail(error));
         });
         return undefined;
       });
@@ -865,7 +892,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           return;
         }
         alreadyReturned = true;
-        reject(error);
+        // Keep ErrnoException identity (code ETIMEDOUT, ...) for existing callers.
+        fail(error);
       });
 
       this.emit('rawRequest', options.body, requestOptions);
@@ -905,9 +933,9 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
     this.emit('requestBody', body);
     // Capture store by reference at call time so http callbacks need not preserve ALS.
-    const xmlStore = soapXml.getStore();
-    if (xmlStore) {
-      xmlStore.requestXml = body;
+    const store = requestContext.getStore();
+    if (store) {
+      store.requestXml = body;
     }
     return this.rawRequest<Record<string, any>>({
       ...options,
@@ -915,8 +943,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       body,
       action,
     }).then((result) => {
-      if (xmlStore) {
-        xmlStore.responseXml = result[1];
+      if (store) {
+        store.responseXml = result[1];
       }
       return result;
     });

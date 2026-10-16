@@ -150,45 +150,54 @@ await this.rawRequest({
 For custom envelopes from application code, prefer `build(...)` + the public surface you need, or
 open an issue if a typed/public escape hatch is missing - do not depend on `rawRequest`.
 
-## Inspecting request / response XML - `soapXml`
+## Per-call store - `requestContext`
 
-Service methods return parsed data only. To read the raw SOAP **request** and **response** envelopes
-for a specific call (including under `Promise.all`), wrap the call in `soapXml`
-([`AsyncLocalStorage`](https://nodejs.org/api/async_context.html#class-asynclocalstorage)).
-Keep a store object you own - `Onvif.request` writes into it when the call runs inside `soapXml.run`:
+One [`AsyncLocalStorage`](https://nodejs.org/api/async_context.html#class-asynclocalstorage)
+holds both transport metadata and optional SOAP XML.
+
+| Field | Set when |
+| --- | --- |
+| `host` / `service` / `action` | Transport enters or mutates the active store for each SOAP HTTP call |
+| `requestXml` | `Onvif.request` built the outbound envelope **and** a store was already active |
+| `responseXml` | Response body paired with that call (same store) |
+
+`OnvifError` (and `assignErrorContext` for plain transport Errors) read `host` / `service` /
+`action` from the store so deep helpers like `parseSOAPString` do not need those fields
+threaded through every call.
+
+To capture XML for a specific call (including under `Promise.all`), wrap it in
+`requestContext.run` with a store you own:
 
 ```ts
-import { Onvif, soapXml, type SoapXmlStore } from 'onvif';
+import { Onvif, requestContext, type OnvifRequestContext } from 'onvif';
 
 const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
 await onvif.connect();
 
-const store: SoapXmlStore = {};
-const info = await soapXml.run(store, () => onvif.device.getDeviceInformation());
+const store: OnvifRequestContext = {};
+const info = await requestContext.run(store, () => onvif.device.getDeviceInformation());
 
 console.log(store.requestXml); // outbound SOAP envelope (string from build)
 console.log(store.responseXml); // inbound SOAP envelope
+console.log(store.host, store.service, store.action); // filled by transport
 console.log(info.manufacturer);
 
 // Inside the async chain you can also read the active store:
-await soapXml.run({}, async () => {
+await requestContext.run({}, async () => {
   await onvif.media.getProfiles();
-  const { requestXml, responseXml } = soapXml.getStore() ?? {};
+  const { requestXml, responseXml } = requestContext.getStore() ?? {};
   console.log(requestXml, responseXml);
 });
 
 await onvif.close();
 ```
 
-`SoapXmlStore` fields:
-
-| Field | Set when |
-| --- | --- |
-| `requestXml` | `Onvif.request` has built the outbound envelope |
-| `responseXml` | HTTP response body has been received and paired with that call |
+Without a caller wrap, transport still enters a fresh store for error context, but you will
+not keep a reference to `requestXml` / `responseXml` after the call returns.
 
 Events `rawRequest` / `rawResponse` still fire for every HTTP exchange, but they are **not**
-correlated to a particular `Promise.all` caller - prefer `soapXml` when you need that pairing.
+correlated to a particular `Promise.all` caller - prefer `requestContext` when you need that
+pairing.
 
 The v0 compatibility `Cam` callback third argument (`xml`) is the **response** envelope for that
 call (same per-request store).

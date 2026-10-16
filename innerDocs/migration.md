@@ -66,8 +66,8 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
 - `rawResponse` may omit the `statusCode` second argument that v0 emitted
 - `setNTP(options)` mutates the passed `options` object (fills `NTPManual`) - same as v0.x
 - Callbacks match v0.x `(err, data, xml?)`: the third argument is the raw SOAP response XML
-  for that call (via `soapXml` AsyncLocalStorage; safe under parallel `Cam` method calls).
-  For the modern `Onvif` API, wrap a call in `soapXml.run(store, () => ...)` and read
+  for that call (via `requestContext` AsyncLocalStorage; safe under parallel `Cam` method calls).
+  For the modern `Onvif` API, wrap a call in `requestContext.run(store, () => ...)` and read
   `store.requestXml` / `store.responseXml` - see [soap-xml.md](soap-xml.md).
 - `getPresets` / `cam.presets` follow token -> preset (duplicate names kept; 0.8.1+ intent).  
   Note: published `onvif@0.8.2` still returns name -> preset from the `getPresets` *callback* while storing
