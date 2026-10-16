@@ -153,7 +153,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - Events: pull-point, WS-BaseNotification, filters, `EventEmitter` - [innerDocs/events.md](innerDocs/events.md)
 - Lazy-loaded services
 - Auth: WS-Security, Digest; Advanced Security (experimental)
-- WS-Discovery on the LAN
+- WS-Discovery on the LAN - see [Discovery](#discovery)
 - Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
 - SOAP XML (`build` / `parseSOAPString` / `request` / `soapXml`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
 - Services - see [Services](#services)
@@ -174,6 +174,41 @@ Safe to call more than once. Call `await onvif.connect()` again to reopen after 
 
 Agents, renew/reconnect timers, and custom `Subscription` teardown:
 [innerDocs/resources.md](innerDocs/resources.md).
+
+## Discovery
+
+Find ONVIF devices on the LAN with WS-Discovery (`Discovery.probe`). Each match is an
+[`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) instance (set credentials, then `connect()`).
+`probe()` always resolves (possibly `[]`); bad replies and socket issues emit `error` only.
+
+```ts
+import { Discovery } from 'onvif';
+
+Discovery.on('device', (cam, rinfo) => {
+  console.log('found', rinfo.address, cam.hostname, cam.xaddrs?.map((u) => u.href));
+});
+Discovery.on('error', (err) => console.error('discovery', err));
+
+const devices = await Discovery.probe({
+  timeout: 5000,
+  // device: 'eth0', // bind to a NIC when needed
+  // types: ['dn:NetworkVideoTransmitter'],
+  // scopes: ['onvif://www.onvif.org/Profile/T'],
+});
+
+for (const cam of devices) {
+  if (!('connect' in cam)) continue;
+  cam.username = 'admin';
+  cam.password = 'admin';
+  await cam.connect();
+  console.log(await cam.device.getDeviceInformation());
+  await cam.close();
+}
+```
+
+Options include `timeout`, `device` (interface), `types` / `scopes` filters, `bufferSize`, and
+IPv4/IPv6. RelatesTo / MessageID matching avoids mixing Probe replies. Runnable sample:
+[discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js).
 
 ## Services
 
