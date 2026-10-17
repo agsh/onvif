@@ -2,7 +2,7 @@
 
 [![Coverage Status](https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages-debug/badges/coverage.svg)](https://github.com/agsh/onvif/tree/v1)
 
-TypeScript-first ONVIF client for Node.js.
+ONVIF client for all ONVIF devices with TypeScript types.
 
 - TypeScript + Promise API
 - Typed ONVIF/WSDL interfaces

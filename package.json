@@ -2,7 +2,7 @@
   "name": "onvif",
   "version": "1.0.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
-  "description": "Client to ONVIF devices",
+  "description": "ONVIF client for all ONVIF devices with TypeScript types. Supports Profiles S/T/G/M/C/A, WS-Discovery, WS-Security/Digest, Events, Media/Media2, PTZ, Recording/Replay, and a 0.x compatibility layer.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
