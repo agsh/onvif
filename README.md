@@ -11,6 +11,7 @@ TypeScript-first ONVIF client for Node.js.
   [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/)
 - WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256)
 - Lazy-loaded service modules
+- Built to work around real-camera quirks across vendors
 
 > [!IMPORTANT]
 > Looking for **0.x / 0.8**? Docs and source: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
@@ -405,7 +406,10 @@ Compatibility-layer demos: [`compatibility.cjs`](https://github.com/agsh/onvif/b
 
 ## Device compatibility
 
-Tested with devices from ACTi, Avigilon, Axis, Bosch, Canon, Hanwha, Hikvision, Panasonic, Sony, Tapo and others.
+Tested and quirk-fixed against real devices from many vendors (closed GitHub issues and lab use), including
+[360 Vision Technology Predator](https://www.360visiontechnology.com/predator/), ACTi, Amcrest, Avigilon,
+Axis, Bosch, Canon, Dahua, D-Link, Foscam, Hanwha / Wisenet, Hikvision, Panasonic, Pelco, Reolink, Sony,
+Sricam, TP-Link / Tapo, Tyco, Uniview, Vivotek, and others.
 
 Report your device and firmware via the
 [compatibility form](https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform).
