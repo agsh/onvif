@@ -95,9 +95,9 @@ describe('Uplink (mocked)', () => {
       });
 
       const list = await cam.uplink.getUplinks();
-      expect(list.configuration).toHaveLength(2);
-      expect(list.configuration?.[0].remoteAddress).toBe(REMOTE_ADDRESS);
-      expect(list.configuration?.[1].status).toBe('Connected');
+      expect(list).toHaveLength(2);
+      expect(list[0].remoteAddress).toBe(REMOTE_ADDRESS);
+      expect(list[1].status).toBe('Connected');
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'uplink',
@@ -111,13 +111,13 @@ describe('Uplink (mocked)', () => {
       );
     });
 
-    it('should return an empty object when no uplinks are configured', async () => {
+    it('should return an empty array when no uplinks are configured', async () => {
       mockUplinkResponse({
         getUplinksResponse: {},
       });
 
       const list = await cam.uplink.getUplinks();
-      expect(list).toEqual({});
+      expect(list).toEqual([]);
     });
   });
 

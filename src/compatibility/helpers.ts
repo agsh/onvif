@@ -1,4 +1,4 @@
-import { ActiveSource, Onvif } from '../onvif';
+import { ActiveMediaProfile, Onvif } from '../onvif';
 
 /** v0.x RequestCallback: `(err, data, xml?)`. */
 export type Callback = (error: any, result?: any, xml?: string) => void;
@@ -11,14 +11,14 @@ export function invoke<T>(
   promise: Promise<T>,
   callback: Callback,
   transform?: (result: T) => unknown,
-  getXml?: () => string | undefined,
+  getXml?: (result: T) => string | undefined,
 ): void {
   // Use then(onFulfilled, onRejected) so a throw inside `callback` is not fed back into
   // `.catch(callback)` (which would invoke the user callback a second time).
   promise
     .then(
       (result) => {
-        callback(null, transform ? transform(result) : result, getXml?.());
+        callback(null, transform ? transform(result) : result, getXml?.(result));
       },
       (error) => {
         callback(error);
@@ -50,11 +50,12 @@ export function splitTokenCallback(
 }
 
 export function videoSourceToken(onvif: Onvif, options: { token?: string } = {}): string | undefined {
-  return options.token ?? onvif.activeSource?.sourceToken;
+  // Prefer activeMediaProfile; fall back to deprecated activeSource (plain mocks / older callers).
+  return options.token ?? onvif.activeMediaProfile?.sourceToken ?? onvif.activeSource?.sourceToken;
 }
 
 export function profileToken(onvif: Onvif, options: { profileToken?: string } = {}): string | undefined {
-  return options.profileToken ?? onvif.activeSource?.profileToken;
+  return options.profileToken ?? onvif.activeMediaProfile?.profileToken ?? onvif.activeSource?.profileToken;
 }
 
 export function ensureArray<T>(value: T | T[] | undefined): T[] {
@@ -155,7 +156,7 @@ export interface CompatibilityReplayOptions {
   protocol?: string;
 }
 
-export function activeSourceToken(activeSource?: ActiveSource): string | undefined {
+export function activeSourceToken(activeSource?: ActiveMediaProfile): string | undefined {
   return activeSource?.sourceToken;
 }
 

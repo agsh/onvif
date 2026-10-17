@@ -14,6 +14,7 @@ import pkg from '../package.json';
 /** Runtime value exports from `require('onvif')` / `import * as onvif`. Service classes are type-only. */
 const MAIN_RUNTIME_EXPORTS = [
   'ANALYTICS_CONFIG_PARSE',
+  'DEFAULT_TIMEOUT_MS',
   'Discovery',
   'DiscoverySingleton',
   'Events',
@@ -27,6 +28,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'OnvifSoapFaultError',
   'OnvifValidationError',
   'Subscription',
+  'assignErrorContext',
   'build',
   'camelCase',
   'formatXMLValues',
@@ -35,6 +37,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'isSenderNotAuthorizedFault',
   'linerase',
   'parseSOAPString',
+  'requestContext',
   'soapActionFromBody',
   'soapActionFromXml',
   'splitArgs',
@@ -72,7 +75,8 @@ const SERVICE_CLASS_EXPORTS = [
 
 const ONVIF_INSTANCE_METHODS = [
   'connect',
-  'getActiveSources',
+  'getActiveMediaProfiles',
+  'setActiveMediaProfile',
   'getSystemDateAndTime',
   'getOnlySystemDateAndTime',
   'setSystemDateAndTime',
@@ -142,9 +146,42 @@ describe('public API regression (breaking changes)', () => {
     });
 
     it('keeps package.json export map for consumers', () => {
-      expect(Object.keys(pkg.exports).sort()).toEqual(['.', './compatibility', './compatibility/promises']);
+      expect(Object.keys(pkg.exports).sort()).toEqual([
+        '.',
+        './compatibility',
+        './compatibility/promises',
+        './package.json',
+      ]);
       expect(pkg.main).toBe('build/index.js');
       expect(pkg.types).toBe('build/index.d.ts');
+      expect(pkg.files).toEqual(expect.arrayContaining(['build', 'CHANGELOG.md']));
+      expect(pkg.engines?.node).toBe('>=18.0');
+      for (const [subpath, entry] of Object.entries(pkg.exports) as Array<[string, Record<string, string>]>) {
+        if (subpath === './package.json') {
+          // eslint-disable-next-line jest/no-conditional-expect
+          expect(entry).toBe('./package.json');
+          continue;
+        }
+        expect(entry).toEqual(
+          expect.objectContaining({
+            types: expect.stringMatching(/\.d\.ts$/),
+            require: expect.stringMatching(/\.js$/),
+            import: expect.stringMatching(/\.js$/),
+            default: expect.stringMatching(/\.js$/),
+          }),
+        );
+      }
+    });
+
+    it('compiled build entry matches the public runtime surface (no stale utils.js shadow)', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const built = require('../build') as typeof mainApi;
+      expect(Object.keys(built).sort()).toEqual(MAIN_RUNTIME_EXPORTS);
+      expect(built.requestContext).toBeDefined();
+      expect(typeof built.requestContext.run).toBe('function');
+      // Node resolves require('./utils') to utils.js before utils/ — orphans break requestContext.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports,n/no-missing-require
+      expect(() => require('../build/utils.js')).toThrow(/Cannot find module/);
     });
 
     it('exposes Cam via compatibility subpaths', () => {
@@ -167,7 +204,7 @@ describe('public API regression (breaking changes)', () => {
       expect(onvif.profiles).toEqual([]);
       expect(onvif.videoSources).toEqual([]);
       expect(onvif.media2Support).toBe(false);
-      expect(onvif.activeSources).toEqual([]);
+      expect(onvif.activeMediaProfiles).toEqual([]);
     });
 
     it('connect() returns the same instance and emits connect', async () => {
@@ -182,13 +219,15 @@ describe('public API regression (breaking changes)', () => {
       expect(onConnect).toHaveBeenCalledTimes(1);
     });
 
-    it('connect() with Media fills profiles/videoSources and activeSource', async () => {
+    it('connect() with Media fills profiles/videoSources and activeMediaProfile', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
-        cam.services = [{ namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never];
+        cam.services = [
+          { namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never,
+        ];
         return { service: cam.services } as never;
       });
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
@@ -216,8 +255,8 @@ describe('public API regression (breaking changes)', () => {
       expect(onvif.profiles).toHaveLength(1);
       expect(onvif.videoSources).toHaveLength(1);
       expect(onvif.defaultProfile?.token).toBe('profile1');
-      expect(onvif.activeSource?.profileToken).toBe('profile1');
-      expect(onvif.activeSource?.encoding).toBe('H264');
+      expect(onvif.activeMediaProfile?.profileToken).toBe('profile1');
+      expect(onvif.defaultProfile?.videoEncoderConfiguration?.encoding).toBe('H264');
       expect(onvif.uri.media?.href).toContain('/onvif/media');
     });
 
@@ -237,16 +276,51 @@ describe('public API regression (breaking changes)', () => {
       expect(sourcesSpy).not.toHaveBeenCalled();
       expect(onvif.profiles).toEqual([]);
       expect(onvif.videoSources).toEqual([]);
-      expect(onvif.activeSource).toBeUndefined();
+      expect(onvif.activeMediaProfile).toBeUndefined();
       expect(onvif.uri.doorcontrol).toBeDefined();
     });
 
-    it('getActiveSources is a no-op without video sources', async () => {
+    it('connect() honors defaultMedia false even when Media XAddr exists', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false, defaultMedia: false });
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/door');
+        return { service: [] } as never;
+      });
+      const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles');
+      const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources');
+
+      await onvif.connect();
+
+      expect(mediaSpy).not.toHaveBeenCalled();
+      expect(sourcesSpy).not.toHaveBeenCalled();
+      expect(onvif.profiles).toEqual([]);
+    });
+
+    it('connect({ media: true }) overrides defaultMedia false', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false, defaultMedia: false });
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        return { service: [] } as never;
+      });
+      const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
+      const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getActiveMediaProfiles').mockResolvedValue(undefined as never);
+
+      await onvif.connect({ media: true });
+
+      expect(mediaSpy).toHaveBeenCalled();
+      expect(sourcesSpy).toHaveBeenCalled();
+    });
+
+    it('getActiveMediaProfiles is a no-op without video sources', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       onvif.profiles = [{ token: 'p1' } as never];
       onvif.videoSources = [];
-      await onvif.getActiveSources();
-      expect(onvif.activeSource).toBeUndefined();
+      await onvif.getActiveMediaProfiles();
+      expect(onvif.activeMediaProfile).toBeUndefined();
       expect(onvif.defaultProfile).toBeUndefined();
     });
   });
@@ -282,9 +356,7 @@ describe('public API regression (breaking changes)', () => {
       await expect(onvif.ptz.getNodes()).resolves.toEqual([]);
 
       expect('getNodes' in onvif.ptz).toBe(true);
-      expect(onvif.request).toHaveBeenCalledWith(
-        expect.objectContaining({ service: 'ptz' }),
-      );
+      expect(onvif.request).toHaveBeenCalledWith(expect.objectContaining({ service: 'ptz' }));
     });
   });
 
@@ -296,7 +368,7 @@ describe('public API regression (breaking changes)', () => {
       onvif.services = [{ namespace: 'http://www.onvif.org/ver10/device/wsdl' } as never];
       onvif.media2Support = true;
       onvif.defaultProfile = onvif.profiles[0];
-      onvif.activeSource = {
+      onvif.activeMediaProfile = {
         sourceToken: 'vs1',
         profileToken: 'p1',
         videoSourceConfigurationToken: 'vsc1',
@@ -311,7 +383,7 @@ describe('public API regression (breaking changes)', () => {
       expect(cam.services).toEqual(onvif.services);
       expect(cam.media2Support).toBe(true);
       expect(cam.defaultProfile).toBe(onvif.defaultProfile);
-      expect(cam.activeSource).toBe(onvif.activeSource);
+      expect(cam.activeSource).toBe(onvif.activeMediaProfile);
     });
 
     it('Promise Cam shares the same startup getters', () => {

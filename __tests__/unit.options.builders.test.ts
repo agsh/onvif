@@ -102,12 +102,12 @@ describe('Service options and builders', () => {
 
     const defaultsHttp = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     expect(defaultsHttp.port).toBe(80);
-    expect(defaultsHttp.timeout).toBe(120000);
+    expect(defaultsHttp.timeout).toBe(10_000);
     expect((defaultsHttp.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
     const defaultsHttps = new Onvif({ hostname: '127.0.0.1', useSecure: true, autoConnect: false });
     expect(defaultsHttps.port).toBe(443);
     expect((defaultsHttps.agent as { keepAlive?: boolean }).keepAlive).toBe(true);
-    // timeout: 0 must be kept (|| would replace it with 120000)
+    // timeout: 0 must be kept (|| would replace it with the default)
     const zeroTimeout = new Onvif({ hostname: '127.0.0.1', timeout: 0, autoConnect: false });
     expect(zeroTimeout.timeout).toBe(0);
 
@@ -242,6 +242,8 @@ describe('Service options and builders', () => {
 
     expect(httpsRequest).toHaveBeenCalled();
     expect(httpRequest).not.toHaveBeenCalled();
+    // Default https port: URL.port is "" — rawRequest must pass numeric 443.
+    expect((httpsRequest.mock.calls[0][0] as import('http').RequestOptions).port).toBe(443);
     httpsRequest.mockRestore();
     httpRequest.mockRestore();
   });
@@ -254,7 +256,8 @@ describe('Service options and builders', () => {
 
     await onvif.close();
     expect(onvif.closed).toBe(true);
-    expect(unsubscribe).toHaveBeenCalled();
+    // Skip Subscription.resetAgent — close destroys the Events agent once.
+    expect(unsubscribe).toHaveBeenCalledWith(false);
     expect(destroyMain).toHaveBeenCalled();
     expect(destroyEvents).toHaveBeenCalled();
     await expect(onvif.close()).resolves.toBeUndefined();

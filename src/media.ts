@@ -21,6 +21,7 @@ import {
   MetadataConfiguration,
   MetadataConfigurationOptions,
   OSDConfiguration,
+  OSDConfigurationOptions,
   Profile,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
@@ -95,13 +96,11 @@ import {
   GetVideoSourceModes,
   VideoSourceMode,
   SetVideoSourceMode,
-  SetVideoSourceModeResponse,
   GetOSD,
   GetVideoSourceConfigurationOptions,
-  CreateOSDResponse,
 } from './interfaces/media';
-import { DeleteOSD, GetOSDOptions, GetOSDOptionsResponse, GetOSDs, TransportProtocol } from './interfaces/media.2';
-import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE } from './utils';
+import { DeleteOSD, GetOSDOptions, GetOSDs, TransportProtocol } from './interfaces/media.2';
+import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
 
 export interface GetStreamUriOptions {
@@ -179,9 +178,9 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
  * const profileToken = profiles[0]!.token;
  * console.log(profiles.map((p) => ({ name: p.name, token: p.token })));
  *
- * const { uri } = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
+ * const stream = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
  * const snapshot = await onvif.media.getSnapshotUri({ profileToken });
- * console.log(uri, snapshot.uri);
+ * console.log(stream.mediaUri.uri, snapshot.mediaUri.uri);
  *
  * const encoders = await onvif.media.getVideoEncoderConfigurations();
  * const cfg = encoders[0]!;
@@ -282,7 +281,7 @@ export default class Media extends Service {
   private async addConfiguration({ name, configurationToken, profileToken }: AddConfiguration) {
     await this.request({
       [name]: {
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
         ConfigurationToken: configurationToken,
       },
     });
@@ -425,7 +424,7 @@ export default class Media extends Service {
   private async removeConfiguration({ name, profileToken }: RemoveConfiguration) {
     await this.request({
       [name]: {
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
   }
@@ -682,7 +681,7 @@ export default class Media extends Service {
     const response = await this.request(
       {
         [`GetCompatible${entityName}Configurations`]: {
-          ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+          ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
         },
       },
       MEDIA_CONFIGURATION_PARSE,
@@ -811,6 +810,23 @@ export default class Media extends Service {
   }
 
   /**
+   * Prefer explicit token; otherwise the matching field on {@link Onvif.activeMediaProfile}.
+   * @private
+   */
+  private resolveConfigurationToken(
+    configurationToken: ReferenceToken | undefined,
+    fallback: ReferenceToken | undefined,
+  ): ReferenceToken {
+    const token = configurationToken ?? fallback;
+    if (!token) {
+      throw new OnvifValidationError(
+        'configurationToken is required (pass it or connect with a profile that exposes this configuration)',
+      );
+    }
+    return token;
+  }
+
+  /**
    * Common method to get configuration
    * @private
    * @param options
@@ -833,66 +849,108 @@ export default class Media extends Service {
    * If the video source configuration token is already known, the video source configuration can be fetched through
    * the GetVideoSourceConfiguration command. The device shall support retrieval of specific video source configurations
    * through the GetVideoSourceConfiguration command
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoSourceConfigurationToken
    */
-  getVideoSourceConfiguration(options: GetVideoSourceConfiguration): Promise<VideoSourceConfiguration> {
-    return this.getConfiguration({ entityName: 'VideoSource', ...options });
+  getVideoSourceConfiguration(
+    options: Partial<GetVideoSourceConfiguration> = {},
+  ): Promise<VideoSourceConfiguration> {
+    return this.getConfiguration({
+      entityName: 'VideoSource',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.videoSourceConfigurationToken,
+      ),
+    });
   }
 
   /**
    * If the video encoder configuration token is already known, the encoder configuration can be fetched through the
    * GetVideoEncoderConfiguration command. The device shall support the retrieval of a specific video encoder
    * configuration through the GetVideoEncoderConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoEncoderConfigurationToken
    */
-  getVideoEncoderConfiguration(options: GetVideoEncoderConfiguration): Promise<VideoEncoderConfiguration> {
-    return this.getConfiguration({ entityName: 'VideoEncoder', ...options });
+  getVideoEncoderConfiguration(
+    options: Partial<GetVideoEncoderConfiguration> = {},
+  ): Promise<VideoEncoderConfiguration> {
+    return this.getConfiguration({
+      entityName: 'VideoEncoder',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.videoEncoderConfigurationToken,
+      ),
+    });
   }
 
   /**
    * The GetAudioSourceConfiguration command fetches the audio source configurations if the audio source configuration
    * token is already known. A device that supports audio streaming from device to client shall support
    * the retrieval of a specific audio source configuration through the GetAudioSourceConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioSourceConfigurationToken
    */
-  getAudioSourceConfiguration(options: GetAudioSourceConfiguration): Promise<AudioSourceConfiguration> {
-    return this.getConfiguration({ entityName: 'AudioSource', ...options });
+  getAudioSourceConfiguration(
+    options: Partial<GetAudioSourceConfiguration> = {},
+  ): Promise<AudioSourceConfiguration> {
+    return this.getConfiguration({
+      entityName: 'AudioSource',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.audioSourceConfigurationToken,
+      ),
+    });
   }
 
   /**
    * The GetAudioEncoderConfiguration command fetches the encoder configuration if the audio encoder configuration
    * token is known. A device that supports audio streaming from device to client shall support the listing of
    * a specific audio encoder configuration through the GetAudioEncoderConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioEncoderConfigurationToken
    */
-  getAudioEncoderConfiguration(options: GetAudioEncoderConfiguration): Promise<AudioEncoderConfiguration> {
-    return this.getConfiguration({ entityName: 'AudioEncoder', ...options });
+  getAudioEncoderConfiguration(
+    options: Partial<GetAudioEncoderConfiguration> = {},
+  ): Promise<AudioEncoderConfiguration> {
+    return this.getConfiguration({
+      entityName: 'AudioEncoder',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.audioEncoderConfigurationToken,
+      ),
+    });
   }
 
   /**
    * The GetVideoAnalyticsConfiguration command fetches the video analytics configuration if the video analytics
    * token is known. A device that supports video analytics shall support the listing of a specific video analytics
    * configuration through the GetVideoAnalyticsConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  getVideoAnalyticsConfiguration(options: GetVideoAnalyticsConfiguration): Promise<VideoAnalyticsConfiguration> {
-    return this.getConfiguration({ entityName: 'VideoAnalytics', ...options });
+  getVideoAnalyticsConfiguration(
+    options: Partial<GetVideoAnalyticsConfiguration> = {},
+  ): Promise<VideoAnalyticsConfiguration> {
+    return this.getConfiguration({
+      entityName: 'VideoAnalytics',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.videoAnalyticsConfigurationToken,
+      ),
+    });
   }
 
   /**
    * The GetMetadataConfiguration command fetches the metadata configuration if the metadata token is known.
    * A device or another device that supports metadata streaming shall support the listing of a specific metadata
    * configuration through the GetMetadataConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.metadataConfigurationToken
    */
-  async getMetadataConfiguration(options: GetMetadataConfiguration): Promise<MetadataConfiguration> {
-    return this.getConfiguration({ entityName: 'Metadata', ...options });
+  async getMetadataConfiguration(
+    options: Partial<GetMetadataConfiguration> = {},
+  ): Promise<MetadataConfiguration> {
+    return this.getConfiguration({
+      entityName: 'Metadata',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.metadataConfigurationToken,
+      ),
+    });
   }
 
   /**
@@ -900,11 +958,18 @@ export default class Media extends Service {
    * GetAudioOutputConfiguration command. An device that signals support for Audio outputs via its Device IO
    * AudioOutputs capability shall support the retrieval of a specific audio output configuration through the
    * GetAudioOutputConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioOutputConfigurationToken
    */
-  getAudioOutputConfiguration(options: GetAudioOutputConfiguration): Promise<AudioOutputConfiguration> {
-    return this.getConfiguration({ entityName: 'AudioOutput', ...options });
+  getAudioOutputConfiguration(
+    options: Partial<GetAudioOutputConfiguration> = {},
+  ): Promise<AudioOutputConfiguration> {
+    return this.getConfiguration({
+      entityName: 'AudioOutput',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.audioOutputConfigurationToken,
+      ),
+    });
   }
 
   /**
@@ -912,11 +977,18 @@ export default class Media extends Service {
    * the GetAudioDecoderConfiguration command. An device that signals support for Audio outputs via its Device
    * IO AudioOutputs capability shall support the retrieval of a specific audio decoder configuration through the
    * GetAudioDecoderConfiguration command.
-   * @param options
-   * @param options.configurationToken
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioDecoderConfigurationToken
    */
-  getAudioDecoderConfiguration(options: GetAudioDecoderConfiguration): Promise<AudioDecoderConfiguration> {
-    return this.getConfiguration({ entityName: 'AudioDecoder', ...options });
+  getAudioDecoderConfiguration(
+    options: Partial<GetAudioDecoderConfiguration> = {},
+  ): Promise<AudioDecoderConfiguration> {
+    return this.getConfiguration({
+      entityName: 'AudioDecoder',
+      configurationToken: this.resolveConfigurationToken(
+        options.configurationToken,
+        this.onvif.activeMediaProfile?.audioDecoderConfigurationToken,
+      ),
+    });
   }
 
   /**
@@ -1530,7 +1602,7 @@ export default class Media extends Service {
           stream,
           transport: { protocol: (protocol || 'RTSP') as OnvifTransportProtocol },
         }),
-        ProfileToken: profileToken || this.onvif.activeSource!.profileToken,
+        ProfileToken: profileToken || this.onvif.activeMediaProfile!.profileToken,
       },
     });
     return response.getStreamUriResponse;
@@ -1541,8 +1613,8 @@ export default class Media extends Service {
    * @param profileToken
    */
   async getSnapshotUri(
-    { profileToken = this.onvif.activeSource!.profileToken }: GetSnapshotUri = {
-      profileToken: this.onvif.activeSource!.profileToken,
+    { profileToken = this.onvif.activeMediaProfile!.profileToken }: GetSnapshotUri = {
+      profileToken: this.onvif.activeMediaProfile!.profileToken,
     },
   ): Promise<GetSnapshotUriResponse> {
     if (this.onvif.media2Support) {
@@ -1573,7 +1645,7 @@ export default class Media extends Service {
    * @param options
    */
   async startMulticastStreaming(options?: StartMulticastStreaming): Promise<void> {
-    const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
+    const profileToken = options?.profileToken ?? this.onvif.activeMediaProfile?.profileToken;
     await this.request({
       StartMulticastStreaming: {
         ProfileToken: profileToken,
@@ -1586,7 +1658,7 @@ export default class Media extends Service {
    * @param options
    */
   async stopMulticastStreaming(options?: StopMulticastStreaming): Promise<void> {
-    const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
+    const profileToken = options?.profileToken ?? this.onvif.activeMediaProfile?.profileToken;
     await this.request({
       StopMulticastStreaming: {
         ProfileToken: profileToken,
@@ -1606,7 +1678,7 @@ export default class Media extends Service {
    * @param options
    */
   async setSynchronizationPoint(options?: SetSynchronizationPoint): Promise<void> {
-    const profileToken = options?.profileToken ?? this.onvif.activeSource?.profileToken;
+    const profileToken = options?.profileToken ?? this.onvif.activeMediaProfile?.profileToken;
     await this.request({
       SetSynchronizationPoint: {
         ProfileToken: profileToken,
@@ -1621,7 +1693,7 @@ export default class Media extends Service {
    * @param options
    */
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
-    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
+    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
     const response = await this.request(
       {
         GetVideoSourceModes: {
@@ -1639,15 +1711,16 @@ export default class Media extends Service {
    * A device that indicates a capability of VideoSourceModes shall support this command. The behavior after changing
    * the mode is not defined in this specification.
    * @param options
+   * @returns Whether a reboot is required after changing the mode
    */
-  async setVideoSourceMode(options: SetVideoSourceMode): Promise<SetVideoSourceModeResponse> {
+  async setVideoSourceMode(options: SetVideoSourceMode): Promise<boolean> {
     const response = await this.request({
       SetVideoSourceMode: {
         VideoSourceToken: options.videoSourceToken,
         VideoSourceModeToken: options.videoSourceModeToken,
       },
     });
-    return response.setVideoSourceModeResponse;
+    return response.setVideoSourceModeResponse.reboot;
   }
 
   /**
@@ -1740,8 +1813,9 @@ export default class Media extends Service {
   /**
    * Create the OSD.
    * @param options
+   * @returns Token of the newly created OSD
    */
-  async createOSD(options: OSDConfiguration): Promise<CreateOSDResponse> {
+  async createOSD(options: OSDConfiguration): Promise<ReferenceToken> {
     const response = await this.request({
       CreateOSD: {
         OSD: {
@@ -1788,7 +1862,7 @@ export default class Media extends Service {
         },
       },
     });
-    return response.createOSDResponse;
+    return response.createOSDResponse.OSDToken;
   }
 
   /**
@@ -1806,19 +1880,19 @@ export default class Media extends Service {
   /**
    * Get the OSD Options.
    * @param options
+   * @returns OSD configuration options
    */
-  async getOSDOptions(options?: GetOSDOptions): Promise<GetOSDOptionsResponse> {
-    const configurationToken = options?.configurationToken ?? this.onvif.activeSource!.videoSourceConfigurationToken;
+  async getOSDOptions(options?: GetOSDOptions): Promise<OSDConfigurationOptions> {
+    const configurationToken = options?.configurationToken ?? this.onvif.activeMediaProfile!.videoSourceConfigurationToken;
     if (this.onvif.media2Support) {
-      const osdOptions = await this.onvif.media2.getOSDOptions({ configurationToken });
-      return { OSDOptions: osdOptions };
+      return this.onvif.media2.getOSDOptions({ configurationToken });
     }
     const response = await this.request({
       GetOSDOptions: {
         ConfigurationToken: configurationToken,
       },
     });
-    return response.getOSDOptionsResponse;
+    return response.getOSDOptionsResponse.OSDOptions;
   }
 }
 

@@ -8,7 +8,7 @@
 import { EventEmitter } from 'events';
 import * as dgram from 'dgram';
 import os from 'os';
-import { Discovery, OnvifResponseError, parseSOAPString } from '../src';
+import { Discovery, Onvif, OnvifResponseError, parseSOAPString } from '../src';
 
 const WS_DISCOVERY_IPV4 = '239.255.255.250';
 const WS_DISCOVERY_IPV6 = 'FF02::C';
@@ -198,6 +198,61 @@ describe('Discovery error handling (mocked)', () => {
     expect(cams).toHaveLength(1);
     expect((cams[0] as { urn?: string }).urn).toBe('urn:uuid:cam-1');
     expect(onError).toHaveBeenCalledWith(parseErr, undefined);
+  });
+
+  describe('defaultMedia from ProbeMatch scopes', () => {
+    const matchingXml =
+      '<s:Envelope><s:Header><wsa:RelatesTo>urn:uuid:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</wsa:RelatesTo></s:Header></s:Envelope>';
+
+    async function probeOne(probeMatch: Record<string, unknown>): Promise<Onvif> {
+      mockedParseSOAPString.mockResolvedValue([
+        {
+          probeMatches: {
+            probeMatch: {
+              endpointReference: { address: `urn:uuid:${Math.random().toString(16).slice(2)}` },
+              XAddrs: 'http://192.168.1.10/onvif/device_service',
+              ...probeMatch,
+            },
+          },
+        },
+        matchingXml,
+      ]);
+      const probePromise = Discovery.probe({
+        timeout: 25,
+        messageId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      });
+      await getMessageListener()(Buffer.from('<soap/>'), {
+        address: '192.168.1.10',
+        family: 'IPv4',
+        port: 3702,
+        size: 0,
+      });
+      await jest.advanceTimersByTimeAsync(25);
+      const cams = await probePromise;
+      expect(cams).toHaveLength(1);
+      expect(cams[0]).toBeInstanceOf(Onvif);
+      return cams[0] as Onvif;
+    }
+
+    it('sets defaultMedia false for Profile C without video scopes', async () => {
+      const cam = await probeOne({ scopes: 'onvif://www.onvif.org/Profile/C onvif://www.onvif.org/name/Door' });
+      expect(cam.defaultMedia).toBe(false);
+    });
+
+    it('sets defaultMedia true for Profile C + Streaming (video doorbell)', async () => {
+      const cam = await probeOne({
+        scopes: 'onvif://www.onvif.org/Profile/C onvif://www.onvif.org/Profile/Streaming',
+      });
+      expect(cam.defaultMedia).toBe(true);
+    });
+
+    it('sets defaultMedia true when scopes omit access profiles', async () => {
+      const cam = await probeOne({
+        scopes: 'onvif://www.onvif.org/Profile/T',
+        types: 'tds:Device dn:NetworkVideoTransmitter',
+      });
+      expect(cam.defaultMedia).toBe(true);
+    });
   });
 
   describe('RelatesTo / MessageID filtering', () => {

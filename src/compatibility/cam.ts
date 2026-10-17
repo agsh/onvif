@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { ConnectionOptions } from 'tls';
 import { Agent as HttpsAgent } from 'https';
 import { Agent as HttpAgent } from 'http';
-import { ActiveSource, Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended } from '../onvif';
+import { ActiveMediaProfile, Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended } from '../onvif';
 import { GetStreamUriOptions } from '../media';
 import { SetNTP, SetSystemFactoryDefault } from '../interfaces/devicemgmt';
 import {
@@ -36,6 +36,7 @@ import { PullMessages, GetEventPropertiesResponse } from '../interfaces/event';
 import { CreateRecordingJob } from '../interfaces/recording';
 import { GetReplayUriOptions } from '../replay';
 import { parseSOAPString } from '../utils';
+import { requestContext, type OnvifRequestContext } from '../utils/request-context';
 import {
   Callback,
   ensureArray,
@@ -138,7 +139,7 @@ export class Cam extends EventEmitter {
   public audioSourceConfigurations?: unknown;
   public networkDefaultGateway?: unknown;
   public networkProtocols?: unknown;
-  public activeSourcesList?: ActiveSource[];
+  public activeSourcesList?: ActiveMediaProfile[];
 
   /** Relays Onvif `event` to Cam; kept as a stable ref for on/off. */
   private readonly onOnvifEvent = (msg: unknown) => {
@@ -294,11 +295,19 @@ export class Cam extends EventEmitter {
   get defaultProfiles() {
     return this.onvif.defaultProfiles;
   }
-  get activeSource() {
-    return this.onvif.activeSource;
+  get activeMediaProfile() {
+    return this.onvif.activeMediaProfile;
   }
+  get activeMediaProfiles() {
+    return this.onvif.activeMediaProfiles;
+  }
+  /** @deprecated Use {@link activeMediaProfile}. */
+  get activeSource() {
+    return this.onvif.activeMediaProfile;
+  }
+  /** @deprecated Use {@link activeMediaProfiles}. */
   get activeSources() {
-    return this.onvif.activeSources;
+    return this.onvif.activeMediaProfiles;
   }
   get serviceCapabilities() {
     return this.onvif.device.serviceCapabilities;
@@ -336,20 +345,38 @@ export class Cam extends EventEmitter {
   }
 
   /**
-   * Compatibility invoke: forwards `Onvif.lastResponseXml` as the v0.x third callback arg.
+   * Compatibility invoke: runs the SOAP call inside a per-request XML store so the v0.x
+   * third callback argument is the response for *this* call (safe under parallel requests).
    */
-  private invoke<T>(promise: Promise<T>, callback: Callback, transform?: (result: T) => unknown): void {
-    invokeHelper(promise, callback, transform, () => this.onvif.lastResponseXml);
+  private invoke<T>(
+    factory: () => Promise<T>,
+    callback: Callback,
+    transform?: (result: T) => unknown,
+    getXml?: (result: T) => string | undefined,
+  ): void {
+    const store: OnvifRequestContext = {};
+    requestContext.run(store, () => {
+      invokeHelper(factory(), callback, transform, (result) => getXml?.(result) ?? store.responseXml);
+    });
   }
 
   connect(callback: Callback) {
     this.onvif
       .connect()
       .then(() => {
-        this.activeSourcesList = this.onvif.activeSources;
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
         callback(null);
       })
       .catch(callback);
+  }
+
+  /**
+   * Release keep-alive / Events agents (forwards {@link Onvif.close}).
+   * Not present in classic v0.x Cam — added so compatibility clients can exit cleanly.
+   * Call {@link connect} again to reopen.
+   */
+  close(callback: Callback) {
+    this.invoke(() => this.onvif.close(), callback);
   }
 
   _request(options: OnvifRequestOptions, callback: Callback) {
@@ -357,7 +384,12 @@ export class Cam extends EventEmitter {
       throw new Error('`callback` must be a function');
     }
     // Onvif.request resolves to [data, xml] — unwrap for v0.x (err, data, xml)
-    this.invoke(this.onvif.request(options), callback, (pair) => pair[0]);
+    this.invoke(
+      () => this.onvif.request(options),
+      callback,
+      (pair) => pair[0],
+      (pair) => pair[1],
+    );
   }
 
   /** Increment Digest auth nonce count (v0.x public API). */
@@ -377,39 +409,58 @@ export class Cam extends EventEmitter {
   }
 
   getSystemDateAndTime(callback: Callback) {
-    this.invoke(this.onvif.device.getSystemDateAndTime(), callback);
+    this.invoke(() => this.onvif.device.getSystemDateAndTime(), callback);
   }
 
   setSystemDateAndTime(value: SetSystemDateAndTimeExtended, callback: Callback) {
-    this.invoke(this.onvif.device.setSystemDateAndTime(value), callback);
+    this.invoke(() => this.onvif.device.setSystemDateAndTime(value), callback);
   }
 
   getHostname(callback: Callback) {
-    this.invoke(this.onvif.device.getHostname(), callback);
+    this.invoke(() => this.onvif.device.getHostname(), callback);
   }
 
   getScopes(callback: Callback) {
-    this.invoke(this.onvif.device.getScopes(), callback);
+    this.invoke(() => this.onvif.device.getScopes(), callback);
   }
 
   setScopes(value: string[], callback: Callback) {
-    this.invoke(this.onvif.device.setScopes(value), callback);
+    this.invoke(() => this.onvif.device.setScopes(value), callback);
   }
 
   getCapabilities(callback: Callback) {
-    this.invoke(this.onvif.device.getCapabilities(), callback);
+    this.invoke(() => this.onvif.device.getCapabilities(), callback);
   }
 
   getServiceCapabilities(callback: Callback) {
-    this.invoke(this.onvif.device.getServiceCapabilities(), callback);
+    this.invoke(() => this.onvif.device.getServiceCapabilities(), callback);
   }
 
-  getActiveSources(callback: Callback) {
+  getActiveMediaProfiles(callback: Callback) {
     this.invoke(
-      this.onvif.getActiveSources().then(() => {
+      () => this.onvif.getActiveMediaProfiles().then(() => {
         // Keep legacy field in sync for any callers that read it directly
-        this.activeSourcesList = this.onvif.activeSources;
-        return this.onvif.activeSources;
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
+        return this.onvif.activeMediaProfiles;
+      }),
+      callback,
+    );
+  }
+
+  /** @deprecated Use {@link getActiveMediaProfiles}. */
+  getActiveSources(callback: Callback) {
+    this.getActiveMediaProfiles(callback);
+  }
+
+  /**
+   * Switch the default Media Profile pipeline (token bag + `defaultProfile`).
+   * Prefer this over mutating `activeSource` / `activeMediaProfile` fields by hand.
+   */
+  setActiveMediaProfile(profileToken: ReferenceToken, callback: Callback) {
+    this.invoke(
+      () => this.onvif.setActiveMediaProfile(profileToken).then((bag) => {
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
+        return bag;
       }),
       callback,
     );
@@ -417,23 +468,23 @@ export class Cam extends EventEmitter {
 
   getServices(includeCapability: boolean | Callback, callback?: Callback) {
     if (isCallback(includeCapability)) {
-      this.invoke(this.onvif.device.getServices(), includeCapability, (result) => result.service);
+      this.invoke(() => this.onvif.device.getServices(), includeCapability, (result) => result.service);
       return;
     }
-    this.invoke(this.onvif.device.getServices({ includeCapability }), callback!, (result) => result.service);
+    this.invoke(() => this.onvif.device.getServices({ includeCapability }), callback!, (result) => result.service);
   }
 
   getDeviceInformation(callback: Callback) {
-    this.invoke(this.onvif.device.getDeviceInformation(), callback);
+    this.invoke(() => this.onvif.device.getDeviceInformation(), callback);
   }
 
   setSystemFactoryDefault(hard: boolean | Callback, callback?: Callback) {
     if (isCallback(hard)) {
-      this.invoke(this.onvif.device.setSystemFactoryDefault({ factoryDefault: 'Soft' }), hard);
+      this.invoke(() => this.onvif.device.setSystemFactoryDefault({ factoryDefault: 'Soft' }), hard);
       return;
     }
     this.invoke(
-      this.onvif.device.setSystemFactoryDefault({
+      () => this.onvif.device.setSystemFactoryDefault({
         factoryDefault: (hard ? 'Hard' : 'Soft') as SetSystemFactoryDefault['factoryDefault'],
       }),
       callback!,
@@ -441,11 +492,11 @@ export class Cam extends EventEmitter {
   }
 
   systemReboot(callback: Callback) {
-    this.invoke(this.onvif.device.systemReboot(), callback);
+    this.invoke(() => this.onvif.device.systemReboot(), callback);
   }
 
   getNTP(callback: Callback) {
-    this.invoke(this.onvif.device.getNTP(), callback);
+    this.invoke(() => this.onvif.device.getNTP(), callback);
   }
 
   setNTP(options: SetNTPOptions, callback: Callback) {
@@ -461,28 +512,29 @@ export class Cam extends EventEmitter {
         DNSname: options.dnsName,
       });
     }
-    this.invoke(this.onvif.device.setNTP(options), callback);
+    this.invoke(() => this.onvif.device.setNTP(options), callback);
   }
 
   getDNS(callback: Callback) {
-    this.invoke(this.onvif.device.getDNS(), callback);
+    this.invoke(() => this.onvif.device.getDNS(), callback);
   }
 
   setDNS(options: Parameters<Onvif['device']['setDNS']>[0], callback: Callback) {
-    this.invoke(this.onvif.device.setDNS(options), callback);
+    this.invoke(() => this.onvif.device.setDNS(options), callback);
   }
 
   getNetworkInterfaces(callback: Callback) {
-    this.invoke(this.onvif.device.getNetworkInterfaces(), callback);
+    this.invoke(() => this.onvif.device.getNetworkInterfaces(), callback);
   }
 
   setNetworkInterfaces(options: Parameters<Onvif['device']['setNetworkInterfaces']>[0], callback: Callback) {
-    this.invoke(this.onvif.device.setNetworkInterfaces(options), callback);
+    // 1.x device returns boolean; v0 Cam callback data was `{ rebootNeeded }` (linerase of the SOAP response).
+    this.invoke(() => this.onvif.device.setNetworkInterfaces(options), callback, (rebootNeeded) => ({ rebootNeeded }));
   }
 
   getNetworkDefaultGateway(callback: Callback) {
     this.invoke(
-      this.onvif.device.getNetworkDefaultGateway().then((result) => {
+      () => this.onvif.device.getNetworkDefaultGateway().then((result) => {
         this.networkDefaultGateway = result;
         return result;
       }),
@@ -491,12 +543,12 @@ export class Cam extends EventEmitter {
   }
 
   setNetworkDefaultGateway(options: Parameters<Onvif['device']['setNetworkDefaultGateway']>[0], callback: Callback) {
-    this.invoke(this.onvif.device.setNetworkDefaultGateway(options), callback);
+    this.invoke(() => this.onvif.device.setNetworkDefaultGateway(options), callback);
   }
 
   getNetworkProtocols(callback: Callback) {
     this.invoke(
-      this.onvif.device.getNetworkProtocols().then((result) => {
+      () => this.onvif.device.getNetworkProtocols().then((result) => {
         this.networkProtocols = result;
         return result;
       }),
@@ -506,7 +558,7 @@ export class Cam extends EventEmitter {
 
   getUsers(callback: Callback) {
     this.invoke(
-      this.onvif.device.getUsers().then((result) => {
+      () => this.onvif.device.getUsers().then((result) => {
         this.users = result;
         return result;
       }),
@@ -515,11 +567,11 @@ export class Cam extends EventEmitter {
   }
 
   createUsers(options: { user: Parameters<Onvif['device']['createUsers']>[0]['user'] }, callback: Callback) {
-    this.invoke(this.onvif.device.createUsers(options), callback);
+    this.invoke(() => this.onvif.device.createUsers(options), callback);
   }
 
   deleteUsers(options: Parameters<Onvif['device']['deleteUsers']>[0], callback: Callback) {
-    this.invoke(this.onvif.device.deleteUsers(options), callback);
+    this.invoke(() => this.onvif.device.deleteUsers(options), callback);
   }
 
   setUsers(users: Parameters<Onvif['device']['setUser']>[0]['user'], callback: Callback) {
@@ -528,16 +580,16 @@ export class Cam extends EventEmitter {
       callback(new Error('Missing username, password or user level'));
       return;
     }
-    this.invoke(this.onvif.device.setUser({ user: users }), callback);
+    this.invoke(() => this.onvif.device.setUser({ user: users }), callback);
   }
 
   sendAuxiliaryCommand(options: { data: string }, callback: Callback) {
-    this.invoke(this.onvif.device.sendAuxiliaryCommand({ auxiliaryCommand: options.data }), callback);
+    this.invoke(() => this.onvif.device.sendAuxiliaryCommand({ auxiliaryCommand: options.data }), callback);
   }
 
   getProfiles(callback: Callback) {
     this.invoke(
-      this.onvif.media.getProfiles().then((result) => {
+      () => this.onvif.media.getProfiles().then((result) => {
         return result;
       }),
       callback,
@@ -545,16 +597,16 @@ export class Cam extends EventEmitter {
   }
 
   createProfile(options: Parameters<Onvif['media']['createProfile']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.createProfile(options), callback);
+    this.invoke(() => this.onvif.media.createProfile(options), callback);
   }
 
   deleteProfile(options: Parameters<Onvif['media']['deleteProfile']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.deleteProfile(options), callback);
+    this.invoke(() => this.onvif.media.deleteProfile(options), callback);
   }
 
   getMediaServiceCapabilities(callback: Callback) {
     this.invoke(
-      this.onvif.media.getServiceCapabilities().then((result) => {
+      () => this.onvif.media.getServiceCapabilities().then((result) => {
         this.mediaCapabilities = result;
         return result;
       }),
@@ -563,12 +615,12 @@ export class Cam extends EventEmitter {
   }
 
   getVideoSources(callback: Callback) {
-    this.invoke(this.onvif.media.getVideoSources(), callback);
+    this.invoke(() => this.onvif.media.getVideoSources(), callback);
   }
 
   getVideoSourceConfigurations(callback: Callback) {
     this.invoke(
-      this.onvif.media.getVideoSourceConfigurations().then((result) => {
+      () => this.onvif.media.getVideoSourceConfigurations().then((result) => {
         this.videoSourceConfigurations = result;
         return result;
       }),
@@ -578,7 +630,7 @@ export class Cam extends EventEmitter {
 
   getVideoEncoderConfigurations(callback: Callback) {
     this.invoke(
-      this.onvif.media.getVideoEncoderConfigurations().then((result) => {
+      () => this.onvif.media.getVideoEncoderConfigurations().then((result) => {
         this.videoEncoderConfigurations = result;
         return result;
       }),
@@ -595,7 +647,7 @@ export class Cam extends EventEmitter {
       cb(new Error('No video source configuration token is present!'));
       return;
     }
-    this.invoke(this.onvif.media.getVideoSourceConfiguration({ configurationToken }), cb);
+    this.invoke(() => this.onvif.media.getVideoSourceConfiguration({ configurationToken }), cb);
   }
 
   getVideoEncoderConfiguration(token: ReferenceToken | Callback, callback?: Callback) {
@@ -612,7 +664,7 @@ export class Cam extends EventEmitter {
       cb(new Error('No video encoder configuration token is present!'));
       return;
     }
-    this.invoke(this.onvif.media.getVideoEncoderConfiguration({ configurationToken: resolvedToken }), cb);
+    this.invoke(() => this.onvif.media.getVideoEncoderConfiguration({ configurationToken: resolvedToken }), cb);
   }
 
   getVideoEncoderConfigurationOptions(options?: Record<string, unknown> | Callback | string, callback?: Callback) {
@@ -637,7 +689,7 @@ export class Cam extends EventEmitter {
       }
       resolvedOptions = { configurationToken: token };
     }
-    this.invoke(this.onvif.media.getVideoEncoderConfigurationOptions(resolvedOptions as any), cb);
+    this.invoke(() => this.onvif.media.getVideoEncoderConfigurationOptions(resolvedOptions as any), cb);
   }
 
   setVideoEncoderConfiguration(options: Record<string, any>, callback: Callback) {
@@ -647,7 +699,7 @@ export class Cam extends EventEmitter {
       return;
     }
     this.invoke(
-      this.onvif.media.setVideoEncoderConfiguration({
+      () => this.onvif.media.setVideoEncoderConfiguration({
         configuration: options as VideoEncoderConfiguration,
         forcePersistence: options.forcePersistence,
       }),
@@ -657,7 +709,7 @@ export class Cam extends EventEmitter {
 
   getAudioSources(callback: Callback) {
     this.invoke(
-      this.onvif.media.getAudioSources().then((result) => {
+      () => this.onvif.media.getAudioSources().then((result) => {
         return result;
       }),
       callback,
@@ -666,7 +718,7 @@ export class Cam extends EventEmitter {
 
   getAudioOutputs(callback: Callback) {
     this.invoke(
-      this.onvif.media.getAudioOutputs().then((result) => {
+      () => this.onvif.media.getAudioOutputs().then((result) => {
         this.audioOutputs = result;
         return result;
       }),
@@ -676,7 +728,7 @@ export class Cam extends EventEmitter {
 
   getAudioSourceConfigurations(callback: Callback) {
     this.invoke(
-      this.onvif.media.getAudioSourceConfigurations().then((result) => {
+      () => this.onvif.media.getAudioSourceConfigurations().then((result) => {
         this.audioSourceConfigurations = result;
         return result;
       }),
@@ -686,7 +738,7 @@ export class Cam extends EventEmitter {
 
   getAudioOutputConfigurations(callback: Callback) {
     this.invoke(
-      this.onvif.media.getAudioOutputConfigurations().then((result) => {
+      () => this.onvif.media.getAudioOutputConfigurations().then((result) => {
         this.audioOutputConfigurations = result;
         return result;
       }),
@@ -696,7 +748,7 @@ export class Cam extends EventEmitter {
 
   getAudioEncoderConfigurations(callback: Callback) {
     this.invoke(
-      this.onvif.media.getAudioEncoderConfigurations().then((result) => {
+      () => this.onvif.media.getAudioEncoderConfigurations().then((result) => {
         this.audioEncoderConfigurations = result;
         return result;
       }),
@@ -713,7 +765,7 @@ export class Cam extends EventEmitter {
       cb(new Error('No audio encoder configuration token is present!'));
       return;
     }
-    this.invoke(this.onvif.media.getAudioEncoderConfiguration({ configurationToken }), cb);
+    this.invoke(() => this.onvif.media.getAudioEncoderConfiguration({ configurationToken }), cb);
   }
 
   getAudioEncoderConfigurationOptions(options?: Record<string, unknown> | Callback, callback?: Callback) {
@@ -721,12 +773,12 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.media.getAudioEncoderConfigurationOptions(resolvedOptions as any), cb);
+    this.invoke(() => this.onvif.media.getAudioEncoderConfigurationOptions(resolvedOptions as any), cb);
   }
 
   setAudioEncoderConfiguration(options: Record<string, any>, callback: Callback) {
     this.invoke(
-      this.onvif.media.setAudioEncoderConfiguration({
+      () => this.onvif.media.setAudioEncoderConfiguration({
         configuration: options as AudioEncoderConfiguration,
         forcePersistence: options.forcePersistence,
       }),
@@ -738,49 +790,49 @@ export class Cam extends EventEmitter {
     options: Parameters<Onvif['media']['addVideoSourceConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.addVideoSourceConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.addVideoSourceConfiguration(options), callback);
   }
 
   addVideoEncoderConfiguration(
     options: Parameters<Onvif['media']['addVideoEncoderConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.addVideoEncoderConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.addVideoEncoderConfiguration(options), callback);
   }
 
   addAudioSourceConfiguration(
     options: Parameters<Onvif['media']['addAudioSourceConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.addAudioSourceConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.addAudioSourceConfiguration(options), callback);
   }
 
   addAudioEncoderConfiguration(
     options: Parameters<Onvif['media']['addAudioEncoderConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.addAudioEncoderConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.addAudioEncoderConfiguration(options), callback);
   }
 
   removeAudioSourceConfiguration(
     options: Parameters<Onvif['media']['removeAudioSourceConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.removeAudioSourceConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.removeAudioSourceConfiguration(options), callback);
   }
 
   removeVideoEncoderConfiguration(
     options: Parameters<Onvif['media']['removeVideoEncoderConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.removeVideoEncoderConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.removeVideoEncoderConfiguration(options), callback);
   }
 
   removeAudioEncoderConfiguration(
     options: Parameters<Onvif['media']['removeAudioEncoderConfiguration']>[0],
     callback: Callback,
   ) {
-    this.invoke(this.onvif.media.removeAudioEncoderConfiguration(options), callback);
+    this.invoke(() => this.onvif.media.removeAudioEncoderConfiguration(options), callback);
   }
 
   getStreamUri(options: GetStreamUriOptions | Callback, callback?: Callback) {
@@ -790,7 +842,7 @@ export class Cam extends EventEmitter {
     }
     // Always forward options: Media.getStreamUri defaults profileToken and uses stream/protocol.
     // Do not drop { stream, protocol } when profileToken is omitted (v0.x behavior).
-    this.invoke(this.onvif.media.getStreamUri(resolvedOptions).then(normalizeStreamUriResponse), cb);
+    this.invoke(() => this.onvif.media.getStreamUri(resolvedOptions).then(normalizeStreamUriResponse), cb);
   }
 
   getSnapshotUri(options: GetSnapshotUri | Callback, callback?: Callback) {
@@ -798,7 +850,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.media.getSnapshotUri(resolvedOptions).then(normalizeMediaUriResponse), cb);
+    this.invoke(() => this.onvif.media.getSnapshotUri(resolvedOptions).then(normalizeMediaUriResponse), cb);
   }
 
   setSynchronizationPoint(
@@ -809,7 +861,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.media.setSynchronizationPoint(resolvedOptions), cb);
+    this.invoke(() => this.onvif.media.setSynchronizationPoint(resolvedOptions), cb);
   }
 
   getOSDs(options?: GetOSDs | Callback, callback?: Callback) {
@@ -817,7 +869,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.media.getOSDs(resolvedOptions), cb);
+    this.invoke(() => this.onvif.media.getOSDs(resolvedOptions), cb);
   }
 
   getOSDOptions(options?: GetOSDOptions | Callback, callback?: Callback) {
@@ -826,7 +878,7 @@ export class Cam extends EventEmitter {
       return;
     }
     this.invoke(
-      this.onvif.media.getOSDOptions(
+      () => this.onvif.media.getOSDOptions(
         resolvedOptions?.videoSourceConfigurationToken
           ? { configurationToken: resolvedOptions.videoSourceConfigurationToken }
           : undefined,
@@ -836,27 +888,28 @@ export class Cam extends EventEmitter {
   }
 
   createOSD(options: Parameters<Onvif['media']['createOSD']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.createOSD(options), callback);
+    // 1.x media returns the token string; v0 Cam callers read `data.OSDToken` (CreateOSDResponse).
+    this.invoke(() => this.onvif.media.createOSD(options), callback, (OSDToken) => ({ OSDToken }));
   }
 
   setOSD(options: Parameters<Onvif['media']['setOSD']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.setOSD(options), callback);
+    this.invoke(() => this.onvif.media.setOSD(options), callback);
   }
 
   deleteOSD(options: Parameters<Onvif['media']['deleteOSD']>[0], callback: Callback) {
-    this.invoke(this.onvif.media.deleteOSD(options), callback);
+    this.invoke(() => this.onvif.media.deleteOSD(options), callback);
   }
 
   getNodes(callback: Callback) {
-    this.invoke(this.onvif.ptz.getNodes(), callback);
+    this.invoke(() => this.onvif.ptz.getNodes(), callback);
   }
 
   getConfigurations(callback: Callback) {
-    this.invoke(this.onvif.ptz.getConfigurations(), callback);
+    this.invoke(() => this.onvif.ptz.getConfigurations(), callback);
   }
 
   getConfigurationOptions(configurationToken: ReferenceToken, callback: Callback) {
-    this.invoke(this.onvif.ptz.getConfigurationOptions({ configurationToken }), callback);
+    this.invoke(() => this.onvif.ptz.getConfigurationOptions({ configurationToken }), callback);
   }
 
   getPresets(options: GetPresets | Callback, callback?: Callback) {
@@ -866,7 +919,7 @@ export class Cam extends EventEmitter {
     }
     // v0.8.1+: return token → preset (not name → token) so duplicate names are kept
     this.invoke(
-      this.onvif.ptz.getPresetsExtended(resolvedOptions.profileToken ? resolvedOptions : undefined),
+      () => this.onvif.ptz.getPresetsExtended(resolvedOptions.profileToken ? resolvedOptions : undefined),
       cb,
     );
   }
@@ -878,7 +931,7 @@ export class Cam extends EventEmitter {
   gotoPreset(options: GotoPreset | (Omit<GotoPreset, 'presetToken'> & { preset: string }), callback: Callback) {
     const { preset, presetToken, ...rest } = options as GotoPreset & { preset?: string };
     this.invoke(
-      this.onvif.ptz.gotoPreset({
+      () => this.onvif.ptz.gotoPreset({
         ...rest,
         presetToken: (presetToken ?? preset) as string,
       }),
@@ -887,19 +940,19 @@ export class Cam extends EventEmitter {
   }
 
   setPreset(options: SetPreset, callback: Callback) {
-    this.invoke(this.onvif.ptz.setPreset(options), callback);
+    this.invoke(() => this.onvif.ptz.setPreset(options), callback);
   }
 
   removePreset(options: RemovePreset, callback: Callback) {
-    this.invoke(this.onvif.ptz.removePreset(options), callback);
+    this.invoke(() => this.onvif.ptz.removePreset(options), callback);
   }
 
   gotoHomePosition(options: GotoHomePosition, callback: Callback) {
-    this.invoke(this.onvif.ptz.gotoHomePosition(options), callback);
+    this.invoke(() => this.onvif.ptz.gotoHomePosition(options), callback);
   }
 
   setHomePosition(options: SetHomePosition, callback: Callback) {
-    this.invoke(this.onvif.ptz.setHomePosition(options), callback);
+    this.invoke(() => this.onvif.ptz.setHomePosition(options), callback);
   }
 
   getStatus(options: GetStatus | Callback, callback?: Callback) {
@@ -907,7 +960,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.ptz.getStatus(resolvedOptions.profileToken ? resolvedOptions : undefined), cb);
+    this.invoke(() => this.onvif.ptz.getStatus(resolvedOptions.profileToken ? resolvedOptions : undefined), cb);
   }
 
   absoluteMove(compatibilityOptions: CompatibilityAbsoluteMoveOptions, callback?: Callback): void {
@@ -916,7 +969,7 @@ export class Cam extends EventEmitter {
       position: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
-      this.invoke(this.onvif.ptz.absoluteMove(options), callback);
+      this.invoke(() => this.onvif.ptz.absoluteMove(options), callback);
     } else {
       this.onvif.ptz.absoluteMove(options).catch((err) => this.emit('error', err));
     }
@@ -928,7 +981,7 @@ export class Cam extends EventEmitter {
       translation: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
-      this.invoke(this.onvif.ptz.relativeMove(options), callback);
+      this.invoke(() => this.onvif.ptz.relativeMove(options), callback);
     } else {
       this.onvif.ptz.relativeMove(options).catch((err) => this.emit('error', err));
     }
@@ -940,7 +993,7 @@ export class Cam extends EventEmitter {
       velocity: mapCompatibilityPTZVector(compatibilityOptions),
     };
     if (callback) {
-      this.invoke(this.onvif.ptz.continuousMove(options), callback);
+      this.invoke(() => this.onvif.ptz.continuousMove(options), callback);
     } else {
       this.onvif.ptz.continuousMove(options).catch((err) => this.emit('error', err));
     }
@@ -949,7 +1002,7 @@ export class Cam extends EventEmitter {
   stop(options?: GetStatus | Callback, callback?: Callback) {
     const { options: resolvedOptions, callback: cb } = splitOptionalCallback<GetStatus>(options, callback);
     if (cb) {
-      this.invoke(this.onvif.ptz.stop(resolvedOptions), cb);
+      this.invoke(() => this.onvif.ptz.stop(resolvedOptions), cb);
       return;
     }
     this.onvif.ptz.stop(resolvedOptions).catch((error) => this.emit('error', error));
@@ -957,7 +1010,7 @@ export class Cam extends EventEmitter {
 
   ptzSendAuxiliaryCommand(options: { data: string; profileToken?: string }, callback: Callback) {
     this.invoke(
-      this.onvif.ptz.sendAuxiliaryCommand({
+      () => this.onvif.ptz.sendAuxiliaryCommand({
         profileToken: profileToken(this.onvif, options),
         auxiliaryData: options.data,
       }),
@@ -966,7 +1019,7 @@ export class Cam extends EventEmitter {
   }
 
   getImagingServiceCapabilities(callback: Callback) {
-    this.invoke(this.onvif.imaging.getServiceCapabilities(), callback);
+    this.invoke(() => this.onvif.imaging.getServiceCapabilities(), callback);
   }
 
   getImagingSettings(options?: { token?: string } | Callback, callback?: Callback) {
@@ -974,13 +1027,13 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.getImagingSettings(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.getImagingSettings(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   setImagingSettings(options: { token?: string; [key: string]: unknown }, callback: Callback) {
     const { token, ...settings } = options;
     this.invoke(
-      this.onvif.imaging.setImagingSettings({
+      () => this.onvif.imaging.setImagingSettings({
         videoSourceToken: videoSourceToken(this.onvif, { token }),
         imagingSettings: settings as ImagingSettings20,
       }),
@@ -993,7 +1046,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.getOptions(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.getOptions(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   imagingGetMoveOptions(options?: { token?: string } | Callback, callback?: Callback) {
@@ -1001,7 +1054,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.getMoveOptions(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.getMoveOptions(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   imagingGetStatus(options?: { token?: string } | Callback, callback?: Callback) {
@@ -1009,7 +1062,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.getStatus(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.getStatus(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   imagingMove(
@@ -1022,7 +1075,7 @@ export class Cam extends EventEmitter {
     callback: Callback,
   ) {
     this.invoke(
-      this.onvif.imaging.move({
+      () => this.onvif.imaging.move({
         videoSourceToken: videoSourceToken(this.onvif, options),
         focus: {
           ...(options.absolute && { absolute: options.absolute as any }),
@@ -1039,7 +1092,7 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.stop(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.stop(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   getCurrentImagingPreset(options?: { token?: string } | Callback, callback?: Callback) {
@@ -1047,12 +1100,12 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    this.invoke(this.onvif.imaging.getCurrentPreset(mapImagingToken(this.onvif, resolvedOptions)), cb);
+    this.invoke(() => this.onvif.imaging.getCurrentPreset(mapImagingToken(this.onvif, resolvedOptions)), cb);
   }
 
   setCurrentImagingPreset(options: { token?: string; presetToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.imaging.setCurrentPreset({
+      () => this.onvif.imaging.setCurrentPreset({
         videoSourceToken: videoSourceToken(this.onvif, options),
         presetToken: options.presetToken,
       }),
@@ -1062,7 +1115,7 @@ export class Cam extends EventEmitter {
 
   getEventProperties(callback: Callback) {
     this.invoke(
-      this.onvif.events.getEventProperties().then((result) => {
+      () => this.onvif.events.getEventProperties().then((result) => {
         this.events.properties = result;
         return result;
       }),
@@ -1071,7 +1124,7 @@ export class Cam extends EventEmitter {
   }
 
   getEventServiceCapabilities(callback: Callback) {
-    this.invoke(this.onvif.events.getServiceCapabilities(), callback);
+    this.invoke(() => this.onvif.events.getServiceCapabilities(), callback);
   }
 
   private storePullPointSubscription(subscription: PullPointSubscription) {
@@ -1087,7 +1140,7 @@ export class Cam extends EventEmitter {
 
   createPullPointSubscription(callback: Callback) {
     this.invoke(
-      this.onvif.events
+      () => this.onvif.events
         .createPullPointSubscription()
         .then((subscription) => this.storePullPointSubscription(subscription)),
       callback,
@@ -1096,7 +1149,7 @@ export class Cam extends EventEmitter {
 
   subscribe(options: { url: string }, callback: Callback) {
     this.invoke(
-      this.onvif.events.subscribe({ url: options.url, terminationTime: 2 * 60 * 1000 }).then((subscription) => {
+      () => this.onvif.events.subscribe({ url: options.url, terminationTime: 2 * 60 * 1000 }).then((subscription) => {
         return this.storePullPointSubscription(subscription);
       }),
       callback,
@@ -1108,11 +1161,12 @@ export class Cam extends EventEmitter {
     if (!cb) {
       return;
     }
-    if (!this.pullPointSubscription?.subscription) {
+    const pullPoint = this.pullPointSubscription;
+    if (!pullPoint?.subscription) {
       cb(new Error('You should create pull-point subscription first!'));
       return;
     }
-    this.invoke(this.pullPointSubscription.pullMessages(resolvedOptions), cb);
+    this.invoke(() => pullPoint.pullMessages(resolvedOptions), cb);
   }
 
   renew(options?: unknown | Callback, callback?: Callback) {
@@ -1124,11 +1178,13 @@ export class Cam extends EventEmitter {
       cb(new Error('You should create pull-point subscription first!'));
       return;
     }
-    if (this.pullPointSubscription?.subscription) {
-      this.invoke(this.pullPointSubscription.renew(), cb);
+    const pullPoint = this.pullPointSubscription;
+    if (pullPoint?.subscription) {
+      this.invoke(() => pullPoint.renew(), cb);
       return;
     }
-    this.invoke(this.onvif.events.renew(this.events.subscription, 2 * 60 * 1000), cb);
+    const subscription = this.events.subscription;
+    this.invoke(() => this.onvif.events.renew(subscription, 2 * 60 * 1000), cb);
   }
 
   unsubscribe(callback?: Callback, _preserveListeners?: boolean) {
@@ -1140,11 +1196,12 @@ export class Cam extends EventEmitter {
     const subscription = this.events.subscription;
     delete this.events.subscription;
     delete this.events.terminationTime;
-    if (this.pullPointSubscription?.subscription) {
-      this.invoke(this.pullPointSubscription.unsubscribe(), cb);
+    const pullPoint = this.pullPointSubscription;
+    if (pullPoint?.subscription) {
+      this.invoke(() => pullPoint.unsubscribe(), cb);
       return;
     }
-    this.invoke(this.onvif.events.unsubscribe(subscription), cb);
+    this.invoke(() => this.onvif.events.unsubscribe(subscription), cb);
   }
 
   parseEventXML(xml: string, callback: Callback) {
@@ -1155,7 +1212,7 @@ export class Cam extends EventEmitter {
 
   getRecordings(callback: Callback) {
     this.invoke(
-      this.onvif.recording.getRecordings().then((result) => {
+      () => this.onvif.recording.getRecordings().then((result) => {
         this.recordingItems = result;
         return result;
       }),
@@ -1165,7 +1222,7 @@ export class Cam extends EventEmitter {
 
   getRecordingJobs(callback: Callback) {
     this.invoke(
-      this.onvif.recording.getRecordingJobs().then((result) => {
+      () => this.onvif.recording.getRecordingJobs().then((result) => {
         this.jobItem = result;
         return result;
       }),
@@ -1175,7 +1232,7 @@ export class Cam extends EventEmitter {
 
   getRecordingServiceCapabilities(callback: Callback) {
     this.invoke(
-      this.onvif.recording.getServiceCapabilities().then((result) => {
+      () => this.onvif.recording.getServiceCapabilities().then((result) => {
         this.searchCapabilities = result;
         return result;
       }),
@@ -1185,7 +1242,7 @@ export class Cam extends EventEmitter {
 
   getRecordingSummary(callback: Callback) {
     this.invoke(
-      this.onvif.search.getRecordingSummary().then((result) => {
+      () => this.onvif.search.getRecordingSummary().then((result) => {
         this.recordingSummary = result;
         return result;
       }),
@@ -1195,7 +1252,7 @@ export class Cam extends EventEmitter {
 
   getRecordingInformation(options: { RecordingToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.search.getRecordingInformation(mapRecordingToken(options)).then((result) => {
+      () => this.onvif.search.getRecordingInformation(mapRecordingToken(options)).then((result) => {
         this.summary = result;
         return result;
       }),
@@ -1205,7 +1262,7 @@ export class Cam extends EventEmitter {
 
   getRecordingConfiguration(options: { RecordingToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.recording.getRecordingConfiguration(mapRecordingToken(options)).then((result) => {
+      () => this.onvif.recording.getRecordingConfiguration(mapRecordingToken(options)).then((result) => {
         this.recordingConfiguration = result;
         return result;
       }),
@@ -1215,7 +1272,7 @@ export class Cam extends EventEmitter {
 
   getRecordingOptions(options: { RecordingToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.recording.getRecordingOptions(mapRecordingToken(options)).then((result) => {
+      () => this.onvif.recording.getRecordingOptions(mapRecordingToken(options)).then((result) => {
         this.recordingOptions = result;
         return result;
       }),
@@ -1225,7 +1282,7 @@ export class Cam extends EventEmitter {
 
   getRecordingJobState(options: { JobToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.recording.getRecordingJobState(mapJobToken(options)).then((result) => {
+      () => this.onvif.recording.getRecordingJobState(mapJobToken(options)).then((result) => {
         this.recordingJobState = result;
         return result;
       }),
@@ -1234,12 +1291,12 @@ export class Cam extends EventEmitter {
   }
 
   getRecordingJobConfiguration(options: { JobToken: string }, callback: Callback) {
-    this.invoke(this.onvif.recording.getRecordingJobConfiguration(mapJobToken(options)), callback);
+    this.invoke(() => this.onvif.recording.getRecordingJobConfiguration(mapJobToken(options)), callback);
   }
 
   getTrackConfiguration(options: { recordingToken: string; trackToken: string }, callback: Callback) {
     this.invoke(
-      this.onvif.recording.getTrackConfiguration(options).then((result) => {
+      () => this.onvif.recording.getTrackConfiguration(options).then((result) => {
         this.trackConfiguration = result;
         return result;
       }),
@@ -1249,18 +1306,18 @@ export class Cam extends EventEmitter {
 
   createRecordingJob(options: Parameters<typeof mapCreateRecordingJobOptions>[0], callback: Callback) {
     this.invoke(
-      this.onvif.recording.createRecordingJob(mapCreateRecordingJobOptions(options) as CreateRecordingJob),
+      () => this.onvif.recording.createRecordingJob(mapCreateRecordingJobOptions(options) as CreateRecordingJob),
       callback,
     );
   }
 
   deleteRecordingJob(options: { JobToken: string }, callback: Callback) {
-    this.invoke(this.onvif.recording.deleteRecordingJob(mapJobToken(options)), callback);
+    this.invoke(() => this.onvif.recording.deleteRecordingJob(mapJobToken(options)), callback);
   }
 
   setRecordingJobMode(options: { JobToken: string; Mode: string }, callback: Callback) {
     this.invoke(
-      this.onvif.recording.setRecordingJobMode({
+      () => this.onvif.recording.setRecordingJobMode({
         jobToken: options.JobToken,
         mode: options.Mode as any,
       }),
@@ -1281,7 +1338,7 @@ export class Cam extends EventEmitter {
       return;
     }
     this.invoke(
-      this.onvif.replay.getReplayUri({
+      () => this.onvif.replay.getReplayUri({
         recordingToken: resolvedOptions.recordingToken,
         stream: resolvedOptions.stream as StreamType | undefined,
         protocol: resolvedOptions.protocol as TransportProtocol | undefined,

@@ -89,7 +89,7 @@ try {
 }
 ```
 
-The same `signal` option works on any `onvif.request({ …, signal })` call, not only events.
+The same `signal` option works on any `onvif.request({ ..., signal })` call, not only events.
 
 ## Push WS-BaseNotification
 
@@ -99,7 +99,7 @@ polling the device.
 To use it: start an HTTP server reachable from the camera, call `subscribe` with that URL as the consumer reference,
 keep the subscription alive with `renew` before it expires, and call `unsubscribe` when you are done. Method signatures
 are in the [Events class documentation][events-docs]. A working flow is shown in
-[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) — the HTTP server at
-lines 50–65, and subscribe / unsubscribe at lines 143–164.
+[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) - the HTTP server at
+lines 50-65, and subscribe / unsubscribe at lines 143-164.
 
 [events-docs]: https://agsh.github.io/onvif/classes/Events.html

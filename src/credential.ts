@@ -34,11 +34,9 @@ import {
   GetCredentialInfo,
   GetCredentialInfoList,
   GetCredentialInfoListResponse,
-  GetCredentialInfoResponse,
   GetCredentialList,
   GetCredentialListResponse,
   GetCredentials,
-  GetCredentialsResponse,
   GetCredentialState,
   GetSupportedFormatTypes,
   GetSupportedFormatTypesResponse,
@@ -66,7 +64,7 @@ import {
  * const caps = await onvif.credential.getServiceCapabilities();
  * const list = await onvif.credential.getCredentialInfoList({ limit: 20 });
  * const token = list.credentialInfo![0].token;
- * const [cred] = (await onvif.credential.getCredentials({ token: [token] })).credential ?? [];
+ * const [cred] = await onvif.credential.getCredentials({ token: [token] });
  * const state = await onvif.credential.getCredentialState({ token });
  * console.log(caps, cred?.description, state.enabled);
  *
@@ -189,14 +187,16 @@ export default class Credential extends Service {
   /**
    * Returns credential info items for the requested tokens.
    * @param options
+   * @returns Credential info items
    */
-  async getCredentialInfo({ token }: GetCredentialInfo): Promise<GetCredentialInfoResponse> {
+  async getCredentialInfo({ token }: GetCredentialInfo): Promise<CredentialInfo[]> {
     const response = await this.request({ GetCredentialInfo: { Token: token } }, { array: ['credentialInfo'] });
-    return response.getCredentialInfoResponse ?? {};
+    return response.getCredentialInfoResponse?.credentialInfo ?? [];
   }
 
   /**
-   * Returns a list of credential info items.
+   * Paginated credential info list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getCredentialInfo}, which unwraps to an array.
    * @param options
    */
   async getCredentialInfoList(options: GetCredentialInfoList = {}): Promise<GetCredentialInfoListResponse> {
@@ -215,17 +215,19 @@ export default class Credential extends Service {
   /**
    * Returns credential items for the requested tokens.
    * @param options
+   * @returns Credentials
    */
-  async getCredentials({ token }: GetCredentials): Promise<GetCredentialsResponse> {
+  async getCredentials({ token }: GetCredentials): Promise<CredentialEntity[]> {
     const response = await this.request(
       { GetCredentials: { Token: token } },
       { array: ['credential', 'credentialIdentifier', 'credentialAccessProfile', 'attribute'] },
     );
-    return response.getCredentialsResponse ?? {};
+    return response.getCredentialsResponse?.credential ?? [];
   }
 
   /**
-   * Returns a list of credential items.
+   * Paginated credential list (items + optional `nextStartReference`).
+   * Kept as the ONVIF list response for paging — contrast {@link getCredentials}, which unwraps to an array.
    * @param options
    */
   async getCredentialList(options: GetCredentialList = {}): Promise<GetCredentialListResponse> {

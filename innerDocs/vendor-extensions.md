@@ -1,6 +1,6 @@
 # Vendor XML / `xs:any` and `xs:anyAttribute`
 
-ONVIF schemas use two extension points everywhere (analytics modules, metadata filters, PTZ status, Color, …):
+ONVIF schemas use two extension points everywhere (analytics modules, metadata filters, PTZ status, Color, ...):
 
 ```xml
 <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
@@ -19,18 +19,18 @@ import { xsany } from 'onvif';
 ```
 
 `xsany` is `Symbol('any')`. The property is **non-enumerable**, so it does not show up in `Object.keys`,
-`JSON.stringify`, or object spreads — use `obj[xsany]` explicitly.
+`JSON.stringify`, or object spreads - use `obj[xsany]` explicitly.
 
 The shape of `obj[xsany]` follows the [xml2js](https://github.com/Leonidas-from-XIV/node-xml2js) object style:
 element names as keys (often with prefixes like `tt:`, `wsnt:`), attributes under `$`, text under `_`,
 and children as **arrays**.
 
-If you only see camelCase fields and no `xsany`, that node was not in the request’s `rawXML` list.
+If you only see camelCase fields and no `xsany`, that node was not in the request's `rawXML` list.
 Shared parse hints in `utils` (`ITEM_LIST_PARSE`, `ANALYTICS_CONFIG_PARSE`, `MEDIA_NESTED_PARSE`,
 `MEDIA_CONFIGURATION_PARSE`) mark `elementItem` (and Media metadata `filter` / `subscriptionPolicy`) on Gets
-that feed `config()` / `itemList()`. Use nested hints for singular Profile/Configuration responses — do not
+that feed `config()` / `itemList()`. Use nested hints for singular Profile/Configuration responses - do not
 force `configurations` / `profiles` wrappers to arrays when the schema says a single object.
-You can still pass `rawXML` on `onvif.request({ rawXML: […] })` for other tags.
+You can still pass `rawXML` on `onvif.request({ rawXML: [...] })` for other tags.
 
 ---
 
@@ -82,8 +82,8 @@ const layout = findTagged(elementItem, (tag) => tag === 'tt:CellLayout' || tag =
 
 Tags listed in `rawXML` are parsed twice:
 
-1. **Normal fields** — camelCase, typed where possible (`name`, `cellLayout.columns`, …)
-2. **`obj[xsany]`** — xml2js-style tree with original element/attribute names (with prefixes), arrays, and `$` / `_`
+1. **Normal fields** - camelCase, typed where possible (`name`, `cellLayout.columns`, ...)
+2. **`obj[xsany]`** - xml2js-style tree with original element/attribute names (with prefixes), arrays, and `$` / `_`
 
 ### 1. Cell Motion `ElementItem` (Hikvision / Dahua / HappyTime)
 
@@ -164,7 +164,7 @@ elementItem.polygonConfiguration.polygon.point
 // [{ x: -0.5, y: 0 }, { x: 0.5, y: 0 }, { x: 0.5, y: 0.4 }]  (with array: ['point'])
 
 elementItem[xsany]['tt:PolygonConfiguration'][0]['tt:Polygon'][0]['tt:Point']
-// [{ $: { x: '-0.5', y: '0.0' } }, …]
+// [{ $: { x: '-0.5', y: '0.0' } }, ...]
 ```
 
 ### 4. Axis-style `tt:Polyline` for tripwire
@@ -178,7 +178,7 @@ elementItem[xsany]['tt:PolygonConfiguration'][0]['tt:Polygon'][0]['tt:Point']
 </ElementItem>
 ```
 
-### 5. Metadata `Filter` — TopicExpression (WS-BaseNotification)
+### 5. Metadata `Filter` - TopicExpression (WS-BaseNotification)
 
 ```xml
 <Filter>
@@ -217,8 +217,8 @@ filter[xsany]
 </Filter>
 ```
 
-Parse with `array: ['topicExpression']` (or rely on Media’s arrays) and always edit via `filter[xsany]` when
-sending back — the MessageContent XPath must keep its dialect attribute and text node (`_`).
+Parse with `array: ['topicExpression']` (or rely on Media's arrays) and always edit via `filter[xsany]` when
+sending back - the MessageContent XPath must keep its dialect attribute and text node (`_`).
 
 ### 7. `SubscriptionPolicy` (ChangedOnly)
 
@@ -292,20 +292,20 @@ After parse, a `rawXML` node (e.g. `ElementItem`, `Filter`) has **two views of t
 
 | View | What it is | Used for |
 | --- | --- | --- |
-| CamelCase flatten | `elementItem.name`, `elementItem.cellLayout.columns`, … | **Reading** / logging / typed access |
-| `elementItem[xsany]` | xml2js tree with `tt:…`, `$`, `_`, arrays | **Writing** back to the device |
+| CamelCase flatten | `elementItem.name`, `elementItem.cellLayout.columns`, ... | **Reading** / logging / typed access |
+| `elementItem[xsany]` | xml2js tree with `tt:...`, `$`, `_`, arrays | **Writing** back to the device |
 
 They are populated together on parse, but **setters do not merge them**. Serializers take the wire tree from
 `[xsany]` only. Changing `elementItem.cellLayout.columns = 10` and then calling
-`setVideoAnalyticsConfiguration` will **not** put `Columns="10"` in the SOAP — that value lives only on the
+`setVideoAnalyticsConfiguration` will **not** put `Columns="10"` in the SOAP - that value lives only on the
 read-only flatten view unless you also edit `[xsany]`.
 
 ### What Media actually serializes
 
-**`ElementItem`** (`itemList` → analytics `Parameters`):
+**`ElementItem`** (`itemList` -> analytics `Parameters`):
 
 ```ts
-// Conceptual — see src/utils/toOnvifXMLSchemaObject.ts
+// Conceptual - see src/utils/toOnvifXMLSchemaObject.ts
 {
   ...elementItem[xsany],                    // children + $ from Symbol only
   $: { ...elementItem[xsany].$, Name: elementItem.name },  // typed name wins
@@ -323,12 +323,12 @@ Filter: configuration.events.filter[xsany]
 SubscriptionPolicy: configuration.events.subscriptionPolicy[xsany]
 ```
 
-Pure `[xsany]` — the flatten (`filter.topicExpression.dialect`) is ignored on write.
+Pure `[xsany]` - the flatten (`filter.topicExpression.dialect`) is ignored on write.
 
 ### Correct write path
 
 Cameras often reject configs if child trees lose namespaces, attribute casing, or array shape. Mutate `[xsany]`
-for layout/vendor XML; use typed fields only where the builder explicitly maps them (`name`, `SimpleItem`, …).
+for layout/vendor XML; use typed fields only where the builder explicitly maps them (`name`, `SimpleItem`, ...).
 
 ```ts
 import { xsany } from 'onvif';
@@ -337,13 +337,13 @@ const configs = await onvif.media.getVideoAnalyticsConfigurations();
 const module = configs[0].analyticsEngineConfiguration.analyticsModule[0];
 const layout = module.parameters.elementItem[0];
 
-// OK — typed field that itemList maps into $
+// OK - typed field that itemList maps into $
 layout.name = 'Layout';
 
-// WRONG for write — flatten is not sent
+// WRONG for write - flatten is not sent
 // layout.cellLayout.columns = 10;
 
-// OK — this is what becomes SOAP attributes/children
+// OK - this is what becomes SOAP attributes/children
 layout[xsany]['tt:CellLayout'][0].$.Columns = '10';
 layout[xsany]['tt:CellLayout'][0].$.Rows = '7';
 
@@ -360,7 +360,7 @@ const meta = await onvif.media.getMetadataConfigurations();
 const filterAny = meta[0].events.filter[xsany];
 
 // WRONG for write:
-// meta[0].events.filter.topicExpression = …;
+// meta[0].events.filter.topicExpression = ...;
 
 // OK:
 filterAny['wsnt:TopicExpression'][0]._ =
@@ -375,12 +375,12 @@ await onvif.media.setMetadataConfiguration({
 ### Anti-patterns
 
 ```ts
-// 1) Editing only flatten — silent no-op on the wire
+// 1) Editing only flatten - silent no-op on the wire
 layout.cellLayout.columns = 12;
 
-// 2) Spreading the object — xsany is non-enumerable and disappears
+// 2) Spreading the object - xsany is non-enumerable and disappears
 const copy = { ...layout };
-copy[xsany]; // undefined — do not rebuild SOAP from `copy`
+copy[xsany]; // undefined - do not rebuild SOAP from `copy`
 
 // 3) Rebuilding ElementItem from camelCase by hand
 build({
@@ -395,8 +395,8 @@ build({
 
 - **Read** either view; prefer camelCase for app logic.
 - **Write** layout / vendor / TopicExpression / MessageContent only under `[xsany]`.
-- Keep prefixed tags (`tt:…`, `wsnt:…`, `hik:…`) and `$` / `_` / arrays as returned.
-- Typed fields that builders know about (`name`, `simpleItem[].name` / `.value`) are separate — change those on
+- Keep prefixed tags (`tt:...`, `wsnt:...`, `hik:...`) and `$` / `_` / arrays as returned.
+- Typed fields that builders know about (`name`, `simpleItem[].name` / `.value`) are separate - change those on
   the object, not inside `[xsany]`, unless you also keep `$` in sync.
 
 ---
@@ -406,7 +406,7 @@ build({
 Extra attributes are merged into the same object as normal **camelCase** properties (namespace prefixes are stripped
 on the typed view).
 
-### 11. `Color` (`common.xsd`) — OSD / imaging
+### 11. `Color` (`common.xsd`) - OSD / imaging
 
 ```xml
 <Color X="0.1" Y="0.2" Z="0.3"
@@ -466,16 +466,16 @@ videoSource.framerate     // 25
 
 ```js
 panTilt.x              // 0.2
-panTilt.space          // 'http://www.onvif.org/…/GenericSpeedSpace'
+panTilt.space          // 'http://www.onvif.org/.../GenericSpeedSpace'
 panTilt.speedProfile   // 'turbo'
 ```
 
 ---
 
-## Sending `xs:anyAttribute` back — use `$`
+## Sending `xs:anyAttribute` back - use `$`
 
 When building XML for the device, attributes live under `$`. A vendor flag next to child elements as a plain property
-often drops or becomes a wrong child tag. **Reading strips the prefix** (`vv:VendorFlag` → `vendorFlag`); when writing
+often drops or becomes a wrong child tag. **Reading strips the prefix** (`vv:VendorFlag` -> `vendorFlag`); when writing
 you must put the prefixed name back into `$`.
 
 ```js
@@ -582,7 +582,7 @@ Write: `vv:FirmwareChannel` in `$`, keep `vv:VendorExtension` as a child.
 WSDL models an extension element literally named `anyAttribute` (domain components, etc.):
 
 ```ts
-// Built by AdvancedSecurity helpers — see tests
+// Built by AdvancedSecurity helpers - see tests
 {
   CommonName: ['cam.example'],
   Organization: ['ONVIF'],
@@ -621,7 +621,7 @@ await onvif.media.setVideoAnalyticsConfiguration({
 ### Narrow pull-point topics (Axis / Profile T)
 
 Prefer `Subscription` filters (library builds TopicExpression for you). If you already have a Media metadata
-configuration with a Filter, edit `filter[xsany]` as above — do not stringify the camelCase `topicExpression` alone.
+configuration with a Filter, edit `filter[xsany]` as above - do not stringify the camelCase `topicExpression` alone.
 
 ### Debug raw SOAP when structure is unclear
 
@@ -637,27 +637,27 @@ PTZStatus, and OSD Color.
 
 ## Caveats (verified behaviour)
 
-1. **`xsany` only for `rawXML` tags** — without `rawXML`, vendor children still appear as camelCase, but you lose the
+1. **`xsany` only for `rawXML` tags** - without `rawXML`, vendor children still appear as camelCase, but you lose the
    prefixed rebuild tree. Media / Analytics / ActionEngine / AnalyticsDevice Gets that round-trip via `config()` /
    `itemList()` set `elementItem` (Media also `filter` / `subscriptionPolicy`).
-2. **Write does not mix flatten + `xsany`** — serializers use `[xsany]` (and typed `name` for `ElementItem`). CamelCase
+2. **Write does not mix flatten + `xsany`** - serializers use `[xsany]` (and typed `name` for `ElementItem`). CamelCase
    layout fields are read-only for the wire.
-3. **anyAttribute prefixes are lost on read** — `vv:VendorFlag` becomes `vendorFlag`. When writing, restore
-   `'vv:VendorFlag'` (or the camera’s prefix) under `$`.
-4. **Children in `xsany` are arrays** — even a single `tt:CellLayout` is `['tt:CellLayout'][0]`.
-5. **Do not spread objects with `xsany`** — the symbol is non-enumerable; `{ ...elementItem }` drops it.
-6. **Numbers/booleans in camelCase view** are coerced (`"50"` → `50`, `"true"` → `true`); inside `xsany` attribute
-   values usually stay **strings** as in the wire XML — keep them as strings when editing `$`.
-7. **Numeric-looking tokens** (e.g. `token="1"`) may become numbers after parse — prefer non-numeric tokens in tests,
+3. **anyAttribute prefixes are lost on read** - `vv:VendorFlag` becomes `vendorFlag`. When writing, restore
+   `'vv:VendorFlag'` (or the camera's prefix) under `$`.
+4. **Children in `xsany` are arrays** - even a single `tt:CellLayout` is `['tt:CellLayout'][0]`.
+5. **Do not spread objects with `xsany`** - the symbol is non-enumerable; `{ ...elementItem }` drops it.
+6. **Numbers/booleans in camelCase view** are coerced (`"50"` -> `50`, `"true"` -> `true`); inside `xsany` attribute
+   values usually stay **strings** as in the wire XML - keep them as strings when editing `$`.
+7. **Numeric-looking tokens** (e.g. `token="1"`) may become numbers after parse - prefer non-numeric tokens in tests,
    or compare with `String(token)`.
-8. **Text-only / empty `rawXML` nodes** (e.g. `<ElementItem Name="Blob">…</ElementItem>` with no child elements)
+8. **Text-only / empty `rawXML` nodes** (e.g. `<ElementItem Name="Blob">...</ElementItem>` with no child elements)
    still get an `xsany` object (`$` + optional `_`).
 
 ---
 
 ## Summary
 
-For everyday reading, use camelCase fields. When changing vendor or layout XML and sending it back, edit `obj[xsany]` —
+For everyday reading, use camelCase fields. When changing vendor or layout XML and sending it back, edit `obj[xsany]` -
 that is the only tree Media puts into SOAP for `xs:any` (except mapping `ElementItem.name` into `$`). Extra attributes
 belong under `$` on write (keep the prefixes the camera used). Do not rebuild the SOAP payload from the camelCase view
 alone, and do not assume flatten edits are merged into `[xsany]`.

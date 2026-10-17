@@ -6,8 +6,14 @@ import { EventEmitter } from 'events';
 import { Cam as CallbackCam } from '../cam';
 import { DiscoveryOptions } from '../../discovery';
 
-type DropCallbackArgs<A extends unknown[]> = A extends [...infer P, (...args: unknown[]) => unknown]
-  ? P
+/**
+ * Drop the trailing v0 callback from Cam method args.
+ * Use `any` (not `unknown`) so `(err, data, xml?) => void` matches under strictFunctionTypes.
+ */
+type DropCallbackArgs<A extends unknown[]> = A extends [...infer P, infer Last]
+  ? Last extends (...args: any[]) => any
+    ? P
+    : A
   : A;
 
 type CallbackCamMethodKeys = {

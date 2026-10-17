@@ -13,6 +13,7 @@ import {
   build,
   getDigestHeaders,
   isSenderNotAuthorizedFault,
+  assignErrorContext,
   linerase,
   OnvifAuthError,
   OnvifResponse,
@@ -22,7 +23,12 @@ import {
   soapActionFromBody,
   soapActionFromXml,
 } from './utils';
-import { digestAuth as buildDigestAuth, passwordDigest as createPasswordDigest } from './auth';
+import {
+  digestAuth as buildDigestAuth,
+  isDigestChallengeStale,
+  passwordDigest as createPasswordDigest,
+  preferredDigestChallenge,
+} from './utils/auth';
 import type Device from './device';
 import type Media from './media';
 import type Media2 from './media2';
@@ -58,34 +64,111 @@ import type AnalyticsDevice from './analyticsdevice';
 import type Receiver from './receiver';
 import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
+import { requestContext } from './utils/request-context';
+
+/** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
+export const DEFAULT_TIMEOUT_MS = 10_000;
+
+const DEFAULT_DEVICE_PATH = '/onvif/device_service';
+
+/** Resolve hostname/port/path/useSecure from {@link OnvifOptions.url} or discrete fields. */
+function resolveDeviceLocation(options: OnvifOptions): {
+  hostname: string;
+  port: number;
+  path: string;
+  useSecure: boolean;
+} {
+  if (options.url !== undefined && options.hostname !== undefined) {
+    throw new OnvifValidationError('Pass either `url` or `hostname`, not both');
+  }
+  if (options.url !== undefined) {
+    let parsed: URL;
+    try {
+      parsed = options.url instanceof URL ? options.url : new URL(options.url);
+    } catch {
+      throw new OnvifValidationError('Invalid `url`');
+    }
+    if (parsed.username !== '' || parsed.password !== '') {
+      throw new OnvifValidationError('Credentials must not be embedded in `url`; use username/password options');
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new OnvifValidationError('`url` must use http: or https:');
+    }
+    const useSecure = parsed.protocol === 'https:';
+    const path =
+      parsed.pathname && parsed.pathname !== '/'
+        ? parsed.pathname + parsed.search
+        : DEFAULT_DEVICE_PATH;
+    const port =
+      parsed.port !== ''
+        ? Number.parseInt(parsed.port, 10)
+        : useSecure
+          ? 443
+          : 80;
+    return { hostname: parsed.hostname, port, path, useSecure };
+  }
+  if (!options.hostname) {
+    throw new OnvifValidationError('`hostname` or `url` is required');
+  }
+  const useSecure = options.useSecure ?? false;
+  return {
+    hostname: options.hostname,
+    port: options.port ?? (useSecure ? 443 : 80),
+    path: options.path ?? DEFAULT_DEVICE_PATH,
+    useSecure,
+  };
+}
 
 /**
- * Onvif constructor options
+ * Onvif constructor options.
+ * Pass either {@link OnvifOptions.url} or {@link OnvifOptions.hostname} (not both).
  */
 export interface OnvifOptions {
-  /** Set true if using `https` protocol, defaults to false. */
+  /**
+   * Device service URL (`http(s)://host[:port]/path]`).
+   * Sets hostname, port, path, and useSecure. Must not include userinfo; use username/password.
+   */
+  url?: string | URL;
+  /** Set true if using `https` protocol, defaults to false. Ignored when {@link url} is set. */
   useSecure?: boolean;
   /** Set options for https like ca, cert, ciphers, rejectUnauthorized, secureOptions, secureProtocol, etc. */
   secureOptions?: ConnectionOptions;
   /** Use WS-Security SOAP headers */
   useWSSecurity?: boolean;
-  hostname: string;
+  /** Device host. Required when {@link url} is omitted. */
+  hostname?: string;
   username?: string;
   password?: string;
+  /** Defaults to 80 or 443 from useSecure / url scheme. */
   port?: number;
+  /** Device service path. Defaults to `/onvif/device_service`. */
   path?: string;
+  /**
+   * HTTP socket timeout for ordinary SOAP calls, in milliseconds.
+   * Defaults to {@link DEFAULT_TIMEOUT_MS} (10 s). PullMessages sets its own longer
+   * timeout (pull wait + margin) and is not limited by this value.
+   */
   timeout?: number;
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: HttpsAgent | HttpAgent | boolean;
   /**
-   * Rewrite service / subscription XAddrs to this client's {@link hostname}:{@link port}
-   * (NAT / reverse-proxy). Defaults to `false`.
+   * Rewrite host/port on service and subscription XAddrs to this client's
+   * {@link hostname}:{@link port} (pathname and query kept). Defaults to `false`.
    *
-   * TCP for normal service calls (`device`, `media`, ...) always uses the constructor
-   * host/port; from each XAddr only `pathname` (+ query) is used. Set this when XAddr
-   * host/port must also match the constructor — e.g. SOAP `a:To`, and PullMessages /
-   * Renew / Unsubscribe which dial `options.url` from the subscription Address.
+   * Cameras often advertise unreachable XAddrs: `127.0.0.1` behind a vendor proxy,
+   * a private LAN IP while you connect through NAT/port-forward, or a different
+   * published port than the one you dial. Ordinary SOAP calls (`device`, `media`, ...)
+   * always TCP to the constructor host/port and take only `pathname` (+ query) from
+   * each XAddr - so they work without this flag. Set `preserveAddress: true` when
+   * the **full** URL must match the constructor address as well:
+   * - SOAP `a:To` / addressing headers built from the XAddr
+   * - PullMessages / Renew / Unsubscribe, which dial `options.url` from the
+   *   subscription Address
+   *
+   * Comparison uses the effective port (scheme defaults 80/443), not the empty
+   * `URL.port` string. Does not rewrite raw RTSP/snapshot URI strings inside Media
+   * responses - only URLs passed through {@link Onvif.parseUrl}.
    */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */
@@ -95,6 +178,11 @@ export interface OnvifOptions {
    * Same role as v0.x `cam.xaddrs`.
    */
   xaddrs?: URL[];
+  /**
+   * Default for {@link Onvif.connect} `{ media }` when that option is omitted.
+   * @default true
+   */
+  defaultMedia?: boolean;
 }
 
 export interface OnvifServices {
@@ -128,7 +216,7 @@ export interface OnvifServices {
 
 /**
  * SOAP Body tree for {@link build} / {@link Onvif.request}
- * (operation element name → children and `$` attributes).
+ * (operation element name -> children and `$` attributes).
  */
 export type OnvifSoapBody = Record<string, unknown>;
 
@@ -164,29 +252,50 @@ export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'
    * When omitted, derived from the envelope Body like v0.x.
    */
   action?: string;
+  /**
+   * Internal: already retried once after a 401 with Authorization present
+   * (stale / rotated Digest nonce). Prevents an infinite challenge loop.
+   */
+  digestStaleRetried?: boolean;
 }
 
 /**
- * Information about active video source
+ * Default Media Profile pipeline tokens used when service methods omit tokens.
+ *
+ * Copied from the selected {@link Profile} during {@link Onvif.connect} /
+ * {@link Onvif.getActiveMediaProfiles}, or switched via {@link Onvif.setActiveMediaProfile}.
+ * Encoder metadata (codec, resolution, ...) stays on {@link Onvif.defaultProfile} /
+ * {@link Onvif.profiles}.
  */
-export interface ActiveSource {
+export interface ActiveMediaProfile {
+  /** Physical video source token (= {@link videoSourceToken}; v0.x field name). */
   sourceToken: ReferenceToken;
-  /**
-   * Media profile token
-   */
+  /** Media profile that binds this source to an encoder (and optional PTZ). */
   profileToken: ReferenceToken;
+  /** `VideoSourceConfiguration` token on that profile (not the physical source token). */
   videoSourceConfigurationToken: ReferenceToken;
+  /** Physical video source token (= {@link sourceToken}). */
   videoSourceToken: ReferenceToken;
-  encoding?: string;
-  width?: number;
-  height?: number;
-  fps?: number;
-  bitrate?: number;
-  ptz?: {
-    name: string;
-    token: ReferenceToken;
-  };
+  /** `VideoEncoderConfiguration` token on the selected profile. */
+  videoEncoderConfigurationToken?: ReferenceToken;
+  /** `AudioSourceConfiguration` token on the selected profile. */
+  audioSourceConfigurationToken?: ReferenceToken;
+  /** `AudioEncoderConfiguration` token on the selected profile. */
+  audioEncoderConfigurationToken?: ReferenceToken;
+  /** `VideoAnalyticsConfiguration` token on the selected profile. */
+  videoAnalyticsConfigurationToken?: ReferenceToken;
+  /** `MetadataConfiguration` token on the selected profile. */
+  metadataConfigurationToken?: ReferenceToken;
+  /** `AudioOutputConfiguration` token (`Profile.extension`). */
+  audioOutputConfigurationToken?: ReferenceToken;
+  /** `AudioDecoderConfiguration` token (`Profile.extension`). */
+  audioDecoderConfigurationToken?: ReferenceToken;
+  /** `PTZConfiguration` token on the selected profile. */
+  ptzConfigurationToken?: ReferenceToken;
 }
+
+/** @deprecated Use {@link ActiveMediaProfile}. */
+export type ActiveSource = ActiveMediaProfile;
 
 export interface SetSystemDateAndTimeExtended extends SetSystemDateAndTime {
   /**
@@ -254,8 +363,8 @@ interface OnvifEvents {
  * console.log(await onvif.device.getDeviceInformation());
  * console.log(onvif.profiles.map((p) => p.name));
  *
- * const { uri } = await onvif.media.getStreamUri({ protocol: 'RTSP' });
- * console.log('RTSP', uri);
+ * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+ * console.log('RTSP', stream.mediaUri.uri);
  *
  * if (onvif.uri.ptz) {
  *   await onvif.ptz.continuousMove({ velocity: { x: 0.2, y: 0, zoom: 0 } });
@@ -412,6 +521,12 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   private nc: number = 0;
   /**
+   * Cached `WWW-Authenticate: Digest ...` values from the last successful challenge.
+   * Reused so later SOAP calls send `Authorization` without an extra 401 round-trip.
+   * Cleared on {@link ensureOpen} / failed Digest auth.
+   */
+  private digestChallengeHeaders?: string[];
+  /**
    * Hostname of the ONVIF device
    */
   public hostname: string;
@@ -464,8 +579,24 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public videoSources: VideoSource[] = [];
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;
-  public activeSources: ActiveSource[] = [];
-  public activeSource?: ActiveSource;
+  /** Token bags for usable media pipelines (typically one per video source after connect). */
+  public activeMediaProfiles: ActiveMediaProfile[] = [];
+  /** Currently selected media pipeline defaults when methods omit tokens. */
+  public activeMediaProfile?: ActiveMediaProfile;
+  /** @deprecated Use {@link activeMediaProfiles}. */
+  get activeSources(): ActiveMediaProfile[] {
+    return this.activeMediaProfiles;
+  }
+  set activeSources(value: ActiveMediaProfile[]) {
+    this.activeMediaProfiles = value;
+  }
+  /** @deprecated Use {@link activeMediaProfile}. */
+  get activeSource(): ActiveMediaProfile | undefined {
+    return this.activeMediaProfile;
+  }
+  set activeSource(value: ActiveMediaProfile | undefined) {
+    this.activeMediaProfile = value;
+  }
   public readonly urn?: string;
   /** Set during connect when the device advertises ONVIF Media2 (Profile T). */
   public media2Support = false;
@@ -473,26 +604,28 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
   public xaddrs?: URL[];
   /**
-   * Raw SOAP XML from the most recent {@link Onvif.request}.
-   * Used by the v0.x compatibility layer for the third callback argument.
+   * Default for {@link connect}`s `media` option when omitted.
+   * Callers (e.g. Discovery for access-only devices) may set {@link OnvifOptions.defaultMedia}.
    */
-  public lastResponseXml?: string;
+  public defaultMedia = true;
 
   constructor(options: OnvifOptions) {
     super();
-    this.useSecure = options.useSecure ?? false;
+    const location = resolveDeviceLocation(options);
+    this.useSecure = location.useSecure;
     this.secureOptions = options.secureOptions ?? {};
     this.useWSSecurity = options.useWSSecurity ?? true;
-    this.hostname = options.hostname;
+    this.hostname = location.hostname;
     this.username = options.username;
     this.password = options.password;
-    this.port = options.port ?? (options.useSecure ? 443 : 80);
-    this.path = options.path ?? '/onvif/device_service';
-    this.timeout = options.timeout ?? 120000;
+    this.port = location.port;
+    this.path = location.path;
+    this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
+    this.defaultMedia = options.defaultMedia ?? true;
     // Caller-supplied agent (incl. `false`) is kept across close/ensureOpen; otherwise ensureOpen owns it.
-    // HappyTime tests pass `agent: false` — see __tests__/happytime.json.
+    // HappyTime tests pass `agent: false` - see __tests__/happytime.json.
     this.ownsAgent = options.agent === undefined;
     this.agent = options.agent ?? false;
     this.preserveAddress = options.preserveAddress ?? false;
@@ -609,22 +742,50 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     return createPasswordDigest(this.password!, this.timeShift);
   }
 
+  /** Active {@link requestContext} values for this transport call. */
+  private requestErrorContext(options: OnvifRawRequestOptions) {
+    const host = options.url?.hostname ?? this.hostname;
+    const action = options.action ?? soapActionFromXml(options.body);
+    return {
+      host,
+      ...(options.service !== undefined && { service: String(options.service) }),
+      ...(action !== undefined && { action }),
+    };
+  }
+
   private async rawRequest<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
+    const ctx = this.requestErrorContext(options);
+    const active = requestContext.getStore();
+    // Prefer the caller-owned store (requestContext.run) so XML fields stay on
+    // the same object; otherwise enter a fresh ALS frame for this call.
+    if (active) {
+      Object.assign(active, ctx);
+      return this.rawRequestBody(options);
+    }
+    return requestContext.run(ctx, () => this.rawRequestBody(options));
+  }
+
+  private rawRequestBody<T>(options: OnvifRawRequestOptions): Promise<[T, string]> {
     if (this.closed) {
-      throw new OnvifValidationError('Onvif client is closed');
+      return Promise.reject(new OnvifValidationError('Onvif client is closed'));
     }
     return new Promise((resolve, reject) => {
       let alreadyReturned = false;
-      // Build HTTP options explicitly — do not spread OnvifRawRequestOptions into http.request.
+      const fail = (error: unknown) => {
+        reject(assignErrorContext(error));
+      };
+      // Build HTTP options explicitly - do not spread OnvifRawRequestOptions into http.request.
       // Include search: pathname alone drops query (e.g. subscription XAddrs with ?).
       const requestPath = (url: URL) => `${url.pathname}${url.search}`;
+      const hadCallerAuth = Boolean(options.headers?.authorization || options.headers?.Authorization);
       const requestOptions: RequestOptions = {
         ...(options.url
           ? {
               // if we have url property for pull-point event requests
               hostname: options.url.hostname,
               path: requestPath(options.url),
-              port: options.url.port,
+              // URL.port is "" for scheme defaults - Node needs a numeric port.
+              port: Onvif.urlPort(options.url),
             }
           : {
               // try to guess the right path for the requested service
@@ -649,6 +810,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           charset: 'utf-8',
         },
       };
+      let sentDigestAuth = hadCallerAuth;
+      if (!hadCallerAuth && this.digestChallengeHeaders && this.username !== undefined && this.password !== undefined) {
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          authorization: this.digestAuth(this.digestChallengeHeaders, requestOptions),
+        };
+        sentDigestAuth = true;
+      }
       // Prefer options.url scheme (PullMessages / subscription XAddr may differ from useSecure).
       const useHttps = options.url ? options.url.protocol === 'https:' : this.useSecure;
       const httpLibrary = useHttps ? https : http;
@@ -665,41 +834,56 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           if (alreadyReturned) {
             return undefined;
           }
-          // Digest credentials were already sent and rejected — do not retry forever
-          if (options.headers?.authorization || options.headers?.Authorization) {
+          const digestHeadersArray = getDigestHeaders(response.rawHeaders);
+          if (digestHeadersArray.length === 0) {
             alreadyReturned = true;
             response.destroy();
-            return reject(
+            return fail(
+              new OnvifAuthError('Digest authentication headers not found in the server response', {
+                statusCode: response.statusCode,
+              }),
+            );
+          }
+
+          const sentAuth = sentDigestAuth;
+          const nextChallenge = preferredDigestChallenge(digestHeadersArray);
+          const cachedChallenge = this.digestChallengeHeaders
+            ? preferredDigestChallenge(this.digestChallengeHeaders)
+            : undefined;
+          const sameNonce = nextChallenge?.nonce !== undefined && nextChallenge.nonce === cachedChallenge?.nonce;
+          const stale = isDigestChallengeStale(nextChallenge);
+
+          // Same nonce and not stale -> credentials rejected. Or we already retried once for stale.
+          if (sentAuth && ((sameNonce && !stale) || options.digestStaleRetried)) {
+            alreadyReturned = true;
+            response.destroy();
+            this.digestChallengeHeaders = undefined;
+            return fail(
               new OnvifAuthError('Digest authentication failed', {
                 statusCode: response.statusCode,
               }),
             );
           }
-          const digestHeadersArray = getDigestHeaders(response.rawHeaders);
-          if (digestHeadersArray.length > 0) {
-            // Re-request with the digest auth header
-            alreadyReturned = true;
-            response.destroy();
-            try {
-              const digestResponse = await this.rawRequest<T>({
-                ...options,
-                headers: {
-                  ...options.headers,
-                  authorization: this.digestAuth(digestHeadersArray, requestOptions),
-                },
-              });
-              return resolve(digestResponse);
-            } catch (e) {
-              return reject(e);
-            }
-          } else {
-            alreadyReturned = true;
-            response.destroy();
-            return reject(
-              new OnvifAuthError('Digest authentication headers not found in the server response', {
-                statusCode: response.statusCode,
-              }),
-            );
+
+          // New / first / stale challenge - cache and retry with Authorization.
+          alreadyReturned = true;
+          response.destroy();
+          if (!sameNonce || stale || !this.digestChallengeHeaders) {
+            this.nc = 0;
+          }
+          this.digestChallengeHeaders = digestHeadersArray;
+          try {
+            const digestResponse = await this.rawRequest<T>({
+              ...options,
+              digestStaleRetried: sentAuth || options.digestStaleRetried,
+              headers: {
+                ...options.headers,
+                authorization: this.digestAuth(digestHeadersArray, requestOptions),
+              },
+            });
+            return resolve(digestResponse);
+          } catch (e) {
+            return fail(e);
           }
         }
 
@@ -720,7 +904,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           const xml = Buffer.concat(bufs, length).toString('utf8');
           this.emit('rawResponse', xml);
           if (!xml.trim()) {
-            reject(
+            fail(
               new OnvifResponseError(`Empty ONVIF SOAP response (HTTP ${statusCode ?? 'unknown'})`, {
                 xml,
                 statusCode,
@@ -732,7 +916,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           // (some stacks return Fault with HTTP 500).
           const httpOk = statusCode !== undefined && statusCode >= 200 && statusCode < 300;
           if (!httpOk && !/<\s*(?:\w+:)?(?:Envelope|Fault)\b/i.test(xml)) {
-            reject(
+            fail(
               new OnvifResponseError(`Unexpected HTTP ${statusCode ?? 'unknown'} response (non-SOAP body)`, {
                 xml,
                 statusCode,
@@ -740,7 +924,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
             );
             return;
           }
-          resolve(parseSOAPString(xml, options));
+          parseSOAPString<T>(xml, options).then(resolve, (error) => fail(error));
         });
         return undefined;
       });
@@ -760,7 +944,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           return;
         }
         alreadyReturned = true;
-        reject(error);
+        // Keep ErrnoException identity (code ETIMEDOUT, ...) for existing callers.
+        fail(error);
       });
 
       this.emit('rawRequest', options.body, requestOptions);
@@ -799,13 +984,20 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     const action = soapActionFromBody(options.body, fallbackXmlns);
 
     this.emit('requestBody', body);
+    // Capture store by reference at call time so http callbacks need not preserve ALS.
+    const store = requestContext.getStore();
+    if (store) {
+      store.requestXml = body;
+    }
     return this.rawRequest<Record<string, any>>({
       ...options,
       headers: { ...options.headers },
       body,
       action,
     }).then((result) => {
-      this.lastResponseXml = result[1];
+      if (store) {
+        store.responseXml = result[1];
+      }
       return result;
     });
   }
@@ -828,7 +1020,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * Call this when you are done talking to the camera and want to release the
    * session: stop the pull-point event subscription (if any) and tear down the
    * HTTP agents. Until then, the default keep-alive agent may keep TCP sockets
-   * open so later SOAP calls reuse them — which also keeps a Node process from
+   * open so later SOAP calls reuse them - which also keeps a Node process from
    * exiting (common in short scripts and Jest).
    *
    * What this method does:
@@ -839,7 +1031,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * 5. Destroys the Events HTTP agent and the main SOAP agent **created by this instance**.
    *
    * Call {@link connect} again to reopen via {@link ensureOpen} (new agents + hooks).
-   * What it does not do: it is not an ONVIF “logout” RPC, and it does not destroy a
+   * What it does not do: it is not an ONVIF "logout" RPC, and it does not destroy a
    * custom or shared agent passed via {@link OnvifOptions.agent}
    * (`agent: false` / non-Agent values are left alone). Safe to call more than once.
    *
@@ -859,7 +1051,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.off('removeListener', this.onEventRemoveListener);
     this.events.clearPushRenew();
     try {
-      await this.events.globalSubscription.unsubscribe();
+      // false: skip Subscription.resetAgent - we destroy the Events agent below once.
+      await this.events.globalSubscription.unsubscribe(false);
     } catch {
       // Device may already be gone; local pull loop is still stopped by unsubscribe.
     }
@@ -871,7 +1064,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   private static destroyHttpAgent(agent: HttpsAgent | HttpAgent | boolean | undefined) {
-    // Skip `false` (no agent) and non-Agent values — never destroy http.globalAgent.
+    // Skip `false` (no agent) and non-Agent values - never destroy http.globalAgent.
     if (agent && typeof agent !== 'boolean' && typeof agent.destroy === 'function') {
       try {
         agent.destroy();
@@ -883,7 +1076,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Effective TCP port from a WHATWG URL.
-   * `URL.port` is `""` for scheme defaults (http→80, https→443), so string compare with
+   * `URL.port` is `""` for scheme defaults (http->80, https->443), so string compare with
    * `this.port` would always look different under {@link OnvifOptions.preserveAddress}.
    */
   private static urlPort(url: URL): number {
@@ -1045,11 +1238,35 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
-   * Check and find out video configuration for device
+   * Rebuild {@link activeMediaProfiles} / {@link activeMediaProfile} from
+   * {@link videoSources} + {@link profiles} (used by connect).
    */
+  public async getActiveMediaProfiles() {
+    const { getActiveMediaProfiles } = await import('./connection');
+    return getActiveMediaProfiles(this);
+  }
+
+  /** @deprecated Use {@link getActiveMediaProfiles}. */
   public async getActiveSources() {
-    const { getActiveSources } = await import('./connection');
-    return getActiveSources(this);
+    return this.getActiveMediaProfiles();
+  }
+
+  /**
+   * Switch the default Media Profile pipeline used when service methods omit tokens.
+   * Rebuilds {@link activeMediaProfile} (and syncs {@link defaultProfile}) from
+   * {@link profiles}. The profile must exist and reference a known video source
+   * when {@link videoSources} was loaded at connect.
+   *
+   * @example
+   * ```ts
+   * await onvif.connect();
+   * await onvif.setActiveMediaProfile(onvif.profiles[1]!.token);
+   * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+   * ```
+   */
+  public async setActiveMediaProfile(profileToken: ReferenceToken): Promise<ActiveMediaProfile> {
+    const { setActiveMediaProfile } = await import('./connection');
+    return setActiveMediaProfile(this, profileToken);
   }
 
   /**
@@ -1071,12 +1288,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.events.resetAgent();
       this.eventsAgentNeedsReset = false;
     }
-    // Fresh Digest nonce-count after (re)open — cameras reject reused nc after a new connection.
+    // Fresh Digest nonce-count / challenge after (re)open - cameras reject reused nc after a new connection.
     this.nc = 0;
+    this.digestChallengeHeaders = undefined;
     this.on('newListener', this.onEventNewListener);
     this.on('removeListener', this.onEventRemoveListener);
     this.closed = false;
-    // Listeners that survived close do not re-fire newListener — restart pull-point if needed.
+    // Listeners that survived close do not re-fire newListener - restart pull-point if needed.
     if (this.listeners('event').length > 0) {
       this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
     }
@@ -1085,6 +1303,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Connect to the camera and fill device information properties.
    * Pass `{ media: false }` to skip profile / video-source discovery after GetServices.
+   * When `media` is omitted, uses {@link defaultMedia} (usually `true`; Discovery may set
+   * `false` for access-only door stations). Explicit `{ media: true | false }` always wins.
    * After {@link close}, {@link ensureOpen} recreates owned agents and event hooks first.
    */
   async connect(options?: ConnectOptions) {

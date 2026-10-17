@@ -71,11 +71,11 @@ describe('Schedule', () => {
     });
 
     it('should return schedule info for requested tokens', async () => {
-      const response = await cam.schedule.getScheduleInfo({ token: [SCHEDULE_TOKEN_1] });
-      expect(response.scheduleInfo?.length).toBe(1);
-      expect(response.scheduleInfo?.[0].token).toBe(SCHEDULE_TOKEN_1);
-      expect(response.scheduleInfo?.[0].name).toBe('ScheduleName_1');
-      expect(response.scheduleInfo?.[0].description).toBe('Schedule 1');
+      const scheduleInfo = await cam.schedule.getScheduleInfo({ token: [SCHEDULE_TOKEN_1] });
+      expect(scheduleInfo.length).toBe(1);
+      expect(scheduleInfo[0].token).toBe(SCHEDULE_TOKEN_1);
+      expect(scheduleInfo[0].name).toBe('ScheduleName_1');
+      expect(scheduleInfo[0].description).toBe('Schedule 1');
     });
   });
 
@@ -88,16 +88,16 @@ describe('Schedule', () => {
     });
 
     it('should return schedules for requested tokens', async () => {
-      const response = await cam.schedule.getSchedules({ token: [SCHEDULE_TOKEN_1] });
-      expect(response.schedule?.length).toBe(1);
-      expect(response.schedule?.[0].token).toBe(SCHEDULE_TOKEN_1);
-      expect(response.schedule?.[0].name).toBe('ScheduleName_1');
-      expect(response.schedule?.[0].standard).toContain('DTSTART:20171125T200000');
+      const schedules = await cam.schedule.getSchedules({ token: [SCHEDULE_TOKEN_1] });
+      expect(schedules.length).toBe(1);
+      expect(schedules[0].token).toBe(SCHEDULE_TOKEN_1);
+      expect(schedules[0].name).toBe('ScheduleName_1');
+      expect(schedules[0].standard).toContain('DTSTART:20171125T200000');
     });
 
     it('should return empty list for an unknown token', async () => {
-      const response = await cam.schedule.getSchedules({ token: ['InvalidToken'] });
-      expect(response.schedule ?? []).toHaveLength(0);
+      const schedules = await cam.schedule.getSchedules({ token: ['InvalidToken'] });
+      expect(schedules).toHaveLength(0);
     });
   });
 
@@ -134,16 +134,16 @@ describe('Schedule', () => {
         },
       });
 
-      const response = await cam.schedule.getSchedules({ token: [token] });
-      expect(response.schedule?.[0].name).toBe('TempScheduleModified');
-      expect(response.schedule?.[0].description).toBe('modified');
-      expect(response.schedule?.[0].standard).toContain('FREQ=WEEKLY');
+      const schedules = await cam.schedule.getSchedules({ token: [token] });
+      expect(schedules[0].name).toBe('TempScheduleModified');
+      expect(schedules[0].description).toBe('modified');
+      expect(schedules[0].standard).toContain('FREQ=WEEKLY');
 
       await cam.schedule.deleteSchedule({ token });
       createdScheduleTokens.pop();
 
       const afterDelete = await cam.schedule.getSchedules({ token: [token] });
-      expect(afterDelete.schedule ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 
@@ -173,17 +173,17 @@ describe('Schedule', () => {
       expect(infoList.specialDayGroupInfo?.map((g) => g.token)).toContain(token);
 
       const info = await cam.schedule.getSpecialDayGroupInfo({ token: [token] });
-      expect(info.specialDayGroupInfo?.[0].name).toBe('TempSpecialDayGroupModified');
+      expect(info[0].name).toBe('TempSpecialDayGroupModified');
 
       const groups = await cam.schedule.getSpecialDayGroups({ token: [token] });
-      expect(groups.specialDayGroup?.[0].description).toBe('modified group');
-      expect(groups.specialDayGroup?.[0].days).toContain('DTSTART:20200101');
+      expect(groups[0].description).toBe('modified group');
+      expect(groups[0].days).toContain('DTSTART:20200101');
 
       await cam.schedule.deleteSpecialDayGroup({ token });
       createdSpecialDayGroupTokens.pop();
 
       const afterDelete = await cam.schedule.getSpecialDayGroups({ token: [token] });
-      expect(afterDelete.specialDayGroup ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 });

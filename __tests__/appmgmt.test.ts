@@ -96,8 +96,8 @@ describe('AppManagement (mocked)', () => {
       });
 
       const list = await cam.appManagement.getInstalledApps();
-      expect(list.app).toHaveLength(2);
-      expect(list.app?.[0].appID).toBe(APP_ID);
+      expect(list).toHaveLength(2);
+      expect(list[0].appID).toBe(APP_ID);
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'appmgmt',
@@ -111,13 +111,13 @@ describe('AppManagement (mocked)', () => {
       );
     });
 
-    it('should return an empty object when no apps are installed', async () => {
+    it('should return an empty array when no apps are installed', async () => {
       mockAppManagementResponse({
         getInstalledAppsResponse: {},
       });
 
       const list = await cam.appManagement.getInstalledApps();
-      expect(list).toEqual({});
+      expect(list).toEqual([]);
     });
   });
 
@@ -130,8 +130,8 @@ describe('AppManagement (mocked)', () => {
       });
 
       const response = await cam.appManagement.getAppsInfo();
-      expect(response.info).toHaveLength(1);
-      expect(response.info?.[0].name).toBe('Demo App');
+      expect(response).toHaveLength(1);
+      expect(response[0].name).toBe('Demo App');
       expect(cam.request).toHaveBeenCalledWith(
         expect.objectContaining({
           service: 'appmgmt',

@@ -59,13 +59,13 @@ describe('AccessRules', () => {
     });
 
     it('should return access profile info for requested tokens', async () => {
-      const response = await cam.accessRules.getAccessProfileInfo({
+      const accessProfileInfo = await cam.accessRules.getAccessProfileInfo({
         token: [ACCESS_PROFILE_TOKEN_1],
       });
-      expect(response.accessProfileInfo?.length).toBe(1);
-      expect(response.accessProfileInfo?.[0].token).toBe(ACCESS_PROFILE_TOKEN_1);
-      expect(response.accessProfileInfo?.[0].name).toBe('AccessProfileName_1');
-      expect(response.accessProfileInfo?.[0].description).toBe('test');
+      expect(accessProfileInfo.length).toBe(1);
+      expect(accessProfileInfo[0].token).toBe(ACCESS_PROFILE_TOKEN_1);
+      expect(accessProfileInfo[0].name).toBe('AccessProfileName_1');
+      expect(accessProfileInfo[0].description).toBe('test');
     });
   });
 
@@ -78,18 +78,18 @@ describe('AccessRules', () => {
     });
 
     it('should return access profiles for requested tokens', async () => {
-      const response = await cam.accessRules.getAccessProfiles({
+      const accessProfiles = await cam.accessRules.getAccessProfiles({
         token: [ACCESS_PROFILE_TOKEN_1],
       });
-      expect(response.accessProfile?.length).toBe(1);
-      expect(response.accessProfile?.[0].token).toBe(ACCESS_PROFILE_TOKEN_1);
-      expect(response.accessProfile?.[0].name).toBe('AccessProfileName_1');
-      expect(response.accessProfile?.[0].accessPolicy?.[0].scheduleToken).toBe('test');
+      expect(accessProfiles.length).toBe(1);
+      expect(accessProfiles[0].token).toBe(ACCESS_PROFILE_TOKEN_1);
+      expect(accessProfiles[0].name).toBe('AccessProfileName_1');
+      expect(accessProfiles[0].accessPolicy?.[0].scheduleToken).toBe('test');
     });
 
     it('should return empty list for an unknown token', async () => {
-      const response = await cam.accessRules.getAccessProfiles({ token: ['InvalidToken'] });
-      expect(response.accessProfile ?? []).toHaveLength(0);
+      const accessProfiles = await cam.accessRules.getAccessProfiles({ token: ['InvalidToken'] });
+      expect(accessProfiles).toHaveLength(0);
     });
   });
 
@@ -120,16 +120,16 @@ describe('AccessRules', () => {
         },
       });
 
-      const response = await cam.accessRules.getAccessProfiles({ token: [token] });
-      expect(response.accessProfile?.[0].name).toBe('TempAccessProfileModified');
-      expect(response.accessProfile?.[0].description).toBe('modified');
-      expect(response.accessProfile?.[0].accessPolicy?.[0].entity).toBe(ACCESS_POINT_TOKEN_1);
+      const accessProfiles = await cam.accessRules.getAccessProfiles({ token: [token] });
+      expect(accessProfiles[0].name).toBe('TempAccessProfileModified');
+      expect(accessProfiles[0].description).toBe('modified');
+      expect(accessProfiles[0].accessPolicy?.[0].entity).toBe(ACCESS_POINT_TOKEN_1);
 
       await cam.accessRules.deleteAccessProfile({ token });
       createdAccessProfileTokens.pop();
 
       const afterDelete = await cam.accessRules.getAccessProfiles({ token: [token] });
-      expect(afterDelete.accessProfile ?? []).toHaveLength(0);
+      expect(afterDelete).toHaveLength(0);
     });
   });
 
@@ -152,9 +152,9 @@ describe('AccessRules', () => {
         },
       });
 
-      const response = await cam.accessRules.getAccessProfiles({ token: [token] });
-      expect(response.accessProfile?.[0].token).toBe(token);
-      expect(response.accessProfile?.[0].name).toBe('SetAccessProfile');
+      const accessProfiles = await cam.accessRules.getAccessProfiles({ token: [token] });
+      expect(accessProfiles[0].token).toBe(token);
+      expect(accessProfiles[0].name).toBe('SetAccessProfile');
     });
   });
 });

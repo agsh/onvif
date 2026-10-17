@@ -59,7 +59,6 @@ import {
   SetIPAddressFilter,
   SetNetworkDefaultGateway,
   SetNetworkInterfaces,
-  SetNetworkInterfacesResponse,
   SetNetworkProtocols,
   SetNTP,
   SetPasswordComplexityConfiguration,
@@ -107,7 +106,7 @@ import {
   User,
   UserRole,
 } from './interfaces/onvif';
-import { AnyURI } from './interfaces/basics';
+import { AnyURI, Duration } from './interfaces/basics';
 import { LocationEntity, ReferenceToken } from './interfaces/common';
 
 /**
@@ -414,8 +413,10 @@ export default class Device extends Service {
 
   /**
    * Returns information about services of the device.
+   * Defaults to `IncludeCapability: false` (same as {@link connect}); pass
+   * `{ includeCapability: true }` when capability blocks are needed.
    */
-  async getServices({ includeCapability }: GetServices = { includeCapability: true }): Promise<GetServicesResponse> {
+  async getServices({ includeCapability }: GetServices = { includeCapability: false }): Promise<GetServicesResponse> {
     const { getServices } = await import('./connection');
     const result = await getServices(this.onvif, { includeCapability });
     this.#services = this.onvif.services;
@@ -591,11 +592,12 @@ export default class Device extends Service {
 
   /**
    * Set network interfaces information
+   * @returns Whether a reboot is required after the update
    */
-  async setNetworkInterfaces(options: SetNetworkInterfaces): Promise<SetNetworkInterfacesResponse> {
+  async setNetworkInterfaces(options: SetNetworkInterfaces): Promise<boolean> {
     const { networkInterface } = options;
     if (!networkInterface) {
-      return { rebootNeeded: false };
+      return false;
     }
     const response = await this.request({
       SetNetworkInterfaces: {
@@ -645,7 +647,7 @@ export default class Device extends Service {
     if (Array.isArray(networkInterface.IPv4?.manual) && networkInterface.IPv4.manual.length > 0) {
       this.onvif.hostname = networkInterface.IPv4.manual[0].address!;
     }
-    return result;
+    return result.rebootNeeded;
   }
 
   /**
@@ -817,10 +819,11 @@ export default class Device extends Service {
    * derive the password equivalent for remote user operation. The device shall support the
    * GetEndpointReference command returning the address property of the device service endpoint
    * reference.
+   * @returns Device GUID from the endpoint reference
    */
-  async getEndpointReference() {
+  async getEndpointReference(): Promise<string> {
     const response = await this.request({ GetEndpointReference: {} });
-    return response.getEndpointReferenceResponse;
+    return response.getEndpointReferenceResponse.GUID;
   }
 
   /**
@@ -1603,12 +1606,13 @@ export default class Device extends Service {
    * Security service unchanged, so that it can connect to the cloud. Additionally a firmware upgrade
    * shall not change user credentials.
    * @param options
+   * @returns Expected downtime while the firmware is upgraded
    */
-  async upgradeFirmware({ version }: UpgradeFirmware) {
+  async upgradeFirmware({ version }: UpgradeFirmware): Promise<Duration> {
     const response = await this.request({
       UpgradeFirmware: { Version: version },
     });
-    return response.upgradeFirmwareResponse;
+    return response.upgradeFirmwareResponse.expectedDownTime;
   }
 
   /**

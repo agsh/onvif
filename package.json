@@ -1,30 +1,42 @@
 {
   "name": "onvif",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
   "description": "Client to ONVIF devices",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "files": [
+    "build",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
+      "require": "./build/index.js",
+      "import": "./build/index.js",
       "default": "./build/index.js"
     },
     "./compatibility": {
       "types": "./build/compatibility/index.d.ts",
+      "require": "./build/compatibility/index.js",
+      "import": "./build/compatibility/index.js",
       "default": "./build/compatibility/index.js"
     },
     "./compatibility/promises": {
       "types": "./build/compatibility/promises/index.d.ts",
+      "require": "./build/compatibility/promises/index.js",
+      "import": "./build/compatibility/promises/index.js",
       "default": "./build/compatibility/promises/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "rm -rf build && tsc --build",
     "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
     "lint": "eslint . --no-warn-ignored",
-    "pretest": "npm run lint",
+    "pretest": "npm run build; npm run lint",
     "test-local": "jest --env=node --runInBand --colors --coverage --forceExit",
     "test": "sh -c './__tests__/happytime-onvif-server/stop.sh; ./__tests__/happytime-onvif-server/start.sh & ./__tests__/happytime-onvif-server/wait-ready.sh && ./__tests__/happytime-onvif-server/hydrate-profiles.sh && jest --env=node --runInBand --colors --coverageReporters=json-summary --coverage --forceExit; code=$?; ./__tests__/happytime-onvif-server/stop.sh; exit $code'"
   },
@@ -107,6 +119,6 @@
     "xml2js": "^0.6.2"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "esbuild@0.27.2": true
   }
 }

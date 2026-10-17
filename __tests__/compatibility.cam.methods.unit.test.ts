@@ -39,6 +39,47 @@ describe('compatibility Cam methods (mocked)', () => {
     expect(cam.xaddrs).toEqual(urls);
   });
 
+  it('setActiveMediaProfile switches the bag and syncs activeSourcesList', async () => {
+    const { cam, onvif } = mockCam();
+    onvif.profiles = [
+      {
+        token: 'p1',
+        name: 'Main',
+        videoSourceConfiguration: { token: 'vsc1', sourceToken: 'vs1' },
+        videoEncoderConfiguration: { token: 'vec1', encoding: 'H264' },
+      },
+      {
+        token: 'p2',
+        name: 'Sub',
+        videoSourceConfiguration: { token: 'vsc2', sourceToken: 'vs1' },
+        videoEncoderConfiguration: { token: 'vec2', encoding: 'H264' },
+      },
+    ] as never;
+    onvif.videoSources = [{ token: 'vs1' }] as never;
+    onvif.activeMediaProfiles = [];
+    onvif.defaultProfiles = [];
+
+    const bag = await promisify<any>((callback) => cam.setActiveMediaProfile('p2', callback));
+    expect(bag.profileToken).toBe('p2');
+    expect(cam.activeMediaProfile?.profileToken).toBe('p2');
+    expect(cam.activeSource?.profileToken).toBe('p2');
+    expect(cam.defaultProfile?.token).toBe('p2');
+    expect(cam.activeSourcesList?.[0]?.profileToken).toBe('p2');
+  });
+
+  it('getActiveMediaProfiles aliases getActiveSources', async () => {
+    const { cam, onvif } = mockCam();
+    const spy = jest.spyOn(onvif, 'getActiveMediaProfiles').mockResolvedValue(undefined as never);
+    onvif.activeMediaProfiles = [{ profileToken: 'p1', sourceToken: 'vs1', videoSourceToken: 'vs1', videoSourceConfigurationToken: 'vsc1' }] as never;
+
+    const modern = await promisify<any[]>((callback) => cam.getActiveMediaProfiles(callback));
+    const legacy = await promisify<any[]>((callback) => cam.getActiveSources(callback));
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(modern).toEqual(onvif.activeMediaProfiles);
+    expect(legacy).toEqual(onvif.activeMediaProfiles);
+    expect(cam.activeSourcesList).toEqual(onvif.activeMediaProfiles);
+  });
+
   it('forwards updateNC and digestAuth to Onvif (v0.x public API)', () => {
     const { cam, onvif } = mockCam();
     onvif.username = 'admin';
@@ -57,13 +98,15 @@ describe('compatibility Cam methods (mocked)', () => {
     expect(header).toContain('qop=auth');
   });
 
-  it('passes lastResponseXml as the third callback argument', async () => {
+  it('passes per-request SOAP XML as the third callback argument', async () => {
     const { cam, onvif } = mockCam();
-    onvif.lastResponseXml = '<s:Envelope>ok</s:Envelope>';
-    jest.spyOn(onvif.device, 'getHostname').mockResolvedValue({ name: 'cam-1' } as any);
+    jest.spyOn(onvif, 'request').mockResolvedValue([
+      { getHostnameResponse: { hostnameInformation: { name: 'cam-1' } } },
+      '<s:Envelope>ok</s:Envelope>',
+    ] as any);
 
     const payload = await new Promise<{ data: any; xml?: string }>((resolve, reject) => {
-      cam.getHostname((error, data, xml) => {
+      cam._request({ body: { GetHostname: {} } }, (error, data, xml) => {
         if (error) {
           reject(error);
           return;
@@ -71,8 +114,30 @@ describe('compatibility Cam methods (mocked)', () => {
         resolve({ data, xml });
       });
     });
-    expect(payload.data).toEqual({ name: 'cam-1' });
+    expect(payload.data).toEqual({ getHostnameResponse: { hostnameInformation: { name: 'cam-1' } } });
     expect(payload.xml).toBe('<s:Envelope>ok</s:Envelope>');
+  });
+
+  it('keeps SOAP XML correlated under parallel Cam callbacks', async () => {
+    const { cam, onvif } = mockCam();
+    let n = 0;
+    jest.spyOn(onvif, 'request').mockImplementation(async () => {
+      const id = ++n;
+      await new Promise((r) => setTimeout(r, id === 1 ? 30 : 5));
+      return [{ id }, `<xml>${id}</xml>`] as any;
+    });
+
+    const results = await Promise.all([
+      new Promise<{ data: any; xml?: string }>((resolve, reject) => {
+        cam._request({ body: { A: {} } }, (error, data, xml) => (error ? reject(error) : resolve({ data, xml })));
+      }),
+      new Promise<{ data: any; xml?: string }>((resolve, reject) => {
+        cam._request({ body: { B: {} } }, (error, data, xml) => (error ? reject(error) : resolve({ data, xml })));
+      }),
+    ]);
+
+    expect(results[0]).toEqual({ data: { id: 1 }, xml: '<xml>1</xml>' });
+    expect(results[1]).toEqual({ data: { id: 2 }, xml: '<xml>2</xml>' });
   });
 
   it('setNTP mutates caller options like v0.x (fills NTPManual)', async () => {
@@ -165,6 +230,30 @@ describe('compatibility Cam methods (mocked)', () => {
       promisify<string>((callback) => cam.sendAuxiliaryCommand({ data: 'tt:Wiper|On' }, callback)),
     ).resolves.toBe('ok');
     expect(spy).toHaveBeenCalledWith({ auxiliaryCommand: 'tt:Wiper|On' });
+  });
+
+  it('setNetworkInterfaces remaps boolean → { rebootNeeded } for v0 Cam', async () => {
+    const { cam, onvif } = mockCam();
+    const Device = (await import('../src/device')).default;
+    Object.defineProperty(onvif, 'device', { value: new Device(onvif), configurable: true });
+    jest.spyOn(onvif.device, 'setNetworkInterfaces').mockResolvedValue(true);
+
+    await expect(
+      promisify<{ rebootNeeded: boolean }>((callback) =>
+        cam.setNetworkInterfaces({ interfaceToken: 'eth0', networkInterface: { enabled: true } } as any, callback),
+      ),
+    ).resolves.toEqual({ rebootNeeded: true });
+  });
+
+  it('createOSD remaps token → { OSDToken } for v0 Cam', async () => {
+    const { cam, onvif } = mockCam();
+    const Media = (await import('../src/media')).default;
+    Object.defineProperty(onvif, 'media', { value: new Media(onvif), configurable: true });
+    jest.spyOn(onvif.media, 'createOSD').mockResolvedValue('osd-9' as any);
+
+    await expect(
+      promisify<{ OSDToken: string }>((callback) => cam.createOSD({ token: '' } as any, callback)),
+    ).resolves.toEqual({ OSDToken: 'osd-9' });
   });
 
   it('setCurrentImagingPreset', async () => {

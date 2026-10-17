@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { Onvif } from '../src';
+import { digestHashName, preferredDigestChallenge } from '../src/utils/auth';
 
 const USERNAME = 'admin';
 const PASSWORD = 'secret';
@@ -19,8 +20,12 @@ const METHOD = 'POST';
 /** HikVision-style challenges (no algorithm ⇒ MD5 per Digest RFC) */
 const CHALLENGE_MD5 =
   'Digest qop="auth", realm="IP Camera", nonce="396539323a38326531323232323a2974d610e80a9fd6cab88e14e7592747", stale="FALSE"';
+const CHALLENGE_SHA1 =
+  'Digest qop="auth", realm="IP Camera", nonce="sha1nonce000000000000000000000001", algorithm="SHA-1", stale="FALSE"';
 const CHALLENGE_SHA256 =
   'Digest qop="auth", realm="IP Camera", nonce="353066323a38326531323232323a2974d610e80a9fd6cab88e14e7592747", algorithm="SHA-256", stale="FALSE"';
+const CHALLENGE_SHA512_256 =
+  'Digest qop="auth", realm="IP Camera", nonce="sha512256nonce000000000000000001", algorithm="SHA-512-256", stale="FALSE"';
 
 const SOAP_OK =
   '<?xml version="1.0" encoding="UTF-8"?>' +
@@ -28,7 +33,7 @@ const SOAP_OK =
   '<s:Body><tds:GetSystemDateAndTimeResponse xmlns:tds="http://www.onvif.org/ver10/device/wsdl"/>' +
   '</s:Body></s:Envelope>';
 
-type DigestAlgorithm = 'md5' | 'sha256';
+type DigestAlgorithm = 'md5' | 'sha1' | 'sha256' | 'sha512-256';
 
 function expectedDigestResponse(
   algorithm: DigestAlgorithm,
@@ -44,7 +49,7 @@ function expectedDigestResponse(
     qop?: string;
   },
 ): string {
-  const hashName = algorithm === 'sha256' ? 'sha256' : 'md5';
+  const hashName = algorithm;
   const ha1 = crypto.createHash(hashName).update([opts.username, opts.realm, opts.password].join(':')).digest('hex');
   const ha2 = crypto.createHash(hashName).update([opts.method, opts.path].join(':')).digest('hex');
   const parts = [ha1, opts.nonce];
@@ -275,7 +280,31 @@ describe('Digest authentication (mock server)', () => {
     });
   });
 
-  describe('multiple digest headers (prefer SHA-256)', () => {
+  describe('digest algorithm preference', () => {
+    it('ranks SHA-512-256 > SHA-256 > SHA-1 > MD5 regardless of header order', () => {
+      expect(digestHashName(undefined)).toBe('md5');
+      expect(digestHashName('SHA-1')).toBe('sha1');
+      expect(digestHashName('SHA-256')).toBe('sha256');
+      expect(digestHashName('SHA-512-256')).toBe('sha512-256');
+      expect(digestHashName('SHA-256-sess')).toBeUndefined();
+
+      expect(preferredDigestChallenge([CHALLENGE_MD5, CHALLENGE_SHA1])?.algorithm).toBe('SHA-1');
+      expect(preferredDigestChallenge([CHALLENGE_SHA1, CHALLENGE_MD5])?.algorithm).toBe('SHA-1');
+      expect(preferredDigestChallenge([CHALLENGE_SHA1, CHALLENGE_SHA256])?.algorithm).toBe('SHA-256');
+      expect(preferredDigestChallenge([CHALLENGE_SHA256, CHALLENGE_SHA1, CHALLENGE_MD5])?.algorithm).toBe(
+        'SHA-256',
+      );
+      expect(
+        preferredDigestChallenge([CHALLENGE_MD5, CHALLENGE_SHA512_256, CHALLENGE_SHA256])?.algorithm,
+      ).toBe('SHA-512-256');
+      expect(
+        preferredDigestChallenge([
+          'Digest realm="IP Camera", nonce="x", algorithm="SHA-256-sess"',
+          CHALLENGE_SHA1,
+        ])?.algorithm,
+      ).toBe('SHA-1');
+    });
+
     it('should prefer SHA-256 when both MD5 and SHA-256 challenges are offered', async () => {
       const mock = await startDigestMockServer({
         challenges: [CHALLENGE_MD5, CHALLENGE_SHA256],
@@ -320,6 +349,146 @@ describe('Digest authentication (mock server)', () => {
         expect(auth.response).toHaveLength(64);
       } finally {
         await mock.close();
+      }
+    });
+
+    it('should prefer SHA-1 over MD5 and compute a SHA-1 response', async () => {
+      const mock = await startDigestMockServer({
+        challenges: [CHALLENGE_MD5, CHALLENGE_SHA1],
+      });
+      try {
+        const cam = createCam(mock.port);
+        await requestGetSystemDateAndTime(cam);
+
+        const auth = parseAuthorizationHeader(mock.captured.authHeader!);
+        expect(auth.algorithm).toBe('SHA-1');
+        expect(auth.response).toHaveLength(40);
+        expect(
+          expectedDigestResponse('sha1', {
+            username: USERNAME,
+            password: PASSWORD,
+            realm: REALM,
+            method: METHOD,
+            path: PATH,
+            nonce: auth.nonce,
+            nc: auth.nc,
+            cnonce: auth.cnonce,
+            qop: 'auth',
+          }),
+        ).toBe(auth.response);
+      } finally {
+        await mock.close();
+      }
+    });
+
+    it('should prefer SHA-512-256 when offered with weaker algorithms', async () => {
+      const mock = await startDigestMockServer({
+        challenges: [CHALLENGE_SHA1, CHALLENGE_SHA512_256, CHALLENGE_SHA256],
+      });
+      try {
+        const cam = createCam(mock.port);
+        await requestGetSystemDateAndTime(cam);
+
+        const auth = parseAuthorizationHeader(mock.captured.authHeader!);
+        expect(auth.algorithm).toBe('SHA-512-256');
+        expect(auth.response).toHaveLength(64);
+        expect(
+          expectedDigestResponse('sha512-256', {
+            username: USERNAME,
+            password: PASSWORD,
+            realm: REALM,
+            method: METHOD,
+            path: PATH,
+            nonce: auth.nonce,
+            nc: auth.nc,
+            cnonce: auth.cnonce,
+            qop: 'auth',
+          }),
+        ).toBe(auth.response);
+      } finally {
+        await mock.close();
+      }
+    });
+  });
+
+  describe('digest challenge cache', () => {
+    it('reuses Digest Authorization on the next call without a second 401', async () => {
+      const captured: { authHeaders: (string | undefined)[]; requestCount: number } = {
+        authHeaders: [],
+        requestCount: 0,
+      };
+      const server = http.createServer((req, res) => {
+        captured.requestCount += 1;
+        captured.authHeaders.push(req.headers.authorization);
+        if (!req.headers.authorization) {
+          res.writeHead(401, { 'WWW-Authenticate': CHALLENGE_MD5 });
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+        res.end(SOAP_OK);
+      });
+      await new Promise<void>((resolve, reject) => {
+        server.listen(0, '127.0.0.1', () => resolve());
+        server.on('error', reject);
+      });
+      const { port } = server.address() as AddressInfo;
+      try {
+        const cam = createCam(port);
+        await requestGetSystemDateAndTime(cam);
+        expect(captured.requestCount).toBe(2);
+        expect(captured.authHeaders[0]).toBeUndefined();
+        expect(captured.authHeaders[1]).toBeDefined();
+
+        await requestGetSystemDateAndTime(cam);
+        // Cached challenge → Authorization on the first hop of the second RPC
+        expect(captured.requestCount).toBe(3);
+        expect(captured.authHeaders[2]).toBeDefined();
+        const firstAuth = parseAuthorizationHeader(captured.authHeaders[1]!);
+        const secondAuth = parseAuthorizationHeader(captured.authHeaders[2]!);
+        expect(secondAuth.nonce).toBe(firstAuth.nonce);
+        expect(Number.parseInt(secondAuth.nc!, 10)).toBeGreaterThan(Number.parseInt(firstAuth.nc!, 10));
+      } finally {
+        await closeServer(server);
+      }
+    });
+
+    it('retries once when the camera rotates the nonce with stale=true', async () => {
+      const staleChallenge =
+        'Digest qop="auth", realm="IP Camera", nonce="newnoncevalue0001", algorithm="MD5", stale="TRUE"';
+      let hits = 0;
+      const server = http.createServer((req, res) => {
+        hits += 1;
+        if (hits === 1) {
+          res.writeHead(401, { 'WWW-Authenticate': CHALLENGE_MD5 });
+          res.end();
+          return;
+        }
+        if (hits === 2) {
+          // First Authorization accepted into cache path; then camera rotates nonce
+          // eslint-disable-next-line jest/no-conditional-expect
+          expect(req.headers.authorization).toBeDefined();
+          res.writeHead(401, { 'WWW-Authenticate': staleChallenge });
+          res.end();
+          return;
+        }
+        expect(req.headers.authorization).toBeDefined();
+        const auth = parseAuthorizationHeader(req.headers.authorization!);
+        expect(auth.nonce).toBe('newnoncevalue0001');
+        res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+        res.end(SOAP_OK);
+      });
+      await new Promise<void>((resolve, reject) => {
+        server.listen(0, '127.0.0.1', () => resolve());
+        server.on('error', reject);
+      });
+      const { port } = server.address() as AddressInfo;
+      try {
+        const cam = createCam(port);
+        await requestGetSystemDateAndTime(cam);
+        expect(hits).toBe(3);
+      } finally {
+        await closeServer(server);
       }
     });
   });

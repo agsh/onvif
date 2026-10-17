@@ -2,7 +2,7 @@ import { camelCase, Onvif } from '../src';
 import type Media from '../src/media';
 import { getMediaProfiles } from '../src/connection';
 import { ReferenceToken } from '../src/interfaces/common';
-import { CreateOSDResponse, VideoSourceMode } from '../src/interfaces/media';
+import { VideoSourceMode } from '../src/interfaces/media';
 import {
   AudioEncoderConfiguration,
   AudioOutputConfiguration,
@@ -473,8 +473,8 @@ describe('setVideoSourceMode', () => {
     const modes = await cam.media.getVideoSourceModes({ videoSourceToken });
     expect(modes.length).toBeGreaterThan(0);
     const videoSourceModeToken = modes[0].token;
-    const result = await cam.media.setVideoSourceMode({ videoSourceToken, videoSourceModeToken });
-    expect(typeof result.reboot).toBe('boolean');
+    const reboot = await cam.media.setVideoSourceMode({ videoSourceToken, videoSourceModeToken });
+    expect(typeof reboot).toBe('boolean');
   });
 
   it('should set video source mode for every available mode token', async () => {
@@ -482,11 +482,11 @@ describe('setVideoSourceMode', () => {
     const modes = await cam.media.getVideoSourceModes({ videoSourceToken });
     expect(modes.length).toBeGreaterThan(0);
     for (const mode of modes) {
-      const result = await cam.media.setVideoSourceMode({
+      const reboot = await cam.media.setVideoSourceMode({
         videoSourceToken,
         videoSourceModeToken: mode.token,
       });
-      expect(typeof result.reboot).toBe('boolean');
+      expect(typeof reboot).toBe('boolean');
     }
   });
 
@@ -722,8 +722,6 @@ describe('getStreamUri', () => {
             stream: 'RTP-Unicast',
             protocol,
           });
-          // In Onvif v0.00 the Media1 path returned the linerased `mediaUri` object, not `{ mediaUri: … }`
-          // In Onvif v1.xx the return result is changed to match the ONVIF defined interface
           expect(result).toHaveProperty('mediaUri');
           expect(result.mediaUri.uri).toBeDefined();
           expect(typeof result.mediaUri.uri).toBe('string');
@@ -834,8 +832,7 @@ describe('OSD (Media)', () => {
   describe('getOSDOptions', () => {
     it('should return OSD capability options for a video source configuration', async () => {
       const result = await cam.media.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
-      expect(result.OSDOptions).toBeDefined();
-      expect(typeof result.OSDOptions.maximumNumberOfOSDs.total).toBe('number');
+      expect(typeof result.maximumNumberOfOSDs.total).toBe('number');
     });
 
     it('should default configuration token from activeSource when omitted', async () => {
@@ -861,11 +858,11 @@ describe('OSD (Media)', () => {
   describe('createOSD / deleteOSD', () => {
     it('should create an OSD and delete it using the token returned by the device', async () => {
       const caps = await cam.media.getOSDOptions({ configurationToken: videoSourceConfigurationToken });
-      if (caps.OSDOptions.maximumNumberOfOSDs.total === 0) {
+      if (caps.maximumNumberOfOSDs.total === 0) {
         return;
       }
 
-      const createResponse: CreateOSDResponse = await cam.media.createOSD({
+      const osdToken = await cam.media.createOSD({
         token: `jest_media_osd_${Date.now()}`,
         videoSourceConfigurationToken,
         type: 'Text',
@@ -873,15 +870,15 @@ describe('OSD (Media)', () => {
         textString: { type: 'Plain', plainText: 'jest osd media' },
       });
 
-      expect(createResponse.OSDToken).toBeDefined();
+      expect(osdToken).toBeDefined();
 
-      const created = await cam.media.getOSD({ OSDToken: createResponse.OSDToken });
-      expect(created.token).toBe(createResponse.OSDToken);
+      const created = await cam.media.getOSD({ OSDToken: osdToken });
+      expect(created.token).toBe(osdToken);
 
-      await cam.media.deleteOSD({ OSDToken: createResponse.OSDToken });
+      await cam.media.deleteOSD({ OSDToken: osdToken });
 
       const afterDelete = await cam.media.getOSDs();
-      expect(afterDelete.some((o) => o.token === createResponse.OSDToken)).toBe(false);
+      expect(afterDelete.some((o) => o.token === osdToken)).toBe(false);
     });
 
     it('should throw when deleting a non-existent OSD token', async () => {

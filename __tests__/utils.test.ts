@@ -288,6 +288,52 @@ describe('ParseSOAPString', () => {
   });
 });
 
+describe('XMLParser cache', () => {
+  const envelope = (inner: string) =>
+    `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body>${inner}</s:Body></s:Envelope>`;
+
+  beforeEach(async () => {
+    const { clearXmlParserCache } = await import('../src/utils/soap');
+    clearXmlParserCache();
+  });
+
+  it('reuses the default parser across calls', async () => {
+    const { xmlParserCacheSize } = await import('../src/utils/soap');
+    const soap = envelope('<GetFooResponse><Token>a</Token></GetFooResponse>');
+    await parseSOAPString(soap);
+    await parseSOAPString(soap);
+    expect(xmlParserCacheSize()).toBe(1);
+  });
+
+  it('reuses one parser for the same array tag set in any order', async () => {
+    const { xmlParserCacheSize } = await import('../src/utils/soap');
+    const soap = envelope('<GetFooResponse><Item>1</Item><Item>2</Item></GetFooResponse>');
+    const [body1] = await parseSOAPString<any>(soap, { array: ['item'] });
+    const [body2] = await parseSOAPString<any>(soap, { array: ['item'] });
+    expect(body1.getFooResponse.item).toEqual([1, 2]);
+    expect(body2.getFooResponse.item).toEqual([1, 2]);
+    // default unused; one entry for { array: ['item'] }
+    expect(xmlParserCacheSize()).toBe(1);
+
+    await parseSOAPString(soap, { array: ['item', 'other'] });
+    await parseSOAPString(soap, { array: ['other', 'item'] });
+    expect(xmlParserCacheSize()).toBe(2);
+  });
+
+  it('caches rawXML / hydrate parsers separately from the default', async () => {
+    const { xmlParserCacheSize } = await import('../src/utils/soap');
+    const soap = envelope(
+      '<GetFooResponse><ElementItem Name="x"><Child>1</Child></ElementItem></GetFooResponse>',
+    );
+    await parseSOAPString(soap, { rawXML: ['elementItem'] });
+    const afterFirst = xmlParserCacheSize();
+    expect(afterFirst).toBeGreaterThanOrEqual(1);
+    await parseSOAPString(soap, { rawXML: ['elementItem'] });
+    expect(xmlParserCacheSize()).toBe(afterFirst);
+  });
+});
+
 describe('struct', () => {
   it('should return a new object with the keys', () => {
     const list = [{ token: '1' }, { token: '2' }];

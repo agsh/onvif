@@ -43,10 +43,10 @@ describe('Thermal', () => {
   describe('getConfigurations / getConfiguration', () => {
     it('should return thermal configurations for all video sources', async () => {
       const list = await cam.thermal.getConfigurations();
-      expect(list.configurations?.length).toBeGreaterThanOrEqual(1);
-      expect(list.configurations?.[0]).toHaveProperty('token');
-      expect(list.configurations?.[0]).toHaveProperty('configuration');
-      expect(list.configurations?.[0].token).toBe(VIDEO_SOURCE_TOKEN);
+      expect(list.length).toBeGreaterThanOrEqual(1);
+      expect(list[0]).toHaveProperty('token');
+      expect(list[0]).toHaveProperty('configuration');
+      expect(list[0].token).toBe(VIDEO_SOURCE_TOKEN);
     });
 
     it('should return thermal configuration for a video source', async () => {

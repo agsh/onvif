@@ -16,14 +16,10 @@ module.exports = {
     ],
   },
   // Happytime integration suites share one process; connect/reboot recovery can exceed 5s.
-  testTimeout: 30_000,
+  testTimeout: 30000,
+  maxWorkers: 2,
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/interfaces/**',
-    '!src/index.ts',
-    '!src/compatibility/promises/types.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/interfaces/**', '!src/index.ts', '!src/compatibility/promises/types.ts'],
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
   coverageReporters: ['json', 'lcov', 'text', 'json-summary'],

@@ -84,7 +84,7 @@ export default class Imaging extends Service {
   }
 
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
-    return videoSourceToken ?? this.onvif.activeSource!.videoSourceToken;
+    return videoSourceToken ?? this.onvif.activeMediaProfile!.videoSourceToken;
   }
 
   private static backlightCompensationToBuild(backlightCompensation: BacklightCompensation20) {

@@ -6,15 +6,16 @@
 
 import { Onvif, OnvifServices } from './onvif';
 import Service from './service';
+import type { ReferenceToken } from './interfaces/common';
 import {
   Capabilities,
   ColorPalette,
   Configuration,
   ConfigurationOptions,
   Cooler,
+  Configurations,
   GetConfiguration,
   GetConfigurationOptions,
-  GetConfigurationsResponse,
   GetRadiometryConfiguration,
   GetRadiometryConfigurationOptions,
   NUCTable,
@@ -24,6 +25,7 @@ import {
   SetConfiguration,
   SetRadiometryConfiguration,
 } from './interfaces/thermal';
+import { OnvifValidationError } from './utils';
 
 /**
  * Thermal service
@@ -35,8 +37,8 @@ import {
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
  * await onvif.connect();
  *
- * const { configurations } = await onvif.thermal.getConfigurations();
- * const videoSourceToken = configurations![0].token;
+ * const configurations = await onvif.thermal.getConfigurations();
+ * const videoSourceToken = configurations[0].token;
  * const current = await onvif.thermal.getConfiguration({ videoSourceToken });
  * const options = await onvif.thermal.getConfigurationOptions({ videoSourceToken });
  * console.log(current.polarity, options.colorPalette?.map((p) => p.name));
@@ -44,7 +46,7 @@ import {
  * await onvif.thermal.setConfiguration({
  *   videoSourceToken,
  *   configuration: {
- *     colorPalette: configurations![0].configuration.colorPalette,
+ *     colorPalette: configurations[0].configuration.colorPalette,
  *     polarity: current.polarity === 'WhiteHot' ? 'BlackHot' : 'WhiteHot',
  *   },
  * });
@@ -54,6 +56,16 @@ import {
 export default class Thermal extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'thermal');
+  }
+
+  private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
+    const token = videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
+    if (!token) {
+      throw new OnvifValidationError(
+        'videoSourceToken is required (pass it or connect with a media profile)',
+      );
+    }
+    return token;
   }
 
   private static colorPaletteToBuild(colorPalette: ColorPalette) {
@@ -138,11 +150,13 @@ export default class Thermal extends Service {
    * Gets the valid ranges for the Thermal parameters that have device specific ranges.
    * @param options
    */
-  async getConfigurationOptions({ videoSourceToken }: GetConfigurationOptions): Promise<ConfigurationOptions> {
+  async getConfigurationOptions(
+    options: Partial<GetConfigurationOptions> = {},
+  ): Promise<ConfigurationOptions> {
     const response = await this.request(
       {
         GetConfigurationOptions: {
-          VideoSourceToken: videoSourceToken,
+          VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
         },
       },
       { array: ['colorPalette', 'NUCTable'] },
@@ -154,10 +168,10 @@ export default class Thermal extends Service {
    * Gets the Thermal Configuration for the requested VideoSource.
    * @param options
    */
-  async getConfiguration({ videoSourceToken }: GetConfiguration): Promise<Configuration> {
+  async getConfiguration(options: Partial<GetConfiguration> = {}): Promise<Configuration> {
     const response = await this.request({
       GetConfiguration: {
-        VideoSourceToken: videoSourceToken,
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
       },
     });
     return response.getConfigurationResponse.configuration;
@@ -165,26 +179,29 @@ export default class Thermal extends Service {
 
   /**
    * Gets the Thermal Configuration for all thermal VideoSources of the Device.
+   * @returns Thermal configurations for all video sources
    */
-  async getConfigurations(): Promise<GetConfigurationsResponse> {
+  async getConfigurations(): Promise<Configurations[]> {
     const response = await this.request(
       {
         GetConfigurations: {},
       },
       { array: ['configurations'] },
     );
-    return response.getConfigurationsResponse ?? {};
+    return response.getConfigurationsResponse?.configurations ?? [];
   }
 
   /**
    * Sets the Thermal Configuration for the requested VideoSource.
    * @param options
    */
-  async setConfiguration({ videoSourceToken, configuration }: SetConfiguration): Promise<void> {
+  async setConfiguration(
+    options: Omit<SetConfiguration, 'videoSourceToken'> & { videoSourceToken?: ReferenceToken },
+  ): Promise<void> {
     await this.request({
       SetConfiguration: {
-        VideoSourceToken: videoSourceToken,
-        Configuration: Thermal.configurationToBuild(configuration),
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
+        Configuration: Thermal.configurationToBuild(options.configuration),
       },
     });
   }
@@ -193,12 +210,12 @@ export default class Thermal extends Service {
    * Gets the valid ranges for the Radiometry parameters that have device specific ranges.
    * @param options
    */
-  async getRadiometryConfigurationOptions({
-    videoSourceToken,
-  }: GetRadiometryConfigurationOptions): Promise<RadiometryConfigurationOptions> {
+  async getRadiometryConfigurationOptions(
+    options: Partial<GetRadiometryConfigurationOptions> = {},
+  ): Promise<RadiometryConfigurationOptions> {
     const response = await this.request({
       GetRadiometryConfigurationOptions: {
-        VideoSourceToken: videoSourceToken,
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
       },
     });
     return response.getRadiometryConfigurationOptionsResponse.configurationOptions;
@@ -208,10 +225,12 @@ export default class Thermal extends Service {
    * Gets the Radiometry Configuration for the requested VideoSource.
    * @param options
    */
-  async getRadiometryConfiguration({ videoSourceToken }: GetRadiometryConfiguration): Promise<RadiometryConfiguration> {
+  async getRadiometryConfiguration(
+    options: Partial<GetRadiometryConfiguration> = {},
+  ): Promise<RadiometryConfiguration> {
     const response = await this.request({
       GetRadiometryConfiguration: {
-        VideoSourceToken: videoSourceToken,
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
       },
     });
     return response.getRadiometryConfigurationResponse.configuration;
@@ -221,11 +240,13 @@ export default class Thermal extends Service {
    * Sets the Radiometry Configuration for the requested VideoSource.
    * @param options
    */
-  async setRadiometryConfiguration({ videoSourceToken, configuration }: SetRadiometryConfiguration): Promise<void> {
+  async setRadiometryConfiguration(
+    options: Omit<SetRadiometryConfiguration, 'videoSourceToken'> & { videoSourceToken?: ReferenceToken },
+  ): Promise<void> {
     await this.request({
       SetRadiometryConfiguration: {
-        VideoSourceToken: videoSourceToken,
-        Configuration: Thermal.radiometryConfigurationToBuild(configuration),
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
+        Configuration: Thermal.radiometryConfigurationToBuild(options.configuration),
       },
     });
   }
