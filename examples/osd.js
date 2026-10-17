@@ -33,7 +33,7 @@ const PASSWORD = 'PASS99pass';
   console.log(`Connected to ${JSON.stringify(info)}`);
 
   const videoSourceConfigurationToken =
-    onvif.activeSource?.videoSourceConfigurationToken ??
+    onvif.activeMediaProfile?.videoSourceConfigurationToken ??
     onvif.defaultProfile?.videoSourceConfiguration?.token;
 
   if (!videoSourceConfigurationToken) {

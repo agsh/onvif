@@ -39,7 +39,8 @@ const PASSWORD = 'admin';
   console.log('Snapshot URI:', snapshotUri);
 
   console.log('Media2 supported:', onvif.media2Support);
-  console.log('Active source:', onvif.activeSource);
+  console.log('Active media profile:', onvif.activeMediaProfile);
+  console.log('Default profile encoding:', onvif.defaultProfile?.videoEncoderConfiguration?.encoding);
 
   await onvif.close();
 })().catch(console.error);

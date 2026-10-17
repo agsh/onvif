@@ -165,6 +165,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - WS-Discovery on the LAN - see [Discovery](#discovery)
 - Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
 - SOAP XML (`build` / `parseSOAPString` / `request` / `requestContext`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
+- Default Media Profile token bag (`activeMediaProfile` / `setActiveMediaProfile`) - see [Connection](#default-media-profile-activemediaprofile)
 - Services - see [Services](#services)
 
 ## Connection
@@ -185,12 +186,16 @@ connect. Details: [innerDocs/connection.md](innerDocs/connection.md).
 ### Default Media Profile (`activeMediaProfile`)
 
 After media discovery, `connect()` builds a **token bag** - `onvif.activeMediaProfile` - from one
-selected Media Profile (typically the first usable profile per video source). Service methods that
-omit `profileToken` / `configurationToken` / `videoSourceToken` read defaults from that bag
-(`media`, `media2`, `ptz`, `analytics`, `imaging`, `thermal`, ...).
+selected Media Profile (typically the first usable profile per video source). Multi-source devices
+also fill `onvif.activeMediaProfiles` (one bag per video source); slot `0` is the process-wide
+default until you switch. Service methods that omit `profileToken` / `configurationToken` /
+`videoSourceToken` read defaults from the current bag (`media`, `media2`, `ptz`, `analytics`,
+`imaging`, `deviceIO`, `thermal`, ...).
 
 The bag holds **tokens only**. Codec / resolution / fps stay on the full profile object
-`onvif.defaultProfile` (same selection as the bag).
+`onvif.defaultProfile` (same selection as the bag). Deprecated aliases: `activeSource` /
+`activeSources` (same objects). Rebuild after mutating profiles on the device with
+`getActiveMediaProfiles()`.
 
 Switch the current pipeline with `setActiveMediaProfile(profileToken)` (must exist in
 `onvif.profiles`; validated against `videoSources` when those were loaded):

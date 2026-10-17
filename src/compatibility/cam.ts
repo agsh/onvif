@@ -295,9 +295,17 @@ export class Cam extends EventEmitter {
   get defaultProfiles() {
     return this.onvif.defaultProfiles;
   }
+  get activeMediaProfile() {
+    return this.onvif.activeMediaProfile;
+  }
+  get activeMediaProfiles() {
+    return this.onvif.activeMediaProfiles;
+  }
+  /** @deprecated Use {@link activeMediaProfile}. */
   get activeSource() {
     return this.onvif.activeMediaProfile;
   }
+  /** @deprecated Use {@link activeMediaProfiles}. */
   get activeSources() {
     return this.onvif.activeMediaProfiles;
   }
@@ -428,12 +436,31 @@ export class Cam extends EventEmitter {
     this.invoke(() => this.onvif.device.getServiceCapabilities(), callback);
   }
 
-  getActiveSources(callback: Callback) {
+  getActiveMediaProfiles(callback: Callback) {
     this.invoke(
       () => this.onvif.getActiveMediaProfiles().then(() => {
         // Keep legacy field in sync for any callers that read it directly
         this.activeSourcesList = this.onvif.activeMediaProfiles;
         return this.onvif.activeMediaProfiles;
+      }),
+      callback,
+    );
+  }
+
+  /** @deprecated Use {@link getActiveMediaProfiles}. */
+  getActiveSources(callback: Callback) {
+    this.getActiveMediaProfiles(callback);
+  }
+
+  /**
+   * Switch the default Media Profile pipeline (token bag + `defaultProfile`).
+   * Prefer this over mutating `activeSource` / `activeMediaProfile` fields by hand.
+   */
+  setActiveMediaProfile(profileToken: ReferenceToken, callback: Callback) {
+    this.invoke(
+      () => this.onvif.setActiveMediaProfile(profileToken).then((bag) => {
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
+        return bag;
       }),
       callback,
     );

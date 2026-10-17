@@ -10,6 +10,7 @@ Plus new methods have been added in v1.x.
 - [x] getCapabilities
 - [x] getServiceCapabilities
 - [x] getActiveMediaProfiles
+- [x] setActiveMediaProfile
 - [x] getServices
 - [x] getDeviceInformation
 - [x] getHostname

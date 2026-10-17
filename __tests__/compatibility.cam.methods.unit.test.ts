@@ -39,6 +39,47 @@ describe('compatibility Cam methods (mocked)', () => {
     expect(cam.xaddrs).toEqual(urls);
   });
 
+  it('setActiveMediaProfile switches the bag and syncs activeSourcesList', async () => {
+    const { cam, onvif } = mockCam();
+    onvif.profiles = [
+      {
+        token: 'p1',
+        name: 'Main',
+        videoSourceConfiguration: { token: 'vsc1', sourceToken: 'vs1' },
+        videoEncoderConfiguration: { token: 'vec1', encoding: 'H264' },
+      },
+      {
+        token: 'p2',
+        name: 'Sub',
+        videoSourceConfiguration: { token: 'vsc2', sourceToken: 'vs1' },
+        videoEncoderConfiguration: { token: 'vec2', encoding: 'H264' },
+      },
+    ] as never;
+    onvif.videoSources = [{ token: 'vs1' }] as never;
+    onvif.activeMediaProfiles = [];
+    onvif.defaultProfiles = [];
+
+    const bag = await promisify<any>((callback) => cam.setActiveMediaProfile('p2', callback));
+    expect(bag.profileToken).toBe('p2');
+    expect(cam.activeMediaProfile?.profileToken).toBe('p2');
+    expect(cam.activeSource?.profileToken).toBe('p2');
+    expect(cam.defaultProfile?.token).toBe('p2');
+    expect(cam.activeSourcesList?.[0]?.profileToken).toBe('p2');
+  });
+
+  it('getActiveMediaProfiles aliases getActiveSources', async () => {
+    const { cam, onvif } = mockCam();
+    const spy = jest.spyOn(onvif, 'getActiveMediaProfiles').mockResolvedValue(undefined as never);
+    onvif.activeMediaProfiles = [{ profileToken: 'p1', sourceToken: 'vs1', videoSourceToken: 'vs1', videoSourceConfigurationToken: 'vsc1' }] as never;
+
+    const modern = await promisify<any[]>((callback) => cam.getActiveMediaProfiles(callback));
+    const legacy = await promisify<any[]>((callback) => cam.getActiveSources(callback));
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(modern).toEqual(onvif.activeMediaProfiles);
+    expect(legacy).toEqual(onvif.activeMediaProfiles);
+    expect(cam.activeSourcesList).toEqual(onvif.activeMediaProfiles);
+  });
+
   it('forwards updateNC and digestAuth to Onvif (v0.x public API)', () => {
     const { cam, onvif } = mockCam();
     onvif.username = 'admin';

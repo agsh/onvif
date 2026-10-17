@@ -82,3 +82,11 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
   - `getOSDOptions` -> options object (v0 returned `{ getOSDOptionsResponse: { OSDOptions } }`)
 - `close()` is available on compatibility `Cam` (callback and promises) even though classic v0.x had no
   equivalent - needed so keep-alive sockets do not keep the process alive after 1.x agent ownership.
+- **Active media profile (token bag):** v0.x exposed `cam.activeSource` / `cam.activeSources` with a mix of
+  tokens and encoder snapshots (`encoding`, resolution, fps, nested `ptz: { name, token }`). In 1.x the
+  modern names are `activeMediaProfile` / `activeMediaProfiles` (on `Onvif` and on compatibility `Cam`).
+  Deprecated aliases `activeSource` / `activeSources` / `getActiveSources` still work and point at the
+  same objects. The bag is **tokens only** - read codec / resolution / rate control from
+  `defaultProfile` (or `profiles`). Switch the current pipeline with
+  `setActiveMediaProfile(profileToken)` (callback or Promise Cam). Do not assign bag fields by hand.
+  Details: [connection.md#active-media-profile-token-bag](connection.md#active-media-profile-token-bag).
