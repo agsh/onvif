@@ -158,9 +158,9 @@ export interface OnvifOptions {
    *
    * Cameras often advertise unreachable XAddrs: `127.0.0.1` behind a vendor proxy,
    * a private LAN IP while you connect through NAT/port-forward, or a different
-   * published port than the one you dial. Ordinary SOAP calls (`device`, `media`, …)
+   * published port than the one you dial. Ordinary SOAP calls (`device`, `media`, ...)
    * always TCP to the constructor host/port and take only `pathname` (+ query) from
-   * each XAddr — so they work without this flag. Set `preserveAddress: true` when
+   * each XAddr - so they work without this flag. Set `preserveAddress: true` when
    * the **full** URL must match the constructor address as well:
    * - SOAP `a:To` / addressing headers built from the XAddr
    * - PullMessages / Renew / Unsubscribe, which dial `options.url` from the
@@ -168,7 +168,7 @@ export interface OnvifOptions {
    *
    * Comparison uses the effective port (scheme defaults 80/443), not the empty
    * `URL.port` string. Does not rewrite raw RTSP/snapshot URI strings inside Media
-   * responses — only URLs passed through {@link Onvif.parseUrl}.
+   * responses - only URLs passed through {@link Onvif.parseUrl}.
    */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */
@@ -216,7 +216,7 @@ export interface OnvifServices {
 
 /**
  * SOAP Body tree for {@link build} / {@link Onvif.request}
- * (operation element name → children and `$` attributes).
+ * (operation element name -> children and `$` attributes).
  */
 export type OnvifSoapBody = Record<string, unknown>;
 
@@ -260,26 +260,42 @@ export interface OnvifRawRequestOptions extends Omit<OnvifRequestOptions, 'body'
 }
 
 /**
- * Information about active video source
+ * Default Media Profile pipeline tokens used when service methods omit tokens.
+ *
+ * Copied from the selected {@link Profile} during {@link Onvif.connect} /
+ * {@link Onvif.getActiveMediaProfiles}, or switched via {@link Onvif.setActiveMediaProfile}.
+ * Encoder metadata (codec, resolution, ...) stays on {@link Onvif.defaultProfile} /
+ * {@link Onvif.profiles}.
  */
-export interface ActiveSource {
+export interface ActiveMediaProfile {
+  /** Physical video source token (= {@link videoSourceToken}; v0.x field name). */
   sourceToken: ReferenceToken;
-  /**
-   * Media profile token
-   */
+  /** Media profile that binds this source to an encoder (and optional PTZ). */
   profileToken: ReferenceToken;
+  /** `VideoSourceConfiguration` token on that profile (not the physical source token). */
   videoSourceConfigurationToken: ReferenceToken;
+  /** Physical video source token (= {@link sourceToken}). */
   videoSourceToken: ReferenceToken;
-  encoding?: string;
-  width?: number;
-  height?: number;
-  fps?: number;
-  bitrate?: number;
-  ptz?: {
-    name: string;
-    token: ReferenceToken;
-  };
+  /** `VideoEncoderConfiguration` token on the selected profile. */
+  videoEncoderConfigurationToken?: ReferenceToken;
+  /** `AudioSourceConfiguration` token on the selected profile. */
+  audioSourceConfigurationToken?: ReferenceToken;
+  /** `AudioEncoderConfiguration` token on the selected profile. */
+  audioEncoderConfigurationToken?: ReferenceToken;
+  /** `VideoAnalyticsConfiguration` token on the selected profile. */
+  videoAnalyticsConfigurationToken?: ReferenceToken;
+  /** `MetadataConfiguration` token on the selected profile. */
+  metadataConfigurationToken?: ReferenceToken;
+  /** `AudioOutputConfiguration` token (`Profile.extension`). */
+  audioOutputConfigurationToken?: ReferenceToken;
+  /** `AudioDecoderConfiguration` token (`Profile.extension`). */
+  audioDecoderConfigurationToken?: ReferenceToken;
+  /** `PTZConfiguration` token on the selected profile. */
+  ptzConfigurationToken?: ReferenceToken;
 }
+
+/** @deprecated Use {@link ActiveMediaProfile}. */
+export type ActiveSource = ActiveMediaProfile;
 
 export interface SetSystemDateAndTimeExtended extends SetSystemDateAndTime {
   /**
@@ -563,8 +579,24 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public videoSources: VideoSource[] = [];
   public defaultProfiles: Profile[] = [];
   public defaultProfile?: Profile;
-  public activeSources: ActiveSource[] = [];
-  public activeSource?: ActiveSource;
+  /** Token bags for usable media pipelines (typically one per video source after connect). */
+  public activeMediaProfiles: ActiveMediaProfile[] = [];
+  /** Currently selected media pipeline defaults when methods omit tokens. */
+  public activeMediaProfile?: ActiveMediaProfile;
+  /** @deprecated Use {@link activeMediaProfiles}. */
+  get activeSources(): ActiveMediaProfile[] {
+    return this.activeMediaProfiles;
+  }
+  set activeSources(value: ActiveMediaProfile[]) {
+    this.activeMediaProfiles = value;
+  }
+  /** @deprecated Use {@link activeMediaProfile}. */
+  get activeSource(): ActiveMediaProfile | undefined {
+    return this.activeMediaProfile;
+  }
+  set activeSource(value: ActiveMediaProfile | undefined) {
+    this.activeMediaProfile = value;
+  }
   public readonly urn?: string;
   /** Set during connect when the device advertises ONVIF Media2 (Profile T). */
   public media2Support = false;
@@ -593,7 +625,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.xaddrs = options.xaddrs;
     this.defaultMedia = options.defaultMedia ?? true;
     // Caller-supplied agent (incl. `false`) is kept across close/ensureOpen; otherwise ensureOpen owns it.
-    // HappyTime tests pass `agent: false` — see __tests__/happytime.json.
+    // HappyTime tests pass `agent: false` - see __tests__/happytime.json.
     this.ownsAgent = options.agent === undefined;
     this.agent = options.agent ?? false;
     this.preserveAddress = options.preserveAddress ?? false;
@@ -988,7 +1020,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * Call this when you are done talking to the camera and want to release the
    * session: stop the pull-point event subscription (if any) and tear down the
    * HTTP agents. Until then, the default keep-alive agent may keep TCP sockets
-   * open so later SOAP calls reuse them — which also keeps a Node process from
+   * open so later SOAP calls reuse them - which also keeps a Node process from
    * exiting (common in short scripts and Jest).
    *
    * What this method does:
@@ -999,7 +1031,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    * 5. Destroys the Events HTTP agent and the main SOAP agent **created by this instance**.
    *
    * Call {@link connect} again to reopen via {@link ensureOpen} (new agents + hooks).
-   * What it does not do: it is not an ONVIF “logout” RPC, and it does not destroy a
+   * What it does not do: it is not an ONVIF "logout" RPC, and it does not destroy a
    * custom or shared agent passed via {@link OnvifOptions.agent}
    * (`agent: false` / non-Agent values are left alone). Safe to call more than once.
    *
@@ -1019,7 +1051,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.off('removeListener', this.onEventRemoveListener);
     this.events.clearPushRenew();
     try {
-      // false: skip Subscription.resetAgent — we destroy the Events agent below once.
+      // false: skip Subscription.resetAgent - we destroy the Events agent below once.
       await this.events.globalSubscription.unsubscribe(false);
     } catch {
       // Device may already be gone; local pull loop is still stopped by unsubscribe.
@@ -1032,7 +1064,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   private static destroyHttpAgent(agent: HttpsAgent | HttpAgent | boolean | undefined) {
-    // Skip `false` (no agent) and non-Agent values — never destroy http.globalAgent.
+    // Skip `false` (no agent) and non-Agent values - never destroy http.globalAgent.
     if (agent && typeof agent !== 'boolean' && typeof agent.destroy === 'function') {
       try {
         agent.destroy();
@@ -1044,7 +1076,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Effective TCP port from a WHATWG URL.
-   * `URL.port` is `""` for scheme defaults (http→80, https→443), so string compare with
+   * `URL.port` is `""` for scheme defaults (http->80, https->443), so string compare with
    * `this.port` would always look different under {@link OnvifOptions.preserveAddress}.
    */
   private static urlPort(url: URL): number {
@@ -1206,11 +1238,35 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   }
 
   /**
-   * Check and find out video configuration for device
+   * Rebuild {@link activeMediaProfiles} / {@link activeMediaProfile} from
+   * {@link videoSources} + {@link profiles} (used by connect).
    */
+  public async getActiveMediaProfiles() {
+    const { getActiveMediaProfiles } = await import('./connection');
+    return getActiveMediaProfiles(this);
+  }
+
+  /** @deprecated Use {@link getActiveMediaProfiles}. */
   public async getActiveSources() {
-    const { getActiveSources } = await import('./connection');
-    return getActiveSources(this);
+    return this.getActiveMediaProfiles();
+  }
+
+  /**
+   * Switch the default Media Profile pipeline used when service methods omit tokens.
+   * Rebuilds {@link activeMediaProfile} (and syncs {@link defaultProfile}) from
+   * {@link profiles}. The profile must exist and reference a known video source
+   * when {@link videoSources} was loaded at connect.
+   *
+   * @example
+   * ```ts
+   * await onvif.connect();
+   * await onvif.setActiveMediaProfile(onvif.profiles[1]!.token);
+   * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+   * ```
+   */
+  public async setActiveMediaProfile(profileToken: ReferenceToken): Promise<ActiveMediaProfile> {
+    const { setActiveMediaProfile } = await import('./connection');
+    return setActiveMediaProfile(this, profileToken);
   }
 
   /**
@@ -1232,13 +1288,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       this.events.resetAgent();
       this.eventsAgentNeedsReset = false;
     }
-    // Fresh Digest nonce-count / challenge after (re)open — cameras reject reused nc after a new connection.
+    // Fresh Digest nonce-count / challenge after (re)open - cameras reject reused nc after a new connection.
     this.nc = 0;
     this.digestChallengeHeaders = undefined;
     this.on('newListener', this.onEventNewListener);
     this.on('removeListener', this.onEventRemoveListener);
     this.closed = false;
-    // Listeners that survived close do not re-fire newListener — restart pull-point if needed.
+    // Listeners that survived close do not re-fire newListener - restart pull-point if needed.
     if (this.listeners('event').length > 0) {
       this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
     }

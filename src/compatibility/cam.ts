@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { ConnectionOptions } from 'tls';
 import { Agent as HttpsAgent } from 'https';
 import { Agent as HttpAgent } from 'http';
-import { ActiveSource, Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended } from '../onvif';
+import { ActiveMediaProfile, Onvif, OnvifRequestOptions, SetSystemDateAndTimeExtended } from '../onvif';
 import { GetStreamUriOptions } from '../media';
 import { SetNTP, SetSystemFactoryDefault } from '../interfaces/devicemgmt';
 import {
@@ -139,7 +139,7 @@ export class Cam extends EventEmitter {
   public audioSourceConfigurations?: unknown;
   public networkDefaultGateway?: unknown;
   public networkProtocols?: unknown;
-  public activeSourcesList?: ActiveSource[];
+  public activeSourcesList?: ActiveMediaProfile[];
 
   /** Relays Onvif `event` to Cam; kept as a stable ref for on/off. */
   private readonly onOnvifEvent = (msg: unknown) => {
@@ -296,10 +296,10 @@ export class Cam extends EventEmitter {
     return this.onvif.defaultProfiles;
   }
   get activeSource() {
-    return this.onvif.activeSource;
+    return this.onvif.activeMediaProfile;
   }
   get activeSources() {
-    return this.onvif.activeSources;
+    return this.onvif.activeMediaProfiles;
   }
   get serviceCapabilities() {
     return this.onvif.device.serviceCapabilities;
@@ -356,7 +356,7 @@ export class Cam extends EventEmitter {
     this.onvif
       .connect()
       .then(() => {
-        this.activeSourcesList = this.onvif.activeSources;
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
         callback(null);
       })
       .catch(callback);
@@ -430,10 +430,10 @@ export class Cam extends EventEmitter {
 
   getActiveSources(callback: Callback) {
     this.invoke(
-      () => this.onvif.getActiveSources().then(() => {
+      () => this.onvif.getActiveMediaProfiles().then(() => {
         // Keep legacy field in sync for any callers that read it directly
-        this.activeSourcesList = this.onvif.activeSources;
-        return this.onvif.activeSources;
+        this.activeSourcesList = this.onvif.activeMediaProfiles;
+        return this.onvif.activeMediaProfiles;
       }),
       callback,
     );

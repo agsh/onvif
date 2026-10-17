@@ -3,7 +3,7 @@
  * SOAP used by {@link connect} lives here so `device` / `media` / `media2` modules are not loaded.
  */
 
-import type { Onvif, OnvifServices } from './onvif';
+import type { ActiveMediaProfile, Onvif, OnvifServices } from './onvif';
 import type {
   Capabilities,
   CapabilitiesExtension,
@@ -20,18 +20,19 @@ import type {
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
 import type { MediaProfile } from './interfaces/media.2';
+import type { ReferenceToken } from './interfaces/common';
 import { OnvifError, OnvifValidationError } from './utils/errors';
 import { MEDIA_NESTED_PARSE, type LineraseOptions } from './utils/linerase';
 import { XMLNS } from './service';
 
-/** Media1 GetProfiles — `Profiles` unbounded; nested configs are single entities. */
+/** Media1 GetProfiles - `Profiles` unbounded; nested configs are single entities. */
 const MEDIA_PROFILE_PARSE: LineraseOptions = {
   array: ['profiles', ...MEDIA_NESTED_PARSE.array],
   rawXML: MEDIA_NESTED_PARSE.rawXML,
 };
 
 /**
- * Media2 GetProfiles — `Profiles` unbounded; `Configurations` is one ConfigurationSet (object).
+ * Media2 GetProfiles - `Profiles` unbounded; `Configurations` is one ConfigurationSet (object).
  */
 const MEDIA2_PROFILE_PARSE: LineraseOptions = {
   array: ['profiles', ...MEDIA_NESTED_PARSE.array],
@@ -75,7 +76,7 @@ export function serviceUriKey(name: string): keyof OnvifServices {
 
 /**
  * Returns information about services of the device (Device.GetServices).
- * Defaults to `IncludeCapability: false` — XAddrs / namespaces are enough for
+ * Defaults to `IncludeCapability: false` - XAddrs / namespaces are enough for
  * {@link connect}; pass `{ includeCapability: true }` when capability blocks are needed.
  */
 export async function getServices(
@@ -98,7 +99,7 @@ export async function getServices(
           onvif.media2Support = true;
           namespaceSplitted[1] = 'media2';
         }
-        // Namespace path segment matches OnvifServices keys (ptz, media, deviceIO, …).
+        // Namespace path segment matches OnvifServices keys (ptz, media, deviceIO, ...).
         onvif.uri[serviceUriKey(namespaceSplitted[1])] = onvif.parseUrl(service.XAddr);
       }
     }
@@ -146,7 +147,7 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
 }
 
 /**
- * Media1 GetProfiles — stores result on {@link Onvif.profiles}.
+ * Media1 GetProfiles - stores result on {@link Onvif.profiles}.
  */
 export async function getMediaProfiles(onvif: Onvif): Promise<Profile[]> {
   const response = await serviceRequest(onvif, 'media', { GetProfiles: {} }, MEDIA_PROFILE_PARSE);
@@ -155,7 +156,7 @@ export async function getMediaProfiles(onvif: Onvif): Promise<Profile[]> {
 }
 
 /**
- * Media1 GetVideoSources — stores result on {@link Onvif.videoSources}.
+ * Media1 GetVideoSources - stores result on {@link Onvif.videoSources}.
  * Media2 has no GetVideoSources; if Media1 is absent, empty, or fails and Media2 is available,
  * falls back to GetVideoSourceConfigurations and maps unique `sourceToken` values to {@link VideoSource}.
  */
@@ -229,7 +230,7 @@ function videoSourcesFromConfigurations(configurations: VideoSourceConfiguration
 /**
  * Media2 GetProfiles (Type=All).
  * Used as Media1 fallback / Media2-only profile source (not called when Media1 succeeds).
- * Returns profiles mapped to the Media1 {@link Profile} shape for {@link Onvif.profiles} / {@link getActiveSources}.
+ * Returns profiles mapped to the Media1 {@link Profile} shape for {@link Onvif.profiles} / {@link getActiveMediaProfiles}.
  */
 export async function probeMedia2Profiles(onvif: Onvif): Promise<Profile[]> {
   const response = await serviceRequest(
@@ -273,8 +274,10 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
     result.audioSourceConfiguration = configurations.audioSource;
   }
   if (configurations?.videoEncoder) {
-    // Duck-compatible for ActiveSource (encoding, resolution, rateControl).
     result.videoEncoderConfiguration = configurations.videoEncoder as unknown as VideoEncoderConfiguration;
+  }
+  if (configurations?.audioEncoder) {
+    result.audioEncoderConfiguration = configurations.audioEncoder as unknown as Profile['audioEncoderConfiguration'];
   }
   if (configurations?.analytics) {
     result.videoAnalyticsConfiguration = configurations.analytics;
@@ -294,22 +297,99 @@ export function media2ProfileToMedia1(profile: MediaProfile): Profile {
   return result;
 }
 
-/** Clear {@link Onvif.activeSources} and default profile pointers. */
-function resetActiveSourceState(onvif: Onvif): void {
-  onvif.activeSources = [];
+/** Clear {@link Onvif.activeMediaProfiles} and default profile pointers. */
+function resetActiveMediaProfileState(onvif: Onvif): void {
+  onvif.activeMediaProfiles = [];
   onvif.defaultProfiles = [];
-  onvif.activeSource = undefined;
+  onvif.activeMediaProfile = undefined;
   onvif.defaultProfile = undefined;
 }
 
 /**
- * Check and find out video configuration for device.
- * No-op when the device has no video sources (e.g. Profile C door stations).
- * Always resets prior {@link Onvif.activeSources} / defaults so a reconnect with fewer
- * sources cannot leave stale slots from the previous session.
+ * Build a token bag from a Media {@link Profile}.
+ * @throws {@link OnvifValidationError} when the profile has no video source token
  */
-export async function getActiveSources(onvif: Onvif): Promise<void> {
-  resetActiveSourceState(onvif);
+export function activeMediaProfileFromProfile(
+  profile: Profile,
+  videoSourceToken?: ReferenceToken,
+): ActiveMediaProfile {
+  const sourceToken = videoSourceToken ?? profile.videoSourceConfiguration?.sourceToken;
+  if (!sourceToken) {
+    throw new OnvifValidationError(
+      `Profile "${profile.token}" has no VideoSourceConfiguration.sourceToken`,
+    );
+  }
+  return {
+    sourceToken,
+    profileToken: profile.token,
+    videoSourceConfigurationToken: profile.videoSourceConfiguration?.token ?? sourceToken,
+    videoSourceToken: sourceToken,
+    videoEncoderConfigurationToken: profile.videoEncoderConfiguration?.token,
+    audioSourceConfigurationToken: profile.audioSourceConfiguration?.token,
+    audioEncoderConfigurationToken: profile.audioEncoderConfiguration?.token,
+    videoAnalyticsConfigurationToken: profile.videoAnalyticsConfiguration?.token,
+    metadataConfigurationToken: profile.metadataConfiguration?.token,
+    audioOutputConfigurationToken: profile.extension?.audioOutputConfiguration?.token,
+    audioDecoderConfigurationToken: profile.extension?.audioDecoderConfiguration?.token,
+    ptzConfigurationToken: profile.PTZConfiguration?.token,
+  };
+}
+
+/**
+ * Select the Media Profile whose tokens become defaults for service methods.
+ * Updates {@link Onvif.activeMediaProfile}, {@link Onvif.defaultProfile}, and the
+ * matching slot in {@link Onvif.activeMediaProfiles} / {@link Onvif.defaultProfiles}.
+ *
+ * @param profileToken must exist on {@link Onvif.profiles} (from connect / GetProfiles)
+ * @throws {@link OnvifValidationError} when the token is unknown, the profile lacks a
+ *   video source, or (when video sources were loaded) the source is not on the device
+ */
+export function setActiveMediaProfile(onvif: Onvif, profileToken: ReferenceToken): ActiveMediaProfile {
+  if (profileToken === undefined || profileToken === '') {
+    throw new OnvifValidationError('profileToken is required');
+  }
+
+  const profile = onvif.profiles.find((p) => p.token === profileToken);
+  if (!profile) {
+    throw new OnvifValidationError(`Unknown media profile token: ${profileToken}`);
+  }
+
+  const bag = activeMediaProfileFromProfile(profile);
+
+  if (
+    onvif.videoSources.length > 0 &&
+    !onvif.videoSources.some((vs) => vs.token === bag.videoSourceToken)
+  ) {
+    throw new OnvifValidationError(
+      `Profile "${profileToken}" references unknown video source "${bag.videoSourceToken}"`,
+    );
+  }
+
+  onvif.activeMediaProfile = bag;
+  onvif.defaultProfile = profile;
+
+  const idx = onvif.activeMediaProfiles.findIndex((amp) => amp.videoSourceToken === bag.videoSourceToken);
+  if (idx >= 0) {
+    onvif.activeMediaProfiles[idx] = bag;
+    onvif.defaultProfiles[idx] = profile;
+  } else if (onvif.activeMediaProfiles.length === 0) {
+    onvif.activeMediaProfiles[0] = bag;
+    onvif.defaultProfiles[0] = profile;
+  } else {
+    onvif.activeMediaProfiles.push(bag);
+    onvif.defaultProfiles.push(profile);
+  }
+
+  return bag;
+}
+
+/**
+ * Build {@link Onvif.activeMediaProfiles} from video sources + media profiles.
+ * No-op when the device has no video sources (e.g. Profile C door stations).
+ * Always resets prior state so a reconnect with fewer sources cannot leave stale slots.
+ */
+export async function getActiveMediaProfiles(onvif: Onvif): Promise<void> {
+  resetActiveMediaProfileState(onvif);
 
   if (!onvif.videoSources.length) {
     return;
@@ -343,33 +423,26 @@ export async function getActiveSources(onvif: Onvif): Promise<void> {
     }
 
     [onvif.defaultProfiles[idx]] = appropriateProfiles;
+    const profile = onvif.defaultProfiles[idx];
 
-    onvif.activeSources[idx] = {
-      sourceToken: videoSrcToken,
-      profileToken: onvif.defaultProfiles[idx].token,
-      videoSourceConfigurationToken: onvif.defaultProfiles[idx].videoSourceConfiguration?.token ?? videoSrcToken,
-      videoSourceToken: videoSrcToken,
-    };
-    if (onvif.defaultProfiles[idx].videoEncoderConfiguration) {
-      const configuration = onvif.defaultProfiles[idx].videoEncoderConfiguration;
-      onvif.activeSources[idx].encoding = configuration?.encoding;
-      onvif.activeSources[idx].width = configuration?.resolution?.width;
-      onvif.activeSources[idx].height = configuration?.resolution?.height;
-      onvif.activeSources[idx].fps = configuration?.rateControl?.frameRateLimit;
-      onvif.activeSources[idx].bitrate = configuration?.rateControl?.bitrateLimit;
+    try {
+      onvif.activeMediaProfiles[idx] = activeMediaProfileFromProfile(profile, videoSrcToken);
+    } catch (error) {
+      if (idx === 0) {
+        onvif.emit('warn', error instanceof Error ? error : new OnvifValidationError(String(error)));
+      }
+      return;
     }
 
     if (idx === 0) {
-      onvif.activeSource = onvif.activeSources[idx];
-    }
-
-    if (onvif.defaultProfiles[idx].PTZConfiguration) {
-      onvif.activeSources[idx].ptz = {
-        name: onvif.defaultProfiles[idx].PTZConfiguration!.name as string,
-        token: onvif.defaultProfiles[idx].PTZConfiguration!.token,
-      };
+      onvif.activeMediaProfile = onvif.activeMediaProfiles[idx];
     }
   });
+}
+
+/** @deprecated Use {@link getActiveMediaProfiles}. */
+export async function getActiveSources(onvif: Onvif): Promise<void> {
+  return getActiveMediaProfiles(onvif);
 }
 
 /** Options for {@link connect}. */
@@ -397,12 +470,12 @@ export function resetConnectState(onvif: Onvif): void {
   onvif.profiles = [];
   onvif.videoSources = [];
   onvif.deviceInformation = undefined;
-  resetActiveSourceState(onvif);
+  resetActiveMediaProfileState(onvif);
 }
 
 /**
  * Connect to the camera and fill device information properties.
- * Media / active-source discovery runs when Media1 and/or Media2 was advertised
+ * Media / activeMediaProfile discovery runs when Media1 and/or Media2 was advertised
  * (unless {@link ConnectOptions.media} is `false`).
  * When `media` is omitted, uses {@link Onvif.defaultMedia}.
  * Always clears prior discovery state first (see {@link resetConnectState}).
@@ -443,7 +516,7 @@ export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promi
         }
         onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
       }
-      await connectSteps.getActiveSources(onvif);
+      await connectSteps.getActiveMediaProfiles(onvif);
     } else if (onvif.media2Support && onvif.uri.media2) {
       // Media2-only (no Media1 XAddr).
       try {
@@ -461,7 +534,7 @@ export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promi
           onvif.videoSources = [];
           onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
         }
-        await connectSteps.getActiveSources(onvif);
+        await connectSteps.getActiveMediaProfiles(onvif);
       }
     }
   }
@@ -477,5 +550,7 @@ export const connectSteps = {
   getMediaProfiles,
   getVideoSources,
   probeMedia2Profiles,
+  getActiveMediaProfiles,
   getActiveSources,
+  setActiveMediaProfile,
 };

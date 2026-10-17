@@ -9,7 +9,7 @@ Plus new methods have been added in v1.x.
 - [x] setSystemDateAndTime
 - [x] getCapabilities
 - [x] getServiceCapabilities
-- [x] getActiveSources
+- [x] getActiveMediaProfiles
 - [x] getServices
 - [x] getDeviceInformation
 - [x] getHostname

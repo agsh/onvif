@@ -182,16 +182,49 @@ On success, `connect()` emits `connect` and returns the instance. A failed `conn
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
 connect. Details: [innerDocs/connection.md](innerDocs/connection.md).
 
+### Default Media Profile (`activeMediaProfile`)
+
+After media discovery, `connect()` builds a **token bag** - `onvif.activeMediaProfile` - from one
+selected Media Profile (typically the first usable profile per video source). Service methods that
+omit `profileToken` / `configurationToken` / `videoSourceToken` read defaults from that bag
+(`media`, `media2`, `ptz`, `analytics`, `imaging`, `thermal`, ...).
+
+The bag holds **tokens only**. Codec / resolution / fps stay on the full profile object
+`onvif.defaultProfile` (same selection as the bag).
+
+Switch the current pipeline with `setActiveMediaProfile(profileToken)` (must exist in
+`onvif.profiles`; validated against `videoSources` when those were loaded):
+
+```ts
+await onvif.connect();
+
+console.log(onvif.profiles.map((p) => p.token));
+// e.g. ['ProfileToken_1', 'ProfileToken_2'] - main vs sub stream
+
+await onvif.setActiveMediaProfile('ProfileToken_2');
+const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+// uses ProfileToken_2 / its encoder without passing tokens
+
+// one-off override still works:
+await onvif.media.getStreamUri({
+  protocol: 'RTSP',
+  profileToken: 'ProfileToken_1',
+});
+```
+
+How the bag is built, multi-source devices, and more examples:
+[innerDocs/connection.md#active-media-profile-token-bag](innerDocs/connection.md#active-media-profile-token-bag).
+
 ### `preserveAddress` (NAT / wrong XAddr host or port)
 
-Devices often return service or subscription XAddrs that you cannot reach as written —
+Devices often return service or subscription XAddrs that you cannot reach as written -
 `http://127.0.0.1/...` behind a vendor proxy, an internal LAN IP while you connect through
 NAT or a port-forward, or a different port than the one in the constructor / `url`.
 
 By default (`preserveAddress: false`) ordinary SOAP still works: TCP always goes to the
 constructor `hostname`:`port` (or host/port from `url`); from each XAddr only the path
 (and query) is used. Set `preserveAddress: true` when the full URL must be rewritten to
-that constructor host/port (path/query kept) — needed for SOAP `a:To` and for PullMessages /
+that constructor host/port (path/query kept) - needed for SOAP `a:To` and for PullMessages /
 Renew / Unsubscribe, which dial the subscription Address as `options.url`. Effective ports
 are compared (empty `URL.port` means 80/443). This does not rewrite RTSP/snapshot URI
 strings inside Media response bodies.

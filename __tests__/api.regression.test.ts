@@ -75,7 +75,8 @@ const SERVICE_CLASS_EXPORTS = [
 
 const ONVIF_INSTANCE_METHODS = [
   'connect',
-  'getActiveSources',
+  'getActiveMediaProfiles',
+  'setActiveMediaProfile',
   'getSystemDateAndTime',
   'getOnlySystemDateAndTime',
   'setSystemDateAndTime',
@@ -203,7 +204,7 @@ describe('public API regression (breaking changes)', () => {
       expect(onvif.profiles).toEqual([]);
       expect(onvif.videoSources).toEqual([]);
       expect(onvif.media2Support).toBe(false);
-      expect(onvif.activeSources).toEqual([]);
+      expect(onvif.activeMediaProfiles).toEqual([]);
     });
 
     it('connect() returns the same instance and emits connect', async () => {
@@ -218,7 +219,7 @@ describe('public API regression (breaking changes)', () => {
       expect(onConnect).toHaveBeenCalledTimes(1);
     });
 
-    it('connect() with Media fills profiles/videoSources and activeSource', async () => {
+    it('connect() with Media fills profiles/videoSources and activeMediaProfile', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
@@ -254,8 +255,8 @@ describe('public API regression (breaking changes)', () => {
       expect(onvif.profiles).toHaveLength(1);
       expect(onvif.videoSources).toHaveLength(1);
       expect(onvif.defaultProfile?.token).toBe('profile1');
-      expect(onvif.activeSource?.profileToken).toBe('profile1');
-      expect(onvif.activeSource?.encoding).toBe('H264');
+      expect(onvif.activeMediaProfile?.profileToken).toBe('profile1');
+      expect(onvif.defaultProfile?.videoEncoderConfiguration?.encoding).toBe('H264');
       expect(onvif.uri.media?.href).toContain('/onvif/media');
     });
 
@@ -275,7 +276,7 @@ describe('public API regression (breaking changes)', () => {
       expect(sourcesSpy).not.toHaveBeenCalled();
       expect(onvif.profiles).toEqual([]);
       expect(onvif.videoSources).toEqual([]);
-      expect(onvif.activeSource).toBeUndefined();
+      expect(onvif.activeMediaProfile).toBeUndefined();
       expect(onvif.uri.doorcontrol).toBeDefined();
     });
 
@@ -306,7 +307,7 @@ describe('public API regression (breaking changes)', () => {
       });
       const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
       const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
-      jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined as never);
+      jest.spyOn(connectSteps, 'getActiveMediaProfiles').mockResolvedValue(undefined as never);
 
       await onvif.connect({ media: true });
 
@@ -314,12 +315,12 @@ describe('public API regression (breaking changes)', () => {
       expect(sourcesSpy).toHaveBeenCalled();
     });
 
-    it('getActiveSources is a no-op without video sources', async () => {
+    it('getActiveMediaProfiles is a no-op without video sources', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       onvif.profiles = [{ token: 'p1' } as never];
       onvif.videoSources = [];
-      await onvif.getActiveSources();
-      expect(onvif.activeSource).toBeUndefined();
+      await onvif.getActiveMediaProfiles();
+      expect(onvif.activeMediaProfile).toBeUndefined();
       expect(onvif.defaultProfile).toBeUndefined();
     });
   });
@@ -367,7 +368,7 @@ describe('public API regression (breaking changes)', () => {
       onvif.services = [{ namespace: 'http://www.onvif.org/ver10/device/wsdl' } as never];
       onvif.media2Support = true;
       onvif.defaultProfile = onvif.profiles[0];
-      onvif.activeSource = {
+      onvif.activeMediaProfile = {
         sourceToken: 'vs1',
         profileToken: 'p1',
         videoSourceConfigurationToken: 'vsc1',
@@ -382,7 +383,7 @@ describe('public API regression (breaking changes)', () => {
       expect(cam.services).toEqual(onvif.services);
       expect(cam.media2Support).toBe(true);
       expect(cam.defaultProfile).toBe(onvif.defaultProfile);
-      expect(cam.activeSource).toBe(onvif.activeSource);
+      expect(cam.activeSource).toBe(onvif.activeMediaProfile);
     });
 
     it('Promise Cam shares the same startup getters', () => {

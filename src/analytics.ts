@@ -7,6 +7,7 @@
 import { Onvif } from './onvif';
 import Service from './service';
 import { Config, SupportedAnalyticsModules, SupportedRules } from './interfaces/onvif';
+import type { ReferenceToken } from './interfaces/common';
 import {
   Capabilities,
   ConfigOptions,
@@ -26,13 +27,18 @@ import {
   ModifyAnalyticsModules,
   ModifyRules,
 } from './interfaces/analytics.2';
-import { ITEM_LIST_PARSE } from './utils';
+import { ITEM_LIST_PARSE, OnvifValidationError } from './utils';
 import { config } from './utils/toOnvifXMLSchemaObject';
 
 /** GetRules / GetAnalyticsModules — Rule and AnalyticsModule lists + ItemList (all unbounded). */
 const CONFIG_LIST_PARSE = {
   array: ['rule', 'analyticsModule', ...ITEM_LIST_PARSE.array],
   rawXML: ITEM_LIST_PARSE.rawXML,
+};
+
+/** Allow omitting configurationToken when {@link Onvif.activeMediaProfile} has analytics. */
+type WithOptionalConfigToken<T extends { configurationToken: ReferenceToken }> = Omit<T, 'configurationToken'> & {
+  configurationToken?: ReferenceToken;
 };
 
 /**
@@ -45,14 +51,11 @@ const CONFIG_LIST_PARSE = {
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
  * await onvif.connect();
  *
- * const configurationToken =
- *   onvif.defaultProfile?.videoAnalyticsConfiguration?.token ??
- *   (await onvif.media.getVideoAnalyticsConfigurations())[0]!.token;
- *
- * const supportedRules = await onvif.analytics.getSupportedRules({ configurationToken });
- * const rules = await onvif.analytics.getRules({ configurationToken });
- * const supportedModules = await onvif.analytics.getSupportedAnalyticsModules({ configurationToken });
- * const modules = await onvif.analytics.getAnalyticsModules({ configurationToken });
+ * // Uses activeMediaProfile.videoAnalyticsConfigurationToken when omitted:
+ * const supportedRules = await onvif.analytics.getSupportedRules();
+ * const rules = await onvif.analytics.getRules();
+ * const supportedModules = await onvif.analytics.getSupportedAnalyticsModules();
+ * const modules = await onvif.analytics.getAnalyticsModules();
  *
  * console.log(supportedRules.ruleDescription?.map((r) => r.name));
  * console.log(rules.map((r) => r.name), modules.map((m) => m.name));
@@ -63,6 +66,18 @@ const CONFIG_LIST_PARSE = {
 export default class Analytics extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'analytics');
+  }
+
+  /** Prefer explicit token; otherwise {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken. */
+  private resolveConfigurationToken(configurationToken?: ReferenceToken): ReferenceToken {
+    const token =
+      configurationToken ?? this.onvif.activeMediaProfile?.videoAnalyticsConfigurationToken;
+    if (!token) {
+      throw new OnvifValidationError(
+        'configurationToken is required (pass it or connect with a profile that has VideoAnalyticsConfiguration)',
+      );
+    }
+    return token;
   }
 
   private static configsToBuild(configs?: Config[]) {
@@ -91,9 +106,10 @@ export default class Analytics extends Service {
 
   /**
    * Returns the types of rules supported by the device for a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getSupportedRules({ configurationToken }: GetSupportedRules): Promise<SupportedRules> {
+  async getSupportedRules(options: Partial<GetSupportedRules> = {}): Promise<SupportedRules> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetSupportedRules: {
@@ -107,48 +123,52 @@ export default class Analytics extends Service {
 
   /**
    * Creates one or more rules on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async createRules({ configurationToken, rule }: CreateRules): Promise<void> {
+  async createRules(options: WithOptionalConfigToken<CreateRules>): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       CreateRules: {
         ConfigurationToken: configurationToken,
-        Rule: Analytics.configsToBuild(rule),
+        Rule: Analytics.configsToBuild(options.rule),
       },
     });
   }
 
   /**
    * Deletes rules from a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async deleteRules({ configurationToken, ruleName }: DeleteRules): Promise<void> {
+  async deleteRules(options: WithOptionalConfigToken<DeleteRules>): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       DeleteRules: {
         ConfigurationToken: configurationToken,
-        RuleName: Analytics.namesToBuild(ruleName),
+        RuleName: Analytics.namesToBuild(options.ruleName),
       },
     });
   }
 
   /**
    * Modifies rules on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async modifyRules({ configurationToken, rule }: ModifyRules): Promise<void> {
+  async modifyRules(options: WithOptionalConfigToken<ModifyRules>): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       ModifyRules: {
         ConfigurationToken: configurationToken,
-        Rule: Analytics.configsToBuild(rule),
+        Rule: Analytics.configsToBuild(options.rule),
       },
     });
   }
 
   /**
    * Returns the rules configured on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getRules({ configurationToken }: GetRules): Promise<Config[]> {
+  async getRules(options: Partial<GetRules> = {}): Promise<Config[]> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetRules: {
@@ -162,14 +182,15 @@ export default class Analytics extends Service {
 
   /**
    * Returns options for a supported rule type.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getRuleOptions({ configurationToken, ruleType }: GetRuleOptions): Promise<ConfigOptions[]> {
+  async getRuleOptions(options: WithOptionalConfigToken<GetRuleOptions> = {}): Promise<ConfigOptions[]> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetRuleOptions: {
           ConfigurationToken: configurationToken,
-          ...(ruleType !== undefined && { RuleType: ruleType }),
+          ...(options.ruleType !== undefined && { RuleType: options.ruleType }),
         },
       },
       { array: ['ruleOptions'] },
@@ -179,11 +200,12 @@ export default class Analytics extends Service {
 
   /**
    * Returns the types of analytics modules supported by the device.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getSupportedAnalyticsModules({
-    configurationToken,
-  }: GetSupportedAnalyticsModules): Promise<SupportedAnalyticsModules> {
+  async getSupportedAnalyticsModules(
+    options: Partial<GetSupportedAnalyticsModules> = {},
+  ): Promise<SupportedAnalyticsModules> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetSupportedAnalyticsModules: {
@@ -197,35 +219,38 @@ export default class Analytics extends Service {
 
   /**
    * Creates analytics modules on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async createAnalyticsModules({ configurationToken, analyticsModule }: CreateAnalyticsModules): Promise<void> {
+  async createAnalyticsModules(options: WithOptionalConfigToken<CreateAnalyticsModules> = {}): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       CreateAnalyticsModules: {
         ConfigurationToken: configurationToken,
-        AnalyticsModule: Analytics.configsToBuild(analyticsModule),
+        AnalyticsModule: Analytics.configsToBuild(options.analyticsModule),
       },
     });
   }
 
   /**
    * Deletes analytics modules from a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async deleteAnalyticsModules({ configurationToken, analyticsModuleName }: DeleteAnalyticsModules): Promise<void> {
+  async deleteAnalyticsModules(options: WithOptionalConfigToken<DeleteAnalyticsModules>): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       DeleteAnalyticsModules: {
         ConfigurationToken: configurationToken,
-        AnalyticsModuleName: Analytics.namesToBuild(analyticsModuleName),
+        AnalyticsModuleName: Analytics.namesToBuild(options.analyticsModuleName),
       },
     });
   }
 
   /**
    * Returns analytics modules configured on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getAnalyticsModules({ configurationToken }: GetAnalyticsModules): Promise<Config[]> {
+  async getAnalyticsModules(options: Partial<GetAnalyticsModules> = {}): Promise<Config[]> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetAnalyticsModules: {
@@ -239,27 +264,31 @@ export default class Analytics extends Service {
 
   /**
    * Modifies analytics modules on a video analytics configuration.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async modifyAnalyticsModules({ configurationToken, analyticsModule }: ModifyAnalyticsModules): Promise<void> {
+  async modifyAnalyticsModules(options: WithOptionalConfigToken<ModifyAnalyticsModules> = {}): Promise<void> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     await this.request({
       ModifyAnalyticsModules: {
         ConfigurationToken: configurationToken,
-        AnalyticsModule: Analytics.configsToBuild(analyticsModule),
+        AnalyticsModule: Analytics.configsToBuild(options.analyticsModule),
       },
     });
   }
 
   /**
    * Returns options for a supported analytics module type.
-   * @param options
+   * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken
    */
-  async getAnalyticsModuleOptions({ configurationToken, type }: GetAnalyticsModuleOptions): Promise<ConfigOptions[]> {
+  async getAnalyticsModuleOptions(
+    options: WithOptionalConfigToken<GetAnalyticsModuleOptions> = {},
+  ): Promise<ConfigOptions[]> {
+    const configurationToken = this.resolveConfigurationToken(options.configurationToken);
     const response = await this.request(
       {
         GetAnalyticsModuleOptions: {
           ConfigurationToken: configurationToken,
-          ...(type !== undefined && { Type: type }),
+          ...(options.type !== undefined && { Type: options.type }),
         },
       },
       { array: ['options'] },

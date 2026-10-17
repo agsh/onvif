@@ -1,4 +1,4 @@
-import { ActiveSource, Onvif } from '../onvif';
+import { ActiveMediaProfile, Onvif } from '../onvif';
 
 /** v0.x RequestCallback: `(err, data, xml?)`. */
 export type Callback = (error: any, result?: any, xml?: string) => void;
@@ -50,11 +50,12 @@ export function splitTokenCallback(
 }
 
 export function videoSourceToken(onvif: Onvif, options: { token?: string } = {}): string | undefined {
-  return options.token ?? onvif.activeSource?.sourceToken;
+  // Prefer activeMediaProfile; fall back to deprecated activeSource (plain mocks / older callers).
+  return options.token ?? onvif.activeMediaProfile?.sourceToken ?? onvif.activeSource?.sourceToken;
 }
 
 export function profileToken(onvif: Onvif, options: { profileToken?: string } = {}): string | undefined {
-  return options.profileToken ?? onvif.activeSource?.profileToken;
+  return options.profileToken ?? onvif.activeMediaProfile?.profileToken ?? onvif.activeSource?.profileToken;
 }
 
 export function ensureArray<T>(value: T | T[] | undefined): T[] {
@@ -155,7 +156,7 @@ export interface CompatibilityReplayOptions {
   protocol?: string;
 }
 
-export function activeSourceToken(activeSource?: ActiveSource): string | undefined {
+export function activeSourceToken(activeSource?: ActiveMediaProfile): string | undefined {
   return activeSource?.sourceToken;
 }
 

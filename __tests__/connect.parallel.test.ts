@@ -227,8 +227,8 @@ describe(`parallel connect × ${PARALLEL} with Digest (one mock port each)`, () 
         expect(c.profiles).toHaveLength(1);
         expect(c.profiles[0].token).toBe('profile1');
         expect(c.videoSources).toHaveLength(1);
-        expect(c.activeSource?.profileToken).toBe('profile1');
-        expect(c.activeSource?.encoding).toBe('H264');
+        expect(c.activeMediaProfile?.profileToken).toBe('profile1');
+        expect(c.defaultProfile?.videoEncoderConfiguration?.encoding).toBe('H264');
         expect(c.closed).toBe(false);
         // One Digest challenge, then 4 SOAP ops on that device.
         expect(mock.stats.unauthorized).toBe(1);

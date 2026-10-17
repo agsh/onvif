@@ -50,6 +50,7 @@ import {
   SetVideoOutputConfiguration,
   SetVideoSourceConfiguration,
 } from './interfaces/deviceio';
+import { OnvifValidationError } from './utils';
 
 /**
  * DeviceIO service — relays, digital inputs, serial ports, physical A/V I/O.
@@ -80,7 +81,13 @@ export default class DeviceIO extends Service {
   }
 
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
-    return videoSourceToken ?? this.onvif.activeSource!.videoSourceToken;
+    const token = videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
+    if (!token) {
+      throw new OnvifValidationError(
+        'videoSourceToken is required (pass it or connect with a media profile)',
+      );
+    }
+    return token;
   }
 
   private static relayOutputToBuild(relayOutput: RelayOutput) {
@@ -254,12 +261,12 @@ export default class DeviceIO extends Service {
    * Returns the video source configuration for a physical video source.
    * @param options
    */
-  async getVideoSourceConfiguration({
-    videoSourceToken,
-  }: GetVideoSourceConfiguration): Promise<VideoSourceConfiguration> {
+  async getVideoSourceConfiguration(
+    options: Partial<GetVideoSourceConfiguration> = {},
+  ): Promise<VideoSourceConfiguration> {
     const response = await this.request({
       GetVideoSourceConfiguration: {
-        VideoSourceToken: videoSourceToken,
+        VideoSourceToken: this.videoSourceToken(options.videoSourceToken),
       },
     });
     return response.getVideoSourceConfigurationResponse.videoSourceConfiguration;

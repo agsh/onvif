@@ -273,10 +273,17 @@ export default class PTZ extends Service {
    * The Zoom Limits have to be interpreted accordingly.
    * @param options
    */
-  async getConfiguration(options: GetConfiguration): Promise<PTZConfiguration> {
+  async getConfiguration(options: Partial<GetConfiguration> = {}): Promise<PTZConfiguration> {
+    const PTZConfigurationToken =
+      options.PTZConfigurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
+    if (!PTZConfigurationToken) {
+      throw new OnvifValidationError(
+        'PTZConfigurationToken is required (pass it or connect with a profile that has PTZConfiguration)',
+      );
+    }
     const response = await this.request({
       GetConfiguration: {
-        PTZConfigurationToken: options.PTZConfigurationToken,
+        PTZConfigurationToken,
       },
     });
     return response.getConfigurationResponse.PTZConfiguration;
@@ -349,7 +356,16 @@ export default class PTZ extends Service {
    * @param options
    * @param options.configurationToken Token of an existing configuration that the options are intended for
    */
-  async getConfigurationOptions({ configurationToken }: GetConfigurationOptions): Promise<PTZConfigurationOptions> {
+  async getConfigurationOptions(
+    options: Partial<GetConfigurationOptions> = {},
+  ): Promise<PTZConfigurationOptions> {
+    const configurationToken =
+      options.configurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
+    if (!configurationToken) {
+      throw new OnvifValidationError(
+        'configurationToken is required (pass it or connect with a profile that has PTZConfiguration)',
+      );
+    }
     const response = await this.request({
       GetConfigurationOptions: { ConfigurationToken: configurationToken },
     });
@@ -361,7 +377,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getCompatibleConfigurations({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
   }: GetCompatibleConfigurations = {}): Promise<PTZConfiguration[]> {
     const response = await this.request(
       { GetCompatibleConfigurations: { ProfileToken: profileToken } },
@@ -378,7 +394,7 @@ export default class PTZ extends Service {
   async sendAuxiliaryCommand(options: SendAuxiliaryCommand): Promise<AuxiliaryData> {
     const response = await this.request({
       SendAuxiliaryCommand: {
-        ProfileToken: options.profileToken ?? this.onvif.activeSource!.profileToken,
+        ProfileToken: options.profileToken ?? this.onvif.activeMediaProfile!.profileToken,
         AuxiliaryData: options.auxiliaryData,
       },
     });
@@ -394,7 +410,7 @@ export default class PTZ extends Service {
    * The operation is supported if there is support for at least on PTZ preset by the PTZNode.
    */
   async getPresetsExtended(options: GetPresets = {}): Promise<GetPresetsExtended> {
-    const profileToken = options.profileToken ?? this.onvif.activeSource!.profileToken;
+    const profileToken = options.profileToken ?? this.onvif.activeMediaProfile!.profileToken;
     const response = await this.request({ GetPresets: { ProfileToken: profileToken } }, { array: ['preset'] });
     this.#presets = {};
     const result = response.getPresetsResponse?.preset;
@@ -422,7 +438,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getPresetTours(
-    { profileToken }: GetPresetTours = { profileToken: this.onvif.activeSource!.profileToken },
+    { profileToken }: GetPresetTours = { profileToken: this.onvif.activeMediaProfile!.profileToken },
   ): Promise<PresetTour[]> {
     const response = await this.request({ GetPresetTours: { ProfileToken: profileToken } }, { array: ['presetTour'] });
     return response.getPresetToursResponse.presetTour ?? [];
@@ -433,7 +449,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getPresetTour({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetTourToken,
   }: GetPresetTour): Promise<PresetTour> {
     const response = await this.request({
@@ -450,7 +466,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getPresetTourOptions({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetTourToken,
   }: GetPresetTourOptions = {}): Promise<PTZPresetTourOptions> {
     const response = await this.request({
@@ -467,7 +483,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async createPresetTour({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
   }: CreatePresetTour = {}): Promise<ReferenceToken> {
     const response = await this.request({
       CreatePresetTour: {
@@ -482,7 +498,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async modifyPresetTour({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetTour,
   }: ModifyPresetTour): Promise<void> {
     await this.request({
@@ -498,7 +514,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async operatePresetTour({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetTourToken,
     operation,
   }: OperatePresetTour): Promise<void> {
@@ -516,7 +532,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async removePresetTour({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetTourToken,
   }: RemovePresetTour): Promise<void> {
     await this.request({
@@ -541,7 +557,7 @@ export default class PTZ extends Service {
    * @returns Preset token
    */
   async setPreset({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetName,
     presetToken,
   }: SetPresetExtended): Promise<ReferenceToken> {
@@ -561,7 +577,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async removePreset({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetToken,
   }: RemovePresetExtended): Promise<void> {
     await this.request({
@@ -672,7 +688,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async gotoPreset({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetToken,
     speed,
   }: GotoPresetExtended): Promise<void> {
@@ -691,7 +707,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async gotoHomePosition({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     speed,
   }: GotoHomePositionExtended): Promise<void> {
     await this.request({
@@ -708,7 +724,7 @@ export default class PTZ extends Service {
    * to recall the Home Position with the GotoHomePosition command.
    * @param options
    */
-  async setHomePosition({ profileToken = this.onvif.activeSource!.profileToken }: SetHomePositionExtended) {
+  async setHomePosition({ profileToken = this.onvif.activeMediaProfile!.profileToken }: SetHomePositionExtended) {
     await this.request({
       SetHomePosition: { ProfileToken: profileToken },
     });
@@ -719,7 +735,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getStatus({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
   }: GetStatusExtended = {}): Promise<PTZStatus> {
     const response = await this.request({
       GetStatus: { ProfileToken: profileToken },
@@ -735,7 +751,7 @@ export default class PTZ extends Service {
    * default speed set by the PTZConfiguration will be used.
    * @param options
    */
-  async absoluteMove({ profileToken = this.onvif.activeSource!.profileToken, position, speed }: AbsoluteMoveExtended) {
+  async absoluteMove({ profileToken = this.onvif.activeMediaProfile!.profileToken, position, speed }: AbsoluteMoveExtended) {
     if (!position) {
       throw new OnvifValidationError("'position' is required");
     }
@@ -758,7 +774,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async relativeMove({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     translation,
     speed,
   }: RelativeMoveExtended): Promise<void> {
@@ -781,7 +797,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async continuousMove({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     velocity,
     timeout,
   }: ContinuousMoveExtended): Promise<void> {
@@ -810,7 +826,7 @@ export default class PTZ extends Service {
   async geoMove(options: GeoMove) {
     await this.request({
       GeoMove: {
-        ProfileToken: options.profileToken ?? this.onvif.activeSource!.profileToken,
+        ProfileToken: options.profileToken ?? this.onvif.activeMediaProfile!.profileToken,
         Target: {
           Lon: options.target.lon,
           Lat: options.target.lat,
@@ -828,7 +844,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async moveAndStartTracking({
-    profileToken = this.onvif.activeSource!.profileToken,
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
     presetToken,
     geoLocation,
     targetPosition,
@@ -859,7 +875,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async stop(options?: StopExtended) {
-    const profileToken = options?.profileToken || this.onvif?.activeSource?.profileToken;
+    const profileToken = options?.profileToken || this.onvif?.activeMediaProfile?.profileToken;
     const panTilt = options?.panTilt ?? true;
     const zoom = options?.zoom ?? true;
     await this.request({

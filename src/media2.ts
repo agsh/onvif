@@ -226,7 +226,7 @@ export default class Media2 extends Service {
   async addConfiguration({ profileToken, name, configuration }: AddConfigurationExtended): Promise<void> {
     await this.request({
       AddConfiguration: {
-        ProfileToken: profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
         ...(name !== undefined && { Name: name }),
         ...(configuration && {
           Configuration: configuration.map((configurationRef) => ({
@@ -251,7 +251,7 @@ export default class Media2 extends Service {
   async removeConfiguration({ profileToken, configuration }: RemoveConfigurationExtended): Promise<void> {
     await this.request({
       RemoveConfiguration: {
-        ProfileToken: profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
         ...(configuration?.length && {
           Configuration: configuration.map((configurationRef) => ({
             Type: configurationRef.type,
@@ -849,10 +849,10 @@ export default class Media2 extends Service {
    * @param options
    */
   @v2
-  async setSynchronizationPoint({ profileToken }: SetSynchronizationPoint) {
+  async setSynchronizationPoint({ profileToken }: SetSynchronizationPoint = {}) {
     await this.request({
       SetSynchronizationPoint: {
-        ProfileToken: profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
   }
@@ -868,7 +868,7 @@ export default class Media2 extends Service {
   async startMulticastStreaming({ profileToken }: StartMulticastStreaming = {}): Promise<void> {
     await this.request({
       StartMulticastStreaming: {
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
   }
@@ -881,7 +881,7 @@ export default class Media2 extends Service {
   async stopMulticastStreaming({ profileToken }: StopMulticastStreaming = {}): Promise<void> {
     await this.request({
       StopMulticastStreaming: {
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
   }
@@ -893,7 +893,7 @@ export default class Media2 extends Service {
    */
   @v2
   async getVideoSourceModes(options?: GetVideoSourceModes): Promise<VideoSourceMode[]> {
-    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeSource?.videoSourceToken;
+    const videoSourceToken = options?.videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
     const response = await this.request(
       {
         GetVideoSourceModes: {
@@ -1003,7 +1003,14 @@ export default class Media2 extends Service {
    * @param configurationToken
    */
   @v2
-  async getOSDOptions({ configurationToken }: GetOSDOptions): Promise<OSDConfigurationOptions> {
+  async getOSDOptions(options: Partial<GetOSDOptions> = {}): Promise<OSDConfigurationOptions> {
+    const configurationToken =
+      options.configurationToken ?? this.onvif.activeMediaProfile?.videoSourceConfigurationToken;
+    if (!configurationToken) {
+      throw new OnvifValidationError(
+        'configurationToken is required (pass it or connect with a media profile)',
+      );
+    }
     const response = await this.request({
       GetOSDOptions: {
         ConfigurationToken: configurationToken,
@@ -1246,7 +1253,7 @@ export default class Media2 extends Service {
     const response = await this.request({
       GetStreamUri: {
         Protocol: protocol,
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
     return response.getStreamUriResponse;
@@ -1266,7 +1273,7 @@ export default class Media2 extends Service {
     const { profileToken } = options ?? {};
     const response = await this.request({
       GetSnapshotUri: {
-        ProfileToken: profileToken ?? this.onvif.activeSource?.profileToken,
+        ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
     return response.getSnapshotUriResponse;
