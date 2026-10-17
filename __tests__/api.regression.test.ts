@@ -279,6 +279,41 @@ describe('public API regression (breaking changes)', () => {
       expect(onvif.uri.doorcontrol).toBeDefined();
     });
 
+    it('connect() honors defaultMedia false even when Media XAddr exists', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false, defaultMedia: false });
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/door');
+        return { service: [] } as never;
+      });
+      const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles');
+      const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources');
+
+      await onvif.connect();
+
+      expect(mediaSpy).not.toHaveBeenCalled();
+      expect(sourcesSpy).not.toHaveBeenCalled();
+      expect(onvif.profiles).toEqual([]);
+    });
+
+    it('connect({ media: true }) overrides defaultMedia false', async () => {
+      const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false, defaultMedia: false });
+      jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
+      jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
+        cam.uri.media = new URL('http://127.0.0.1/onvif/media');
+        return { service: [] } as never;
+      });
+      const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
+      const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
+      jest.spyOn(connectSteps, 'getActiveSources').mockResolvedValue(undefined as never);
+
+      await onvif.connect({ media: true });
+
+      expect(mediaSpy).toHaveBeenCalled();
+      expect(sourcesSpy).toHaveBeenCalled();
+    });
+
     it('getActiveSources is a no-op without video sources', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       onvif.profiles = [{ token: 'p1' } as never];

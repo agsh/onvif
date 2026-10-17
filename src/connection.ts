@@ -378,7 +378,9 @@ export interface ConnectOptions {
    * When `false`, skip Media1/Media2 profile and video-source discovery.
    * Still syncs time and fills `services` / `uri` from GetServices (or GetCapabilities).
    * Useful for access-control / door / mass-scan where streams are not needed.
-   * @default true
+   *
+   * When omitted, uses {@link Onvif.defaultMedia} (`true` unless the constructor set otherwise).
+   * Explicit `true` / `false` always wins.
    */
   media?: boolean;
 }
@@ -402,9 +404,11 @@ export function resetConnectState(onvif: Onvif): void {
  * Connect to the camera and fill device information properties.
  * Media / active-source discovery runs when Media1 and/or Media2 was advertised
  * (unless {@link ConnectOptions.media} is `false`).
+ * When `media` is omitted, uses {@link Onvif.defaultMedia}.
  * Always clears prior discovery state first (see {@link resetConnectState}).
  */
-export async function connect(onvif: Onvif, { media = true }: ConnectOptions = {}): Promise<Onvif> {
+export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promise<Onvif> {
+  const media = options.media ?? onvif.defaultMedia;
   resetConnectState(onvif);
   await onvif.getSystemDateAndTime();
   try {

@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import { createSocket, type Socket, RemoteInfo } from 'dgram';
 import os from 'os';
 import { build, guid, linerase, OnvifResponseError, parseSOAPString } from './utils';
+import { defaultMediaOnConnect, splitDiscoveryList } from './utils/discovery-hints';
 import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 import { Onvif } from './onvif';
 
@@ -26,6 +27,8 @@ export type Types =
 /**
  * WS-Discovery Probe Scopes (ONVIF absolute URIs, scheme `onvif://www.onvif.org/...`).
  * Profile and type values are fixed by ONVIF specs; hardware / name / location accept any path.
+ * ProbeMatch scopes/types are used here to set {@link OnvifOptions.defaultMedia}
+ * (access-only Profile C/A without Streaming/T → `false`).
  */
 export type Scopes =
   | 'onvif://www.onvif.org'
@@ -333,11 +336,16 @@ export class DiscoverySingleton extends EventEmitter {
                   .filter(Boolean)
                   .map((href: string) => new URL(href.trim()));
                 const camUri = matchXAddr(camUris, rinfo.address);
+                const probeMatch = data.probeMatches.probeMatch;
+                const scopes = splitDiscoveryList(probeMatch.scopes ?? probeMatch.Scopes);
+                const types = splitDiscoveryList(probeMatch.types ?? probeMatch.Types);
                 cam = new Onvif({
                   url: camUri,
                   urn: camAddr,
                   // Match v0.x Cam.xaddrs: all XAddrs from the ProbeMatch
                   xaddrs: camUris,
+                  // Infer once from ProbeMatch; Onvif only stores the boolean default
+                  defaultMedia: defaultMediaOnConnect(scopes, types),
                 });
               } else {
                 cam = data;

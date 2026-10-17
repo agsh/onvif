@@ -173,7 +173,9 @@ Call `connect()` before most methods. It synchronizes time (for WS-Security), di
 via `GetServices` with `IncludeCapability: false` (or `GetCapabilities` if that fails), and - when
 Media is available - loads profiles and video sources. Media1 is preferred; Media2 `GetProfiles` runs
 only if Media1 is missing or fails. Pass `{ media: false }` to skip media probing (door stations,
-reachability checks). For capability blocks from GetServices, call
+reachability checks). `Discovery.probe` sets `defaultMedia: false` on access-only devices
+(Profile C/A without Streaming/T in ProbeMatch); `connect()` honors that when `media` is omitted.
+Override with `{ media: true | false }`. For capability blocks from GetServices, call
 `device.getServices({ includeCapability: true })` after connect.
 
 On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after

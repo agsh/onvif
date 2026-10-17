@@ -178,6 +178,11 @@ export interface OnvifOptions {
    * Same role as v0.x `cam.xaddrs`.
    */
   xaddrs?: URL[];
+  /**
+   * Default for {@link Onvif.connect} `{ media }` when that option is omitted.
+   * @default true
+   */
+  defaultMedia?: boolean;
 }
 
 export interface OnvifServices {
@@ -566,6 +571,11 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public deviceInformation?: GetDeviceInformationResponse;
   /** All XAddrs from WS-Discovery when this instance was found via {@link Discovery}. */
   public xaddrs?: URL[];
+  /**
+   * Default for {@link connect}`s `media` option when omitted.
+   * Callers (e.g. Discovery for access-only devices) may set {@link OnvifOptions.defaultMedia}.
+   */
+  public defaultMedia = true;
 
   constructor(options: OnvifOptions) {
     super();
@@ -581,6 +591,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
+    this.defaultMedia = options.defaultMedia ?? true;
     // Caller-supplied agent (incl. `false`) is kept across close/ensureOpen; otherwise ensureOpen owns it.
     // HappyTime tests pass `agent: false` — see __tests__/happytime.json.
     this.ownsAgent = options.agent === undefined;
@@ -1236,6 +1247,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   /**
    * Connect to the camera and fill device information properties.
    * Pass `{ media: false }` to skip profile / video-source discovery after GetServices.
+   * When `media` is omitted, uses {@link defaultMedia} (usually `true`; Discovery may set
+   * `false` for access-only door stations). Explicit `{ media: true | false }` always wins.
    * After {@link close}, {@link ensureOpen} recreates owned agents and event hooks first.
    */
   async connect(options?: ConnectOptions) {

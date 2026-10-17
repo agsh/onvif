@@ -30,7 +30,7 @@ Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + 
 - **Auth** - WS-Security PasswordDigest and HTTP Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256), including multi-challenge cameras; Digest challenge reuse after the first 401; time-shift handling for clocks that jump.
 - **Default SOAP timeout** - ordinary calls default to **10 s** (`DEFAULT_TIMEOUT_MS`); PullMessages still uses its own long-poll timeout (pull wait + margin). Pass `timeout` in the constructor for slower devices.
 - **Vendor extensions** - `xs:any` / `xs:anyAttribute` via `xsany` (parse + serialize); see [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
-- **Discovery** - WS-Discovery improvements (RelatesTo / MessageID matching, multi-interface / buffer sizing, scopes & types).
+- **Discovery** - WS-Discovery improvements (RelatesTo / MessageID matching, multi-interface / buffer sizing, scopes & types). From ProbeMatch scopes/types, Discovery sets `OnvifOptions.defaultMedia` (`false` for access-only Profile C/A without Streaming/T); `connect()` uses that when `media` is omitted.
 - **SOAP / transport** - structured fault fields, Digest retry on Sender NotAuthorized, keep-alive / agent control, proxy-friendly request path; see [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 - **XMLParser reuse** - `parseSOAPString` caches `fast-xml-parser` instances by `array` / `rawXML` (and xml2js hydrate mode) instead of constructing a new parser per response.
 

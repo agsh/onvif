@@ -16,7 +16,7 @@ await onvif.connect(); // reopen after close
 2. `resetConnectState` - drops previous `uri` / services / profiles / active sources
 3. Time sync (`getSystemDateAndTime`) for WS-Security
 4. `GetServices` (`IncludeCapability: false`), or `GetCapabilities` if that fails
-5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails
+5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails. If `media` is omitted, uses `onvif.defaultMedia` (Discovery may have set `false` for access-only door stations)
 6. Emits `connect` and returns the same instance
 
 ## Errors during `connect()`
