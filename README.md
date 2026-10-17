@@ -212,6 +212,35 @@ await onvif.media.getStreamUri({
 });
 ```
 
+Same video source, different codecs (H.264 vs H.265): cameras usually expose that as
+**two Media Profiles** that share one `videoSource`, each with its own
+`videoEncoderConfiguration.encoding`. Pick the profile by encoding, then switch the bag
+(codec metadata lives on `defaultProfile`, not on the token bag):
+
+```ts
+await onvif.connect();
+
+for (const p of onvif.profiles) {
+  const enc = p.videoEncoderConfiguration;
+  console.log(p.token, enc?.encoding, enc?.resolution);
+}
+
+const h265 = onvif.profiles.find(
+  (p) => p.videoEncoderConfiguration?.encoding === 'H265',
+);
+if (!h265) throw new Error('no H265 profile on this device');
+
+await onvif.setActiveMediaProfile(h265.token);
+console.log(onvif.defaultProfile?.videoEncoderConfiguration?.encoding); // H265
+
+const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).mediaUri.uri;
+// RTSP for the H265 pipeline; PTZ / imaging still use the same video source tokens
+```
+
+Switch back the same way (`encoding === 'H264'`). If both codecs sit on one profile and you
+must change the encoder config on the device, that is a Media `setVideoEncoderConfiguration`
+flow - not `setActiveMediaProfile`.
+
 How the bag is built, multi-source devices, and more examples:
 [innerDocs/connection.md#active-media-profile-token-bag](innerDocs/connection.md#active-media-profile-token-bag).
 
