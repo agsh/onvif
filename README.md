@@ -13,8 +13,10 @@ ONVIF client for all ONVIF devices with TypeScript types.
 - Lazy-loaded service modules
 - Built to work around real-camera quirks across vendors
 
-> [!IMPORTANT]
-> Looking for **0.x / 0.8**? Docs and source: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
+> [!NOTE]
+> Coming from the classic `Cam` API (0.x / 0.8)? You can stay on
+> `npm install onvif@previous`, use the `onvif/compatibility` layer with this package, or browse
+> [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 [![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
@@ -35,15 +37,13 @@ const { Onvif } = require('onvif'); // CommonJS
 import { Onvif } from 'onvif'; // ESM / TypeScript (Node loads the CJS build)
 ```
 
-Subpaths: `onvif/compatibility`, `onvif/compatibility/promises`.
+Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam` wrappers).
 
-For existing projects on the mature **0.x** line (~10 years):
+To pin the previous major line explicitly:
 
 ```shell
 npm install onvif@previous
 ```
-
-README for 0.x: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 ## Documentation
 
@@ -375,14 +375,14 @@ capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 
 ## Migration from v0.x
 
-Prefer the new `Onvif` API. For existing `Cam`-based apps, a compatibility layer
-(`onvif/compatibility`, `onvif/compatibility/promises`) is available - see
-[innerDocs/migration.md](innerDocs/migration.md).  
-0.x docs: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
+This package uses the `Onvif` API. Existing `Cam` apps can keep working via
+`onvif/compatibility` / `onvif/compatibility/promises` - see
+[innerDocs/migration.md](innerDocs/migration.md).
+Older line docs: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 ## Examples
 
-Samples in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) folder (1.x `Onvif` API):
+Samples in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) folder:
 
 - [device.info.js](https://github.com/agsh/onvif/blob/master/examples/device.info.js) - device info, hostname, scopes, services
 - [media.stream.js](https://github.com/agsh/onvif/blob/master/examples/media.stream.js) - profiles, RTSP stream and snapshot URIs
