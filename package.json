@@ -31,7 +31,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "rm -rf build && tsc --build",
+    "build": "rimraf build && tsc --build",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
     "typedoc": "typedoc --excludeExternals --plugin typedoc-plugin-missing-exports src/index.ts",
@@ -109,6 +109,7 @@
     "nimble": "^0.0.2",
     "onvif-v0": "npm:onvif@^0.8.2",
     "prettier": "^3.2.5",
+    "rimraf": "^5.0.10",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
     "tsx": "^4.15.8",
