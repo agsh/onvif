@@ -92,7 +92,11 @@ export interface DiscoveryOptions {
   type?: 'udp4' | 'udp6';
   /** Receive buffer size in bytes for discovery responses */
   bufferSize?: number;
-  /** WS-Discovery Probe Types. Default empty — match any type. */
+  /**
+   * WS-Discovery Probe Types. Default `['tds:Device']` (ONVIF Core §7.3.2.1 —
+   * every compliant device advertises this). Pass `[]` to omit a type filter
+   * (match any WS-Discovery type).
+   */
   types?: Types[];
   /** WS-Discovery Probe Scopes. Default empty — match any scope. */
   scopes?: Scopes[];
@@ -175,7 +179,8 @@ function isProbeMatchForMessage(xml: string | undefined, messageId: string): boo
  *     timeout: 8000,
  *     // Optional: bind to a specific NIC (Linux: eth0 / enp0s3)
  *     // device: 'eth0',
- *     types: ['dn:NetworkVideoTransmitter'],
+ *     // types default to ['tds:Device']; narrow further if needed:
+ *     // types: ['dn:NetworkVideoTransmitter'],
  *     scopes: ['onvif://www.onvif.org/Profile/T'],
  *   });
  *
@@ -265,6 +270,9 @@ export class DiscoverySingleton extends EventEmitter {
       const sockets: Socket[] = [];
       let settled = false;
       const messageID = `urn:uuid:${options.messageId || guid()}`;
+      // Default tds:Device — OTT / ONVIF clients; every compliant device must advertise it.
+      // Explicit `types: []` keeps the old "match any type" Probe (empty Types).
+      const types = options.types ?? (['tds:Device'] satisfies Types[]);
       const request = Buffer.from(
         build({
           Envelope: {
@@ -294,7 +302,7 @@ export class DiscoverySingleton extends EventEmitter {
                   'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
                   'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
                 },
-                Types: stringListToBuild(options.types) ?? {},
+                Types: stringListToBuild(types) ?? {},
                 Scopes: stringListToBuild(options.scopes) ?? {},
               },
             },
