@@ -88,7 +88,7 @@ async function getWithDigest(url: URL, onvif: Onvif): Promise<Buffer> {
   await onvif.connect();
 
   const snapshot = await onvif.media.getSnapshotUri();
-  const uriText = snapshot.mediaUri?.uri;
+  const uriText = snapshot.uri;
   if (!uriText) {
     throw new Error('getSnapshotUri returned no uri');
   }

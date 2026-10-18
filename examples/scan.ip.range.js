@@ -88,7 +88,7 @@ async function probeHost(hostname, port) {
 }
 
 function streamUri(result) {
-  return result?.uri ?? result?.mediaUri?.uri ?? '';
+  return result?.uri ?? '';
 }
 
 function generateRange(startIp, endIp) {

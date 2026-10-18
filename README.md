@@ -239,7 +239,7 @@ if (!h265) throw new Error('no H265 profile on this device');
 await onvif.setActiveMediaProfile(h265.token);
 console.log(onvif.defaultProfile?.videoEncoderConfiguration?.encoding); // H265
 
-const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).mediaUri.uri;
+const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).uri;
 // RTSP for the H265 pipeline; PTZ / imaging still use the same video source tokens
 ```
 
@@ -350,6 +350,7 @@ fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
 **Return unwrapping**
 
 - **Single useful value** - unwrapped (e.g. `getDeviceInformation()` -> info object, `systemReboot()` -> message string)
+- **Multi-field value** - keep the object (e.g. `media.getStreamUri()` / `getSnapshotUri()` -> `MediaUri` with `.uri`, `invalidAfterConnect`, ...)
 - **By-token getters** (`getAccessPoints`, `getDoors`, ...) - unwrapped to an **array** (`[]` when empty)
 - **Paginated `*List` methods** - keep the ONVIF list response object (`{ accessPoint?, nextStartReference? }`, ...)
 

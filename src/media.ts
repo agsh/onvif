@@ -29,6 +29,7 @@ import {
   VideoSource,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
+  MediaUri,
   TransportProtocol as OnvifTransportProtocol,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
@@ -87,8 +88,6 @@ import {
   SetMetadataConfiguration,
   SetAudioOutputConfiguration,
   SetAudioDecoderConfiguration,
-  GetStreamUriResponse,
-  GetSnapshotUriResponse,
   Capabilities,
   StopMulticastStreaming,
   StartMulticastStreaming,
@@ -180,7 +179,7 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
  *
  * const stream = await onvif.media.getStreamUri({ profileToken, protocol: 'RTSP' });
  * const snapshot = await onvif.media.getSnapshotUri({ profileToken });
- * console.log(stream.mediaUri.uri, snapshot.mediaUri.uri);
+ * console.log(stream.uri, snapshot.uri);
  *
  * const encoders = await onvif.media.getVideoEncoderConfigurations();
  * const cfg = encoders[0]!;
@@ -1558,7 +1557,11 @@ export default class Media extends Service {
    * - RTP over RTSP over TCP:           StreamType = "RTP-unicast", TransportProtocol = "RTSP"
    * - RTP Multicast over UDP:           StreamType = "RTP-Multicast, TransportProtocol = "UDP",
    */
-  async getStreamUri(options: GetStreamUriOptions = {}): Promise<GetStreamUriResponse> {
+  /**
+   * Returns {@link MediaUri} (uri plus invalidAfter* / timeout). Media2 devices are bridged into
+   * the same shape so callers always use `.uri`.
+   */
+  async getStreamUri(options: GetStreamUriOptions = {}): Promise<MediaUri> {
     const { profileToken, stream = 'RTP-Unicast' } = options;
     const { protocol = 'RTSP' } = options;
     if (this.onvif.media2Support) {
@@ -1582,17 +1585,15 @@ export default class Media extends Service {
         protocolV2 = 'RtspMulticast';
       }
 
-      const result = await this.onvif.media2.getStreamUri({
+      const { uri } = await this.onvif.media2.getStreamUri({
         protocol: protocolV2,
         profileToken,
       });
       return {
-        mediaUri: {
-          uri: result.uri,
-          invalidAfterConnect: false,
-          invalidAfterReboot: false,
-          timeout: 'PT0S',
-        },
+        uri,
+        invalidAfterConnect: false,
+        invalidAfterReboot: false,
+        timeout: 'PT0S',
       };
     }
     // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
@@ -1605,28 +1606,26 @@ export default class Media extends Service {
         ProfileToken: profileToken || this.onvif.activeMediaProfile!.profileToken,
       },
     });
-    return response.getStreamUriResponse;
+    return response.getStreamUriResponse.mediaUri;
   }
 
   /**
-   * Receive snapshot URI
+   * Receive snapshot URI ({@link MediaUri}; same shape via Media2 bridge).
    * @param profileToken
    */
   async getSnapshotUri(
     { profileToken = this.onvif.activeMediaProfile!.profileToken }: GetSnapshotUri = {
       profileToken: this.onvif.activeMediaProfile!.profileToken,
     },
-  ): Promise<GetSnapshotUriResponse> {
+  ): Promise<MediaUri> {
     if (this.onvif.media2Support) {
       // Profile T request using Media2
-      const data = await this.onvif.media2.getSnapshotUri({ profileToken });
+      const { uri } = await this.onvif.media2.getSnapshotUri({ profileToken });
       return {
-        mediaUri: {
-          uri: data.uri,
-          invalidAfterConnect: false,
-          invalidAfterReboot: false,
-          timeout: 'PT0S',
-        },
+        uri,
+        invalidAfterConnect: false,
+        invalidAfterReboot: false,
+        timeout: 'PT0S',
       };
     }
     const response = await this.request({
@@ -1634,7 +1633,7 @@ export default class Media extends Service {
         ProfileToken: profileToken,
       },
     });
-    return response.getSnapshotUriResponse;
+    return response.getSnapshotUriResponse.mediaUri;
   }
 
   /**

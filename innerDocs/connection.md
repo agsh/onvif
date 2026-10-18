@@ -192,7 +192,7 @@ if (sub) {
   await onvif.setActiveMediaProfile(sub.token);
 }
 
-const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).mediaUri.uri;
+const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).uri;
 console.log('streaming', onvif.activeMediaProfile?.profileToken, uri);
 
 await onvif.close();

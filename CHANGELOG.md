@@ -13,7 +13,7 @@ Rewrite of the library for Node.js 18+. Compared to the 0.x / 0.8 line (`Cam` + 
   See [innerDocs/migration.md](innerDocs/migration.md) for known behavioral differences vs 0.8.
 - **Service methods are namespaced** - e.g. `onvif.device.getDeviceInformation()`, `onvif.media.getStreamUri()`, `onvif.ptz.absoluteMove()` instead of flat `cam.getDeviceInformation()` / `cam.getStreamUri()`.
 - **Connection lifecycle** - call `await onvif.connect()` before service use (or `autoConnect: true`); call `await onvif.close()` to tear down keep-alive / events agents so the process can exit. Re-open with `connect()` after `close()`.
-- **Return shapes are often unwrapped** - single useful values (object, token, boolean, array) instead of full SOAP response wrappers. Paginated `*List` responses keep the ONVIF list object.
+- **Return shapes are often unwrapped** - single useful values (object, token, boolean, array) instead of full SOAP response wrappers. Multi-field values stay as objects (e.g. `media.getStreamUri()` / `getSnapshotUri()` -> `MediaUri` with `.uri`). Paginated `*List` responses keep the ONVIF list object.
 - **Node.js >= 18** required.
 - **XML stack** - `xml2js` replaced with `fast-xml-parser`; SOAP is built/parsed differently (compact XML; vendor cameras that were sensitive to indentation are handled more like 0.x compact envelopes).
 - **Typed errors** - failures use `OnvifError` subclasses (`OnvifSoapFaultError`, `OnvifAuthError`, `OnvifResponseError`, `OnvifValidationError`) instead of generic `Error` / ad-hoc objects.

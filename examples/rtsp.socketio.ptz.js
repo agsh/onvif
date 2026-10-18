@@ -50,8 +50,7 @@ server.listen(6147);
 (async () => {
   await onvif.connect();
 
-  const mediaUri = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-  const uri = mediaUri.uri ?? mediaUri.mediaUri?.uri;
+  const { uri } = await onvif.media.getStreamUri({ protocol: 'RTSP' });
   const input = uri.replace('://', `://${onvif.username}:${onvif.password}@`);
 
   const stream = new rtsp.FFMpeg({ input, resolution: '320x240', quality: 3 });

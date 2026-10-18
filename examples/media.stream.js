@@ -31,12 +31,10 @@ const PASSWORD = 'admin';
   );
 
   const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-  const streamUri = stream.uri ?? stream.mediaUri?.uri;
-  console.log('Stream URI:', streamUri);
+  console.log('Stream URI:', stream.uri);
 
   const snapshot = await onvif.media.getSnapshotUri();
-  const snapshotUri = snapshot.uri ?? snapshot.mediaUri?.uri;
-  console.log('Snapshot URI:', snapshotUri);
+  console.log('Snapshot URI:', snapshot.uri);
 
   console.log('Media2 supported:', onvif.media2Support);
   console.log('Active media profile:', onvif.activeMediaProfile);

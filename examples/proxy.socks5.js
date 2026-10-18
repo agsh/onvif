@@ -39,5 +39,5 @@ const PROXY_URI = 'socks5://localhost:1234';
   });
 
   const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-  console.log(stream.uri ?? stream.mediaUri?.uri);
+  console.log(stream.uri);
 })().catch(console.error);

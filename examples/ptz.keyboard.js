@@ -42,7 +42,7 @@ const STOP_DELAY_MS = 50;
   const presetTokens = [];
 
   const stream = await onvif.media.getStreamUri();
-  const uri = stream.uri ?? stream.mediaUri?.uri;
+  const uri = stream.uri;
 
   console.log('------------------------------');
   console.log(`Host: ${HOSTNAME} Port: ${PORT}`);
