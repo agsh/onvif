@@ -298,6 +298,7 @@ Discovery.on('error', (err) => console.error('discovery', err));
 const devices = await Discovery.probe({
   timeout: 5000,
   // device: 'eth0', // bind to a NIC when needed
+  // types default to ['tds:Device']; pass [] to match any WS-Discovery type
   // types: ['dn:NetworkVideoTransmitter'],
   // scopes: ['onvif://www.onvif.org/Profile/T'],
 });

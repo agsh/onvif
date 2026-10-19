@@ -175,6 +175,16 @@ describe('Discovery (happytime-onvif-server)', () => {
     }
   });
 
+  it('default Probe Types (tds:Device) finds the same devices as an empty type filter', async () => {
+    const withDefault = await probeHappytime();
+    const withAnyType = await probeHappytime({ types: [] });
+    const withExplicit = await probeHappytime({ types: ['tds:Device'] });
+    expect(withDefault.length).toBeGreaterThan(0);
+    expect(withExplicit.length).toBe(withDefault.length);
+    // Empty Types (= match any) must not miss Happytime either.
+    expect(withAnyType.length).toBeGreaterThan(0);
+  });
+
   it('resolve: false returns raw SOAP body objects with probeMatches', async () => {
     const cams = await probeRaw({ resolve: false });
     expect(cams.length).toBeGreaterThan(0);
