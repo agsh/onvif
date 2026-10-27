@@ -74,6 +74,15 @@ export function serviceUriKey(name: string): keyof OnvifServices {
   }
 }
 
+/** Vendor extensions often send a bare token (e.g. `GenetecPtzPatterns`) instead of an absolute URI. */
+function parseServiceNamespace(namespace: string): URL | undefined {
+  try {
+    return new URL(namespace);
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Returns information about services of the device (Device.GetServices).
  * Defaults to `IncludeCapability: false` - XAddrs / namespaces are enough for
@@ -92,8 +101,8 @@ export async function getServices(
   // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
   onvif.services.forEach((service: DeviceService) => {
     if (service.namespace && service.XAddr) {
-      const parsedNamespace = new URL(service.namespace);
-      if (parsedNamespace.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
+      const parsedNamespace = parseServiceNamespace(service.namespace);
+      if (parsedNamespace?.hostname === 'www.onvif.org' && parsedNamespace.pathname) {
         const namespaceSplitted = parsedNamespace.pathname.substring(1).split('/');
         if (namespaceSplitted[1] === 'media' && namespaceSplitted[0] === 'ver20') {
           onvif.media2Support = true;
@@ -309,15 +318,10 @@ function resetActiveMediaProfileState(onvif: Onvif): void {
  * Build a token bag from a Media {@link Profile}.
  * @throws {@link OnvifValidationError} when the profile has no video source token
  */
-export function activeMediaProfileFromProfile(
-  profile: Profile,
-  videoSourceToken?: ReferenceToken,
-): ActiveMediaProfile {
+export function activeMediaProfileFromProfile(profile: Profile, videoSourceToken?: ReferenceToken): ActiveMediaProfile {
   const sourceToken = videoSourceToken ?? profile.videoSourceConfiguration?.sourceToken;
   if (!sourceToken) {
-    throw new OnvifValidationError(
-      `Profile "${profile.token}" has no VideoSourceConfiguration.sourceToken`,
-    );
+    throw new OnvifValidationError(`Profile "${profile.token}" has no VideoSourceConfiguration.sourceToken`);
   }
   return {
     sourceToken,
@@ -356,10 +360,7 @@ export function setActiveMediaProfile(onvif: Onvif, profileToken: ReferenceToken
 
   const bag = activeMediaProfileFromProfile(profile);
 
-  if (
-    onvif.videoSources.length > 0 &&
-    !onvif.videoSources.some((vs) => vs.token === bag.videoSourceToken)
-  ) {
+  if (onvif.videoSources.length > 0 && !onvif.videoSources.some((vs) => vs.token === bag.videoSourceToken)) {
     throw new OnvifValidationError(
       `Profile "${profileToken}" references unknown video source "${bag.videoSourceToken}"`,
     );
