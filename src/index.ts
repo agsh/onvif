@@ -24,7 +24,7 @@ export type { ConnectOptions } from './connection';
 // Service classes are type-only here so CommonJS `require('onvif')` does not load them.
 // Runtime instances come from lazy getters on Onvif (e.g. onvif.recording).
 export type { default as Device } from './device';
-export type { default as Media, GetStreamUriOptions } from './media';
+export type { default as Media, GetStreamUriOptions, MediaUriResult } from './media';
 export type {
   default as Media2,
   ConfigurationRefExtended,
