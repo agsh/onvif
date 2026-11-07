@@ -111,9 +111,18 @@ type ConfigurationEntityExtended = VideoSourceConfiguration &
   WebRTCConfiguration &
   AudioDecoderConfiguration;
 
+type TransportProtocol =
+  | 'RtspUnicast'
+  | 'RtspMulticast'
+  | 'RTSP'
+  | 'RtspOverHttp'
+  | 'RtspsUnicast'
+  | 'RtspsMulticast'
+  | (string & {});
+
 interface GetStreamUri {
   profileToken?: ReferenceToken;
-  protocol?: 'RtspUnicast' | 'RtspMulticast' | 'RTSP' | 'RtspOverHttp';
+  protocol?: TransportProtocol;
 }
 
 export interface AudioOutputConfigurationExtended extends AudioOutputConfiguration {
@@ -1007,9 +1016,7 @@ export default class Media2 extends Service {
     const configurationToken =
       options.configurationToken ?? this.onvif.activeMediaProfile?.videoSourceConfigurationToken;
     if (!configurationToken) {
-      throw new OnvifValidationError(
-        'configurationToken is required (pass it or connect with a media profile)',
-      );
+      throw new OnvifValidationError('configurationToken is required (pass it or connect with a media profile)');
     }
     const response = await this.request({
       GetOSDOptions: {

@@ -219,6 +219,116 @@ describe('getServices uri keys', () => {
       }),
     );
   });
+
+  it('skips non-URI vendor namespaces without throwing (#532)', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    const ptzXaddr = 'http://192.168.1.10/onvif/ptz_service';
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getServicesResponse: {
+          service: [
+            {
+              namespace: 'GenetecPtzPatterns',
+              XAddr: 'http://192.168.1.10/onvif/vendor/genetec',
+              version: { major: 1, minor: 0 },
+            },
+            {
+              namespace: 'http://www.onvif.org/ver20/ptz/wsdl',
+              XAddr: ptzXaddr,
+              version: { major: 2, minor: 0 },
+            },
+          ],
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await expect(getServices(onvif)).resolves.toEqual(
+      expect.objectContaining({
+        service: expect.arrayContaining([expect.objectContaining({ namespace: 'GenetecPtzPatterns' })]),
+      }),
+    );
+
+    expect(onvif.services.map((service) => service.namespace)).toEqual([
+      'GenetecPtzPatterns',
+      'http://www.onvif.org/ver20/ptz/wsdl',
+    ]);
+    expect(onvif.uri.ptz?.href).toBe(ptzXaddr);
+    expect(onvif.uri).toEqual({ ptz: expect.any(URL) });
+  });
+
+  it('maps ver10 media and ver20/media onto uri.media and uri.media2', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getServicesResponse: {
+          service: [
+            {
+              namespace: 'http://www.onvif.org/ver10/media/wsdl',
+              XAddr: 'http://192.168.1.10/onvif/media_service',
+              version: { major: 1, minor: 0 },
+            },
+            {
+              namespace: 'http://www.onvif.org/ver10/device/wsdl',
+              XAddr: 'http://192.168.1.10/onvif/device_service',
+              version: { major: 1, minor: 0 },
+            },
+            {
+              namespace: 'http://www.onvif.org/ver20/media/wsdl',
+              XAddr: 'http://192.168.1.10/onvif/media2_service',
+              version: { major: 2, minor: 0 },
+            },
+          ],
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await getServices(onvif);
+
+    expect(onvif.uri.media?.href).toBe('http://192.168.1.10/onvif/media_service');
+    expect(onvif.uri.device?.href).toBe('http://192.168.1.10/onvif/device_service');
+    expect(onvif.uri.media2?.href).toBe('http://192.168.1.10/onvif/media2_service');
+    expect(onvif.media2Support).toBe(true);
+    expect(Object.keys(onvif.uri).sort()).toEqual(['device', 'media', 'media2']);
+  });
+
+  it('skips relative and empty-ish namespaces', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    jest.spyOn(onvif, 'request').mockResolvedValueOnce([
+      {
+        getServicesResponse: {
+          service: [
+            { namespace: '', XAddr: 'http://192.168.1.10/onvif/empty', version: { major: 1, minor: 0 } },
+            { namespace: '   ', XAddr: 'http://192.168.1.10/onvif/blank', version: { major: 1, minor: 0 } },
+            {
+              namespace: 'ver10/media/wsdl',
+              XAddr: 'http://192.168.1.10/onvif/relative',
+              version: { major: 1, minor: 0 },
+            },
+            { namespace: '/ver10/ptz/wsdl', XAddr: 'http://192.168.1.10/onvif/path', version: { major: 1, minor: 0 } },
+            {
+              namespace: 'http://vendor.example/custom',
+              XAddr: 'http://192.168.1.10/onvif/vendor',
+              version: { major: 1, minor: 0 },
+            },
+            {
+              namespace: 'http://www.onvif.org/ver10/events/wsdl',
+              XAddr: 'http://192.168.1.10/onvif/events_service',
+              version: { major: 1, minor: 0 },
+            },
+          ],
+        },
+      },
+      '<mock/>',
+    ] as never);
+
+    await expect(getServices(onvif)).resolves.toBeDefined();
+
+    expect(onvif.services).toHaveLength(6);
+    expect(onvif.uri.events?.href).toBe('http://192.168.1.10/onvif/events_service');
+    expect(Object.keys(onvif.uri)).toEqual(['events']);
+  });
 });
 
 describe('resetConnectState / reconnect', () => {

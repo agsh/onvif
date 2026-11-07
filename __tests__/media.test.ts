@@ -644,18 +644,16 @@ describe('Sources', () => {
 describe('getStreamUri', () => {
   const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
 
-  it('should return MediaUri when Media2 is supported', async () => {
+  it('should return uri-only when Media2 is supported (no synthetic MediaUri fields)', async () => {
     const result = await cam.media.getStreamUri({
       profileToken: profileToken(),
       protocol: 'RTSP',
     });
-    expect(result).toMatchObject({
-      invalidAfterConnect: false,
-      invalidAfterReboot: false,
-      timeout: 'PT0S',
-    });
     expect(typeof result.uri).toBe('string');
     expect(result.uri!.length).toBeGreaterThan(0);
+    expect(result).not.toHaveProperty('invalidAfterConnect');
+    expect(result).not.toHaveProperty('invalidAfterReboot');
+    expect(result).not.toHaveProperty('timeout');
   });
 
   it('should default profile token from activeSource when omitted (Media2)', async () => {
@@ -735,17 +733,15 @@ describe('getStreamUri', () => {
 describe('getSnapshotUri', () => {
   const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
 
-  it('should return MediaUri when Media2 is supported', async () => {
+  it('should return uri-only when Media2 is supported (no synthetic MediaUri fields)', async () => {
     const result = await cam.media.getSnapshotUri({
       profileToken: profileToken(),
     });
-    expect(result).toMatchObject({
-      invalidAfterConnect: false,
-      invalidAfterReboot: false,
-      timeout: 'PT0S',
-    });
     expect(typeof result.uri).toBe('string');
     expect(result.uri!.length).toBeGreaterThan(0);
+    expect(result).not.toHaveProperty('invalidAfterConnect');
+    expect(result).not.toHaveProperty('invalidAfterReboot');
+    expect(result).not.toHaveProperty('timeout');
   });
 
   it('should default profile token from activeSource when omitted (Media2)', async () => {

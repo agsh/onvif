@@ -88,7 +88,7 @@ describe('Discovery error handling (mocked)', () => {
 
     getMessageListener()(Buffer.from('not-xml'), { address: '192.168.1.10', family: 'IPv4', port: 3702, size: 0 });
 
-    await jest.advanceTimersByTimeAsync(25);
+    await jest.advanceTimersByTimeAsync(50);
     await expect(probePromise).resolves.toEqual([]);
     expect(onError).toHaveBeenCalledWith(parseErr, undefined);
   });

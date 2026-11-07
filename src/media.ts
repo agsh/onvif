@@ -115,6 +115,14 @@ export interface GetStreamUriOptions {
     | 'HTTP'; // for Media1
 }
 
+/**
+ * Result of {@link Media.getStreamUri} / {@link Media.getSnapshotUri}.
+ * Media 1.0 returns a full {@link MediaUri}; when routed via Media2 the WSDL only
+ * has `uri`, so `invalidAfter*` / `timeout` are omitted (not filled with synthetic defaults).
+ */
+export type MediaUriResult = Pick<MediaUri, 'uri'> &
+  Partial<Pick<MediaUri, 'invalidAfterConnect' | 'invalidAfterReboot' | 'timeout'>>;
+
 interface AddConfiguration {
   /** Configuration name */
   name: string;
@@ -1558,10 +1566,12 @@ export default class Media extends Service {
    * - RTP Multicast over UDP:           StreamType = "RTP-Multicast, TransportProtocol = "UDP",
    */
   /**
-   * Returns {@link MediaUri} (uri plus invalidAfter* / timeout). Media2 devices are bridged into
-   * the same shape so callers always use `.uri`.
+   * Returns {@link MediaUriResult}. Prefer `.uri`.
+   * When `media2Support` is set, uses Media2 (response is uri-only; validity fields are not synthesized).
+   * Media 1.0 returns a full {@link MediaUri} including `invalidAfter*` / `timeout`.
+   * To force Media 1.0 on a dual-stack device, set `onvif.media2Support = false`.
    */
-  async getStreamUri(options: GetStreamUriOptions = {}): Promise<MediaUri> {
+  async getStreamUri(options: GetStreamUriOptions = {}): Promise<MediaUriResult> {
     const { profileToken, stream = 'RTP-Unicast' } = options;
     const { protocol = 'RTSP' } = options;
     if (this.onvif.media2Support) {
@@ -1589,12 +1599,8 @@ export default class Media extends Service {
         protocol: protocolV2,
         profileToken,
       });
-      return {
-        uri,
-        invalidAfterConnect: false,
-        invalidAfterReboot: false,
-        timeout: 'PT0S',
-      };
+      // Media2 WSDL has only Uri — do not invent InvalidAfter* / Timeout.
+      return { uri };
     }
     // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
     const response = await this.request({
@@ -1610,23 +1616,20 @@ export default class Media extends Service {
   }
 
   /**
-   * Receive snapshot URI ({@link MediaUri}; same shape via Media2 bridge).
+   * Receive snapshot URI ({@link MediaUriResult}).
+   * Same Media2 vs Media 1.0 rules as {@link Media.getStreamUri}.
    * @param profileToken
    */
   async getSnapshotUri(
     { profileToken = this.onvif.activeMediaProfile!.profileToken }: GetSnapshotUri = {
       profileToken: this.onvif.activeMediaProfile!.profileToken,
     },
-  ): Promise<MediaUri> {
+  ): Promise<MediaUriResult> {
     if (this.onvif.media2Support) {
       // Profile T request using Media2
       const { uri } = await this.onvif.media2.getSnapshotUri({ profileToken });
-      return {
-        uri,
-        invalidAfterConnect: false,
-        invalidAfterReboot: false,
-        timeout: 'PT0S',
-      };
+      // Media2 WSDL has only Uri — do not invent InvalidAfter* / Timeout.
+      return { uri };
     }
     const response = await this.request({
       GetSnapshotUri: {

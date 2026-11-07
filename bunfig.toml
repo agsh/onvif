@@ -1,0 +1,4 @@
+[test]
+preload = ["./bun.plugin.ts"]
+pathIgnorePatterns = ["**/compatibility.*.test.ts"]
+coverage = true
