@@ -319,8 +319,9 @@ IPv4/IPv6. RelatesTo / MessageID matching avoids mixing Probe replies. Runnable 
 
 ## Services
 
-Methods take typed ONVIF request options and return response data. Some helpers accept more convenient
-fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
+Methods take typed ONVIF request options. Return values are simplified (unwrapped) — see
+[What methods return](#what-methods-return). Some helpers also accept more convenient input fields
+(for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
 
 | Service | Namespace | Profile |
 | --- | --- | --- |
@@ -348,13 +349,37 @@ fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
 | [Provisioning](https://agsh.github.io/onvif/interfaces/Provisioning.html) | `onvif.provisioning` | - |
 | [AdvancedSecurity](https://agsh.github.io/onvif/interfaces/AdvancedSecurity.html) | `onvif.advancedSecurity` | - |
 
-**Return unwrapping**
+### What methods return
 
-- **Single useful value** - unwrapped (e.g. `getDeviceInformation()` -> info object, `systemReboot()` -> message string)
-- **Multi-field value** - keep the object (e.g. `media.getStreamUri()` / `getSnapshotUri()` -> `MediaUri` with `.uri`, `invalidAfterConnect`, ...)
-  - `media2.getStreamUri()` / `media2.getSnapshotUri()` unwrap to an `AnyURI` string
-- **By-token getters** (`getAccessPoints`, `getDoors`, ...) - unwrapped to an **array** (`[]` when empty)
-- **Paginated `*List` methods** - keep the ONVIF list response object (`{ accessPoint?, nextStartReference? }`, ...)
+ONVIF SOAP replies are nested wrappers (`GetFooResponse` → `Foo` → …). This library unwraps them so you get the useful value directly — the simplest type that still carries everything you need.
+
+- One useful field → that value alone.
+  `systemReboot()` → `"Rebooting"`; `media2.getStreamUri()` → `"rtsp://…"`; `createDoor()` → token string.
+- Several useful fields → one plain object (not a SOAP envelope).
+  `getDeviceInformation()` → `{ manufacturer, model, … }`; `media.getStreamUri()` → `MediaUri` (`uri`, `invalidAfterConnect`, …).
+- Lists → always an array, even when the camera returns a single item (or none).
+  XML with one `<Door>` would otherwise become a lone object; the parser’s `array` option forces `Door[]` / `[]` instead.
+  Same for `getProfiles()`, `getDoors({ token })`, `getAccessPoints({ token })`, `device.getServices()`, …
+- Paginated `*List` methods keep the list envelope so you can page: `{ door?, nextStartReference? }`, …
+
+```ts
+// Media 1.0 — MediaUri object (uri + validity fields)
+const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+console.log(stream.uri);
+
+// Media 2 — WSDL has only Uri, so you get the string
+const uri = await onvif.media2.getStreamUri({ protocol: 'RtspUnicast' });
+console.log(uri);
+
+// Lists are arrays even for one match
+const doors = await onvif.doorControl.getDoors({ token: ['Door_1'] });
+console.log(doors.length); // 1, not a bare Door object
+
+const info = await onvif.device.getDeviceInformation();
+console.log(info.manufacturer, info.model);
+```
+
+Rule of thumb: strip SOAP nesting; return a scalar or a single object when that is all there is; return arrays for repeating elements (never collapse one element to a non-array); keep a wrapper only for paging (`*List`) or multi-field values that belong together.
 
 ## Events
 
