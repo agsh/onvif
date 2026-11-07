@@ -109,7 +109,7 @@
     "jest": "^29.7.0",
     "keypress": "^0.2.1",
     "nimble": "^0.0.2",
-    "onvif-v0": "npm:onvif@^0.8.2",
+    "onvif-v0": "npm:onvif@^0.8.5",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.10",
     "ts-jest": "^29.4.12",

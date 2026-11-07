@@ -741,6 +741,7 @@ describe('OSD (Media)', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
     });
+
   });
 
   describe('getOSD', () => {
