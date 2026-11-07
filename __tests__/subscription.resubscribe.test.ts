@@ -301,6 +301,7 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
     const afterFirstBump = sub.eventReconnectMs;
 
     await waitFor(() => sub.eventReconnectMs > afterFirstBump, 5000, 'second reconnect bump');
+    expect(sub.eventReconnectMs).toBeGreaterThan(afterFirstBump);
 
     await sub.unsubscribe();
   });

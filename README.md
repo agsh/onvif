@@ -351,10 +351,8 @@ fields (for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
 **Return unwrapping**
 
 - **Single useful value** - unwrapped (e.g. `getDeviceInformation()` -> info object, `systemReboot()` -> message string)
-- **Multi-field value** - keep the object. Prefer `.uri` on stream/snapshot results:
-  - `media.getStreamUri()` / `media.getSnapshotUri()` -> `MediaUriResult` (`uri` always; Media 1.0 also has `invalidAfterConnect` / `invalidAfterReboot` / `timeout`)
-  - When `media2Support` is set, those `media.*` helpers route through Media2 and return `{ uri }` only (validity fields are **not** synthesized). Force Media 1.0 with `onvif.media2Support = false`
-  - Direct `media2.getStreamUri()` / `media2.getSnapshotUri()` always return `{ uri }`
+- **Multi-field value** - keep the object (e.g. `media.getStreamUri()` / `getSnapshotUri()` -> `MediaUri` with `.uri`, `invalidAfterConnect`, ...)
+  - `media2.getStreamUri()` / `media2.getSnapshotUri()` unwrap to an `AnyURI` string
 - **By-token getters** (`getAccessPoints`, `getDoors`, ...) - unwrapped to an **array** (`[]` when empty)
 - **Paginated `*List` methods** - keep the ONVIF list response object (`{ accessPoint?, nextStartReference? }`, ...)
 

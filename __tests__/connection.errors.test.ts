@@ -59,7 +59,7 @@ describe('connect() errors and reconnect consistency', () => {
     jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
       cam.uri.device = new URL('http://127.0.0.1/onvif/device_service');
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
 
     await expect(onvif.connect({ media: false })).rejects.toThrow(/ECONNREFUSED/);
@@ -126,7 +126,7 @@ describe('connect() errors and reconnect consistency', () => {
     jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
       cam.uri.media = new URL('http://127.0.0.1/onvif/media');
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
     jest.spyOn(connectSteps, 'getMediaProfiles').mockRejectedValue(new Error('Optional action not implemented'));
     jest.spyOn(connectSteps, 'getVideoSources').mockRejectedValue(new Error('Optional action not implemented'));
@@ -147,7 +147,7 @@ describe('connect() errors and reconnect consistency', () => {
       cam.uri.device = new URL('http://127.0.0.1/onvif/device_service');
       cam.uri.ptz = new URL('http://127.0.0.1/onvif/ptz');
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
 
     await onvif.connect({ media: false });
@@ -160,7 +160,7 @@ describe('connect() errors and reconnect consistency', () => {
       cam.uri.device = new URL('http://127.0.0.1/onvif/device_service');
       // PTZ gone after reboot
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
 
     await onvif.connect({ media: false });

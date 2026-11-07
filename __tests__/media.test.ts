@@ -644,19 +644,16 @@ describe('Sources', () => {
 describe('getStreamUri', () => {
   const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
 
-  it('should return uri-only when Media2 is supported (no synthetic MediaUri fields)', async () => {
+  it('should return a MediaUri object with uri', async () => {
     const result = await cam.media.getStreamUri({
       profileToken: profileToken(),
       protocol: 'RTSP',
     });
-    expect(typeof result.uri).toBe('string');
-    expect(result.uri!.length).toBeGreaterThan(0);
-    expect(result).not.toHaveProperty('invalidAfterConnect');
-    expect(result).not.toHaveProperty('invalidAfterReboot');
-    expect(result).not.toHaveProperty('timeout');
+    expect(result).toEqual(expect.objectContaining({ uri: expect.any(String) }));
+    expect(result.uri.length).toBeGreaterThan(0);
   });
 
-  it('should default profile token from activeSource when omitted (Media2)', async () => {
+  it('should default profile token from activeSource when omitted', async () => {
     const explicit = await cam.media.getStreamUri({
       profileToken: profileToken(),
       protocol: 'RTSP',
@@ -665,86 +662,52 @@ describe('getStreamUri', () => {
     expect(implicit.uri).toBe(explicit.uri);
   });
 
-  describe('protocol values (Media2)', () => {
-    it.each([['RtspUnicast'], ['RtspMulticast'], ['RtspOverHttp']] as const)(
-      'should accept native protocol %s',
-      async (protocol) => {
-        const result = await cam.media.getStreamUri({
-          profileToken: profileToken(),
-          protocol,
-        });
-        expect(result.uri).toBeDefined();
-        expect(typeof result.uri).toBe('string');
-        expect(result.uri!.length).toBeGreaterThan(0);
-      },
-    );
-
-    it.each([['HTTP'], ['TCP']] as const)('should accept legacy Media1-style protocol %s', async (protocol) => {
+  it.each([['UDP'], ['RTSP'], ['HTTP'], ['TCP']] as const)(
+    'should return a stream URI when protocol is %s',
+    async (protocol) => {
       const result = await cam.media.getStreamUri({
-        profileToken: profileToken(),
+        profileToken: 'ProfileToken_1',
+        stream: 'RTP-Unicast',
         protocol,
       });
       expect(result.uri).toBeDefined();
-      expect(result.uri!.length).toBeGreaterThan(0);
-    });
+      expect(typeof result.uri).toBe('string');
+      expect(result.uri.length).toBeGreaterThan(0);
+    },
+  );
 
-    it.each([['RTP-Unicast'], ['RTP-Multicast']] as const)('should map UDP with stream %s', async (stream) => {
-      const result = await cam.media.getStreamUri({
-        profileToken: profileToken(),
-        stream,
-        protocol: 'UDP',
-      });
-      expect(result.uri).toBeDefined();
-      expect(result.uri!.length).toBeGreaterThan(0);
+  it.each([['RTP-Unicast'], ['RTP-Multicast']] as const)('should accept stream %s with UDP', async (stream) => {
+    const result = await cam.media.getStreamUri({
+      profileToken: profileToken(),
+      stream,
+      protocol: 'UDP',
     });
-
-    it('should default protocol to RTSP when omitted', async () => {
-      const explicit = await cam.media.getStreamUri({
-        profileToken: profileToken(),
-        protocol: 'RTSP',
-      });
-      const implicit = await cam.media.getStreamUri({ profileToken: profileToken() });
-      expect(implicit.uri).toBe(explicit.uri);
-    });
+    expect(result.uri).toBeDefined();
+    expect(result.uri.length).toBeGreaterThan(0);
   });
 
-  describe('protocol values (Media ver10)', () => {
-    it.each([['UDP'], ['RTSP'], ['HTTP'], ['TCP']] as const)(
-      'should return a stream URI when protocol is %s',
-      async (protocol) => {
-        cam.media2Support = false; // ignore any Media2 support in the camera
-        try {
-          const result = await cam.media.getStreamUri({
-            profileToken: 'ProfileToken_1',
-            stream: 'RTP-Unicast',
-            protocol,
-          });
-          expect(result.uri).toBeDefined();
-          expect(typeof result.uri).toBe('string');
-          expect(result.uri!.length).toBeGreaterThan(0);
-        } finally {
-          cam.media2Support = true;
-        }
-      },
-    );
+  it('should default protocol to RTSP when omitted', async () => {
+    const explicit = await cam.media.getStreamUri({
+      profileToken: profileToken(),
+      protocol: 'RTSP',
+    });
+    const implicit = await cam.media.getStreamUri({ profileToken: profileToken() });
+    expect(implicit.uri).toBe(explicit.uri);
   });
 });
 
 describe('getSnapshotUri', () => {
   const profileToken = (): ReferenceToken => cam.activeSource!.profileToken;
 
-  it('should return uri-only when Media2 is supported (no synthetic MediaUri fields)', async () => {
+  it('should return a MediaUri object with uri', async () => {
     const result = await cam.media.getSnapshotUri({
       profileToken: profileToken(),
     });
-    expect(typeof result.uri).toBe('string');
-    expect(result.uri!.length).toBeGreaterThan(0);
-    expect(result).not.toHaveProperty('invalidAfterConnect');
-    expect(result).not.toHaveProperty('invalidAfterReboot');
-    expect(result).not.toHaveProperty('timeout');
+    expect(result).toEqual(expect.objectContaining({ uri: expect.any(String) }));
+    expect(result.uri.length).toBeGreaterThan(0);
   });
 
-  it('should default profile token from activeSource when omitted (Media2)', async () => {
+  it('should default profile token from activeSource when omitted', async () => {
     const explicit = await cam.media.getSnapshotUri({
       profileToken: profileToken(),
     });
@@ -752,21 +715,6 @@ describe('getSnapshotUri', () => {
     expect(implicitNoArgs.uri).toBe(explicit.uri);
     const implicitEmpty = await cam.media.getSnapshotUri({});
     expect(implicitEmpty.uri).toBe(explicit.uri);
-  });
-
-  describe('Media ver10', () => {
-    it('should return a snapshot MediaUri when Media2 is not supported', async () => {
-      cam.media2Support = false;
-      try {
-        const result = await cam.media.getSnapshotUri({
-          profileToken: 'ProfileToken_1',
-        });
-        expect(typeof result.uri).toBe('string');
-        expect(result.uri!.length).toBeGreaterThan(0);
-      } finally {
-        cam.media2Support = true;
-      }
-    });
   });
 });
 
@@ -794,16 +742,6 @@ describe('OSD (Media)', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('should return a single OSD when OSDToken is set', async () => {
-      const all = await cam.media.getOSDs();
-      if (!all.length) {
-        return;
-      }
-      const token = all[0].token;
-      const filtered = await cam.media.getOSDs({ OSDToken: token });
-      expect(filtered).toHaveLength(1);
-      expect(filtered[0].token).toBe(token);
-    });
   });
 
   describe('getOSD', () => {

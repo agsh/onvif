@@ -26,11 +26,9 @@ import {
   GetDeviceInformationResponse,
   GetDot11Status,
   GetDot1XConfiguration,
-  GetGeoLocation,
   GetPasswordComplexityConfigurationResponse,
   GetPkcs10Request,
   GetServices,
-  GetServicesResponse,
   GetStorageConfiguration,
   GetSystemLog,
   GetUserRoles,
@@ -415,8 +413,9 @@ export default class Device extends Service {
    * Returns information about services of the device.
    * Defaults to `IncludeCapability: false` (same as {@link connect}); pass
    * `{ includeCapability: true }` when capability blocks are needed.
+   * @returns Service list (unwrapped from GetServicesResponse)
    */
-  async getServices({ includeCapability }: GetServices = { includeCapability: false }): Promise<GetServicesResponse> {
+  async getServices({ includeCapability }: GetServices = { includeCapability: false }): Promise<DeviceService[]> {
     const { getServices } = await import('./connection');
     const result = await getServices(this.onvif, { includeCapability });
     this.#services = this.onvif.services;
