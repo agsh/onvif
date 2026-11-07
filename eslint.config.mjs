@@ -81,7 +81,15 @@ const tsOnlyRules = {
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', 'build/**', 'coverage/**', '**/*.js', '**/*.cjs', '**/*.mjs'],
+    ignores: [
+      '**/node_modules/**',
+      'build/**',
+      'coverage/**',
+      '**/*.js',
+      '**/*.cjs',
+      '**/*.mjs',
+      'bun.plugin.ts',
+    ],
   },
   {
     files: ['**/*.{ts,mts,cts}'],

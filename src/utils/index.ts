@@ -1,6 +1,6 @@
 export {
   OnvifError,
-  OnvifErrorOptions,
+  type OnvifErrorOptions,
   OnvifResponseError,
   OnvifSoapFaultError,
   OnvifAuthError,
@@ -8,13 +8,13 @@ export {
   assignErrorContext,
   isSenderNotAuthorizedFault,
 } from './errors';
-export { CommonDuration, toIsoDuration, toMs, guid, struct } from './helpers';
+export { type CommonDuration, toIsoDuration, toMs, guid, struct } from './helpers';
 export { requestContext, type OnvifRequestContext } from './request-context';
 export { splitArgs, getDigestHeaders } from './digest';
 export { camelCase } from './naming';
 
 export {
-  LineraseOptions,
+  type LineraseOptions,
   ITEM_LIST_PARSE,
   ANALYTICS_CONFIG_PARSE,
   MEDIA_NESTED_PARSE,
@@ -22,7 +22,7 @@ export {
   linerase,
 } from './linerase';
 export {
-  OnvifResponse,
+  type OnvifResponse,
   parseSOAPString,
   build,
   soapActionFromBody,
