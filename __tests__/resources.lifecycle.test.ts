@@ -18,7 +18,7 @@ describe('resource lifecycle (agents / timers)', () => {
   it('repeated connect/close destroys each owned agent generation', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
-    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue([] as never);
     jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
 
     const destroyed = new Set<object>();

@@ -210,7 +210,7 @@ describe('public API regression (breaking changes)', () => {
     it('connect() returns the same instance and emits connect', async () => {
       const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
-      jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+      jest.spyOn(connectSteps, 'getServices').mockResolvedValue([] as never);
 
       const onConnect = jest.fn();
       onvif.on('connect', onConnect);
@@ -228,7 +228,7 @@ describe('public API regression (breaking changes)', () => {
         cam.services = [
           { namespace: 'http://www.onvif.org/ver10/media/wsdl', XAddr: 'http://127.0.0.1/onvif/media' } as never,
         ];
-        return { service: cam.services } as never;
+        return cam.services as never;
       });
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
         cam.profiles = [
@@ -265,7 +265,7 @@ describe('public API regression (breaking changes)', () => {
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/door');
-        return { service: [] } as never;
+        return [] as never;
       });
       const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles');
       const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources');
@@ -286,7 +286,7 @@ describe('public API regression (breaking changes)', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/door');
-        return { service: [] } as never;
+        return [] as never;
       });
       const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles');
       const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources');
@@ -303,7 +303,7 @@ describe('public API regression (breaking changes)', () => {
       jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
-        return { service: [] } as never;
+        return [] as never;
       });
       const mediaSpy = jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
       const sourcesSpy = jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);
@@ -335,7 +335,7 @@ describe('public API regression (breaking changes)', () => {
         jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
         jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
           cam.uri.media = new URL('http://127.0.0.1/onvif/media');
-          return { service: [] } as never;
+          return [] as never;
         });
         jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
         jest.spyOn(connectSteps, 'getVideoSources').mockResolvedValue([]);

@@ -63,26 +63,31 @@ describe('Service options and builders', () => {
   it('filters credential whitelist and blacklist with optional query fields', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     const credential = new Credential(onvif);
-    jest.spyOn(credential as any, 'request').mockResolvedValue({
+    const request = jest.spyOn(credential as any, 'request').mockResolvedValue({
       getWhitelistResponse: {},
       getBlacklistResponse: {},
     });
-    await credential.getWhitelist({
-      limit: 10,
-      startReference: 's',
-      identifierType: 'pt:Card',
-      formatType: 'GUID',
-      value: '1',
-    });
-    await credential.getBlacklist({
-      limit: 10,
-      startReference: 's',
-      identifierType: 'pt:Card',
-      formatType: 'GUID',
-      value: '1',
-    });
-    await credential.getWhitelist({});
-    await credential.getBlacklist({});
+    await expect(
+      credential.getWhitelist({
+        limit: 10,
+        startReference: 's',
+        identifierType: 'pt:Card',
+        formatType: 'GUID',
+        value: '1',
+      }),
+    ).resolves.toEqual({});
+    await expect(
+      credential.getBlacklist({
+        limit: 10,
+        startReference: 's',
+        identifierType: 'pt:Card',
+        formatType: 'GUID',
+        value: '1',
+      }),
+    ).resolves.toEqual({});
+    await expect(credential.getWhitelist({})).resolves.toEqual({});
+    await expect(credential.getBlacklist({})).resolves.toEqual({});
+    expect(request).toHaveBeenCalledTimes(4);
   });
 
   it('applies Onvif constructor defaults, parseUrl preserveAddress, and digest NC wrap', async () => {
@@ -282,7 +287,7 @@ describe('Service options and builders', () => {
 
     jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
     const { connectSteps } = await import('../src/connection');
-    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue([] as never);
     jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
 
     await onvif.connect({ media: false });
@@ -310,7 +315,7 @@ describe('Service options and builders', () => {
 
     jest.spyOn(onvif, 'getSystemDateAndTime').mockResolvedValue(new Date() as never);
     const { connectSteps } = await import('../src/connection');
-    jest.spyOn(connectSteps, 'getServices').mockResolvedValue({ service: [] } as never);
+    jest.spyOn(connectSteps, 'getServices').mockResolvedValue([] as never);
     jest.spyOn(connectSteps, 'getCapabilities').mockResolvedValue({} as never);
 
     await onvif.connect({ media: false });

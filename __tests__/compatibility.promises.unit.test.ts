@@ -162,7 +162,7 @@ describe('compatibility promises unit', () => {
         cam.media2Support = true;
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockResolvedValue([]);
@@ -183,7 +183,7 @@ describe('compatibility promises unit', () => {
         cam.media2Support = true;
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockRejectedValue(new Error('media2 broken'));
       jest.spyOn(connectSteps, 'getMediaProfiles').mockRejectedValue(new Error('Media1 GetProfiles failed'));
@@ -217,7 +217,7 @@ describe('compatibility promises unit', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.media2Support = true;
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(media2Profiles);
       jest.spyOn(connectSteps, 'getVideoSources').mockImplementation(async (cam) => {
@@ -247,7 +247,7 @@ describe('compatibility promises unit', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/doorcontrol');
         cam.services = [];
-        return { service: [] } as never;
+        return [] as never;
       });
       const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
       const getVideoSources = jest.spyOn(connectSteps, 'getVideoSources');
@@ -272,7 +272,7 @@ describe('compatibility promises unit', () => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/doorcontrol');
-        return { service: [] } as never;
+        return [] as never;
       });
       const probeMedia2Profiles = jest.spyOn(connectSteps, 'probeMedia2Profiles');
       const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
@@ -304,7 +304,7 @@ describe('compatibility promises unit', () => {
         // Device lists Media in GetServices even though media actions are unimplemented.
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/doorcontrol');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest
         .spyOn(connectSteps, 'getMediaProfiles')
@@ -347,7 +347,7 @@ describe('compatibility promises unit', () => {
         cam.media2Support = true;
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(media2Profiles);
       jest
@@ -387,7 +387,7 @@ describe('compatibility promises unit', () => {
         cam.media2Support = true;
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([{ token: 'm2p', name: 'P' } as never]);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockRejectedValue(new Error('Media1 GetProfiles failed'));
@@ -409,7 +409,7 @@ describe('compatibility promises unit', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.media2Support = true;
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockRejectedValue(new Error('media2 broken'));
       const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
@@ -435,7 +435,7 @@ describe('compatibility promises unit', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.media2Support = true;
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
         { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
@@ -460,7 +460,7 @@ describe('compatibility promises unit', () => {
       jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
         cam.media2Support = true;
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(onvif, 'request').mockImplementation(async ({ body }) => {
         const root = Object.keys(body as object)[0];
@@ -540,7 +540,7 @@ describe('compatibility promises unit', () => {
         cam.media2Support = true;
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
-        return { service: [] } as never;
+        return [] as never;
       });
       const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue(media2Profiles);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {

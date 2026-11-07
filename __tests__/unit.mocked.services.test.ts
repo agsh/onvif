@@ -30,7 +30,7 @@ describe('Mocked service unit tests', () => {
   it('builds Device password, certificate, Dot1X, and storage requests', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     const device = new Device(onvif);
-    mockServiceRequest(device, (body) => {
+    const request = mockServiceRequest(device, (body) => {
       const root = Object.keys(body)[0];
       const map: Record<string, any> = {
         GetPasswordComplexityOptions: { getPasswordComplexityOptionsResponse: { minLen: 8 } },
@@ -192,6 +192,8 @@ describe('Mocked service unit tests', () => {
         IPv6Address: [{ address: 'fe80::', prefixLength: 64 }],
       },
     } as any);
+    expect(request).toHaveBeenCalled();
+    expect(request.mock.calls.length).toBeGreaterThan(20);
   });
 
   it('builds AdvancedSecurity distinguished names, policies, and upload helpers', async () => {

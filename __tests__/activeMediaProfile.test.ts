@@ -127,8 +127,8 @@ describe('activeMediaProfile (happytime)', () => {
       const snap = await cam.media2.getSnapshotUri();
       const osd = await cam.media2.getOSDOptions();
 
-      expect(stream.uri).toMatch(/^rtsp:/i);
-      expect(snap.uri).toMatch(/^https?:/i);
+      expect(stream).toMatch(/^rtsp:/i);
+      expect(snap).toMatch(/^https?:/i);
       expect(osd).toBeDefined();
     });
 

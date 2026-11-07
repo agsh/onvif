@@ -48,7 +48,7 @@ describe('connection module isolation', () => {
         cam.uri.media = new URL('http://127.0.0.1/onvif/media');
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
         cam.services = [];
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([]);
       jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
@@ -82,7 +82,7 @@ describe('connection module isolation', () => {
         cam.media2Support = true;
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
         cam.services = [];
-        return { service: [] } as never;
+        return [] as never;
       });
       jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
         { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
@@ -244,9 +244,7 @@ describe('getServices uri keys', () => {
     ] as never);
 
     await expect(getServices(onvif)).resolves.toEqual(
-      expect.objectContaining({
-        service: expect.arrayContaining([expect.objectContaining({ namespace: 'GenetecPtzPatterns' })]),
-      }),
+      expect.arrayContaining([expect.objectContaining({ namespace: 'GenetecPtzPatterns' })]),
     );
 
     expect(onvif.services.map((service) => service.namespace)).toEqual([
@@ -376,7 +374,7 @@ describe('resetConnectState / reconnect', () => {
       // Only media — no PTZ, no media2
       cam.uri.media = new URL('http://127.0.0.1/onvif/media');
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
     jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
       cam.profiles = [];

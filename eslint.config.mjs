@@ -130,6 +130,13 @@ export default tseslint.config(
   {
     files: jestTestTs,
     ...jestPlugin.configs['flat/recommended'],
+    rules: {
+      ...jestPlugin.configs['flat/recommended'].rules,
+      'jest/expect-expect': [
+        'warn',
+        { assertFunctionNames: ['expect', 'assert*', 'expect*'] },
+      ],
+    },
   },
   eslintConfigPrettier,
 );

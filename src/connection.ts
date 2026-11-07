@@ -15,7 +15,6 @@ import type {
 import type {
   GetCapabilities,
   GetServices,
-  GetServicesResponse,
   Service as DeviceService,
 } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
@@ -91,12 +90,11 @@ function parseServiceNamespace(namespace: string): URL | undefined {
 export async function getServices(
   onvif: Onvif,
   { includeCapability }: GetServices = { includeCapability: false },
-): Promise<GetServicesResponse> {
+): Promise<DeviceService[]> {
   const response = await serviceRequest(onvif, 'device', {
     GetServices: { IncludeCapability: includeCapability },
   });
-  const result = response.getServicesResponse as GetServicesResponse;
-  onvif.services = result.service ?? [];
+  onvif.services = response.getServicesResponse?.service ?? [];
   // ONVIF Profile T introduced Media2 (ver20) so cameras from around 2020/2021 will have
   // two media entries in the ServicesResponse, one for Media (ver10/media) and one for Media2 (ver20/media)
   onvif.services.forEach((service: DeviceService) => {
@@ -113,7 +111,7 @@ export async function getServices(
       }
     }
   });
-  return result;
+  return onvif.services;
 }
 
 /**

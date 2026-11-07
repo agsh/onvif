@@ -97,31 +97,18 @@ import {
   SetVideoSourceMode,
   GetOSD,
   GetVideoSourceConfigurationOptions,
+  DeleteOSD,
+  GetOSDOptions,
+  GetOSDs,
 } from './interfaces/media';
-import { DeleteOSD, GetOSDOptions, GetOSDs, TransportProtocol } from './interfaces/media.2';
 import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
 
 export interface GetStreamUriOptions {
   profileToken?: ReferenceToken;
   stream?: 'RTP-Unicast' | 'RTP-Multicast';
-  protocol?:
-    | 'RtspUnicast'
-    | 'RtspMulticast'
-    | 'RTSP'
-    | 'RtspOverHttp' // for Media2
-    | 'UDP'
-    | 'TCP'
-    | 'HTTP'; // for Media1
+  protocol?: OnvifTransportProtocol;
 }
-
-/**
- * Result of {@link Media.getStreamUri} / {@link Media.getSnapshotUri}.
- * Media 1.0 returns a full {@link MediaUri}; when routed via Media2 the WSDL only
- * has `uri`, so `invalidAfter*` / `timeout` are omitted (not filled with synthetic defaults).
- */
-export type MediaUriResult = Pick<MediaUri, 'uri'> &
-  Partial<Pick<MediaUri, 'invalidAfterConnect' | 'invalidAfterReboot' | 'timeout'>>;
 
 interface AddConfiguration {
   /** Configuration name */
@@ -1545,69 +1532,25 @@ export default class Media extends Service {
   }
 
   /**
-   * This method requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
+   * Requests a URI that can be used to initiate a live media stream using RTSP as the control protocol.
    * The returned URI shall remain valid indefinitely even if the profile is changed.
-   * Method uses Media2 if device supports it.
    *
-   * For Media2 you need to provide only `protocol` parameter ('RTSP' by default). Here is supported values from the
-   * ONVIF documentation:
-   * Defined stream types are
-   * - RtspUnicast    RTSP streaming RTP as UDP Unicast.
-   * - RtspMulticast  RTSP streaming RTP as UDP Multicast.
-   * - RTSP           RTSP streaming RTP over TCP.
-   * - RtspOverHttp   Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
+   * StreamSetup values from ONVIF streaming / Media 1.0 (Profile S):
+   * - RTP unicast over UDP: StreamType = "RTP-Unicast", TransportProtocol = "UDP"
+   * - RTP over RTSP over HTTP over TCP: StreamType = "RTP-Unicast", TransportProtocol = "HTTP"
+   * - RTP over RTSP over TCP: StreamType = "RTP-Unicast", TransportProtocol = "RTSP"
+   * - RTP Multicast over UDP: StreamType = "RTP-Multicast", TransportProtocol = "UDP"
    *
-   * For Media1 you need to set both parameters: protocol and stream (RTP-Unicast by default) If Media2 supported
-   * by device, this parameters will be converted to Media2 call. This is excerpt from ONVIF documentation:
-   * The correct syntax for the StreamSetup element for these media stream setups defined in 5.1.1 of the streaming specification are as follows:
-   * - RTP unicast over UDP:             StreamType = "RTP-unicast", TransportProtocol = "UDP"
-   * - RTP over RTSP over HTTP over TCP: StreamType = "RTP-unicast", TransportProtocol = "HTTP"
-   * - RTP over RTSP over TCP:           StreamType = "RTP-unicast", TransportProtocol = "RTSP"
-   * - RTP Multicast over UDP:           StreamType = "RTP-Multicast, TransportProtocol = "UDP",
+   * For Media2 use {@link Media2.getStreamUri}.
+   * @returns Full Media 1.0 {@link MediaUri} (`uri`, `invalidAfter*`, `timeout`)
    */
-  /**
-   * Returns {@link MediaUriResult}. Prefer `.uri`.
-   * When `media2Support` is set, uses Media2 (response is uri-only; validity fields are not synthesized).
-   * Media 1.0 returns a full {@link MediaUri} including `invalidAfter*` / `timeout`.
-   * To force Media 1.0 on a dual-stack device, set `onvif.media2Support = false`.
-   */
-  async getStreamUri(options: GetStreamUriOptions = {}): Promise<MediaUriResult> {
-    const { profileToken, stream = 'RTP-Unicast' } = options;
-    const { protocol = 'RTSP' } = options;
-    if (this.onvif.media2Support) {
-      // Permitted values for options.protocol are :-
-      //   RtspUnicast - RTSP streaming RTP via UDP Unicast.
-      //   RtspMulticast - RTSP streaming RTP via UDP Multicast.
-      //   RTSP - RTSP streaming RTP over TCP.
-      //   RtspOverHttp - Tunneling both the RTSP control channel and the RTP stream over HTTP or HTTPS.
-      let protocolV2: TransportProtocol = 'RTSP';
-      // For backwards compatibility this function will convert Media1 Stream and Transport Protocol to a Media2 protocol
-      if (protocol === 'HTTP') {
-        protocolV2 = 'RtspOverHttp';
-      }
-      if (protocol === 'TCP') {
-        protocolV2 = 'RTSP';
-      }
-      if (protocol === 'UDP' && stream === 'RTP-Unicast') {
-        protocolV2 = 'RtspUnicast';
-      }
-      if (protocol === 'UDP' && stream === 'RTP-Multicast') {
-        protocolV2 = 'RtspMulticast';
-      }
-
-      const { uri } = await this.onvif.media2.getStreamUri({
-        protocol: protocolV2,
-        profileToken,
-      });
-      // Media2 WSDL has only Uri — do not invent InvalidAfter* / Timeout.
-      return { uri };
-    }
-    // Original (v.1.0)  ONVIF Specification for Media (used in Profile S)
+  async getStreamUri(options: GetStreamUriOptions = {}): Promise<MediaUri> {
+    const { profileToken, stream = 'RTP-Unicast', protocol = 'RTSP' } = options;
     const response = await this.request({
       GetStreamUri: {
         StreamSetup: streamSetupToBuild({
           stream,
-          transport: { protocol: (protocol || 'RTSP') as OnvifTransportProtocol },
+          transport: { protocol },
         }),
         ProfileToken: profileToken || this.onvif.activeMediaProfile!.profileToken,
       },
@@ -1616,21 +1559,15 @@ export default class Media extends Service {
   }
 
   /**
-   * Receive snapshot URI ({@link MediaUriResult}).
-   * Same Media2 vs Media 1.0 rules as {@link Media.getStreamUri}.
+   * Receive snapshot URI (Media 1.0 {@link MediaUri}).
+   * For Media2 use {@link Media2.getSnapshotUri}.
    * @param profileToken
    */
   async getSnapshotUri(
     { profileToken = this.onvif.activeMediaProfile!.profileToken }: GetSnapshotUri = {
       profileToken: this.onvif.activeMediaProfile!.profileToken,
     },
-  ): Promise<MediaUriResult> {
-    if (this.onvif.media2Support) {
-      // Profile T request using Media2
-      const { uri } = await this.onvif.media2.getSnapshotUri({ profileToken });
-      // Media2 WSDL has only Uri — do not invent InvalidAfter* / Timeout.
-      return { uri };
-    }
+  ): Promise<MediaUri> {
     const response = await this.request({
       GetSnapshotUri: {
         ProfileToken: profileToken,
@@ -1728,17 +1665,12 @@ export default class Media extends Service {
   /**
    * Get the OSDs.
    * @param configurationToken
-   * @param OSDToken
    */
-  async getOSDs({ configurationToken, OSDToken }: GetOSDs = {}): Promise<OSDConfiguration[]> {
-    if (this.onvif.media2Support) {
-      return this.onvif.media2.getOSDs({ configurationToken, OSDToken });
-    }
+  async getOSDs({ configurationToken }: GetOSDs = {}): Promise<OSDConfiguration[]> {
     const response = await this.request(
       {
         GetOSDs: {
           ...(configurationToken && { ConfigurationToken: configurationToken }),
-          ...(OSDToken && { OSDToken }),
         },
       },
       { array: ['OSDs'] },
@@ -1886,9 +1818,6 @@ export default class Media extends Service {
    */
   async getOSDOptions(options?: GetOSDOptions): Promise<OSDConfigurationOptions> {
     const configurationToken = options?.configurationToken ?? this.onvif.activeMediaProfile!.videoSourceConfigurationToken;
-    if (this.onvif.media2Support) {
-      return this.onvif.media2.getOSDOptions({ configurationToken });
-    }
     const response = await this.request({
       GetOSDOptions: {
         ConfigurationToken: configurationToken,
@@ -1897,14 +1826,3 @@ export default class Media extends Service {
     return response.getOSDOptionsResponse.OSDOptions;
   }
 }
-
-// function v1(originalMethod: any, context: ClassMethodDecoratorContext) {
-//   return function v1(this: any, ...args: any[]) {
-//     if (this.onvif.media2Support) {
-//       this.onvif.emit('warn', `Media2 profile has support for this device, you can try to use similar to \`${
-//         String(context.name)
-//       }' method from \`Media2 class\``);
-//     }
-//     return originalMethod.call(this, ...args);
-//   };
-// }
