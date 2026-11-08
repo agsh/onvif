@@ -80,9 +80,9 @@ describe('Search', () => {
     });
 
     it('should reject an invalid recording token', async () => {
-      await expect(
-        cam.search.getRecordingInformation({ recordingToken: 'InvalidToken' }),
-      ).rejects.toThrow('The Token is not valid');
+      await expect(cam.search.getRecordingInformation({ recordingToken: 'InvalidToken' })).rejects.toThrow(
+        'The Token is not valid',
+      );
     });
   });
 

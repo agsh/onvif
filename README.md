@@ -5,7 +5,7 @@
 ONVIF client for all ONVIF devices with TypeScript types.
 
 - TypeScript + Promise API
-- Typed ONVIF/WSDL interfaces
+- Typed ONVIF/WSDL interfaces (26.06)
 - Profiles [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
   [G](https://www.onvif.org/profiles/profile-g/), [M](https://www.onvif.org/profiles/profile-m/),
   [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/)
@@ -157,7 +157,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 
 ## Features
 
-- Typed request/response interfaces from the latest ONVIF WSDL
+- Typed request/response interfaces from the latest ONVIF WSDL (26.06)
   ([onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces))
 - [API documentation](https://agsh.github.io/onvif/)
 - Events: pull-point, WS-BaseNotification, filters, `EventEmitter` - [innerDocs/events.md](innerDocs/events.md)
