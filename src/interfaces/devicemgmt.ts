@@ -12,66 +12,38 @@ import {
   FactoryDefaultType,
   AttachmentData,
   BackupFile,
-  SupportInformation,
   SystemLogType,
-  SystemLog,
-  Scope,
   DiscoveryMode,
   NetworkHost,
   RemoteUser,
   User,
   UserRole,
   CapabilityCategory,
-  HostnameInformation,
-  DNSInformation,
   IPAddress,
-  NTPInformation,
-  DynamicDNSInformation,
   DynamicDNSType,
   DNSName,
-  NetworkInterface,
   NetworkInterfaceSetConfiguration,
   NetworkProtocol,
-  NetworkGateway,
   IPv4Address,
   IPv6Address,
-  NetworkZeroConfiguration,
   IPAddressFilter,
   BinaryData,
-  Date,
   Certificate,
   CertificateStatus,
   CertificateWithPrivateKey,
-  CertificateInformation,
   Dot1XConfiguration,
-  RelayOutput,
   RelayOutputSettings,
   RelayLogicalState,
   AuxiliaryData,
-  Dot11Capabilities,
-  Dot11Status,
-  Dot11AvailableNetworks,
-  SystemLogUriList,
 } from './onvif';
-import { ReferenceToken, IntRange, LocationEntity } from './common';
-
-export type AutoGeoModes = 'Location' | 'Heading' | 'Leveling';
-/** All hardware types specified are related to network devices supporting ONVIF specification. */
-export type HardwareTypes =
-  | 'Camera'
-  | 'MultiSensorCamera'
-  | 'Encoder'
-  | 'Intercom'
-  | 'AccessControl'
-  | 'Speaker'
-  | 'Recorder'
-  | 'Microphone'
-  | 'Display'
-  | 'IO-Device';
-export type StorageType = 'NFS' | 'CIFS' | 'CDMI' | 'FTP' | 'ObjectStorageS3' | 'ObjectStorageAzure';
+import {
+  ReferenceToken,
+  LocationEntity,
+} from './common';
 export interface Capabilities {
   /** The placeholder for the service capabilities. The service capability element shall be returned here. For example for the device service that would be the tds:DeviceServiceCapabilities element (not complextype). */
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Service {
   /** Namespace of the service being described. This parameter allows to match the service capabilities to the service. Note that only one set of capabilities is supported per namespace. */
@@ -82,6 +54,7 @@ export interface Service {
   /** The version of the service (not the ONVIF core spec version). */
   version: OnvifVersion;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DeviceServiceCapabilities {
   /** Network capabilities. */
@@ -172,8 +145,6 @@ export interface SystemCapabilities {
   systemBackup?: boolean;
   /** Indicates support for retrieval of system logging through MTOM. */
   systemLogging?: boolean;
-  /** Indicates support for firmware upgrade through MTOM. */
-  firmwareUpgrade?: boolean;
   /** Indicates support for firmware upgrade through the cloud. */
   cloudFirmwareUpgrade?: boolean;
   /** Indicates support for firmware upgrade through HTTP. */
@@ -213,6 +184,7 @@ export interface MiscCapabilities {
 }
 export interface Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface UserCredential {
   /** User name */
@@ -223,6 +195,7 @@ export interface UserCredential {
   /** optional access token, device shall not return the credentials (token) in the reply. */
   token?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ConfigurationRenewal {
   /** Remote URL to be queried by the device to renew the storage configuration. */
@@ -254,6 +227,7 @@ export interface StorageConfigurationData {
   certPathValidationPolicyID?: string;
   configurationRenewal?: ConfigurationRenewal;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface StorageConfiguration extends DeviceEntity {
   data: StorageConfigurationData;
@@ -262,16 +236,6 @@ export interface GetServices {
   /** Indicates if the service capabilities (untyped) should be included in the response. */
   includeCapability: boolean;
 }
-export interface GetServicesResponse {
-  /** Each Service element contains information about one service. */
-  service?: Service[];
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the device service is returned in the Capabilities element. */
-  capabilities: DeviceServiceCapabilities;
-}
-export interface GetDeviceInformation {}
 export interface GetDeviceInformationResponse {
   /** The manufactor of the device. */
   manufacturer: string;
@@ -294,8 +258,6 @@ export interface SetSystemDateAndTime {
   /** Date and time in UTC. If time is obtained via NTP, UTCDateTime has no meaning */
   UTCDateTime?: DateTime;
 }
-export interface SetSystemDateAndTimeResponse {}
-export interface GetSystemDateAndTime {}
 export interface GetSystemDateAndTimeResponse {
   /** Contains information whether system date and time are set manually or by NTP, daylight savings is on or off, time zone in POSIX 1003.1 format and system date and time in UTC and also local system date and time. */
   systemDateAndTime: SystemDateTime;
@@ -304,54 +266,20 @@ export interface SetSystemFactoryDefault {
   /** Specifies the factory default action type. */
   factoryDefault: FactoryDefaultType;
 }
-export interface SetSystemFactoryDefaultResponse {}
 export interface UpgradeSystemFirmware {
   firmware: AttachmentData;
 }
-export interface UpgradeSystemFirmwareResponse {
-  message?: string;
-}
-export interface SystemReboot {}
-export interface SystemRebootResponse {
-  /** Contains the reboot message sent by the device. */
-  message: string;
-}
 export interface RestoreSystem {
   backupFiles: BackupFile[];
-}
-export interface RestoreSystemResponse {}
-export interface GetSystemBackup {}
-export interface GetSystemBackupResponse {
-  backupFiles: BackupFile[];
-}
-export interface GetSystemSupportInformation {}
-export interface GetSystemSupportInformationResponse {
-  /** Contains the arbitary device diagnostics information. */
-  supportInformation: SupportInformation;
 }
 export interface GetSystemLog {
   /** Specifies the type of system log to get. */
   logType: SystemLogType;
 }
-export interface GetSystemLogResponse {
-  /** Contains the system log information. */
-  systemLog: SystemLog;
-}
-export interface GetScopes {}
-export interface GetScopesResponse {
-  /** Contains a list of URI definining the device scopes. Scope parameters can be of two types: fixed and configurable. Fixed parameters can not be altered. */
-  scopes: Scope[];
-}
-export interface SetScopes {
-  /** Contains a list of scope parameters that will replace all existing configurable scope parameters. */
-  scopes: AnyURI[];
-}
-export interface SetScopesResponse {}
 export interface AddScopes {
   /** Contains a list of new configurable scope parameters that will be added to the existing configurable scope. */
   scopeItem: AnyURI[];
 }
-export interface AddScopesResponse {}
 export interface RemoveScopes {
   /**
    * Contains a list of URIs that should be removed from the device scope.
@@ -359,99 +287,41 @@ export interface RemoveScopes {
    */
   scopeItem: AnyURI[];
 }
-export interface RemoveScopesResponse {
-  /** Contains a list of URIs that has been removed from the device scope */
-  scopeItem?: AnyURI[];
-}
-export interface GetDiscoveryMode {}
-export interface GetDiscoveryModeResponse {
-  /** Indicator of discovery mode: Discoverable, NonDiscoverable. */
-  discoveryMode: DiscoveryMode;
-}
 export interface SetDiscoveryMode {
   /** Indicator of discovery mode: Discoverable, NonDiscoverable. */
   discoveryMode: DiscoveryMode;
-}
-export interface SetDiscoveryModeResponse {}
-export interface GetRemoteDiscoveryMode {}
-export interface GetRemoteDiscoveryModeResponse {
-  /** Indicator of discovery mode: Discoverable, NonDiscoverable. */
-  remoteDiscoveryMode: DiscoveryMode;
 }
 export interface SetRemoteDiscoveryMode {
   /** Indicator of discovery mode: Discoverable, NonDiscoverable. */
   remoteDiscoveryMode: DiscoveryMode;
 }
-export interface SetRemoteDiscoveryModeResponse {}
-export interface GetDPAddresses {}
-export interface GetDPAddressesResponse {
-  DPAddress?: NetworkHost[];
-}
 export interface SetDPAddresses {
   DPAddress?: NetworkHost[];
 }
-export interface SetDPAddressesResponse {}
-export interface GetEndpointReference {}
-export interface GetEndpointReferenceResponse {
-  GUID: string;
-  [key: string]: unknown;
-}
-export interface GetRemoteUser {}
-export interface GetRemoteUserResponse {
-  remoteUser?: RemoteUser;
-}
 export interface SetRemoteUser {
   remoteUser?: RemoteUser;
-}
-export interface SetRemoteUserResponse {}
-export interface GetUsers {}
-export interface GetUsersResponse {
-  /** Contains a list of the onvif users and following information is included in each entry: username and user level. */
-  user?: User[];
 }
 export interface CreateUsers {
   /** Creates new device users and corresponding credentials. Each user entry includes: username, password and user level. Either all users are created successfully or a fault message MUST be returned without creating any user. If trying to create several users with exactly the same username the request is rejected and no users are created. If password is missing, then fault message Too weak password is returned. */
   user: User[];
 }
-export interface CreateUsersResponse {}
 export interface DeleteUsers {
   /** Deletes users on an device and there may exist users that cannot be deleted to ensure access to the unit. Either all users are deleted successfully or a fault message MUST be returned and no users be deleted. If a username exists multiple times in the request, then a fault message is returned. */
   username: string[];
 }
-export interface DeleteUsersResponse {}
 export interface SetUser {
   /** Updates the credentials for one or several users on an device. Either all change requests are processed successfully or a fault message MUST be returned. If the request contains the same username multiple times, a fault message is returned. */
   user: User[];
 }
-export interface SetUserResponse {}
 export interface GetUserRoles {
   userRole?: string;
-}
-export interface GetUserRolesResponse {
-  userRole?: UserRole[];
 }
 export interface SetUserRole {
   userRole: UserRole;
 }
-export interface SetUserRoleResponse {}
 export interface DeleteUserRole {
   userRole: string;
 }
-export interface DeleteUserRoleResponse {}
-export interface GetWsdlUrl {}
-export interface GetWsdlUrlResponse {
-  wsdlUrl: AnyURI;
-}
-export interface GetPasswordComplexityOptions {}
-export interface GetPasswordComplexityOptionsResponse {
-  minLenRange?: IntRange;
-  uppercaseRange?: IntRange;
-  numberRange?: IntRange;
-  specialCharsRange?: IntRange;
-  blockUsernameOccurrenceSupported?: boolean;
-  policyConfigurationLockSupported?: boolean;
-}
-export interface GetPasswordComplexityConfiguration {}
 export interface GetPasswordComplexityConfigurationResponse {
   minLen?: number;
   uppercase?: number;
@@ -468,23 +338,10 @@ export interface SetPasswordComplexityConfiguration {
   blockUsernameOccurrence?: boolean;
   policyConfigurationLocked?: boolean;
 }
-export interface SetPasswordComplexityConfigurationResponse {}
-export interface GetPasswordHistoryConfiguration {}
-export interface GetPasswordHistoryConfigurationResponse {
-  enabled: boolean;
-  length: number;
-}
 export interface SetPasswordHistoryConfiguration {
   enabled: boolean;
   length: number;
 }
-export interface SetPasswordHistoryConfigurationResponse {}
-export interface GetAuthFailureWarningOptions {}
-export interface GetAuthFailureWarningOptionsResponse {
-  monitorPeriodRange: IntRange;
-  authFailureRange: IntRange;
-}
-export interface GetAuthFailureWarningConfiguration {}
 export interface GetAuthFailureWarningConfigurationResponse {
   enabled: boolean;
   monitorPeriod: number;
@@ -495,37 +352,17 @@ export interface SetAuthFailureWarningConfiguration {
   monitorPeriod: number;
   maxAuthFailures: number;
 }
-export interface SetAuthFailureWarningConfigurationResponse {}
 export interface GetCapabilities {
   /** List of categories to retrieve capability information on. */
   category?: CapabilityCategory[];
-}
-export interface GetCapabilitiesResponse {
-  /** Capability information. */
-  capabilities: Capabilities;
-}
-export interface GetHostname {}
-export interface GetHostnameResponse {
-  /** Contains the hostname information. */
-  hostnameInformation: HostnameInformation;
 }
 export interface SetHostname {
   /** The hostname to set. */
   name: string;
 }
-export interface SetHostnameResponse {}
 export interface SetHostnameFromDHCP {
   /** True if the hostname shall be obtained via DHCP. */
   fromDHCP: boolean;
-}
-export interface SetHostnameFromDHCPResponse {
-  /** Indicates whether or not a reboot is required after configuration updates. */
-  rebootNeeded: boolean;
-}
-export interface GetDNS {}
-export interface GetDNSResponse {
-  /** DNS information. */
-  DNSInformation: DNSInformation;
 }
 export interface SetDNS {
   /** Indicate if the DNS address is to be retrieved using DHCP. */
@@ -535,23 +372,11 @@ export interface SetDNS {
   /** DNS address(es) set manually. */
   DNSManual?: IPAddress[];
 }
-export interface SetDNSResponse {}
-export interface GetNTP {}
-export interface GetNTPResponse {
-  /** NTP information. */
-  NTPInformation: NTPInformation;
-}
 export interface SetNTP {
   /** Indicate if NTP address information is to be retrieved using DHCP. */
   fromDHCP: boolean;
   /** Manual NTP settings. */
   NTPManual?: NetworkHost[];
-}
-export interface SetNTPResponse {}
-export interface GetDynamicDNS {}
-export interface GetDynamicDNSResponse {
-  /** Dynamic DNS information. */
-  dynamicDNSInformation: DynamicDNSInformation;
 }
 export interface SetDynamicDNS {
   /** Dynamic DNS type. */
@@ -561,45 +386,15 @@ export interface SetDynamicDNS {
   /** DNS record time to live. */
   TTL?: Duration;
 }
-export interface SetDynamicDNSResponse {}
-export interface GetNetworkInterfaces {}
-export interface GetNetworkInterfacesResponse {
-  /** List of network interfaces. */
-  networkInterfaces: NetworkInterface[];
-}
 export interface SetNetworkInterfaces {
   /** Symbolic network interface name. */
   interfaceToken: ReferenceToken;
   /** Network interface name. */
   networkInterface: NetworkInterfaceSetConfiguration;
 }
-export interface SetNetworkInterfacesResponse {
-  /**
-   * Indicates whether or not a reboot is required after configuration updates.
-   * If a device responds with RebootNeeded set to false, the device can be reached
-   * via the new IP address without further action. A client should be aware that a device
-   * may not be responsive for a short period of time until it signals availability at
-   * the new address via the discovery Hello messages.
-   * If a device responds with RebootNeeded set to true, it will be further available under
-   * its previous IP address. The settings will only be activated when the device is
-   * rebooted via the SystemReboot command.
-   */
-  rebootNeeded: boolean;
-}
-export interface GetNetworkProtocols {}
-export interface GetNetworkProtocolsResponse {
-  /** Contains an array of defined protocols supported by the device. There are three protocols defined; HTTP, HTTPS and RTSP. The following parameters can be retrieved for each protocol: port and enable/disable. */
-  networkProtocols?: NetworkProtocol[];
-}
 export interface SetNetworkProtocols {
   /** Configures one or more defined network protocols supported by the device. There are currently three protocols defined; HTTP, HTTPS and RTSP. The following parameters can be set for each protocol: port and enable/disable. */
   networkProtocols: NetworkProtocol[];
-}
-export interface SetNetworkProtocolsResponse {}
-export interface GetNetworkDefaultGateway {}
-export interface GetNetworkDefaultGatewayResponse {
-  /** Gets the default IPv4 and IPv6 gateway settings from the device. */
-  networkGateway: NetworkGateway;
 }
 export interface SetNetworkDefaultGateway {
   /** Sets IPv4 gateway address used as default setting. */
@@ -607,43 +402,24 @@ export interface SetNetworkDefaultGateway {
   /** Sets IPv6 gateway address used as default setting. */
   IPv6Address?: IPv6Address[];
 }
-export interface SetNetworkDefaultGatewayResponse {}
-export interface GetZeroConfiguration {}
-export interface GetZeroConfigurationResponse {
-  /** Contains the zero-configuration. */
-  zeroConfiguration: NetworkZeroConfiguration;
-}
 export interface SetZeroConfiguration {
   /** Unique identifier referencing the physical interface. */
   interfaceToken: ReferenceToken;
   /** Specifies if the zero-configuration should be enabled or not. */
   enabled: boolean;
 }
-export interface SetZeroConfigurationResponse {}
-export interface GetIPAddressFilter {}
-export interface GetIPAddressFilterResponse {
-  IPAddressFilter: IPAddressFilter;
-}
 export interface SetIPAddressFilter {
   IPAddressFilter: IPAddressFilter;
 }
-export interface SetIPAddressFilterResponse {}
 export interface AddIPAddressFilter {
   IPAddressFilter: IPAddressFilter;
 }
-export interface AddIPAddressFilterResponse {}
 export interface RemoveIPAddressFilter {
   IPAddressFilter: IPAddressFilter;
-}
-export interface RemoveIPAddressFilterResponse {}
-export interface GetAccessPolicy {}
-export interface GetAccessPolicyResponse {
-  policyFile: BinaryData;
 }
 export interface SetAccessPolicy {
   policyFile: BinaryData;
 }
-export interface SetAccessPolicyResponse {}
 export interface CreateCertificate {
   /** Certificate id. */
   certificateID?: string;
@@ -654,30 +430,14 @@ export interface CreateCertificate {
   /** Certificate expiry start date. */
   validNotAfter?: Date;
 }
-export interface CreateCertificateResponse {
-  /** base64 encoded DER representation of certificate. */
-  nvtCertificate: Certificate;
-}
-export interface GetCertificates {}
-export interface GetCertificatesResponse {
-  /** Id and base64 encoded DER representation of all available certificates. */
-  nvtCertificate?: Certificate[];
-}
-export interface GetCertificatesStatus {}
-export interface GetCertificatesStatusResponse {
-  /** Indicates if a certificate is used in an optional HTTPS configuration of the device. */
-  certificateStatus?: CertificateStatus[];
-}
 export interface SetCertificatesStatus {
   /** Indicates if a certificate is to be used in an optional HTTPS configuration of the device. */
   certificateStatus?: CertificateStatus[];
 }
-export interface SetCertificatesStatusResponse {}
 export interface DeleteCertificates {
   /** List of ids of certificates to delete. */
   certificateID: string[];
 }
-export interface DeleteCertificatesResponse {}
 export interface GetPkcs10Request {
   /** List of ids of certificates to delete. */
   certificateID: string;
@@ -686,165 +446,74 @@ export interface GetPkcs10Request {
   /** Optional base64 encoded DER attributes. */
   attributes?: BinaryData;
 }
-export interface GetPkcs10RequestResponse {
-  /** base64 encoded DER representation of certificate. */
-  pkcs10Request: BinaryData;
-}
 export interface LoadCertificates {
   /** Optional id and base64 encoded DER representation of certificate. */
   NVTCertificate: Certificate[];
-}
-export interface LoadCertificatesResponse {}
-export interface GetClientCertificateMode {}
-export interface GetClientCertificateModeResponse {
-  /** Indicates whether or not client certificates are required by device. */
-  enabled: boolean;
 }
 export interface SetClientCertificateMode {
   /** Indicates whether or not client certificates are required by device. */
   enabled: boolean;
 }
-export interface SetClientCertificateModeResponse {}
-export interface GetCACertificates {}
-export interface GetCACertificatesResponse {
-  CACertificate?: Certificate[];
-}
 export interface LoadCertificateWithPrivateKey {
   certificateWithPrivateKey: CertificateWithPrivateKey[];
 }
-export interface LoadCertificateWithPrivateKeyResponse {}
 export interface GetCertificateInformation {
   certificateID: string;
-}
-export interface GetCertificateInformationResponse {
-  certificateInformation: CertificateInformation;
 }
 export interface LoadCACertificates {
   CACertificate: Certificate[];
 }
-export interface LoadCACertificatesResponse {}
 export interface CreateDot1XConfiguration {
   dot1XConfiguration: Dot1XConfiguration;
 }
-export interface CreateDot1XConfigurationResponse {}
 export interface SetDot1XConfiguration {
   dot1XConfiguration: Dot1XConfiguration;
 }
-export interface SetDot1XConfigurationResponse {}
 export interface GetDot1XConfiguration {
   dot1XConfigurationToken: ReferenceToken;
 }
-export interface GetDot1XConfigurationResponse {
-  dot1XConfiguration: Dot1XConfiguration;
-}
-export interface GetDot1XConfigurations {}
-export interface GetDot1XConfigurationsResponse {
-  dot1XConfiguration?: Dot1XConfiguration[];
-}
 export interface DeleteDot1XConfiguration {
   dot1XConfigurationToken?: ReferenceToken[];
-}
-export interface DeleteDot1XConfigurationResponse {}
-export interface GetRelayOutputs {}
-export interface GetRelayOutputsResponse {
-  relayOutputs?: RelayOutput[];
 }
 export interface SetRelayOutputSettings {
   relayOutputToken: ReferenceToken;
   properties: RelayOutputSettings;
 }
-export interface SetRelayOutputSettingsResponse {}
 export interface SetRelayOutputState {
   relayOutputToken: ReferenceToken;
   logicalState: RelayLogicalState;
 }
-export interface SetRelayOutputStateResponse {}
 export interface SendAuxiliaryCommand {
   auxiliaryCommand: AuxiliaryData;
-}
-export interface SendAuxiliaryCommandResponse {
-  auxiliaryCommandResponse?: AuxiliaryData;
-}
-export interface GetDot11Capabilities {
-  [key: string]: unknown;
-}
-export interface GetDot11CapabilitiesResponse {
-  capabilities: Dot11Capabilities;
 }
 export interface GetDot11Status {
   interfaceToken: ReferenceToken;
 }
-export interface GetDot11StatusResponse {
-  status: Dot11Status;
-}
 export interface ScanAvailableDot11Networks {
   interfaceToken: ReferenceToken;
 }
-export interface ScanAvailableDot11NetworksResponse {
-  networks?: Dot11AvailableNetworks[];
-}
-export interface GetSystemUris {}
-export interface GetSystemUrisResponse {
-  systemLogUris?: SystemLogUriList;
-  supportInfoUri?: AnyURI;
-  systemBackupUri?: AnyURI;
-  extension?: Extension;
-}
-export interface StartFirmwareUpgrade {}
-export interface StartFirmwareUpgradeResponse {
-  uploadUri: AnyURI;
-  uploadDelay: Duration;
-  expectedDownTime: Duration;
-}
 export interface UpgradeFirmware {
   version: string;
-}
-export interface UpgradeFirmwareResponse {
-  expectedDownTime: Duration;
-}
-export interface StartSystemRestore {}
-export interface StartSystemRestoreResponse {
-  uploadUri: AnyURI;
-  expectedDownTime: Duration;
 }
 export interface SetHashingAlgorithm {
   /** Hashing algorithm(s) used in HTTP and RTSP Digest Authentication. */
   algorithm: StringList;
 }
-export interface SetHashingAlgorithmResponse {}
-export interface GetStorageConfigurations {}
-export interface GetStorageConfigurationsResponse {
-  storageConfigurations?: StorageConfiguration[];
-}
 export interface CreateStorageConfiguration {
   storageConfiguration: StorageConfigurationData;
-}
-export interface CreateStorageConfigurationResponse {
-  token: ReferenceToken;
 }
 export interface GetStorageConfiguration {
   token: ReferenceToken;
 }
-export interface GetStorageConfigurationResponse {
-  storageConfiguration: StorageConfiguration;
-}
 export interface SetStorageConfiguration {
   storageConfiguration: StorageConfiguration;
 }
-export interface SetStorageConfigurationResponse {}
 export interface DeleteStorageConfiguration {
   token: ReferenceToken;
-}
-export interface DeleteStorageConfigurationResponse {}
-export interface GetGeoLocation {}
-export interface GetGeoLocationResponse {
-  location?: LocationEntity[];
 }
 export interface SetGeoLocation {
   location?: LocationEntity[];
 }
-export interface SetGeoLocationResponse {}
 export interface DeleteGeoLocation {
   location?: LocationEntity[];
 }
-export interface DeleteGeoLocationResponse {}

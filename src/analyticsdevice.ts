@@ -23,9 +23,7 @@ import {
 import {
   Capabilities,
   CreateAnalyticsEngineControl,
-  CreateAnalyticsEngineControlResponse,
   CreateAnalyticsEngineInputs,
-  CreateAnalyticsEngineInputsResponse,
   DeleteAnalyticsEngineControl,
   DeleteAnalyticsEngineInputs,
   GetAnalyticsDeviceStreamUri,

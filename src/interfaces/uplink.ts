@@ -1,10 +1,6 @@
 import { StringList } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken } from './common';
-
-export type Protocols = 'https' | 'wss';
-export type AuthorizationModes = 'mTLS' | 'AccessToken';
-export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
 export interface Capabilities {
   /** Maximum number of uplink connections that can be configured. */
   maxUplinks?: number;
@@ -15,6 +11,7 @@ export interface Capabilities {
   /** Signals support for media streaming over uplink. */
   streamingOverUplink?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Configuration {
   /** Uniform resource locator by which the remote client can be reached. */
@@ -35,24 +32,13 @@ export interface Configuration {
   /** Optional user readable error information (readonly). */
   error?: string;
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the uplink service is returned in the Capabilities element. */
-  capabilities: Capabilities;
-}
-export interface GetUplinks {}
-export interface GetUplinksResponse {
-  /** List of configured uplinks. */
-  configuration?: Configuration[];
+  [key: symbol]: unknown;
 }
 export interface SetUplink {
   /** Configuration to be added or modified. */
   configuration: Configuration;
 }
-export interface SetUplinkResponse {}
 export interface DeleteUplink {
   /** Uniform resource locator of the configuration to be deleted. */
   remoteAddress: AnyURI;
 }
-export interface DeleteUplinkResponse {}

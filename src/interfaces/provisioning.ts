@@ -1,6 +1,5 @@
-import { PositiveInteger } from './types';
+import { PositiveInteger, Duration } from './basics';
 import { ReferenceToken } from './common';
-import { Duration } from './basics';
 
 /** The direction for PanMove to move the device. */
 export type PanDirection = 'Left' | 'Right';
@@ -25,6 +24,7 @@ export interface Usage {
   /** The quantity of focus movement events over the life of the device. */
   focus?: PositiveInteger;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The provisioning capabilities of a video source on the device. */
 export interface SourceCapabilities {
@@ -45,6 +45,7 @@ export interface SourceCapabilities {
   /** Indicates "auto" as a valid enum for Direction in FocusMove. */
   autoFocus?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The capabilities of Provisioning Service on the device. */
 export interface Capabilities {
@@ -53,11 +54,7 @@ export interface Capabilities {
   /** Capabilities per video source. */
   source?: SourceCapabilities[];
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the provisioning service on this device. */
-  capabilities: Capabilities;
+  [key: symbol]: unknown;
 }
 export interface PanMove {
   /** The video source associated with the provisioning. */
@@ -67,7 +64,6 @@ export interface PanMove {
   /** "Operation timeout, if less than default timeout. */
   timeout?: Duration;
 }
-export interface PanMoveResponse {}
 export interface TiltMove {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
@@ -76,7 +72,6 @@ export interface TiltMove {
   /** "Operation timeout, if less than default timeout. */
   timeout?: Duration;
 }
-export interface TiltMoveResponse {}
 export interface ZoomMove {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
@@ -85,7 +80,6 @@ export interface ZoomMove {
   /** "Operation timeout, if less than default timeout. */
   timeout?: Duration;
 }
-export interface ZoomMoveResponse {}
 export interface RollMove {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
@@ -94,7 +88,6 @@ export interface RollMove {
   /** "Operation timeout, if less than default timeout. */
   timeout?: Duration;
 }
-export interface RollMoveResponse {}
 export interface FocusMove {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
@@ -103,17 +96,11 @@ export interface FocusMove {
   /** "Operation timeout, if less than default timeout. */
   timeout?: Duration;
 }
-export interface FocusMoveResponse {}
 export interface Stop {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
 }
-export interface StopResponse {}
 export interface GetUsage {
   /** The video source associated with the provisioning. */
   videoSource: ReferenceToken;
-}
-export interface GetUsageResponse {
-  /** The set of lifetime usage values for the provisioning associated with the video source. */
-  usage: Usage;
 }

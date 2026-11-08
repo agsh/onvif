@@ -7,7 +7,6 @@ import {
   MoveStatus,
   Rectangle,
   Vector,
-  Transformation,
   Color,
 } from './common';
 import { Duration, FilterType, AnyURI } from './basics';
@@ -18,30 +17,12 @@ export type IntList = number[];
 export type FloatList = number[];
 export type StringAttrList = string[];
 export type StringList = string[];
-export type ReferenceTokenList = ReferenceToken[];
 export type RotateMode = 'OFF' | 'ON' | 'AUTO';
 export type SceneOrientationMode = 'MANUAL' | 'AUTO';
-export type SceneOrientationOption = 'Below' | 'Horizon' | 'Above';
-/** Source view modes supported by device. */
-export type ViewModes =
-  | 'tt:Fisheye'
-  | 'tt:360Panorama'
-  | 'tt:180Panorama'
-  | 'tt:Quad'
-  | 'tt:Original'
-  | 'tt:LeftHalf'
-  | 'tt:RightHalf'
-  | 'tt:Dewarp';
 export type VideoEncoding = 'JPEG' | 'MPEG4' | 'H264';
 export type Mpeg4Profile = 'SP' | 'ASP';
 export type H264Profile = 'Baseline' | 'Main' | 'Extended' | 'High';
-/** Video Media Subtypes as referenced by IANA (without the leading "video/" Video Media Type).  See also  IANA Media Types. */
-export type VideoEncodingMimeNames = 'JPEG' | 'MPV4-ES' | 'H264' | 'H265';
-export type VideoEncodingProfiles = 'Simple' | 'AdvancedSimple' | 'Baseline' | 'Main' | 'Main10' | 'Extended' | 'High';
 export type AudioEncoding = 'G711' | 'G726' | 'AAC';
-/** Audio Media Subtypes as referenced by IANA (without the leading "audio/" Audio Media Type and except for the audio types defined in the restriction).  See also  IANA Media Types. */
-export type AudioEncodingMimeNames = 'PCMU' | 'G726' | 'MP4A-LATM' | 'mpeg4-generic';
-export type MetadataCompressionType = 'None' | 'GZIP' | 'EXI';
 export type StreamType = 'RTP-Unicast' | 'RTP-Multicast';
 export type TransportProtocol = 'UDP' | 'TCP' | 'RTSP' | 'HTTP';
 export type ScopeDefinition = 'Fixed' | 'Configurable';
@@ -57,7 +38,6 @@ export type IPv6Address = string;
 export type HwAddress = string;
 export type IPType = 'IPv4' | 'IPv6';
 export type DNSName = string;
-export type Domain = string;
 export type IPAddressFilterType = 'Allow' | 'Deny';
 export type DynamicDNSType = 'NoUpdate' | 'ClientUpdates' | 'ServerUpdates';
 export type Dot11SSIDType = unknown;
@@ -66,8 +46,6 @@ export type Dot11SecurityMode = 'None' | 'WEP' | 'PSK' | 'Dot1X' | 'Extended';
 export type Dot11Cipher = 'CCMP' | 'TKIP' | 'Any' | 'Extended';
 export type Dot11PSK = unknown;
 export type Dot11PSKPassphrase = string;
-export type Dot11SignalStrength = 'None' | 'Very Bad' | 'Bad' | 'Good' | 'Very Good' | 'Extended';
-export type Dot11AuthAndMangementSuite = 'None' | 'Dot1X' | 'PSK' | 'Extended';
 export type CapabilityCategory = 'All' | 'Analytics' | 'Device' | 'Events' | 'Imaging' | 'Media' | 'PTZ';
 /** Enumeration describing the available system log modes. */
 export type SystemLogType = 'System' | 'Access';
@@ -85,50 +63,30 @@ export type AuxiliaryData = string;
 export type PTZPresetTourState = 'Idle' | 'Touring' | 'Paused' | 'Extended';
 export type PTZPresetTourDirection = 'Forward' | 'Backward' | 'Extended';
 export type PTZPresetTourOperation = 'Start' | 'Stop' | 'Pause' | 'Extended';
-export type MoveAndTrackMethod = 'PresetToken' | 'GeoLocation' | 'PTZVector' | 'ObjectID';
 export type AutoFocusMode = 'AUTO' | 'MANUAL';
-export type AFModes = 'OnceAfterMove';
 export type WideDynamicMode = 'OFF' | 'ON';
 /** Enumeration describing the available backlight compenstation modes. */
 export type BacklightCompensationMode = 'OFF' | 'ON';
 export type ExposurePriority = 'LowNoise' | 'FrameRate';
 export type ExposureMode = 'AUTO' | 'MANUAL';
-export type Enabled = 'ENABLED' | 'DISABLED';
 export type WhiteBalanceMode = 'AUTO' | 'MANUAL';
 export type IrCutFilterMode = 'ON' | 'OFF' | 'AUTO';
 export type ImageStabilizationMode = 'OFF' | 'ON' | 'AUTO' | 'Extended';
-export type IrCutFilterAutoBoundaryType = 'Common' | 'ToOn' | 'ToOff' | 'Extended';
-export type ToneCompensationMode = 'OFF' | 'ON' | 'AUTO';
-export type DefoggingMode = 'OFF' | 'ON' | 'AUTO';
-export type ImageSendingType = 'Embedded' | 'LocalStorage' | 'RemoteStorage';
-export type PropertyOperation = 'Initialized' | 'Deleted' | 'Changed';
-/** Entering represents object coming into the polygon boundary. */
-export type ExtendedDirection = 'Left' | 'Right' | 'Any' | 'Entering' | 'Exiting' | 'Approaching' | 'Departing';
 /** Specifies a receiver connection mode. */
 export type ReceiverMode = 'AutoConnect' | 'AlwaysConnect' | 'NeverConnect' | 'Unknown';
 /** Specifies the current connection state of the receiver. */
 export type ReceiverState = 'NotConnected' | 'Connecting' | 'Connected' | 'Unknown';
-export type ReceiverReference = ReferenceToken;
 export type RecordingReference = ReferenceToken;
 export type TrackReference = ReferenceToken;
 export type Description = string;
 export type XPathExpression = string;
 export type SearchState = 'Queued' | 'Searching' | 'Completed' | 'Unknown';
 export type JobToken = ReferenceToken;
-export type TargetFormat = 'MP4' | 'CMAF';
-export type EncryptionMode = 'CENC' | 'CBCS';
 export type RecordingStatus = 'Initiated' | 'Recording' | 'Stopped' | 'Removing' | 'Removed' | 'Unknown';
 export type TrackType = 'Video' | 'Audio' | 'Metadata' | 'Extended';
 export type RecordingJobReference = ReferenceToken;
 export type RecordingJobMode = string;
-export type RecordingJobState = string;
 export type ModeOfOperation = 'Idle' | 'Active' | 'Unknown';
-/**
- * AudioClassType acceptable values are;
- * gun_shot, scream, glass_breaking, tire_screech
- */
-export type AudioClassType = 'gun_shot' | 'scream' | 'glass_breaking' | 'tire_screech';
-export type AudioClassification = 'GunShot' | 'Scream' | 'GlassBreaking' | 'TireScreech' | 'Alarm';
 export type OSDType = 'Text' | 'Image' | 'Extended';
 /** Base class for physical entities like inputs and outputs. */
 export interface DeviceEntity {
@@ -170,9 +128,6 @@ export interface IntItems {
 export interface FloatItems {
   items?: number[];
 }
-export interface AnyHolder {
-  [key: string]: unknown;
-}
 /** Representation of a physical video input. */
 export interface VideoSource extends DeviceEntity {
   /** Frame rate in frames per second. */
@@ -194,11 +149,12 @@ export interface AudioSource extends DeviceEntity {
   /** number of available audio channels. (1: mono, 2: stereo) */
   channels: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * A media profile consists of a set of media configurations. Media profiles are used by a client
  * to configure properties of a media stream from an NVT.
- * An NVT shall provide at least one media profile at boot. An NVT should provide “ready to use”
+ * An NVT shall provide at least one media profile at boot. An NVT should provide "ready to use"
  * profiles for the most common media configurations that the device offers.
  * A profile consists of a set of interconnected configuration entities. Configurations are provided
  * by the NVT and can be either static or created dynamically by the NVT. For example, the
@@ -261,7 +217,7 @@ export interface VideoSourceConfigurationExtension {
    * What resolutions a device supports shall be unaffected by the Rotate parameters.
    * If a device is configured with Rotate=AUTO, the device shall take control over the Degree parameter and automatically update it so that a client can query current rotation.
    * The device shall automatically apply the same rotation to its pan/tilt control direction depending on the following condition:
-   * if Reverse=AUTO in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection
+   * if Reverse=AUTO in PTControlDirection or if the device doesn't support Reverse in PTControlDirection
    */
   rotate?: Rotate;
   extension?: VideoSourceConfigurationExtension2;
@@ -269,13 +225,13 @@ export interface VideoSourceConfigurationExtension {
 export interface VideoSourceConfigurationExtension2 {
   /** Optional element describing the geometric lens distortion. Multiple instances for future variable lens support. */
   lensDescription?: LensDescription[];
-  /** Optional element describing the scene orientation in the camera’s field of view. */
+  /** Optional element describing the scene orientation in the camera's field of view. */
   sceneOrientation?: SceneOrientation;
 }
 export interface Rotate {
   /**
    * When enabled, the video will be flipped horizontally. If applied alongside rotation, the mirror effect shall be executed after the rotation. Additionally,
-   * when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn’t support Reverse in PTControlDirection, the device shall automatically adjust the pan direction.
+   * when Mirror is enabled and Reverse=Auto is set in PTControlDirection or if the device doesn't support Reverse in PTControlDirection, the device shall automatically adjust the pan direction.
    */
   mirror?: boolean;
   /** Parameter to enable/disable Rotation feature. */
@@ -293,6 +249,7 @@ export interface LensProjection {
   /** Optional ray absorption at the given angle due to vignetting. A value of one means no absorption. */
   transmittance?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface LensOffset {
   /** Optional horizontal offset of the lens center in normalized coordinates. */
@@ -314,6 +271,7 @@ export interface LensDescription {
   /** Compensation of the x coordinate needed for the ONVIF normalized coordinate system. */
   XFactor: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoSourceConfigurationOptions {
   /** Maximum number of profiles. */
@@ -386,6 +344,7 @@ export interface VideoEncoderConfiguration extends ConfigurationEntity {
   /** The rtsp session timeout for the related video stream */
   sessionTimeout: Duration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoResolution {
   /** Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image. */
@@ -398,7 +357,7 @@ export interface VideoRateControl {
   frameRateLimit: number;
   /** Interval at which images are encoded and transmitted. (A value of 1 means that every frame is encoded, a value of 2 means that every 2nd frame is encoded ...) */
   encodingInterval: number;
-  /** the maximum output bitrate in kbps */
+  /** The maximum output bitrate in kbps. */
   bitrateLimit: number;
 }
 export interface Mpeg4Configuration {
@@ -448,6 +407,7 @@ export interface JpegOptions2 extends JpegOptions {
   /** Supported range of encoded bitrate in kbps. */
   bitrateRange: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Mpeg4Options {
   /** List of supported image sizes. */
@@ -465,6 +425,7 @@ export interface Mpeg4Options2 extends Mpeg4Options {
   /** Supported range of encoded bitrate in kbps. */
   bitrateRange: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface H264Options {
   /** List of supported image sizes. */
@@ -482,6 +443,7 @@ export interface H264Options2 extends H264Options {
   /** Supported range of encoded bitrate in kbps. */
   bitrateRange: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoEncoder2Configuration extends ConfigurationEntity {
   /** Group of Video frames length. Determines typically the interval in which the I-Frames will be coded. An entry of 1 indicates I-Frames are continuously generated. An entry of 2 indicates that every 2nd image is an I-Frame, and 3 only every 3rd frame, etc. The frames in between are coded as P or B Frames. */
@@ -498,6 +460,8 @@ export interface VideoEncoder2Configuration extends ConfigurationEntity {
   guaranteedFrameRate?: boolean;
   /** Indicates if this stream will be signed according to the Media Signing Specification. */
   signed?: boolean;
+  /** Defines the cryptographic algorithm to use as defined by tt:SrtpSecurityAlgorithms */
+  secureStreamingProtocolAlgorithm?: string;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding: string;
   /** Configured video resolution */
@@ -509,6 +473,7 @@ export interface VideoEncoder2Configuration extends ConfigurationEntity {
   /** Relative value for the video quantizers and the quality of the video. A high value within supported quality range means higher quality */
   quality: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoResolution2 {
   /** Number of the columns of the Video image. If there is a 90-degree rotation, this represents the number of lines of the Video image. */
@@ -516,6 +481,7 @@ export interface VideoResolution2 {
   /** Number of the lines of the Video image. If there is a 90-degree rotation, this represents the number of columns of the Video image. */
   height: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoRateControl2 {
   /** Enforce constant bitrate. */
@@ -524,7 +490,10 @@ export interface VideoRateControl2 {
   frameRateLimit: number;
   /** the maximum output bitrate in kbps */
   bitrateLimit: number;
+  /** The target average output bitrate in kbps. If this parameter is set to 0, AverageBitRate shall be ignored. */
+  averageBitRate?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoEncoder2ConfigurationOptions {
   /** Exactly two values, which define the Lower and Upper bounds for the supported group of Video frames length. These values typically correspond to the I-Frame distance. */
@@ -537,8 +506,14 @@ export interface VideoEncoder2ConfigurationOptions {
   profilesSupported?: StringAttrList;
   /** Signal whether enforcing constant bitrate is supported. */
   constantBitRateSupported?: boolean;
+  /** Signal whether enforcing average bitrate is supported. */
+  averageBitRateSupported?: boolean;
   /** Indicates the support for the GuaranteedFrameRate attribute on the VideoEncoder2Configuration element. */
   guaranteedFrameRateSupported?: boolean;
+  /** If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms. */
+  secureStreamingProtocolAlgorithms?: StringAttrList;
+  /** Indicates the support for signing according to the Media Signing Specification. */
+  signingSupported?: boolean;
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding: string;
   /** Range of the quality values. A high value means higher quality. */
@@ -548,11 +523,13 @@ export interface VideoEncoder2ConfigurationOptions {
   /** Supported range of encoded bitrate in kbps. */
   bitrateRange: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioSourceConfiguration extends ConfigurationEntity {
   /** Token of the Audio Source the configuration applies to */
   sourceToken: ReferenceToken;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioSourceConfigurationOptions {
   /** Tokens of the audio source the configuration can be used for. */
@@ -561,9 +538,10 @@ export interface AudioSourceConfigurationOptions {
 }
 export interface AudioSourceOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioEncoderConfiguration extends ConfigurationEntity {
-  /** Audio codec used for encoding the audio input (either G.711, G.726 or AAC) */
+  /** Audio codec used for encoding the audio input (either G.711, G.726 or AAC). */
   encoding: AudioEncoding;
   /** The output bitrate in kbps. */
   bitrate: number;
@@ -574,21 +552,25 @@ export interface AudioEncoderConfiguration extends ConfigurationEntity {
   /** The rtsp session timeout for the related audio stream */
   sessionTimeout: Duration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioEncoderConfigurationOptions {
   /** list of supported AudioEncoderConfigurations */
   options?: AudioEncoderConfigurationOption[];
 }
 export interface AudioEncoderConfigurationOption {
-  /** The enoding used for audio data (either G.711, G.726 or AAC) */
+  /** The enoding used for audio data (either G.711, G.726 or AAC). */
   encoding: AudioEncoding;
-  /** List of supported bitrates in kbps for the specified Encoding */
+  /** List of supported bitrates in kbps for the specified Encoding. */
   bitrateList: IntItems;
-  /** List of supported Sample Rates in kHz for the specified Encoding */
+  /** List of supported Sample Rates in kHz for the specified Encoding. */
   sampleRateList: IntItems;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioEncoder2Configuration extends ConfigurationEntity {
+  /** Defines the cryptographic algorithm to use as defined by tt:SrtpSecurityAlgorithms */
+  secureStreamingProtocolAlgorithm?: string;
   /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
   encoding: string;
   /** Optional multicast configuration of the audio stream. */
@@ -598,20 +580,13 @@ export interface AudioEncoder2Configuration extends ConfigurationEntity {
   /** The output sample rate in kHz. */
   sampleRate: number;
   [key: string]: unknown;
-}
-export interface AudioEncoder2ConfigurationOptions {
-  /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
-  encoding: string;
-  /** List of supported bitrates in kbps for the specified Encoding */
-  bitrateList: IntItems;
-  /** List of supported Sample Rates in kHz for the specified Encoding */
-  sampleRateList: IntItems;
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoAnalyticsConfiguration extends ConfigurationEntity {
   analyticsEngineConfiguration: AnalyticsEngineConfiguration;
   ruleEngineConfiguration: RuleEngineConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MetadataConfiguration extends ConfigurationEntity {
   /** Optional parameter to configure compression type of Metadata payload. Use values from enumeration MetadataCompressionType. */
@@ -620,7 +595,9 @@ export interface MetadataConfiguration extends ConfigurationEntity {
   geoLocation?: boolean;
   /** Optional parameter to configure if the generated metadata stream should contain shape information as polygon. */
   shapePolygon?: boolean;
-  /** optional element to configure which PTZ related data is to include in the metadata stream */
+  /** The cryptographic algorithm used as defined by tt:SrtpSecurityAlgorithms */
+  secureStreamingProtocolAlgorithm?: string;
+  /** Optional element to configure which PTZ related data is to include in the metadata stream. */
   PTZStatus?: PTZFilter;
   /**
    * Optional element to configure the streaming of events. A client might be interested in receiving all,
@@ -642,22 +619,47 @@ export interface MetadataConfiguration extends ConfigurationEntity {
    * Note that the streaming behavior is undefined if the list includes items that are not part of the associated AnalyticsConfiguration.
    */
   analyticsEngineConfiguration?: AnalyticsEngineConfiguration;
+  /**
+   * Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all,
+   * none or some of the sensor data produced by the device:
+   * To get all sensor data: Include the SensorData element but do not include any filter criteria.
+   * To get no sensor data: Do not include the SensorData element.
+   * To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).
+   *
+   */
+  sensorData?: SensorDataFilter;
   extension?: MetadataConfigurationExtension;
 }
 export interface MetadataConfigurationExtension {}
 export interface PTZFilter {
-  /** True if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN) */
+  /** True if the metadata stream shall contain the PTZ status (IDLE, MOVING or UNKNOWN). */
   status: boolean;
-  /** True if the metadata stream shall contain the PTZ position */
+  /** True if the metadata stream shall contain the PTZ position. */
   position: boolean;
-  /** True if the metadata stream shall contain the field-of-view information */
+  /** True if the metadata stream shall contain the field-of-view information. */
   fieldOfView?: boolean;
+}
+/**
+ * Optional element to configure which sensor data is to include in the metadata stream. A client might be interested in receiving all, none or some of the sensor data produced by the device:
+ *
+ * To get all sensor data: Include the SensorData element but do not include any filter criteria.
+ * To get no sensor data: Do not include the SensorData element.
+ * To get only some sensor data: Include the SensorData element and specify filter criteria (SensorID list, Type list, etc.).
+ *
+ */
+export interface SensorDataFilter {
+  /** List of SensorID values to include in the metadata stream. If not specified or empty, all sensor IDs are included (unless other filters exclude them). */
+  sensorID?: string[];
+  /** List of sensor Type values to include in the metadata stream. If not specified or empty, all sensor types are included (unless other filters exclude them). */
+  type?: string[];
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SubscriptionPolicy {
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
-/** Subcription handling in the same way as base notification subscription. */
+/** Subscription handling in the same way as base notification subscription. */
 export interface EventSubscription {
   filter?: FilterType;
   subscriptionPolicy?: SubscriptionPolicy;
@@ -667,7 +669,11 @@ export interface MetadataConfigurationOptions {
   geoLocation?: boolean;
   /** A device signalling support for content filtering shall support expressions with the provided expression size. */
   maxContentFilterSize?: number;
+  /** If secure RTSP streaming is supported, this shall return the list of supported cryptographic algorithms as defined by tt:SrtpSecurityAlgorithms. */
+  secureStreamingProtocolAlgorithms?: StringAttrList;
   PTZStatusFilterOptions: PTZStatusFilterOptions;
+  /** Optional element indicating the sensor data filtering capabilities of the device. */
+  sensorDataFilterOptions?: SensorDataFilterOptions;
   extension?: MetadataConfigurationOptionsExtension;
 }
 export interface MetadataConfigurationOptionsExtension {
@@ -690,6 +696,12 @@ export interface PTZStatusFilterOptions {
   fieldOfViewSupported?: boolean;
 }
 export interface PTZStatusFilterOptionsExtension {}
+export interface SensorDataFilterOptions {
+  /** True if the device supports filtering sensor data by SensorID. */
+  sensorIDFilterSupported: boolean;
+  /** True if the device supports filtering sensor data by Type. */
+  typeFilterSupported: boolean;
+}
 /** Representation of a physical video outputs. */
 export interface VideoOutput extends DeviceEntity {
   layout: Layout;
@@ -706,9 +718,11 @@ export interface VideoOutputConfiguration extends ConfigurationEntity {
   /** Token of the Video Output the configuration applies to */
   outputToken: ReferenceToken;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoOutputConfigurationOptions {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoDecoderConfigurationOptions {
   /** If the device is able to decode Jpeg streams this element describes the supported codecs and configurations */
@@ -722,43 +736,48 @@ export interface VideoDecoderConfigurationOptions {
 export interface H264DecOptions {
   /** List of supported H.264 Video Resolutions */
   resolutionsAvailable?: VideoResolution[];
-  /** List of supported H264 Profiles (either baseline, main, extended or high) */
+  /** List of supported H264 Profiles (either baseline, main, extended or high). */
   supportedH264Profiles?: H264Profile[];
-  /** Supported H.264 bitrate range in kbps */
+  /** Supported H.264 bitrate range in kbps. */
   supportedInputBitrate: IntRange;
   /** Supported H.264 framerate range in fps */
   supportedFrameRate: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface JpegDecOptions {
   /** List of supported Jpeg Video Resolutions */
   resolutionsAvailable?: VideoResolution[];
-  /** Supported Jpeg bitrate range in kbps */
+  /** Supported Jpeg bitrate range in kbps. */
   supportedInputBitrate: IntRange;
   /** Supported Jpeg framerate range in fps */
   supportedFrameRate: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Mpeg4DecOptions {
   /** List of supported Mpeg4 Video Resolutions */
   resolutionsAvailable?: VideoResolution[];
   /** List of supported Mpeg4 Profiles (either SP or ASP) */
   supportedMpeg4Profiles?: Mpeg4Profile[];
-  /** Supported Mpeg4 bitrate range in kbps */
+  /** Supported Mpeg4 bitrate range in kbps. */
   supportedInputBitrate: IntRange;
   /** Supported Mpeg4 framerate range in fps */
   supportedFrameRate: IntRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface VideoDecoderConfigurationOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Representation of a physical audio outputs. */
 export interface AudioOutput extends DeviceEntity {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioOutputConfiguration extends ConfigurationEntity {
-  /** Token of the phsycial Audio output. */
+  /** Token of the physical Audio output. */
   outputToken: ReferenceToken;
   /**
    * An audio channel MAY support different types of audio transmission. While for full duplex
@@ -783,6 +802,7 @@ export interface AudioOutputConfiguration extends ConfigurationEntity {
   /** Volume setting of the output. The applicable range is defined via the option AudioOutputOptions.OutputLevelRange. */
   outputLevel: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FrequencyDecibelPair {
   /** The center frequency of the band in hertz (Readonly). For example, value of 1000 refers to 1kHz and 2000 refers to 2kHz. */
@@ -790,6 +810,7 @@ export interface FrequencyDecibelPair {
   /** Decibel value associated with the center frequency. */
   decibel: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EQPreset {
   /** Unique identifier for the preset. */
@@ -805,6 +826,7 @@ export interface EQPreset {
   /** List of frequency decibel pairs, each defined by a center frequency and its corresponding decibel value. */
   frequencyDecibelPair?: FrequencyDecibelPair[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioOutputConfigurationOptions {
   /** Tokens of the physical Audio outputs (typically one). */
@@ -836,6 +858,7 @@ export interface AudioOutputConfigurationOptions {
   /** List of supported EQPresets. */
   EQPresets?: EQPreset[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The Audio Decoder Configuration does not contain any that parameter to configure the
@@ -843,6 +866,7 @@ export interface AudioOutputConfigurationOptions {
  */
 export interface AudioDecoderConfiguration extends ConfigurationEntity {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioDecoderConfigurationOptions {
   /** If the device is able to decode AAC encoded audio this section describes the supported configurations */
@@ -854,160 +878,73 @@ export interface AudioDecoderConfigurationOptions {
   extension?: AudioDecoderConfigurationOptionsExtension;
 }
 export interface G711DecOptions {
-  /** List of supported bitrates in kbps */
+  /** List of supported bitrates in kbps. */
   bitrate: IntItems;
   /** List of supported sample rates in kHz */
   sampleRateRange: IntItems;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AACDecOptions {
-  /** List of supported bitrates in kbps */
+  /** List of supported bitrates in kbps. */
   bitrate: IntItems;
   /** List of supported sample rates in kHz */
   sampleRateRange: IntItems;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface G726DecOptions {
-  /** List of supported bitrates in kbps */
+  /** List of supported bitrates in kbps. */
   bitrate: IntItems;
   /** List of supported sample rates in kHz */
   sampleRateRange: IntItems;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioDecoderConfigurationOptionsExtension {
   [key: string]: unknown;
-}
-/** Configuration for the Multicast Audio Decoder. */
-export interface MulticastAudioDecoderConfiguration extends ConfigurationEntity {
-  /** Indicates whether the Multicast Audio Decoder is enabled or disabled. */
-  enable: boolean;
-  /** Token of the physical Audio output. This element is optional and can occur multiple times. */
-  audioOutputToken?: ReferenceToken[];
-  /** Specifies the encoding type according to IANA media types. */
-  encoding: string;
-  /** The bitrate of the audio stream in bits per second. */
-  bitrate: number;
-  /** The sampling rate of the audio stream in kHz. */
-  samplingRate: number;
-  /** Contains configuration details for multicast settings. */
-  multicast: MulticastReceiverConfiguration;
-  /**
-   * Defines the RTP payload type used for the audio stream.
-   * To ensure compatibility, it is recommended to use dynamic payload types (96 and above), as specified in RFC 3551.
-   * Standard payload types (0-95) should only be used for predefined audio formats matching the audio encoding as defined in
-   * IANA RTP Payload Types,
-   * as using them for non-standard media may lead to unexpected errors or interoperability issues.
-   */
-  RTPPayloadType: number;
-  /**
-   * Indicates the priority level when multiple configurations are active.
-   * A higher value signifies a higher priority. If several configurations have the same priority value the order between those configurations is undefined.
-   */
-  priority: number;
-  /**
-   * Optional media format parameters as specified in SDP, such as:
-   * a=fmtp:101 stereo=1; sprop-stereo=1.
-   */
-  mediaFormatParameters?: string;
-  /** Optional configuration parameters for SRTP pre-shared key usage, applicable when SRTP is supported. When this configuration is present, RTP packets shall be encrypted. */
-  SRTPPreSharedParameters?: SRTPPreShared;
-  [key: string]: unknown;
-}
-export interface SRTPPreShared {
-  /**
-   * An optional SRTP Pre-Shared Key (PSK) represented as a hexadecimal string.
-   * This includes both the SRTP master key, followed by the master salt.
-   * The sizes of the key and salt depend on the specified SRTPCryptoPolicy.
-   * When this element is specified, RTP packets shall be encrypted.
-   * The SRTPPSK shall never be returned on a get method.
-   */
-  SRTPPSK: string;
-  /**
-   * Specifies the cryptographic algorithm when using SRTP,
-   * selecting from predefined values provided in the GetMulticastAudioDecoderConfigurationOptions response.
-   */
-  secureStreamingProtocolAlgorithm: string;
-  /**
-   * The RTP header extension ID (ExtMapID) used to identify the ROC extension, as defined in RFC 8285.
-   * Valid values are 1 to 14 for one-byte header extensions.
-   */
-  ROCExtMapID: number;
-  [key: string]: unknown;
-}
-export interface MulticastReceiverConfiguration {
-  /** The multicast address (if this address is set to 0 no multicast streaming is enabled) */
-  address: IPAddress;
-  /** The RTP multicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification. */
-  port: number;
-  /** In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope. */
-  TTL: number;
-  /** Unique identifier of the network interface on the device. If not specified, all available interfaces will be used for listening. */
-  interfaceToken?: ReferenceToken[];
-  /** When a source-specific multicast address is configured, the device will process multicast data only from the specified source, in accordance with SSM principles defined in RFC 4607. */
-  sourceSpecificMulticast?: IPAddress;
-  [key: string]: unknown;
-}
-export interface MulticastAudioDecoderConfigurationOptions {
-  /** Supported encoding options for the multicast audio decoder. */
-  encodingOptions: AudioDecoder2Options;
-  /** Specifies the priority range as an integer. This indicates the priority level for audio configuration. */
-  priorityRange: IntRange;
-  /**
-   * An optional parameter specifies the list of supported cryptographic algorithms when SRTP support is signaled as 'true' in the GetServiceCapabilitiesResponse.
-   * Refer to tt:SrtpSecurityAlgorithms for the acceptable values.
-   */
-  secureStreamingProtocolAlgorithms?: StringList;
-  /** Optional list of physical Audio output tokens. This element is used when only certain audio outputs can be configured for this token. */
-  audioOutputTokens?: StringList;
-  [key: string]: unknown;
-}
-export interface AudioDecoder2Options {
-  /** Audio Media Subtype for the audio format. For definitions see tt:AudioEncodingMimeNames and  IANA Media Types. */
-  encoding: string;
-  /** List of supported bitrates in kbps for the specified Encoding */
-  bitrateList: IntItems;
-  /** List of supported Sample Rates in kHz for the specified Encoding */
-  sampleRateList: IntItems;
-  /**
-   * Optional element for specifying the RTP payload type,
-   * particularly when it is fixed for a specific audio encoding as defined in IANA RTP Payload Types.
-   */
-  RTPPayloadType?: number;
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MulticastConfiguration {
-  /** The multicast address (if this address is set to 0 no multicast streaming is enaled) */
+  /** The multicast address (if this address is set to 0 no multicast streaming is enabled) */
   address: IPAddress;
   /** The RTP mutlicast destination port. A device may support RTCP. In this case the port value shall be even to allow the corresponding RTCP stream to be mapped to the next higher (odd) destination port number as defined in the RTSP specification. */
   port: number;
   /** In case of IPv6 the TTL value is assumed as the hop limit. Note that for IPV6 and administratively scoped IPv4 multicast the primary use for hop limit / TTL is to prevent packets from (endlessly) circulating and not limiting scope. In these cases the address contains the scope. */
   TTL: number;
-  /** Read only property signalling that streaming is persistant. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state. */
+  /** Read only property signalling that streaming is persistent. Use the methods StartMulticastStreaming and StopMulticastStreaming to switch its state. */
   autoStart: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface StreamSetup {
-  /** Defines if a multicast or unicast stream is requested */
+  /** Defines if a multicast or unicast stream is requested. */
   stream: StreamType;
   transport: Transport;
   [key: string]: unknown;
+  [key: symbol]: unknown;
+}
+export interface Tunnel {
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Transport {
-  /** Defines the network protocol for streaming, either UDP=RTP/UDP, RTSP=RTP/RTSP/TCP or HTTP=RTP/RTSP/HTTP/TCP */
+  /** Defines the network protocol for streaming, either UDP=RTP/UDP, RTSP=RTP/RTSP/TCP or HTTP=RTP/RTSP/HTTP/TCP. */
   protocol: TransportProtocol;
-  /** Optional element to describe further tunnel options. This element is normally not needed */
-  tunnel?: Transport;
+  /** Deprecated: optional element to describe further tunnel options. */
+  tunnel?: Tunnel;
 }
 export interface MediaUri {
-  /** Stable Uri to be used for requesting the media stream */
+  /** Stable Uri to be used for requesting the media stream. */
   uri: AnyURI;
   /** Indicates if the Uri is only valid until the connection is established. The value shall be set to "false". */
   invalidAfterConnect: boolean;
   /** Indicates if the Uri is invalid after a reboot of the device. The value shall be set to "false". */
   invalidAfterReboot: boolean;
-  /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes */
+  /** Duration how long the Uri is valid. This parameter shall be set to PT0S to indicate that this stream URI is indefinitely valid even if the profile changes. */
   timeout: Duration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Scope {
   /** Indicates if the scope is fixed or configurable. */
@@ -1037,6 +974,7 @@ export interface NetworkInterfaceExtension {
 }
 export interface Dot3Configuration {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkInterfaceExtension2 {}
 export interface NetworkInterfaceLink {
@@ -1085,6 +1023,7 @@ export interface IPv4Configuration {
   /** Indicates whether or not DHCP is used. */
   DHCP: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface IPv6Configuration {
   /** Indicates whether router advertisment is used. */
@@ -1103,6 +1042,7 @@ export interface IPv6Configuration {
 }
 export interface IPv6ConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkProtocol {
   /** Network protocol type string. */
@@ -1115,6 +1055,7 @@ export interface NetworkProtocol {
 }
 export interface NetworkProtocolExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkHost {
   /** Network host type: IPv4, IPv6 or DNS. */
@@ -1129,6 +1070,7 @@ export interface NetworkHost {
 }
 export interface NetworkHostExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface IPAddress {
   /** Indicates if the address is an IPv4 or IPv6 address. */
@@ -1159,6 +1101,7 @@ export interface HostnameInformation {
 }
 export interface HostnameInformationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DNSInformation {
   /** Indicates whether or not DNS information is retrieved from DHCP. */
@@ -1173,6 +1116,7 @@ export interface DNSInformation {
 }
 export interface DNSInformationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NTPInformation {
   /** Indicates if NTP information is to be retrieved by using DHCP. */
@@ -1185,6 +1129,7 @@ export interface NTPInformation {
 }
 export interface NTPInformationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DynamicDNSInformation {
   /** Dynamic DNS type. */
@@ -1197,6 +1142,7 @@ export interface DynamicDNSInformation {
 }
 export interface DynamicDNSInformationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkInterfaceSetConfiguration {
   /** Indicates whether or not an interface is enabled. */
@@ -1263,6 +1209,7 @@ export interface IPAddressFilter {
 }
 export interface IPAddressFilterExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Dot11Configuration {
   SSID: Dot11SSIDType;
@@ -1271,6 +1218,7 @@ export interface Dot11Configuration {
   priority: NetworkInterfaceConfigPriority;
   security: Dot11SecurityConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Dot11SecurityConfiguration {
   mode: Dot11SecurityMode;
@@ -1281,6 +1229,7 @@ export interface Dot11SecurityConfiguration {
 }
 export interface Dot11SecurityConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Dot11PSKSet {
   /**
@@ -1298,38 +1247,9 @@ export interface Dot11PSKSet {
 }
 export interface Dot11PSKSetExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkInterfaceSetConfigurationExtension2 {}
-export interface Dot11Capabilities {
-  TKIP: boolean;
-  scanAvailableNetworks: boolean;
-  multipleConfiguration: boolean;
-  adHocStationMode: boolean;
-  WEP: boolean;
-  [key: string]: unknown;
-}
-export interface Dot11Status {
-  SSID: Dot11SSIDType;
-  BSSID?: string;
-  pairCipher?: Dot11Cipher;
-  groupCipher?: Dot11Cipher;
-  signalStrength?: Dot11SignalStrength;
-  activeConfigAlias: ReferenceToken;
-  [key: string]: unknown;
-}
-export interface Dot11AvailableNetworks {
-  SSID: Dot11SSIDType;
-  BSSID?: string;
-  /** See IEEE802.11 7.3.2.25.2 for details. */
-  authAndMangementSuite?: Dot11AuthAndMangementSuite[];
-  pairCipher?: Dot11Cipher[];
-  groupCipher?: Dot11Cipher[];
-  signalStrength?: Dot11SignalStrength;
-  extension?: Dot11AvailableNetworksExtension;
-}
-export interface Dot11AvailableNetworksExtension {
-  [key: string]: unknown;
-}
 export interface Capabilities {
   /** Analytics capabilities */
   analytics?: AnalyticsCapabilities;
@@ -1364,6 +1284,7 @@ export interface AnalyticsCapabilities {
   /** Indicates whether or not modules are supported. */
   analyticsModuleSupport: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DeviceCapabilities {
   /** Device service URI. */
@@ -1380,6 +1301,7 @@ export interface DeviceCapabilities {
 }
 export interface DeviceCapabilitiesExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EventCapabilities {
   /** Event service URI. */
@@ -1391,6 +1313,7 @@ export interface EventCapabilities {
   /** Indicates whether or not WS Pausable Subscription Manager Interface is supported. */
   WSPausableSubscriptionManagerInterfaceSupport: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface IOCapabilities {
   /** Number of input connectors. */
@@ -1426,11 +1349,13 @@ export interface RealTimeStreamingCapabilities {
 }
 export interface RealTimeStreamingCapabilitiesExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles. */
   maximumNumberOfProfiles: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NetworkCapabilities {
   /** Indicates whether or not IP filtering is supported. */
@@ -1503,6 +1428,7 @@ export interface SystemCapabilitiesExtension {
 }
 export interface SystemCapabilitiesExtension2 {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OnvifVersion {
   /** Major version number. */
@@ -1522,6 +1448,7 @@ export interface PTZCapabilities {
   /** PTZ service URI. */
   XAddr: AnyURI;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DeviceIOCapabilities {
   XAddr: AnyURI;
@@ -1531,12 +1458,14 @@ export interface DeviceIOCapabilities {
   audioOutputs: number;
   relayOutputs: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DisplayCapabilities {
   XAddr: AnyURI;
   /** Indication that the SetLayout command supports only predefined layouts. */
   fixedLayout: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingCapabilities {
   XAddr: AnyURI;
@@ -1546,16 +1475,23 @@ export interface RecordingCapabilities {
   dynamicTracks: boolean;
   maxStringLength: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SearchCapabilities {
   XAddr: AnyURI;
   metadataSearch: boolean;
+  /** Indicates support for natural language based search. */
+  NLSearch?: boolean;
+  /** Indicates support for image based search. */
+  imageSearch?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ReplayCapabilities {
   /** The address of the replay service. */
   XAddr: AnyURI;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ReceiverCapabilities {
   /** The address of the receiver service. */
@@ -1571,6 +1507,7 @@ export interface ReceiverCapabilities {
   /** The maximum allowed length for RTSP URIs. */
   maximumRTSPURILength: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsDeviceCapabilities {
   XAddr: AnyURI;
@@ -1580,18 +1517,7 @@ export interface AnalyticsDeviceCapabilities {
 }
 export interface AnalyticsDeviceExtension {
   [key: string]: unknown;
-}
-export interface SystemLog {
-  /** The log information as attachment data. */
-  binary?: AttachmentData;
-  /** The log information as character data. */
-  string?: string;
-}
-export interface SupportInformation {
-  /** The support information as attachment data. */
-  binary?: AttachmentData;
-  /** The support information as character data. */
-  string?: string;
+  [key: symbol]: unknown;
 }
 export interface BinaryData {
   contentType?: unknown;
@@ -1605,14 +1531,6 @@ export interface AttachmentData {
 export interface BackupFile {
   name: string;
   data: AttachmentData;
-}
-export interface SystemLogUriList {
-  systemLog?: SystemLogUri[];
-}
-export interface SystemLogUri {
-  type: SystemLogType;
-  uri: AnyURI;
-  [key: string]: unknown;
 }
 /** General date time inforamtion returned by the GetSystemDateTime method. */
 export interface SystemDateTime {
@@ -1630,12 +1548,13 @@ export interface SystemDateTime {
 }
 export interface SystemDateTimeExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DateTime {
   time: Time;
-  date: Date;
+  date: OnvifDate;
 }
-export interface Date {
+export interface OnvifDate {
   year: number;
   /** Range is 1 to 12. */
   month: number;
@@ -1671,6 +1590,7 @@ export interface RemoteUser {
   password?: string;
   useDerivedPassword: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface UserRole {
   /** Name of the editable user level. */
@@ -1691,16 +1611,7 @@ export interface UserExtension {
   /** The names of the roles assigned to the user. */
   roles: StringList;
   [key: string]: unknown;
-}
-export interface CertificateGenerationParameters {
-  certificateID?: string;
-  subject?: string;
-  validNotBefore?: string;
-  validNotAfter?: string;
-  extension?: CertificateGenerationParametersExtension;
-}
-export interface CertificateGenerationParametersExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Certificate {
   /** Certificate id. */
@@ -1714,30 +1625,14 @@ export interface CertificateStatus {
   /** Indicates whether or not a certificate is used in an HTTPS configuration. */
   status: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface CertificateWithPrivateKey {
   certificateID?: string;
   certificate: BinaryData;
   privateKey: BinaryData;
   [key: string]: unknown;
-}
-export interface CertificateInformation {
-  certificateID: string;
-  issuerDN?: string;
-  subjectDN?: string;
-  keyUsage?: CertificateUsage;
-  extendedKeyUsage?: CertificateUsage;
-  keyLength?: number;
-  version?: string;
-  serialNum?: string;
-  /** Validity Range is from "NotBefore" to "NotAfter"; the corresponding DateTimeRange is from "From" to "Until" */
-  signatureAlgorithm?: string;
-  validity?: DateTimeRange;
-  extension?: CertificateInformationExtension;
-}
-export interface CertificateUsage {}
-export interface CertificateInformationExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Dot1XConfiguration {
   dot1XConfigurationToken: ReferenceToken;
@@ -1751,6 +1646,7 @@ export interface Dot1XConfiguration {
 }
 export interface Dot1XConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EAPMethodConfiguration {
   /** Confgiuration information for TLS Method. */
@@ -1761,20 +1657,19 @@ export interface EAPMethodConfiguration {
 }
 export interface EapMethodExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface TLSConfiguration {
   certificateID: string;
   [key: string]: unknown;
-}
-export interface GenericEapPwdConfigurationExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RelayOutputSettings {
   /**
    * 'Bistable' or 'Monostable'
    *
-   * Bistable – After setting the state, the relay remains in this state.
-   * Monostable – After setting the state, the relay returns to its idle state after the specified time.
+   * Bistable - After setting the state, the relay remains in this state.
+   * Monostable - After setting the state, the relay returns to its idle state after the specified time.
    *
    */
   mode: RelayMode;
@@ -1792,11 +1687,13 @@ export interface RelayOutputSettings {
 export interface RelayOutput extends DeviceEntity {
   properties: RelayOutputSettings;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DigitalInput extends DeviceEntity {
   /** Indicate the Digital IdleState status. */
   idleState?: DigitalIdleState;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZNode extends DeviceEntity {
   /** Indication whether the HomePosition of a Node is fixed or it can be changed via the SetHomePosition command. */
@@ -1830,6 +1727,7 @@ export interface PTZPresetTourSupported {
 }
 export interface PTZPresetTourSupportedExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZConfiguration extends ConfigurationEntity {
   /** The optional acceleration ramp used by the device when moving. */
@@ -1856,7 +1754,7 @@ export interface PTZConfiguration extends ConfigurationEntity {
   defaultPTZSpeed?: PTZSpeed;
   /** If the PTZ Node supports continuous movements, it shall specify a default timeout, after which the movement stops. */
   defaultPTZTimeout?: Duration;
-  /** The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to –INF or +INF. */
+  /** The Pan/Tilt limits element should be present for a PTZ Node that supports an absolute Pan/Tilt. If the element is present it signals the support for configurable Pan/Tilt limits. If limits are enabled, the Pan/Tilt movements shall always stay within the specified range. The Pan/Tilt limits are disabled by setting the limits to -INF or +INF. */
   panTiltLimits?: PanTiltLimits;
   /** The Zoom limits element should be present for a PTZ Node that supports absolute zoom. If the element is present it signals the supports for configurable Zoom limits. If limits are enabled the zoom movements shall always stay within the specified range. The Zoom limits are disabled by settings the limits to -INF and +INF. */
   zoomLimits?: ZoomLimits;
@@ -1956,7 +1854,7 @@ export interface PTZSpaces {
   relativeZoomTranslationSpace?: Space1DDescription[];
   /**
    * The generic Pan/Tilt velocity space shall be provided by every PTZ node, since it does not relate to a specific physical range.
-   * Instead, the range should be defined as a range of the PTZ unit’s speed normalized to the range -1 to 1, where a positive velocity would map to clockwise
+   * Instead, the range should be defined as a range of the PTZ unit's speed normalized to the range -1 to 1, where a positive velocity would map to clockwise
    * rotation or movement in the right/up direction. A signed speed can be independently specified for the pan and tilt component resulting in the following space description.
    */
   continuousPanTiltVelocitySpace?: Space2DDescription[];
@@ -1980,6 +1878,7 @@ export interface PTZSpaces {
 }
 export interface PTZSpacesExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Space2DDescription {
   /** A URI of coordinate systems. */
@@ -2026,6 +1925,7 @@ export interface PresetTour {
 }
 export interface PTZPresetTourExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZPresetTourSpot {
   /** Detail definition of preset position of the tour spot. */
@@ -2038,7 +1938,15 @@ export interface PTZPresetTourSpot {
 }
 export interface PTZPresetTourSpotExtension {}
 export interface PTZPresetTourPresetDetail {
+  /** Option to specify the preset position with Preset Token defined in advance. */
+  presetToken?: ReferenceToken;
+  /** Option to specify the preset position with the home position of this PTZ Node. "False" to this parameter shall be treated as an invalid argument. */
+  home?: boolean;
+  /** Option to specify the preset position with vector of PTZ node directly. */
+  PTZPosition?: PTZVector;
+  typeExtension?: PTZPresetTourTypeExtension;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZPresetTourTypeExtension {}
 export interface PTZPresetTourStatus {
@@ -2050,6 +1958,7 @@ export interface PTZPresetTourStatus {
 }
 export interface PTZPresetTourStatusExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZPresetTourStartingCondition {
   /** Execute presets in random order. If set to true and Direction is also present, Direction will be ignored and presets of the Tour will be recalled randomly. */
@@ -2071,6 +1980,7 @@ export interface PTZPresetTourOptions {
   /** Supported options for Preset Tour Spot. */
   tourSpot: PTZPresetTourSpotOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZPresetTourSpotOptions {
   /** Supported options for detail definition of preset position of the tour spot. */
@@ -2100,19 +2010,6 @@ export interface PTZPresetTourStartingConditionOptions {
   extension?: PTZPresetTourStartingConditionOptionsExtension;
 }
 export interface PTZPresetTourStartingConditionOptionsExtension {}
-export interface ImagingStatus {
-  focusStatus: FocusStatus;
-  [key: string]: unknown;
-}
-export interface FocusStatus {
-  /** Status of focus position. */
-  position: number;
-  /** Status of focus MoveStatus. */
-  moveStatus: MoveStatus;
-  /** Error status of focus. */
-  error: string;
-  [key: string]: unknown;
-}
 export interface FocusConfiguration {
   autoFocusMode: AutoFocusMode;
   defaultSpeed: number;
@@ -2124,6 +2021,7 @@ export interface FocusConfiguration {
    */
   farLimit: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ImagingSettings {
   /** Enabled/disabled BLC mode (on/off). */
@@ -2150,13 +2048,14 @@ export interface ImagingSettings {
 }
 export interface ImagingSettingsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Exposure {
   /**
    * Exposure Mode
    *
-   * Auto – Enabled the exposure algorithm on the NVT.
-   * Manual – Disabled exposure algorithm on the NVT.
+   * Auto - Enabled the exposure algorithm on the NVT.
+   * Manual - Disabled exposure algorithm on the NVT.
    *
    */
   mode: ExposureMode;
@@ -2195,51 +2094,6 @@ export interface BacklightCompensation {
   /** Optional level parameter (unit unspecified). */
   level: number;
 }
-export interface ImagingOptions {
-  backlightCompensation: BacklightCompensationOptions;
-  brightness: FloatRange;
-  colorSaturation: FloatRange;
-  contrast: FloatRange;
-  exposure: ExposureOptions;
-  focus: FocusOptions;
-  irCutFilterModes?: IrCutFilterMode[];
-  sharpness: FloatRange;
-  wideDynamicRange: WideDynamicRangeOptions;
-  whiteBalance: WhiteBalanceOptions;
-  [key: string]: unknown;
-}
-export interface WideDynamicRangeOptions {
-  mode?: WideDynamicMode[];
-  level: FloatRange;
-}
-export interface BacklightCompensationOptions {
-  mode?: WideDynamicMode[];
-  level: FloatRange;
-}
-export interface FocusOptions {
-  autoFocusModes?: AutoFocusMode[];
-  defaultSpeed: FloatRange;
-  nearLimit: FloatRange;
-  farLimit: FloatRange;
-}
-export interface ExposureOptions {
-  mode?: ExposureMode[];
-  priority?: ExposurePriority[];
-  minExposureTime: FloatRange;
-  maxExposureTime: FloatRange;
-  minGain: FloatRange;
-  maxGain: FloatRange;
-  minIris: FloatRange;
-  maxIris: FloatRange;
-  exposureTime: FloatRange;
-  gain: FloatRange;
-  iris: FloatRange;
-}
-export interface WhiteBalanceOptions {
-  mode?: WhiteBalanceMode[];
-  yrGain: FloatRange;
-  ybGain: FloatRange;
-}
 export interface FocusMove {
   /** Parameters for the absolute focus control. */
   absolute?: AbsoluteFocus;
@@ -2264,22 +2118,11 @@ export interface ContinuousFocus {
   /** Speed parameter for the Continuous focus control. */
   speed: number;
 }
-export interface MoveOptions {
-  absolute?: AbsoluteFocusOptions;
-  relative?: RelativeFocusOptions;
-  continuous?: ContinuousFocusOptions;
-}
 export interface AbsoluteFocusOptions {
   /** Valid ranges of the position. */
   position: FloatRange;
   /** Valid ranges of the speed. */
   speed?: FloatRange;
-}
-export interface RelativeFocusOptions {
-  /** Valid ranges of the distance. */
-  distance: FloatRange;
-  /** Valid ranges of the speed. */
-  speed: FloatRange;
 }
 export interface ContinuousFocusOptions {
   /** Valid ranges of the speed. */
@@ -2293,6 +2136,7 @@ export interface WhiteBalance {
   /** Bgain (unitless). */
   cbGain: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ImagingStatus20 {
   /** Status of focus. */
@@ -2301,6 +2145,7 @@ export interface ImagingStatus20 {
 }
 export interface ImagingStatus20Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FocusStatus20 {
   /** Status of focus position. */
@@ -2313,6 +2158,7 @@ export interface FocusStatus20 {
 }
 export interface FocusStatus20Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Type describing the ImagingSettings of a VideoSource. The supported options and ranges can be obtained via the GetOptions command. */
 export interface ImagingSettings20 {
@@ -2367,6 +2213,7 @@ export interface ImageStabilization {
 }
 export interface ImageStabilizationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface IrCutFilterAutoAdjustment {
   /** Specifies which boundaries to automatically toggle Ir cut filter following parameters are applied to. Its options shall be chosen from tt:IrCutFilterAutoBoundaryType. */
@@ -2397,8 +2244,8 @@ export interface Exposure20 {
   /**
    * Exposure Mode
    *
-   * Auto – Enabled the exposure algorithm on the device.
-   * Manual – Disabled exposure algorithm on the device.
+   * Auto - Enabled the exposure algorithm on the device.
+   * Manual - Disabled exposure algorithm on the device.
    *
    */
   mode: ExposureMode;
@@ -2442,11 +2289,13 @@ export interface Defogging {
 }
 export interface DefoggingExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NoiseReduction {
   /** Level parameter specified with unitless normalized value from 0.0 to +1.0. Level=0 means no noise reduction or minimal noise reduction. */
   level: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ImagingOptions20 {
   /** Valid range of Backlight Compensation. */
@@ -2500,6 +2349,7 @@ export interface ImageStabilizationOptions {
 }
 export interface ImageStabilizationOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface IrCutFilterAutoAdjustmentOptions {
   /** Supported options of boundary types for adjustment of Ir cut filter auto mode. The opptions shall be chosen from tt:IrCutFilterAutoBoundaryType. */
@@ -2525,8 +2375,8 @@ export interface ExposureOptions20 {
   /**
    * Exposure Mode
    *
-   * Auto – Enabled the exposure algorithm on the device.
-   * Manual – Disabled exposure algorithm on the device.
+   * Auto - Enabled the exposure algorithm on the device.
+   * Manual - Disabled exposure algorithm on the device.
    *
    */
   mode?: ExposureMode[];
@@ -2576,6 +2426,7 @@ export interface WhiteBalance20 {
 }
 export interface WhiteBalance20Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FocusConfiguration20 {
   /** Zero or more modes as defined in enumeration tt:AFModes. */
@@ -2598,6 +2449,7 @@ export interface FocusConfiguration20 {
 }
 export interface FocusConfiguration20Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface WhiteBalanceOptions20 {
   /**
@@ -2614,6 +2466,7 @@ export interface WhiteBalanceOptions20 {
 }
 export interface WhiteBalanceOptions20Extension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FocusOptions20 {
   /**
@@ -2636,6 +2489,7 @@ export interface FocusOptions20Extension {
   /** Supported options for auto focus. Options shall be chosen from tt:AFModes. */
   AFModes?: StringAttrList;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ToneCompensationOptions {
   /** Supported options for Tone Compensation mode. Its options shall be chosen from tt:ToneCompensationMode Type. */
@@ -2643,6 +2497,7 @@ export interface ToneCompensationOptions {
   /** Indicates whether or not support Level parameter for Tone Compensation. */
   level: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface DefoggingOptions {
   /** Supported options for Defogging mode. Its options shall be chosen from tt:DefoggingMode Type. */
@@ -2650,14 +2505,13 @@ export interface DefoggingOptions {
   /** Indicates whether or not support Level parameter for Defogging. */
   level: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface NoiseReductionOptions {
   /** Indicates whether or not support Level parameter for NoiseReduction. */
   level: boolean;
   [key: string]: unknown;
-}
-export interface MessageExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SimpleItem {
   /** Item name. */
@@ -2668,7 +2522,7 @@ export interface SimpleItem {
 export interface ElementItem {
   /** Item name. */
   name: string;
-  /** XML tree contiaing the element value as defined in the corresponding description. */
+  /** XML tree containing the element value as defined in the corresponding description. */
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
@@ -2681,6 +2535,7 @@ export interface ItemList {
 }
 export interface ItemListExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MessageDescription {
   /** Must be set to true when the described Message relates to a property. An alternative term of "property" is a "state" in contrast to a pure event, which contains relevant information for only a single point in time.Default is false. */
@@ -2700,6 +2555,7 @@ export interface MessageDescription {
 }
 export interface MessageDescriptionExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SimpleItemDescription {
   /** Item name. Must be unique within a list. */
@@ -2726,9 +2582,7 @@ export interface ItemListDescription {
 }
 export interface ItemListDescriptionExtension {
   [key: string]: unknown;
-}
-export interface Polyline {
-  point?: Vector[];
+  [key: symbol]: unknown;
 }
 export interface AnalyticsEngineConfiguration {
   analyticsModule?: Config[];
@@ -2736,6 +2590,7 @@ export interface AnalyticsEngineConfiguration {
 }
 export interface AnalyticsEngineConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RuleEngineConfiguration {
   rule?: Config[];
@@ -2743,6 +2598,7 @@ export interface RuleEngineConfiguration {
 }
 export interface RuleEngineConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Config {
   /** Name of the configuration. */
@@ -2780,6 +2636,7 @@ export interface ConfigDescription {
 }
 export interface ConfigDescriptionExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SupportedRules {
   /** Maximum number of concurrent instances. */
@@ -2792,6 +2649,7 @@ export interface SupportedRules {
 }
 export interface SupportedRulesExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SupportedAnalyticsModules {
   /** Maximum number of concurrent instances. */
@@ -2808,26 +2666,7 @@ export interface SupportedAnalyticsModules {
 }
 export interface SupportedAnalyticsModulesExtension {
   [key: string]: unknown;
-}
-export interface MotionExpression {
-  type?: string;
-  /** Motion Expression data structure contains motion expression which is based on Scene Descriptor schema with XPATH syntax. The Type argument could allow introduction of different dialects */
-  expression: string;
-  [key: string]: unknown;
-}
-export interface MotionExpressionConfiguration {
-  /** Contains Rule MotionExpression configuration */
-  motionExpression: MotionExpression;
-  [key: string]: unknown;
-}
-export interface CellLayout {
-  /** Number of columns of the cell grid (x dimension) */
-  columns: number;
-  /** Number of rows of the cell grid (y dimension) */
-  rows: number;
-  /** Mapping of the cell grid to the Video frame. The cell grid is starting from the upper left corner and x dimension is going from left to right and the y dimension from up to down. */
-  transformation: Transformation;
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Configuration of the streaming and coding settings of a Video window. */
 export interface PaneConfiguration {
@@ -2858,6 +2697,7 @@ export interface PaneConfiguration {
   /** A unique identifier in the display device. */
   token: ReferenceToken;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A pane layout describes one Video window of a display. It links a pane configuration to a region of the screen. */
 export interface PaneLayout {
@@ -2866,6 +2706,7 @@ export interface PaneLayout {
   /** Describes the location and size of the area on the monitor. The area coordinate values are espressed in normalized units [-1.0, 1.0]. */
   area: Rectangle;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A layout describes a set of Video windows that are displayed simultaniously on a display. */
 export interface Layout {
@@ -2875,6 +2716,7 @@ export interface Layout {
 }
 export interface LayoutExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** This type contains the Audio and Video coding capabilities of a display service. */
 export interface CodingCapabilities {
@@ -2885,6 +2727,7 @@ export interface CodingCapabilities {
   /** This section describes the supported video codesc and their configuration. */
   videoDecodingCapabilities: VideoDecoderConfigurationOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The options supported for a display layout. */
 export interface LayoutOptions {
@@ -2894,6 +2737,7 @@ export interface LayoutOptions {
 }
 export interface LayoutOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Description of a pane layout describing a complete display layout. */
 export interface PaneLayoutOptions {
@@ -2903,6 +2747,7 @@ export interface PaneLayoutOptions {
 }
 export interface PaneOptionExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Description of a receiver, including its token and configuration. */
 export interface Receiver {
@@ -2911,6 +2756,7 @@ export interface Receiver {
   /** Describes the configuration of the receiver. */
   configuration: ReceiverConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Describes the configuration of a receiver. */
 export interface ReceiverConfiguration {
@@ -2921,6 +2767,7 @@ export interface ReceiverConfiguration {
   /** Stream connection parameters. */
   streamSetup: StreamSetup;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Contains information about a receiver's current state. */
 export interface ReceiverStateInformation {
@@ -2929,16 +2776,13 @@ export interface ReceiverStateInformation {
   /** Indicates whether or not the receiver was created automatically. */
   autoCreated: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SourceReference {
   type?: AnyURI;
   token: ReferenceToken;
   [key: string]: unknown;
-}
-export interface DateTimeRange {
-  from: Date;
-  until: Date;
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingSummary {
   /** The earliest point in time where there is recorded data on the device. */
@@ -2948,6 +2792,7 @@ export interface RecordingSummary {
   /** The device contains this many recordings. */
   numberRecordings: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A structure for defining a limited scope when searching in recorded data. */
 export interface SearchScope {
@@ -2962,6 +2807,7 @@ export interface SearchScope {
 }
 export interface SearchScopeExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EventFilter extends FilterType {}
 export interface PTZPositionFilter {
@@ -2972,10 +2818,12 @@ export interface PTZPositionFilter {
   /** If true, search for when entering the specified PTZ volume. */
   enterOrExit: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MetadataFilter {
   metadataStreamFilter: XPathExpression;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FindRecordingResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
@@ -3001,6 +2849,7 @@ export interface FindEventResult {
   /** If true, indicates that the event is a virtual event generated for this particular search session to give the state of a property at the start time of the search. */
   startStateEvent: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FindPTZPositionResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
@@ -3018,6 +2867,7 @@ export interface FindPTZPositionResult {
   /** The PTZ position. */
   position: PTZVector;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FindMetadataResultList {
   /** The state of the search when the result is returned. Indicates if there can be more results, or if the search is completed. */
@@ -3033,6 +2883,7 @@ export interface FindMetadataResult {
   /** The point in time when the matching metadata occurs in the metadata track. */
   time: Date;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingInformation {
   recordingToken: RecordingReference;
@@ -3049,6 +2900,7 @@ export interface RecordingInformation {
   track?: TrackInformation[];
   recordingStatus: RecordingStatus;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A set of informative desciptions of a data source. The Search searvice allows a client to filter on recordings based on information in this structure. */
 export interface RecordingSourceInformation {
@@ -3065,7 +2917,10 @@ export interface RecordingSourceInformation {
   description: Description;
   /** URI provided by the service supplying data to be recorded. A device shall support at least 128 characters. */
   address: AnyURI;
+  /** The video source token of all recordings that will use this configuration. */
+  videoSourceToken?: ReferenceToken;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AsymmetricEncryption {
   /** List of certificates used to encrypt the symmetric key for the PSSH box. */
@@ -3076,7 +2931,13 @@ export interface AsymmetricEncryption {
    * KeyRotationDuration must be a positive duration value.
    */
   keyRotationDuration?: Duration;
+  /**
+   * Additional information related to the asymmetric encryption that will be used as
+   * part of the key encryption. A device shall support at least 256 characters.
+   */
+  additionalInfo?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingEncryption {
   /**
@@ -3084,10 +2945,10 @@ export interface RecordingEncryption {
    * See tt:EncryptionMode for a list of definitions and capability trc:SupportedEncryptionModes for the supported encryption modes.
    */
   mode: string;
-  /** Key ID of the associated key for encryption. This parameter is ignored when AsymmetricEncryption is configured. */
+  /** Key ID of the associated key for encryption, formatted as a UUID according to RFC 9562 Section 4. The client shall omit this parameter when AsymmetricEncryption is configured. */
   KID?: string;
   /**
-   * Key for encrypting content. This parameter is ignored when AsymmetricEncryption is configured.
+   * Key for encrypting content. The client shall omit this parameter when AsymmetricEncryption is configured.
    * The device shall not include this parameter when reading.
    */
   key?: unknown;
@@ -3099,6 +2960,7 @@ export interface RecordingEncryption {
   track?: string[];
   asymmetricEncryption?: AsymmetricEncryption;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SegmentDurationOverride {
   /** Current value of the segment duration. */
@@ -3131,7 +2993,10 @@ export interface RecordingTargetConfiguration {
   encryption?: RecordingEncryption[];
   /** Value of the active OverrideSegmentDuration parameters if one exists. (readonly) */
   segmentDurationOverride?: SegmentDurationOverride;
+  /** Strategy to be used on how to store recordings, see tt:StorageStrategy for allowed values. If undefined, defaults to External. */
+  storageStrategy?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface TrackInformation {
   trackToken: TrackReference;
@@ -3147,6 +3012,7 @@ export interface TrackInformation {
   /** The stop date and time of the newest recorded data in the track. */
   dataTo: Date;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A set of media attributes valid for a recording at a point in time or for a time interval. */
 export interface MediaAttributes {
@@ -3159,6 +3025,7 @@ export interface MediaAttributes {
   /** The attributes are valid until this point in time in the recording. Can be equal to 'From' to indicate that the attributes are only known to be valid for this particular point in time. */
   until: Date;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface TrackAttributes {
   /** The basic information about the track. Note that a track may represent a single contiguous time span or consist of multiple slices. */
@@ -3209,27 +3076,29 @@ export interface RecordingConfiguration {
   /** Informative description of the source. */
   content: Description;
   /**
-   * Sspecifies the maximum time that data in any track within the
+   * Specifies the maximum time that data in any track within the
    * recording shall be stored. The device shall delete any data older than the maximum retention
    * time. Such data shall not be accessible anymore. If the MaximumRetentionPeriod is set to 0,
    * the device shall not limit the retention time of stored data, except by resource constraints.
    * Whatever the value of MaximumRetentionTime, the device may automatically delete
-   * recordings to free up storage space for new recordings.
+   * recordings to free up storage space for new recordings. This parameter has no effect on the data stored in external targets for e.g. Object Storage.
    */
   maximumRetentionTime: Duration;
   /** Optional external storage target configuration. */
   target?: RecordingTargetConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface TrackConfiguration {
   /**
-   * Type of the track. It shall be equal to the strings “Video”,
-   * “Audio” or “Metadata”. The track shall only be able to hold data of that type.
+   * Type of the track. It shall be equal to the strings "Video",
+   * "Audio" or "Metadata". The track shall only be able to hold data of that type.
    */
   trackType: TrackType;
   /** Informative description of the track. */
   description: Description;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetRecordingsResponseItem {
   /** Token of the recording. */
@@ -3239,6 +3108,7 @@ export interface GetRecordingsResponseItem {
   /** List of tracks. */
   tracks: GetTracksResponseList;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetTracksResponseList {
   /** Configuration of a track. */
@@ -3250,6 +3120,7 @@ export interface GetTracksResponseItem {
   /** Configuration of the track. */
   configuration: TrackConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingJobConfiguration {
   /**
@@ -3262,7 +3133,7 @@ export interface RecordingJobConfiguration {
   /**
    * The mode of the job. If it is idle, nothing shall happen. If it is active, the device shall try
    * to obtain data from the receivers. A client shall use GetRecordingJobState to determine if data transfer is really taking place.
-   * The only valid values for Mode shall be “Idle” and “Active”.
+   * The only valid values for Mode shall be "Idle" and "Active".
    */
   mode: RecordingJobMode;
   /**
@@ -3279,6 +3150,7 @@ export interface RecordingJobConfiguration {
   /** Optional filter defining on which event condition a recording job gets active. */
   eventFilter?: RecordingEventFilter;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Filter {
   /** Topic filter as defined in section 9.6.3 of the ONVIF Core Specification. */
@@ -3286,6 +3158,7 @@ export interface Filter {
   /** Optional message source content filter as defined in section 9.4.4 of the ONVIF Core Specification. */
   source?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingEventFilter {
   filter?: Filter[];
@@ -3294,9 +3167,11 @@ export interface RecordingEventFilter {
   /** Optional timespan to record after the actual event condition becomes inactive. */
   after?: Duration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingJobConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingJobSource {
   /**
@@ -3304,8 +3179,8 @@ export interface RecordingJobSource {
    * is determined by the attribute Type in the SourceToken structure. If Type is
    * http://www.onvif.org/ver10/schema/Receiver, the token is a ReceiverReference. In this case
    * the device shall receive the data over the network. If Type is
-   * http://www.onvif.org/ver10/schema/Profile, the token identifies a media profile, instructing the
-   * device to obtain data from a profile that exists on the local device.
+   * http://www.onvif.org/ver10/schema/Profile, the token identifies a media profile, provisioned via the ONVIF Media Service or the ONVIF Media2 Service,
+   * instructing the device to obtain data from a profile that exists on the local device.
    */
   sourceToken?: SourceReference;
   /**
@@ -3321,6 +3196,7 @@ export interface RecordingJobSource {
 }
 export interface RecordingJobSourceExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingJobTrack {
   /**
@@ -3334,59 +3210,23 @@ export interface RecordingJobTrack {
    */
   destination: TrackReference;
 }
-export interface RecordingJobStateInformation {
-  /** Identification of the recording that the recording job records to. */
-  recordingToken: RecordingReference;
-  /** Holds the aggregated state over the whole RecordingJobInformation structure. */
-  state: RecordingJobState;
-  /** Identifies the data source of the recording job. */
-  sources?: RecordingJobStateSource[];
-  extension?: RecordingJobStateInformationExtension;
-}
-export interface RecordingJobStateInformationExtension {
-  [key: string]: unknown;
-}
-export interface RecordingJobStateSource {
-  /** Identifies the data source of the recording job. */
-  sourceToken: SourceReference;
-  /** Holds the aggregated state over all substructures of RecordingJobStateSource. */
-  state: RecordingJobState;
-  /** List of track items. */
-  tracks: RecordingJobStateTracks;
-}
-export interface RecordingJobStateTracks {
-  track?: RecordingJobStateTrack[];
-}
-export interface RecordingJobStateTrack {
-  /** Identifies the track of the data source that provides the data. */
-  sourceTag: string;
-  /** Indicates the destination track. */
-  destination: TrackReference;
-  /**
-   * Optionally holds an implementation defined string value that describes the error.
-   * The string should be in the English language.
-   */
-  error?: string;
-  /**
-   * Provides the job state of the track. The valid
-   * values of state shall be “Idle”, “Active” and “Error”. If state equals “Error”, the Error field may be filled in with an implementation defined value.
-   */
-  state: RecordingJobState;
-}
 export interface GetRecordingJobsResponseItem {
   jobToken: RecordingJobReference;
   jobConfiguration: RecordingJobConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Configuration parameters for the replay service. */
 export interface ReplayConfiguration {
   /** The RTSP session timeout. */
   sessionTimeout: Duration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsEngine extends ConfigurationEntity {
   analyticsEngineConfiguration: AnalyticsDeviceEngineConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsDeviceEngineConfiguration {
   engineConfiguration?: EngineConfiguration[];
@@ -3394,11 +3234,13 @@ export interface AnalyticsDeviceEngineConfiguration {
 }
 export interface AnalyticsDeviceEngineConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EngineConfiguration {
   videoAnalyticsConfiguration: VideoAnalyticsConfiguration;
   analyticsEngineInputInfo: AnalyticsEngineInputInfo;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsEngineInputInfo {
   inputInfo?: Config;
@@ -3406,12 +3248,14 @@ export interface AnalyticsEngineInputInfo {
 }
 export interface AnalyticsEngineInputInfoExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsEngineInput extends ConfigurationEntity {
   sourceIdentification: SourceIdentification;
   videoInput: VideoEncoderConfiguration;
   metadataInput: MetadataInput;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SourceIdentification {
   name: string;
@@ -3420,6 +3264,7 @@ export interface SourceIdentification {
 }
 export interface SourceIdentificationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MetadataInput {
   metadataConfig?: Config[];
@@ -3427,6 +3272,7 @@ export interface MetadataInput {
 }
 export interface MetadataInputExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsEngineControl extends ConfigurationEntity {
   /** Token of the analytics engine (AnalyticsEngine) being controlled. */
@@ -3441,56 +3287,20 @@ export interface AnalyticsEngineControl extends ConfigurationEntity {
   subscription: Config;
   mode: ModeOfOperation;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsStateInformation {
   /** Token of the control object whose status is requested. */
   analyticsEngineControlToken: ReferenceToken;
   state: AnalyticsState;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AnalyticsState {
   error?: string;
   state: string;
   [key: string]: unknown;
-}
-/** Action Engine Event Payload data structure contains the information about the ONVIF command invocations. Since this event could be generated by other or proprietary actions, the command invocation specific fields are defined as optional and additional extension mechanism is provided for future or additional action definitions. */
-export interface ActionEngineEventPayload {
-  /** Request Message */
-  requestInfo?: unknown;
-  /** Response Message */
-  responseInfo?: unknown;
-  /** Fault Message */
-  fault?: unknown;
-  extension?: ActionEngineEventPayloadExtension;
-}
-export interface ActionEngineEventPayloadExtension {
-  [key: string]: unknown;
-}
-export interface AudioClassCandidate {
-  /** Indicates audio class label */
-  type: AudioClassType;
-  /** A likelihood/probability that the corresponding audio event belongs to this class. The sum of the likelihoods shall NOT exceed 1 */
-  likelihood: number;
-}
-export interface AudioClassDescriptor {
-  /** Array of audio class label and class probability */
-  classCandidate?: AudioClassCandidate[];
-  extension?: AudioClassDescriptorExtension;
-}
-export interface AudioClassDescriptorExtension {
-  [key: string]: unknown;
-}
-export interface ActiveConnection {
-  currentBitrate: number;
-  currentFps: number;
-  [key: string]: unknown;
-}
-export interface ProfileStatus {
-  activeConnections?: ActiveConnection[];
-  extension?: ProfileStatusExtension;
-}
-export interface ProfileStatusExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OSDReference {}
 export interface OSDPosConfiguration {
@@ -3507,6 +3317,7 @@ export interface OSDPosConfiguration {
 }
 export interface OSDPosConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The value range of "Transparent" could be defined by vendors only should follow this rule: the minimum value means non-transparent and the maximum value maens fully transparent. */
 export interface OSDColor {
@@ -3559,6 +3370,7 @@ export interface OSDTextConfiguration {
 }
 export interface OSDTextConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OSDImgConfiguration {
   /** The URI of the image which to be displayed. */
@@ -3567,6 +3379,7 @@ export interface OSDImgConfiguration {
 }
 export interface OSDImgConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ColorspaceRange {
   x: FloatRange;
@@ -3576,7 +3389,12 @@ export interface ColorspaceRange {
   colorspace: AnyURI;
 }
 /** Describe the colors supported. Either list each color or define the range of color values. */
-export interface ColorOptions {}
+export interface ColorOptions {
+  /** List the supported color. */
+  colorList?: Color[];
+  /** Define the range of color supported. */
+  colorspaceRange?: ColorspaceRange[];
+}
 /** Describe the option of the color and its transparency. */
 export interface OSDColorOptions {
   /** Optional list of supported colors. */
@@ -3587,6 +3405,7 @@ export interface OSDColorOptions {
 }
 export interface OSDColorOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OSDTextOptions {
   /** List of supported OSD text type. When a device indicates the supported number relating to Text type in MaximumNumberOfOSDs, the type shall be presented. */
@@ -3605,6 +3424,7 @@ export interface OSDTextOptions {
 }
 export interface OSDTextOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OSDImgOptions {
   /** List of supported image MIME types, such as "image/png". */
@@ -3621,6 +3441,7 @@ export interface OSDImgOptions {
 }
 export interface OSDImgOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OSDConfiguration extends DeviceEntity {
   /** Reference to the video source configuration. */
@@ -3637,6 +3458,7 @@ export interface OSDConfiguration extends DeviceEntity {
 }
 export interface OSDConfigurationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MaximumNumberOfOSDs {
   total: number;
@@ -3667,6 +3489,7 @@ export interface OSDConfigurationOptions {
 }
 export interface OSDConfigurationOptionsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FileProgress {
   /** Exported file name */
@@ -3674,6 +3497,7 @@ export interface FileProgress {
   /** Normalized percentage completion for uploading the exported file */
   progress: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ArrayOfFileProgress {
   /** Exported file name and export progress information */
@@ -3682,6 +3506,7 @@ export interface ArrayOfFileProgress {
 }
 export interface ArrayOfFileProgressExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface StorageReferencePath {
   /** identifier of an existing Storage Configuration. */
@@ -3692,29 +3517,5 @@ export interface StorageReferencePath {
 }
 export interface StorageReferencePathExtension {
   [key: string]: unknown;
-}
-export interface PolygonOptions {
-  /**
-   * True if the device supports defining a region only using Rectangle.
-   * The rectangle points are still passed using a Polygon element if the device does not support polygon regions. In this case, the points provided in the Polygon element shall represent a rectangle.
-   */
-  rectangleOnly?: boolean;
-  /**
-   * Provides the minimum and maximum number of points that can be defined in the Polygon.
-   * If RectangleOnly is not set to true, this parameter is required.
-   */
-  vertexLimits?: IntRange;
-  [key: string]: unknown;
-}
-export interface StringItems {
-  item?: string[];
-}
-export interface Message {
-  utcTime: Date;
-  propertyOperation?: PropertyOperation;
-  /** Token value pairs that triggered this message. Typically only one item is present. */
-  source?: ItemList;
-  key?: ItemList;
-  data?: ItemList;
-  extension?: MessageExtension;
+  [key: symbol]: unknown;
 }

@@ -1,12 +1,13 @@
 import { Onvif } from '../src';
-import { Date as OnvifDateTime, RecordingSummary } from '../src/interfaces/onvif';
+import { RecordingSummary } from '../src/interfaces/onvif';
 import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const KEEP_ALIVE_TIME = 'PT10S';
-const SEARCH_START = '2026-01-01T00:00:00Z' as unknown as OnvifDateTime;
-const SEARCH_END = '2026-12-31T23:59:59Z' as unknown as OnvifDateTime;
-const MEDIA_ATTRIBUTES_TIME = '2026-08-19T14:00:00Z' as unknown as OnvifDateTime;
+// xs:dateTime fields are native JS Date (not tt:Date / OnvifDate)
+const SEARCH_START = '2026-01-01T00:00:00Z' as unknown as Date;
+const SEARCH_END = '2026-12-31T23:59:59Z' as unknown as Date;
+const MEDIA_ATTRIBUTES_TIME = '2026-08-19T14:00:00Z' as unknown as Date;
 
 let cam: Onvif;
 let recordingSummary: RecordingSummary;

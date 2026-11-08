@@ -1,7 +1,4 @@
 import { AnyURI, FilterType, Duration } from './basics';
-
-export type EventBrokerProtocol = 'mqtt' | 'mqtts' | 'ws' | 'wss';
-export type ConnectionStatus = 'Offline' | 'Connecting' | 'Connected';
 export interface Capabilities {
   /** Indicates that the WS Subscription policy is supported. */
   WSSubscriptionPolicySupport?: boolean;
@@ -20,6 +17,7 @@ export interface Capabilities {
   /** Indicates that metadata streaming over MQTT is supported */
   metadataOverMQTT?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface EventBrokerConfig {
   /** Event broker address in the format "scheme://host:port[/resource]". The supported schemes shall be returned by the EventBrokerProtocols capability. The resource part of the URL is only valid when using websocket. The Address must be unique. */
@@ -43,14 +41,11 @@ export interface EventBrokerConfig {
   /** Concrete Topic Expression to select specific metadata topics to publish. */
   metadataFilter?: FilterType;
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the event service is returned in the Capabilities element. */
-  capabilities: Capabilities;
+  [key: symbol]: unknown;
 }
 export interface SubscriptionPolicy {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface CreatePullPointSubscription {
   /** Optional XPATH expression to select specific topics. */
@@ -60,44 +55,12 @@ export interface CreatePullPointSubscription {
   /** Refer to Web Services Base Notification 1.3 (WS-BaseNotification). */
   subscriptionPolicy?: SubscriptionPolicy;
 }
-export interface CreatePullPointSubscriptionResponse {
-  /** Endpoint reference of the subscription to be used for pulling the messages. */
-  subscriptionReference: unknown;
-  /** Current time of the server for synchronization purposes. */
-  currentTime: unknown;
-  /** Date time when the PullPoint will be shut down without further pull requests. */
-  terminationTime: unknown;
-}
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
   timeout: Duration;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
   messageLimit: number;
 }
-export interface PullMessagesResponse {
-  /** The date and time when the messages have been delivered by the web server to the client. */
-  currentTime: Date;
-  /** Date time when the PullPoint will be shut down without further pull requests. */
-  terminationTime: Date;
-  /** List of messages. This list shall be empty in case of a timeout. */
-  notificationMessage?: unknown[];
-}
-export interface PullMessagesFaultResponse {
-  /** Maximum timeout supported by the device. */
-  maxTimeout: Duration;
-  /** Maximum message limit supported by the device. */
-  maxMessageLimit: number;
-}
-export interface Seek {
-  /** The date and time to match against stored messages. */
-  utcTime: Date;
-  /** Reverse the pull direction of PullMessages. */
-  reverse?: boolean;
-}
-export interface SeekResponse {}
-export interface SetSynchronizationPoint {}
-export interface SetSynchronizationPointResponse {}
-export interface GetEventProperties {}
 export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
   topicNamespaceLocation: AnyURI[];
@@ -137,14 +100,9 @@ export interface GetEventPropertiesResponse {
 export interface AddEventBroker {
   eventBroker: EventBrokerConfig;
 }
-export interface AddEventBrokerResponse {}
 export interface DeleteEventBroker {
   address: AnyURI;
 }
-export interface DeleteEventBrokerResponse {}
 export interface GetEventBrokers {
   address?: AnyURI;
-}
-export interface GetEventBrokersResponse {
-  eventBroker?: EventBrokerConfig[];
 }

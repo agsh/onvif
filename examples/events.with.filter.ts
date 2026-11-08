@@ -129,7 +129,7 @@ let pushSub: PullPointSubscription | null = null;
           `${new Date().toLocaleTimeString()} only motion ${data.topic._} ${JSON.stringify(data.message.message.data)}\n`,
         );
       });
-      sub.on('connectionError', (error) => {
+      sub.on('connectionError', (_error) => {
         tapoErrorCounter += 1;
       });
       await sub.subscribe();

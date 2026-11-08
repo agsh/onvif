@@ -8,7 +8,6 @@
  */
 import * as fs from 'node:fs';
 import path from 'node:path';
-// eslint-disable-next-line n/no-unpublished-import
 import * as ts from 'typescript';
 
 type SymbolKind = 'interface' | 'type' | 'enum' | 'class' | 'other';
@@ -189,9 +188,10 @@ function collectDeclarations(sf: ts.SourceFile): DeclInfo[] {
   return result;
 }
 
-function buildDependencyGraph(
-  interfaceFiles: string[],
-): { decls: Map<string, DeclInfo>; deps: Map<string, Set<string>> } {
+function buildDependencyGraph(interfaceFiles: string[]): {
+  decls: Map<string, DeclInfo>;
+  deps: Map<string, Set<string>>;
+} {
   const decls = new Map<string, DeclInfo>();
   const deps = new Map<string, Set<string>>();
 
@@ -455,7 +455,7 @@ function main() {
   for (const file of interfaceFiles) {
     const removeNames = removeByFile.get(path.normalize(file));
     if (!removeNames || removeNames.size === 0) {
-      // Still clean unused imports that may reference nothing after other files change? 
+      // Still clean unused imports that may reference nothing after other files change?
       // Imports within this file only reference other modules' symbols — if this file's
       // kept decls still need them, keep. If some imports became unused because we removed
       // decls in THIS file, handle below only when removeNames is non-empty.
@@ -475,9 +475,7 @@ function main() {
     } else {
       fs.writeFileSync(file, text, 'utf8');
       rewrittenFiles++;
-      console.log(
-        `Updated ${path.relative(root, file)} (−${removeNames.size} declarations)`,
-      );
+      console.log(`Updated ${path.relative(root, file)} (−${removeNames.size} declarations)`);
     }
   }
 

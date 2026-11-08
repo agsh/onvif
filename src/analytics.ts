@@ -21,7 +21,6 @@ import {
   GetRules,
   GetSupportedAnalyticsModules,
   GetSupportedMetadata,
-  GetSupportedMetadataResponse,
   GetSupportedRules,
   MetadataInfo,
   ModifyAnalyticsModules,
@@ -70,8 +69,7 @@ export default class Analytics extends Service {
 
   /** Prefer explicit token; otherwise {@link Onvif.activeMediaProfile}.videoAnalyticsConfigurationToken. */
   private resolveConfigurationToken(configurationToken?: ReferenceToken): ReferenceToken {
-    const token =
-      configurationToken ?? this.onvif.activeMediaProfile?.videoAnalyticsConfigurationToken;
+    const token = configurationToken ?? this.onvif.activeMediaProfile?.videoAnalyticsConfigurationToken;
     if (!token) {
       throw new OnvifValidationError(
         'configurationToken is required (pass it or connect with a profile that has VideoAnalyticsConfiguration)',

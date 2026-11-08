@@ -10,7 +10,6 @@ import { ReferenceToken } from './interfaces/common';
 import {
   Action,
   ActionConfiguration,
-  ActionEngineCapabilities,
   ActionTrigger,
   ActionTriggerConfiguration,
   Capabilities,

@@ -21,7 +21,7 @@ function mockServiceRequest(service: { request: (...args: any[]) => any }, impl?
       return impl(body);
     }
     const root = Object.keys(body)[0];
-    const camel = root.charAt(0).toLowerCase() + root.slice(1) + 'Response';
+    const camel = `${root.charAt(0).toLowerCase() + root.slice(1)}Response`;
     return { [camel]: {} };
   });
 }
@@ -247,8 +247,12 @@ describe('Mocked service unit tests', () => {
         },
         CreatePKCS10CSR: { createPKCS10CSRResponse: { PKCS10CSR: 'csr' } },
         UploadCertificate: { uploadCertificateResponse: { certificateID: 'c2' } },
-        CreateCertPathValidationPolicy: { createCertPathValidationPolicyResponse: { certPathValidationPolicyID: 'p1' } },
-        GetAllCertPathValidationPolicies: { getAllCertPathValidationPoliciesResponse: { certPathValidationPolicy: [] } },
+        CreateCertPathValidationPolicy: {
+          createCertPathValidationPolicyResponse: { certPathValidationPolicyID: 'p1' },
+        },
+        GetAllCertPathValidationPolicies: {
+          getAllCertPathValidationPoliciesResponse: { certPathValidationPolicy: [] },
+        },
         GetCertPathValidationPolicy: { getCertPathValidationPolicyResponse: { certPathValidationPolicy: {} } },
         CreateDot1XConfiguration: { createDot1XConfigurationResponse: { dot1XID: 'd1' } },
         GetAllDot1XConfigurations: { getAllDot1XConfigurationsResponse: { configuration: [] } },
@@ -329,7 +333,9 @@ describe('Mocked service unit tests', () => {
   it('creates event pull-point and push subscriptions with filters and brokers', async () => {
     expect(
       Events.filterToBuild({
-        topicExpression: [{ expression: 'tns1:Device', dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet' }],
+        topicExpression: [
+          { expression: 'tns1:Device', dialect: 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet' },
+        ],
         messageContent: '//*[local-name()="SimpleItem"]',
       }),
     ).toBeDefined();
@@ -993,7 +999,9 @@ describe('Mocked service unit tests', () => {
         SetCertificationPath: {},
         RemoveServerCertificateAssignment: {},
         ReplaceServerCertificateAssignment: {},
-        GetClientAuthenticationRequired: { getClientAuthenticationRequiredResponse: { clientAuthenticationRequired: false } },
+        GetClientAuthenticationRequired: {
+          getClientAuthenticationRequiredResponse: { clientAuthenticationRequired: false },
+        },
         GetCnMapsToUser: { getCnMapsToUserResponse: { cnMapsToUser: false } },
         AddCertPathValidationPolicyAssignment: {},
         RemoveCertPathValidationPolicyAssignment: {},
@@ -1172,13 +1180,10 @@ describe('Mocked service unit tests', () => {
     await new Promise<void>((resolve, reject) =>
       cam.setSystemFactoryDefault((e: Error | null) => (e ? reject(e) : resolve())),
     );
+    await new Promise<void>((resolve, reject) => cam.systemReboot((e: Error | null) => (e ? reject(e) : resolve())));
     await new Promise<void>((resolve, reject) =>
-      cam.systemReboot((e: Error | null) => (e ? reject(e) : resolve())),
-    );
-    await new Promise<void>((resolve, reject) =>
-      cam.createUsers(
-        { user: [{ username: 'u', password: 'p', userLevel: 'User' }] },
-        (e: Error | null) => (e ? reject(e) : resolve()),
+      cam.createUsers({ user: [{ username: 'u', password: 'p', userLevel: 'User' }] }, (e: Error | null) =>
+        e ? reject(e) : resolve(),
       ),
     );
     await new Promise<void>((resolve, reject) =>

@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/thermal/wsdl/thermal.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import type { ReferenceToken } from './interfaces/common';
 import {
@@ -61,9 +61,7 @@ export default class Thermal extends Service {
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
     const token = videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
     if (!token) {
-      throw new OnvifValidationError(
-        'videoSourceToken is required (pass it or connect with a media profile)',
-      );
+      throw new OnvifValidationError('videoSourceToken is required (pass it or connect with a media profile)');
     }
     return token;
   }
@@ -150,9 +148,7 @@ export default class Thermal extends Service {
    * Gets the valid ranges for the Thermal parameters that have device specific ranges.
    * @param options
    */
-  async getConfigurationOptions(
-    options: Partial<GetConfigurationOptions> = {},
-  ): Promise<ConfigurationOptions> {
+  async getConfigurationOptions(options: Partial<GetConfigurationOptions> = {}): Promise<ConfigurationOptions> {
     const response = await this.request(
       {
         GetConfigurationOptions: {

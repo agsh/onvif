@@ -1,5 +1,6 @@
-import { PositiveInteger, DataEntity } from './types';
-import { Name, Description, Time } from './onvif';
+import { PositiveInteger } from './basics';
+import { DataEntity } from './types';
+import { Name, Description } from './onvif';
 import { ReferenceToken } from './common';
 
 /**
@@ -71,6 +72,7 @@ export interface ServiceCapabilities {
    */
   clientSuppliedTokenSupported?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The ScheduleInfo type represents the schedule as a physical object.
@@ -109,6 +111,7 @@ export interface Schedule extends ScheduleInfo {
 }
 export interface ScheduleExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A override schedule that defines alternate time periods for a group of special days. */
 export interface SpecialDaysSchedule {
@@ -128,6 +131,7 @@ export interface SpecialDaysSchedule {
 }
 export interface SpecialDaysScheduleExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The ScheduleState contains state information for a schedule. */
 export interface ScheduleState {
@@ -150,6 +154,7 @@ export interface ScheduleState {
 }
 export interface ScheduleStateExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * A time period defines a start and end time. For full day access, the
@@ -159,18 +164,19 @@ export interface ScheduleStateExtension {
  */
 export interface TimePeriod {
   /** Indicates the start time. */
-  from: Time;
+  from: string;
   /**
    * Indicates the end time. Is optional, if omitted, the period ends at midnight.
    * The end time is exclusive, meaning that that exact moment in time is not
    * part of the period. To determine if a moment in time (t) is part of a time period,
    * the formula StartTime &#8804; t &lt; EndTime is used.
    */
-  until?: Time;
+  until?: string;
   extension?: TimePeriodExtension;
 }
 export interface TimePeriodExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The SpecialDayGroupInfo structure contains the basic information about the special days list. */
 export interface SpecialDayGroupInfo extends DataEntity {
@@ -198,31 +204,16 @@ export interface SpecialDayGroup extends SpecialDayGroupInfo {
 }
 export interface SpecialDayGroupExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /**
-   * The capability response message contains the requested schedule service
-   * capabilities using a hierarchical XML capability structure.
-   */
-  capabilities: ServiceCapabilities;
-}
 export interface GetScheduleState {
   /** Token of schedule instance to get ScheduleState. */
   token: ReferenceToken;
 }
-export interface GetScheduleStateResponse {
-  /** ScheduleState item. */
-  scheduleState: ScheduleState;
-}
 export interface GetScheduleInfo {
   /** Tokens of ScheduleInfo items to get. */
   token: ReferenceToken[];
-}
-export interface GetScheduleInfoResponse {
-  /** List of ScheduleInfo items. */
-  scheduleInfo?: ScheduleInfo[];
 }
 export interface GetScheduleInfoList {
   /**
@@ -249,10 +240,6 @@ export interface GetScheduleInfoListResponse {
 export interface GetSchedules {
   /** Tokens of Schedule items to get */
   token: ReferenceToken[];
-}
-export interface GetSchedulesResponse {
-  /** List of schedule items. */
-  schedule?: Schedule[];
 }
 export interface GetScheduleList {
   /**
@@ -288,24 +275,17 @@ export interface SetSchedule {
   /** The Schedule to modify/create */
   schedule: Schedule;
 }
-export interface SetScheduleResponse {}
 export interface ModifySchedule {
   /** The Schedule to modify/update */
   schedule: Schedule;
 }
-export interface ModifyScheduleResponse {}
 export interface DeleteSchedule {
   /** The token of the schedule to delete. */
   token: ReferenceToken;
 }
-export interface DeleteScheduleResponse {}
 export interface GetSpecialDayGroupInfo {
   /** Tokens of SpecialDayGroupInfo items to get. */
   token: ReferenceToken[];
-}
-export interface GetSpecialDayGroupInfoResponse {
-  /** List of SpecialDayGroupInfo items. */
-  specialDayGroupInfo?: SpecialDayGroupInfo[];
 }
 export interface GetSpecialDayGroupInfoList {
   /**
@@ -332,10 +312,6 @@ export interface GetSpecialDayGroupInfoListResponse {
 export interface GetSpecialDayGroups {
   /** Tokens of the SpecialDayGroup items to get */
   token: ReferenceToken[];
-}
-export interface GetSpecialDayGroupsResponse {
-  /** List of SpecialDayGroup items. */
-  specialDayGroup?: SpecialDayGroup[];
 }
 export interface GetSpecialDayGroupList {
   /**
@@ -371,14 +347,11 @@ export interface SetSpecialDayGroup {
   /** The SpecialDayGroup to modify/create */
   specialDayGroup: SpecialDayGroup;
 }
-export interface SetSpecialDayGroupResponse {}
 export interface ModifySpecialDayGroup {
   /** The special day group to modify/update. */
   specialDayGroup: SpecialDayGroup;
 }
-export interface ModifySpecialDayGroupResponse {}
 export interface DeleteSpecialDayGroup {
   /** The token of the special day group item to delete. */
   token: ReferenceToken;
 }
-export interface DeleteSpecialDayGroupResponse {}

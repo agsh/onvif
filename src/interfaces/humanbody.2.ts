@@ -1,49 +1,11 @@
 import { ColorDescriptor } from './common';
-
-export type BodyShape = 'Fat' | 'Thin' | 'Other';
-export type TopsCategory = 'LongSleeve' | 'ShortSleeve' | 'Sleeveless' | 'Other';
-export type Grain = 'Stria' | 'Plaid' | 'PureColour' | 'Decal' | 'Other';
-export type TopsStyle =
-  | 'Tailor'
-  | 'Jacket'
-  | 'Shirt'
-  | 'Sweater'
-  | 'Overcoat'
-  | 'Dress'
-  | 'Vest'
-  | 'SafetyVest'
-  | 'Other';
-export type BottomsCategory = 'Trousers' | 'Shorts' | 'Skirt' | 'Other';
-export type BottomsStyle = 'FormalPants' | 'Jeans' | 'Other';
-export type ShoesCategory = 'Boots' | 'LeatherShoes' | 'Sneakers' | 'Sandal' | 'Slipper' | 'Other';
-export type BagCategory =
-  | 'ShoulderBag'
-  | 'Backpack'
-  | 'ToteBag'
-  | 'Briefcase'
-  | 'Suitcase'
-  | 'SingleShoulderBag'
-  | 'Other';
-export type CartCategory = 'BabyCarriage' | 'TwoWheelVehicle' | 'Tricyle' | 'Other';
-export type WeaponCategory = 'Knife' | 'Rifle' | 'Pistol' | 'Revolver';
-export type WeaponPose = 'InHolster' | 'InHand' | 'Aiming';
-export type Smoking = 'NoSmoking' | 'Cigar' | 'ElectronicCigarettes' | 'Other';
-export type UsingMobile = 'ByLeftHand' | 'ByRightHand' | 'Other';
-export type HumanActivity =
-  | 'Walking'
-  | 'Running'
-  | 'Fallen'
-  | 'Squatting'
-  | 'Sitting'
-  | 'Standing'
-  | 'Driving'
-  | 'Other';
 export interface BodyMetric {
   /** Describe the Stature of the body, the unit is centimeter. */
   height?: number;
   /** Describle the Shape of the body, acceptable values are defined in bd:BodyShape. */
   bodyShape?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Scarf {
   /** Describe the Color of the Scarf, acceptable values are defined in ColorDescriptor. */
@@ -51,6 +13,7 @@ export interface Scarf {
   /** Describe if the body wears the Scarf. */
   wear?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Gloves {
   /** Describe the Color of Gloves, acceptable values are defined in tt:ColorDescriptor. */
@@ -58,6 +21,7 @@ export interface Gloves {
   /** Describe if the body wears Gloves. */
   wear?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Tops {
   /** Describe the Category of the Tops, acceptable values are defined in bd:TopsCategory. */
@@ -69,6 +33,7 @@ export interface Tops {
   /** Describe the Style of the Tops, acceptable values are defined in bd:TopsStyle. */
   style?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Bottoms {
   /** Describe the Category of the Bottoms, acceptable values are defined in bd:BottomsCategory. */
@@ -80,6 +45,7 @@ export interface Bottoms {
   /** Describe the Style of the Bottoms, acceptable values are defined in bd:BottomsStyle. */
   style?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Shoes {
   /** Describe the Category of the Shoes, acceptable values are defined in bd:ShoesCategory. */
@@ -87,6 +53,7 @@ export interface Shoes {
   /** Describe the Color of the Shoes, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Clothing {
   /** Describe the Scarf of the body,acceptable values are defined in bd:Scarf. */
@@ -100,6 +67,7 @@ export interface Clothing {
   /** Describe the Shoes of the body,acceptable values are defined in bd:Shoes. */
   shoes?: Shoes;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Bag {
   /** Describe the Category of the Bag, acceptable values are defined in bd:BagCategory. */
@@ -107,6 +75,7 @@ export interface Bag {
   /** Describe the Colour of the Bag, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Umbrella {
   /** Describe the Color of the Bag, acceptable values are defined in tt:ColorDescriptor. */
@@ -114,6 +83,7 @@ export interface Umbrella {
   /** Describe if the body Opens the Umbrella. */
   open?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Box {
   /** Describe the Color of the Box, acceptable values are defined in tt:ColorDescriptor. */
@@ -121,6 +91,7 @@ export interface Box {
   /** Describe if the body Lugs the Box. */
   lug?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Cart {
   /** Describe the Category of the Cart, acceptable values are defined in bd:CartCategory. */
@@ -128,6 +99,7 @@ export interface Cart {
   /** Describe the Color of the Cart, acceptable values are defined in tt:ColorDescriptor. */
   color?: ColorDescriptor;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Weapon {
   /** Describe the Category of the Weapon, acceptable values are defined in bd:WeaponCategory. */
@@ -137,6 +109,7 @@ export interface Weapon {
   /** Describes how the weapon is held. Acceptable values are defined in bd:WeaponPose. */
   pose?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Belonging {
   /** Describe the Bag of the body,acceptable values are defined in bd:Bag */
@@ -152,6 +125,7 @@ export interface Belonging {
   /** Describe if the body carries the Weapon. */
   weapon?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Belongings {
   /** Describes a bag the body is wearing. */
@@ -163,6 +137,7 @@ export interface Belongings {
   /** Describe a waepon the body carries. */
   weapon?: Weapon[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Behaviour {
   /** Acceptable values are defined in bd:Smoking. */
@@ -172,6 +147,7 @@ export interface Behaviour {
   /** Describe the activity of the body, Acceptable values are defined in bd:HumanActivity. */
   activity?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface HumanBody {
   /** Describe the body metric of the body. */
@@ -185,4 +161,5 @@ export interface HumanBody {
   /** Set of belongings. */
   belongings?: Belongings;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }

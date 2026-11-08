@@ -5,7 +5,7 @@
  */
 
 import { Onvif, OnvifServices, type OnvifSoapBody } from './onvif';
-import { linerase, LineraseOptions } from './utils';
+import { LineraseOptions } from './utils';
 
 export const XMLNS: Record<keyof OnvifServices, string> = {
   ptz: 'http://www.onvif.org/ver20/ptz/wsdl',
@@ -135,8 +135,7 @@ export function lazyService<T extends object>(
 
   /** Callable for methods; also thenable so `await proxy.prop` loads a data field. */
   const unloadedAccessor = (property: string | symbol) => {
-    const accessor = ((...args: unknown[]) =>
-      load().then((service) => resolveProperty(service, property, args))) as ((
+    const accessor = ((...args: unknown[]) => load().then((service) => resolveProperty(service, property, args))) as ((
       ...args: unknown[]
     ) => Promise<unknown>) &
       PromiseLike<unknown>;

@@ -22,7 +22,6 @@ import {
 import {
   Capabilities,
   GetCurrentPreset,
-  GetCurrentPresetResponse,
   GetImagingSettings,
   GetMoveOptions,
   GetOptions,

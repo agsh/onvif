@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/deviceio.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import { ReferenceToken } from './interfaces/common';
 import {
@@ -83,9 +83,7 @@ export default class DeviceIO extends Service {
   private videoSourceToken(videoSourceToken?: ReferenceToken): ReferenceToken {
     const token = videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
     if (!token) {
-      throw new OnvifValidationError(
-        'videoSourceToken is required (pass it or connect with a media profile)',
-      );
+      throw new OnvifValidationError('videoSourceToken is required (pass it or connect with a media profile)');
     }
     return token;
   }

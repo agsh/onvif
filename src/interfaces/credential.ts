@@ -1,6 +1,6 @@
-import { PositiveInteger, DataEntity, Attribute } from './types';
-import { Duration } from './basics';
-import { Name, Description, Date } from './onvif';
+import { PositiveInteger, Duration } from './basics';
+import { Name, Description } from './onvif';
+import { DataEntity, Attribute } from './types';
 import { ReferenceToken } from './common';
 
 /**
@@ -45,7 +45,7 @@ export interface ServiceCapabilities {
   /**
    * The default time period that the credential will temporary be suspended (e.g. by using
    * the wrong PIN a predetermined number of times).
-   * The time period is defined as an [ISO 8601] duration string (e.g. “PT5M”).
+   * The time period is defined as an [ISO 8601] duration string (e.g. "PT5M").
    */
   defaultCredentialSuspensionDuration?: Duration;
   /** The maximum number of whitelisted credential identifiers supported by the device. */
@@ -69,6 +69,7 @@ export interface ServiceCapabilitiesExtension {
    */
   supportedExemptionType?: Name[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The CredentialInfo type represents the credential as a logical object. The structure contains
@@ -127,6 +128,7 @@ export interface Credential extends CredentialInfo {
 }
 export interface CredentialExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * A credential identifier is a card number, unique card information, PIN or
@@ -149,6 +151,7 @@ export interface CredentialIdentifier {
   /** The value of the identifier in hexadecimal representation. */
   value: unknown;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * Specifies the name of credential identifier type and its format for the credential
@@ -166,6 +169,7 @@ export interface CredentialIdentifierType {
    */
   formatType: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The association between a credential and an access profile. */
 export interface CredentialAccessProfile {
@@ -209,12 +213,14 @@ export interface CredentialState {
 }
 export interface CredentialStateExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A structure containing anti-passback related state information. */
 export interface AntipassbackState {
   /** Indicates if anti-passback is violated for the credential. */
   antipassbackViolated: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Contains information about a format type. */
 export interface CredentialIdentifierFormatTypeInfo {
@@ -235,6 +241,7 @@ export interface CredentialIdentifierFormatTypeInfo {
 }
 export interface CredentialIdentifierFormatTypeInfoExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Contains information about a format type. */
 export interface CredentialData {
@@ -255,6 +262,7 @@ export interface CredentialData {
 }
 export interface CredentialDataExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * A credential identifier is a card number, unique card information, PIN or biometric information
@@ -266,36 +274,9 @@ export interface CredentialIdentifierItem {
   /** The value of the identifier in hexadecimal representation. */
   value: unknown;
   [key: string]: unknown;
-}
-/** Contains information about a format type. */
-export interface FaultResponse {
-  /**
-   * A format type supported by the device. A list of supported format types is
-   * provided in [ISO 16484-5:2014-09 Annex P]. The BACnet type "CUSTOM" is not used in this
-   * specification. Instead device manufacturers can define their own format types.
-   */
-  token: ReferenceToken;
-  /**
-   * User readable description of the credential identifier format type. It
-   * shall be up to 1024 characters. For custom types, it is recommended to describe how the
-   * octet string is encoded (following the structure in column Authentication Factor Value
-   * Encoding of [ISO 16484-5:2014-09 Annex P]).
-   */
-  fault: string;
-  extension?: FaultResponseExtension;
-}
-export interface FaultResponseExtension {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /**
-   * The capability response message contains the requested credential
-   * service capabilities using a hierarchical XML capability structure.
-   */
-  capabilities: ServiceCapabilities;
-}
 export interface GetSupportedFormatTypes {
   /** Name of the credential identifier type */
   credentialIdentifierTypeName: string;
@@ -307,10 +288,6 @@ export interface GetSupportedFormatTypesResponse {
 export interface GetCredentialInfo {
   /** Tokens of CredentialInfo items to get. */
   token: ReferenceToken[];
-}
-export interface GetCredentialInfoResponse {
-  /** List of CredentialInfo items. */
-  credentialInfo?: CredentialInfo[];
 }
 export interface GetCredentialInfoList {
   /**
@@ -337,10 +314,6 @@ export interface GetCredentialInfoListResponse {
 export interface GetCredentials {
   /** Token of Credentials to get */
   token: ReferenceToken[];
-}
-export interface GetCredentialsResponse {
-  /** List of Credential items. */
-  credential?: Credential[];
 }
 export interface GetCredentialList {
   /**
@@ -378,24 +351,17 @@ export interface ModifyCredential {
   /** Details of the credential. */
   credential: Credential;
 }
-export interface ModifyCredentialResponse {}
 export interface SetCredential {
   /** Details of the credential. */
   credentialData: CredentialData;
 }
-export interface SetCredentialResponse {}
 export interface DeleteCredential {
   /** The token of the credential to delete. */
   token: ReferenceToken;
 }
-export interface DeleteCredentialResponse {}
 export interface GetCredentialState {
   /** Token of Credential */
   token: ReferenceToken;
-}
-export interface GetCredentialStateResponse {
-  /** State of the credential. */
-  state: CredentialState;
 }
 export interface EnableCredential {
   /** The token of the credential */
@@ -403,19 +369,16 @@ export interface EnableCredential {
   /** Reason for enabling the credential. */
   reason?: Name;
 }
-export interface EnableCredentialResponse {}
 export interface DisableCredential {
   /** Token of the Credential */
   token: ReferenceToken;
   /** Reason for disabling the credential */
   reason?: Name;
 }
-export interface DisableCredentialResponse {}
 export interface ResetAntipassbackViolation {
   /** Token of the Credential */
   credentialToken: ReferenceToken;
 }
-export interface ResetAntipassbackViolationResponse {}
 export interface GetCredentialIdentifiers {
   /** Token of the Credential */
   credentialToken: ReferenceToken;
@@ -430,14 +393,12 @@ export interface SetCredentialIdentifier {
   /** Identifier of the credential */
   credentialIdentifier: CredentialIdentifier;
 }
-export interface SetCredentialIdentifierResponse {}
 export interface DeleteCredentialIdentifier {
   /** Token of the Credential */
   credentialToken: ReferenceToken;
   /** Identifier type name of a credential */
   credentialIdentifierTypeName: Name;
 }
-export interface DeleteCredentialIdentifierResponse {}
 export interface GetCredentialAccessProfiles {
   /** Token of the Credential */
   credentialToken: ReferenceToken;
@@ -452,14 +413,12 @@ export interface SetCredentialAccessProfiles {
   /** Access Profiles of the credential */
   credentialAccessProfile: CredentialAccessProfile[];
 }
-export interface SetCredentialAccessProfilesResponse {}
 export interface DeleteCredentialAccessProfiles {
   /** Token of the Credential */
   credentialToken: ReferenceToken;
   /** Tokens of Access Profiles */
   accessProfileToken: ReferenceToken[];
 }
-export interface DeleteCredentialAccessProfilesResponse {}
 export interface GetWhitelist {
   /**
    * Maximum number of entries to return. If not specified, less than one or higher than what the device
@@ -478,6 +437,7 @@ export interface GetWhitelist {
   /** Get only whitelisted credential identifiers with the specified identifier value. */
   value?: unknown;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetWhitelistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
@@ -489,16 +449,14 @@ export interface AddToWhitelist {
   /** The credential identifiers to be added to the whitelist. */
   identifier?: CredentialIdentifierItem[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface AddToWhitelistResponse {}
 export interface RemoveFromWhitelist {
   /** The credential identifiers to be removed from the whitelist. */
   identifier?: CredentialIdentifierItem[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface RemoveFromWhitelistResponse {}
-export interface DeleteWhitelist {}
-export interface DeleteWhitelistResponse {}
 export interface GetBlacklist {
   /**
    * Maximum number of entries to return. If not specified, less than one or higher than what the device
@@ -517,6 +475,7 @@ export interface GetBlacklist {
   /** Get only blacklisted credential identifiers with the specified identifier value. */
   value?: unknown;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetBlacklistResponse {
   /** StartReference to use in next call to get the following items. If absent, no more items to get. */
@@ -528,13 +487,11 @@ export interface AddToBlacklist {
   /** The credential identifiers to be added to the blacklist. */
   identifier?: CredentialIdentifierItem[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface AddToBlacklistResponse {}
 export interface RemoveFromBlacklist {
   /** The credential identifiers to be removed from the blacklist. */
   identifier?: CredentialIdentifierItem[];
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface RemoveFromBlacklistResponse {}
-export interface DeleteBlacklist {}
-export interface DeleteBlacklistResponse {}

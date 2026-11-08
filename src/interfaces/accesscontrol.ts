@@ -5,42 +5,6 @@ import { ReferenceToken } from './common';
 /** The Decision enumeration represents a choice of two available options for an access request: */
 export type Decision = 'Granted' | 'Denied';
 /**
- * Non-normative enum that describes the various reasons for denying access.
- * The following strings shall be used for the reason field:
- */
-export type DenyReason =
-  | 'CredentialNotEnabled'
-  | 'CredentialNotActive'
-  | 'CredentialExpired'
-  | 'InvalidPIN'
-  | 'NotPermittedAtThisTime'
-  | 'Unauthorized'
-  | 'Other';
-/**
- * Non-normative enumeration that describes the ONVIF defined feedback types.
- * These types are used in string fields where extendibility is desired.
- * Strings starting with the prefix pt: are reserved to define ONVIF-specific types.
- * For custom defined feedback types, free text can be used.
- * The following types are defined by ONVIF:
- */
-export type FeedbackType =
-  | 'pt:Disabled'
-  | 'pt:Idle'
-  | 'pt:DoorLocked'
-  | 'pt:DoorUnlocked'
-  | 'pt:DoorOpenTooLong'
-  | 'pt:DoorPreAlarmWarning'
-  | 'pt:RequireIdentifier'
-  | 'pt:TextMessage'
-  | 'pt:Processing'
-  | 'pt:RetryIdentifier'
-  | 'pt:AccessGranted'
-  | 'pt:AccessDenied'
-  | 'pt:Ok'
-  | 'pt:Fault'
-  | 'pt:Warning'
-  | 'pt:Alarm';
-/**
  * The service capabilities reflect optional functionality of a service.
  * The information is static and does not change during device operation.
  * The following capabilities are available:
@@ -76,6 +40,7 @@ export interface ServiceCapabilities {
    */
   areaManagementSupported?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Used as extension base for AccessPointInfo. */
 export interface AccessPointInfoBase extends DataEntity {
@@ -118,6 +83,7 @@ export interface AccessPointInfo extends AccessPointInfoBase {
   /** The capabilities for the AccessPoint. */
   capabilities: AccessPointCapabilities;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The AccessPoint structure shall include all properties of the AccessPointInfo structure,
@@ -133,6 +99,7 @@ export interface AccessPoint extends AccessPointInfo {
 }
 export interface AccessPointExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The AccessPoint capabilities reflect optional functionality of a particular physical entity.
@@ -202,9 +169,11 @@ export interface AccessPointCapabilities {
   supportedSecurityLevels?: ReferenceToken[];
   extension?: SupportedSecurityLevelsExtension;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SupportedSecurityLevelsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Basic information about an Area. Used as extension base. */
 export interface AreaInfoBase extends DataEntity {
@@ -230,6 +199,7 @@ export interface Area extends AreaInfo {
 }
 export interface AreaExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The AccessPointState contains state information for an AccessPoint.
@@ -242,16 +212,9 @@ export interface AccessPointState {
    */
   enabled: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /**
-   * The capability response message contains the requested Access Control
-   * service capabilities using a hierarchical XML capability structure.
-   */
-  capabilities: ServiceCapabilities;
-}
 export interface GetAccessPointInfoList {
   /**
    * Maximum number of entries to return. If not specified, less than one
@@ -277,10 +240,6 @@ export interface GetAccessPointInfoListResponse {
 export interface GetAccessPointInfo {
   /** Tokens of AccessPointInfo items to get. */
   token?: ReferenceToken[];
-}
-export interface GetAccessPointInfoResponse {
-  /** List of AccessPointInfo items. */
-  accessPointInfo?: AccessPointInfo[];
 }
 export interface GetAccessPointList {
   /**
@@ -308,10 +267,6 @@ export interface GetAccessPoints {
   /** Tokens of AccessPoint items to get. */
   token?: ReferenceToken[];
 }
-export interface GetAccessPointsResponse {
-  /** List of AccessPoint items. */
-  accessPoint?: AccessPoint[];
-}
 export interface CreateAccessPoint {
   /** AccessPoint item to create */
   accessPoint: AccessPoint;
@@ -324,29 +279,24 @@ export interface SetAccessPoint {
   /** AccessPoint item to create or modify */
   accessPoint: AccessPoint;
 }
-export interface SetAccessPointResponse {}
 export interface ModifyAccessPoint {
   /** AccessPoint item to modify */
   accessPoint: AccessPoint;
 }
-export interface ModifyAccessPointResponse {}
 export interface DeleteAccessPoint {
   /** Token of AccessPoint item to delete. */
   token: ReferenceToken;
 }
-export interface DeleteAccessPointResponse {}
 export interface SetAccessPointAuthenticationProfile {
   /** Token of the AccessPoint. */
   token: ReferenceToken;
   /** Token of the AuthenticationProfile. */
   authenticationProfileToken: ReferenceToken;
 }
-export interface SetAccessPointAuthenticationProfileResponse {}
 export interface DeleteAccessPointAuthenticationProfile {
   /** Token of the AccessPoint. */
   token: ReferenceToken;
 }
-export interface DeleteAccessPointAuthenticationProfileResponse {}
 export interface GetAreaInfoList {
   /**
    * Maximum number of entries to return. If not specified, less than one
@@ -372,10 +322,6 @@ export interface GetAreaInfoListResponse {
 export interface GetAreaInfo {
   /** Tokens of AreaInfo items to get. */
   token?: ReferenceToken[];
-}
-export interface GetAreaInfoResponse {
-  /** List of AreaInfo items. */
-  areaInfo?: AreaInfo[];
 }
 export interface GetAreaList {
   /**
@@ -403,10 +349,6 @@ export interface GetAreas {
   /** Tokens of Area items to get. */
   token?: ReferenceToken[];
 }
-export interface GetAreasResponse {
-  /** List of Area items. */
-  area?: Area[];
-}
 export interface CreateArea {
   /** Area item to create */
   area: Area;
@@ -419,35 +361,26 @@ export interface SetArea {
   /** Area item to create or modify */
   area: Area;
 }
-export interface SetAreaResponse {}
 export interface ModifyArea {
   /** Area item to modify */
   area: Area;
 }
-export interface ModifyAreaResponse {}
 export interface DeleteArea {
   /** Token of Area item to delete. */
   token: ReferenceToken;
 }
-export interface DeleteAreaResponse {}
 export interface GetAccessPointState {
   /** Token of AccessPoint instance to get AccessPointState for. */
   token: ReferenceToken;
-}
-export interface GetAccessPointStateResponse {
-  /** AccessPointState item. */
-  accessPointState: AccessPointState;
 }
 export interface EnableAccessPoint {
   /** Token of the AccessPoint instance to enable. */
   token: ReferenceToken;
 }
-export interface EnableAccessPointResponse {}
 export interface DisableAccessPoint {
   /** Token of the AccessPoint instance to disable. */
   token: ReferenceToken;
 }
-export interface DisableAccessPointResponse {}
 export interface ExternalAuthorization {
   /** Token of the Access Point instance. */
   accessPointToken: ReferenceToken;
@@ -458,7 +391,6 @@ export interface ExternalAuthorization {
   /** Decision - Granted or Denied. */
   decision: Decision;
 }
-export interface ExternalAuthorizationResponse {}
 export interface Feedback {
   /** Token of the access point to control. */
   accessPointToken: ReferenceToken;
@@ -482,7 +414,5 @@ export interface Feedback {
    */
   textMessage?: string;
   [key: string]: unknown;
-}
-export interface FeedbackResponse {
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }

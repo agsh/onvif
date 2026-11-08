@@ -1,5 +1,5 @@
-import { Date, StringAttrList } from './onvif';
 import { AnyURI } from './basics';
+import { StringAttrList } from './onvif';
 
 export type AppState = 'Active' | 'Inactive' | 'Installing' | 'Uninstalling' | 'Removed' | 'InstallationFailed';
 export interface AppInfo {
@@ -53,51 +53,34 @@ export interface Capabilities {
   /** Optional Event Topic prefix used when delivering app events in eventservice. */
   eventTopicPrefix?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Uninstall {
   /** App to be uninstalled. Possible failures during deinstallation will be delivered via an event. */
   appID: string;
 }
-export interface UninstallResponse {}
 export interface GetAppsInfo {
   /** Optional ID to only retrieve information for a single application. */
   appID?: string;
 }
-export interface GetAppsInfoResponse {
-  info?: AppInfo[];
-}
-export interface GetInstalledApps {}
 export interface App {
   name: string;
   appID: string;
-}
-export interface GetInstalledAppsResponse {
-  /** List of installed apps providing both user readable name and token. */
-  app?: App[];
 }
 export interface Activate {
   /** App identifier. */
   appID: string;
 }
-export interface ActivateResponse {}
 export interface Deactivate {
   /** App identifier. */
   appID: string;
 }
-export interface DeactivateResponse {}
 export interface InstallLicense {
   /** Application the license shall be associated to. */
   appID?: string;
   /** Opaque machine readable license string. */
   license: string;
 }
-export interface InstallLicenseResponse {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities of the service. */
-  capabilities: Capabilities;
-}
-export interface GetDeviceId {}
 export interface GetDeviceIdResponse {
   deviceId: string;
 }

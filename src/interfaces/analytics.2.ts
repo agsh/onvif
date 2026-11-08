@@ -1,4 +1,7 @@
-import { StringList, SupportedRules, Config, SupportedAnalyticsModules } from './onvif';
+import {
+  StringList,
+  Config,
+} from './onvif';
 import { Frame } from './metadatastream';
 import { ReferenceToken } from './common';
 
@@ -18,6 +21,7 @@ export interface Capabilities {
   /** Indication what kinds of method that the device support for sending image, acceptable values are defined in tt:ImageSendingType. */
   imageSendingType?: StringList;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ConfigOptions {
   /** The RuleType the ConfigOptions applies to if the Name attribute is ambiguous. */
@@ -41,6 +45,7 @@ export interface ConfigOptions {
   maxOccurs?: number;
   /** XML tree containing the element value as defined in the Type attribute. */
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MetadataInfo {
   /** Reference to an AnalyticsModule Type. */
@@ -48,11 +53,7 @@ export interface MetadataInfo {
   /** Sample frame content starting with the tt:Frame node. */
   sampleFrame: Frame;
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the analytics service is returned in the Capabilities element. */
-  capabilities: Capabilities;
+  [key: symbol]: unknown;
 }
 export interface GetSupportedRules {
   /**
@@ -61,34 +62,25 @@ export interface GetSupportedRules {
    */
   configurationToken: ReferenceToken;
 }
-export interface GetSupportedRulesResponse {
-  supportedRules: SupportedRules;
-}
 export interface CreateRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   rule: Config[];
 }
-export interface CreateRulesResponse {}
 export interface DeleteRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   /** References the specific rule to be deleted (e.g. "MyLineDetector"). */
   ruleName: string[];
 }
-export interface DeleteRulesResponse {}
 export interface ModifyRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   rule: Config[];
 }
-export interface ModifyRulesResponse {}
 export interface GetRules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
-}
-export interface GetRulesResponse {
-  rule?: Config[];
 }
 export interface GetRuleOptions {
   /** Reference to an SupportedRule Type returned from GetSupportedRules. */
@@ -96,42 +88,29 @@ export interface GetRuleOptions {
   /** Reference to an existing analytics configuration. */
   configurationToken: ReferenceToken;
 }
-export interface GetRuleOptionsResponse {
-  /** A device shall provide respective ConfigOptions.RuleType for each RuleOption if the request does not specify RuleType. The response Options shall not contain any AnalyticsModule attribute. */
-  ruleOptions?: ConfigOptions[];
-}
 export interface GetSupportedAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
-}
-export interface GetSupportedAnalyticsModulesResponse {
-  supportedAnalyticsModules: SupportedAnalyticsModules;
 }
 export interface CreateAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   analyticsModule?: Config[];
 }
-export interface CreateAnalyticsModulesResponse {}
 export interface DeleteAnalyticsModules {
   /** Reference to an existing Video Analytics configuration. */
   configurationToken: ReferenceToken;
   /** Name of the AnalyticsModule to be deleted. */
   analyticsModuleName?: string[];
 }
-export interface DeleteAnalyticsModulesResponse {}
 export interface ModifyAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
   analyticsModule?: Config[];
 }
-export interface ModifyAnalyticsModulesResponse {}
 export interface GetAnalyticsModules {
   /** Reference to an existing VideoAnalyticsConfiguration. */
   configurationToken: ReferenceToken;
-}
-export interface GetAnalyticsModulesResponse {
-  analyticsModule?: Config[];
 }
 export interface GetAnalyticsModuleOptions {
   /** Reference to an SupportedAnalyticsModule Type returned from GetSupportedAnalyticsModules. */
@@ -139,14 +118,7 @@ export interface GetAnalyticsModuleOptions {
   /** Reference to an existing AnalyticsConfiguration. */
   configurationToken: ReferenceToken;
 }
-export interface GetAnalyticsModuleOptionsResponse {
-  /** List of options for the specified analytics module. The response Options shall not contain any RuleType attribute. */
-  options?: ConfigOptions[];
-}
 export interface GetSupportedMetadata {
   /** Optional reference to an AnalyticsModule Type returned from GetSupportedAnalyticsModules. */
   type?: unknown;
-}
-export interface GetSupportedMetadataResponse {
-  analyticsModule?: MetadataInfo[];
 }
