@@ -5,11 +5,17 @@
 
 ONVIF Client protocol Node.js implementation.
 
+> [!TIP}
+> This page describes the **stable 0.8.x** (JavaScript) line on branch [`v0.x`](https://github.com/agsh/onvif/tree/v0.x).
+> For the TypeScript 1.x alpha, see branch [`v1`](https://github.com/agsh/onvif/tree/master).
+
 This is a wrapper to ONVIF protocol which allows you to get information about your NVT (network video transmitter)
 device, its media sources, control PTZ (pan-tilt-zoom) movements and manage presets, detect devices in your network and control its events.
 It will also allow you to get information about your NVR (network video recorder) Profile G device and obtain a list of recordings.
 
 The library uses NodeJS. And works on the server-side.
+
+Documentation for the version 0.8 is here: https://onvif.pages.dev
 
 [![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
@@ -25,14 +31,14 @@ We welcome any donations or long term loans cameras from other vendors to test c
 
 ### NPM
 
-`npm install onvif` - install latest stable version
+`npm install onvif@0.8` - install latest stable **0.8.x** from npm
 
-`npm install agsh/onvif` - install latest version from GitHub
+`npm install agsh/onvif#v0.x` - install latest 0.8.x from GitHub
 
-`npm install agsh/onvif#v1` - install latest development version
+`npm install agsh/onvif` - TypeScript 1.x (separate API; see [v1 README](https://github.com/agsh/onvif/tree/master))
 
 ### Clone the latest version from github
-`git clone https://github.com/agsh/onvif.git`
+`git clone -b v0.x https://github.com/agsh/onvif.git`
 
 ### Tests
 In the library directory run `npm test`
@@ -94,16 +100,16 @@ const cam = new Cam({username: 'username', password: 'password', hostname: '192.
 ```
 
 ## Other examples (located in the Examples Folder on the Github)
-* [example.js](https://github.com/agsh/onvif/blob/master/examples/example.js) - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
-* [example2.js](https://github.com/agsh/onvif/blob/master/examples/example2.js) - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
+* [example.js](https://github.com/agsh/onvif/blob/v0.x/examples/example.js) - Move camera to a pre-defined position then server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the VLC plugin installed)
+* [example2.js](https://github.com/agsh/onvif/blob/v0.x/examples/example2.js) - takes an IP address range, scans the range for ONVIF devices (brute force scan) and displays information about each device found including make and model and RTSP URLs
 For Profile S Cameras and Encoders it displays the default RTSP address
 For Profile G Recorders it displays the RTSP address of the first recording
-* [example3.js](https://github.com/agsh/onvif/blob/master/examples/example3.js) - reads the command line cursor keys and sends PTZ commands to the Camera
-* [example4.js](https://github.com/agsh/onvif/blob/master/examples/example4.js) - uses Discovery to find cameras on the local network 
-* [example5.js](https://github.com/agsh/onvif/blob/master/examples/example5.js) - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
-* [example6.js](https://github.com/agsh/onvif/blob/master/examples/example6.js) - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
-* [example7.js](https://github.com/agsh/onvif/blob/master/examples/example7.js) - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
-* [example8.js](https://github.com/agsh/onvif/blob/master/examples/example8.js) - example setting OSD On Screen Display. (also uses Promises API)
+* [example3.js](https://github.com/agsh/onvif/blob/v0.x/examples/example3.js) - reads the command line cursor keys and sends PTZ commands to the Camera
+* [example4.js](https://github.com/agsh/onvif/blob/v0.x/examples/example4.js) - uses Discovery to find cameras on the local network
+* [example5.js](https://github.com/agsh/onvif/blob/v0.x/examples/example5.js) - connect to a camera via  SOCKS proxy. Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
+* [example6.js](https://github.com/agsh/onvif/blob/v0.x/examples/example6.js) - ONVIF Events. Example can be switched btween using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
+* [example7.js](https://github.com/agsh/onvif/blob/v0.x/examples/example7.js) - example using a Promise API. It uses 'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
+* [example8.js](https://github.com/agsh/onvif/blob/v0.x/examples/example8.js) - example setting OSD On Screen Display. (also uses Promises API)
 
 # API
 
@@ -209,9 +215,15 @@ const Cam = require('onvif').Cam;
 ## new Cam(options, callback)
 
 Options are:
-- hostname
-- username, password (optional, to deal with majority of functions)
-- port (optional)
+- `hostname`
+- `username`, `password` (optional, to deal with majority of functions)
+- `port` (optional)
+- `path` (optional) - ONVIF service path, default `/onvif/device_service`
+- `timeout` (optional) - request timeout in ms
+- `useSecure` (optional) - use HTTPS instead of HTTP
+- `useWSSecurity` (optional, default `true`) - WS-Security SOAP headers; set `false` to force Digest auth (0.8+)
+- `preserveAddress` (optional) - keep constructor hostname/port for service URLs (NAT)
+- `autoconnect` (optional, default `true`) - set `false` to skip automatic `connect()`
 
 The library calls connect() automatically which executes the `getSystemDateAndTime`, `getCapabilities` and other methods.
 Note on username and password:
@@ -266,7 +278,7 @@ Connect to the camera and fill device information properties with `getSystemDate
 `getCapabilities`/`getServices`, `getVideoSources`, `getProfiles` methods.
 
 Media discovery runs only when the device advertises Media (or Media2). If those calls fail
-(e.g. Axis A1601 door controller returns “Optional action not implemented”), `connect` still
+(e.g. Axis A1601 door controller returns "Optional action not implemented"), `connect` still
 succeeds with empty profiles/video sources and emits a `warning`.
 `getVideoSources` falls back to Media2 `GetVideoSourceConfigurations` when Media1 fails.
 
@@ -302,17 +314,19 @@ The options are:
 ### getPresets(options, callback)
 *PTZ.* Returns the list of presets for the PTZ node in the selected profile.
 
-The callback receives `(err, presets, presetsByToken, xml)`:
-- `presets` — map of preset name → token (also stored on `#presets`)
-- `presetsByToken` — map of token → full preset object (name and optional ONVIF fields). Prefer this when names may duplicate; tokens are unique
-- `xml` — raw SOAP response body
+Since **0.8.4** the callback receives `(err, presetsByName, presetsByToken, xml)`:
+- `presetsByName` - map of preset name -> token (also stored on `#presets`; same shape as pre-0.8.1)
+- `presetsByToken` - map of token -> full preset object (`name` and optional ONVIF fields). Prefer this when names may duplicate; tokens are unique
+- `xml` - raw SOAP response body
 
 ```js
-cam.getPresets((err, presets, presetsByToken) => {
-  // presets['Home'] === 'token-1'
+cam.getPresets((err, presetsByName, presetsByToken) => {
+  // presetsByName['Home'] === 'token-1'
   // presetsByToken['token-1'].name === 'Home'
 });
 ```
+
+Promise API (`onvif/promises`) still resolves to the name->token map only (first result argument).
 
 The options are:
 
@@ -451,36 +465,20 @@ configuration object
 *Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken. Used with both **GetRecordings** and **GetReplayUri** will allow to retreive recordings from an [Onvif Profile G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
 
 ## Changelog
-- V0.x BRANCH...
-- 0.8.4 BREAKING: `getPresets` callback argument order is now `(err, presetsByName, presetsByToken, xml)` Use `presetsByToken` when preset names can duplicate. SOAP setters send `0` / `false` via `isSet` (omit only undefined/null/'').
-- 0.8.3 Skip Media/VideoSource probing when the device does not support it; fall back to Media2 when Media fails
-- 0.8.2 Digest auth RFC fixes. Discovery UDP buffer fix and undefined props checks
-  Replace splitargs with own implementation, promises probe return
-- 15th October 2026 - Restore the original GetPresets API (the API used from v0.1 to v0.7.1), with `presetsByToken` as an extra callback parameter
-- 0.8.1 BREAKING CHANGES TO GetPresets() [Which have since been returned to the original API]
-  The original API of 9 years returned a map indexed by Preset Name. This does not work with cameras that have duplicate preset names (thanks to @Craytor for the fix). In addition ONVIF now includes extra Preset parameters added by @momoAmch. Note example3.js was missed and is broken in 0.8.1 but is now fixed in the master branch.
-  So in this version, GetPresets() returns an array indexed by Preset Token. The result is an array of Objects where Objects include a .name value
-- 0.8.0 Only Digest Auth support
-- 0.7.1 Improved events handling
-- 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)
-- 0.6.1 Workaround for cams that don't send date-time
-- 0.6.0 Refactor modules for proper import in electron-based environment
-- 0.5.5 Added ptz.`gotoHomePosition`, ptz.`setHomePosition`. Fixed exceptions in ptz.`getConfigurations` and utils.`parseSOAPString`. Added tests for ptz.`setPreset`, ptz.`removePreset`, ptz.`gotoHomePosition`, and ptz.`setHomePosition`.
-- 0.5.4 Bumped for NPM.
-- 0.5.3 Some fixes. Tests
-- 0.5.2 `preserveAddress` property for NAT devices, discovery with multiple network interfaces (@Climax777)
-- 0.5.1 Critical bugfix in SOAP-auth for some cams
-- 0.5.0 Profile G support (@RogerHardiman), proper SOAP auth, nodejs support >= 0.12
-- 0.4.2 Bugfixes
-- 0.4.1 Improved discovery (@sousandrei, @RogerHardiman)
-- 0.4.0 Encoder support (@chriswiggins), Imaging service (@EastL)
-- 0.3.1 EventEmitter-based events
-- 0.3.0 Refactoring, documentation, event service basics
-- 0.2.7 WS-Discovery
+
+See [CHANGELOG.md](./CHANGELOG.md) for the full list. Recent **0.8.x** highlights:
+
+- **0.8.4** BREAKING: `getPresets` callback is `(err, presetsByName, presetsByToken, xml)` - name->token map unchanged; use `presetsByToken` for duplicates / full preset objects. SOAP setters use `isSet` so `0` / `false` are sent; omit only `undefined` / `null` / `''`.
+- **0.8.3** Skip Media/VideoSource probing when unsupported; fall back to Media2 when Media fails.
+- **0.8.2** Digest auth RFC fixes; Discovery UDP buffer / undefined props; replace `splitargs`; promises probe return; CI on Node 22/24.
+- **0.8.1** Skip invalid presets; richer preset objects (`@momoAmch`). Brief period used token-keyed presets; **0.8.4** restores name->token as the primary callback result with `presetsByToken` as an extra argument.
+- **0.8.0** Media2 video encoders; PTZ preset token fix (`@Craytor`); Digest auth via `useWSSecurity: false`; Node >= 14.
+- **0.7.2** Promises API via `onvif/promises`.
+- Older history: Profile G, Imaging, Discovery, HTTPS / Profile T / Media2 foundations - see CHANGELOG.md.
 
 ## Further steps toward 1.0
-- Branch written in Typescript is located here: [https://github.com/agsh/onvif/tree/v1](https://github.com/agsh/onvif/tree/v1)
-- Demo project named Broviki that uses Onvif v1.0 is located here: [https://github.com/agsh/broviki](https://github.com/agsh/broviki)
+- TypeScript rewrite (alpha): [https://github.com/agsh/onvif/tree/v1](https://github.com/agsh/onvif/tree/v1) - `npm install onvif@alpha`
+- Demo project Broviki (Onvif v1): [https://github.com/agsh/broviki](https://github.com/agsh/broviki)
 
 ## Links
 WSDL schemes and docs:
