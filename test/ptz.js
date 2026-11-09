@@ -27,44 +27,53 @@ describe('PTZ', () => {
 				// only token is required
 				typeof preset.$.token == 'string';
 		};
-		const assertPresetsShape = (data) => {
-			assert.ok(Object.keys(data).length > 0);
-			assert.ok(Object.keys(data).every((presetName) => isValidPrest(data[presetName])));
-			assert.ok(cam.presets);
-			assert.ok(Object.keys(cam.presets).length > 0);
-			// cam.presets is keyed by token
-			Object.keys(cam.presets).forEach((token) => {
-				const preset = cam.presets[token];
-				assert.strictEqual(preset.$.token, token);
+		const assertPresetsShape = (presetsByName, presetsByToken) => {
+			assert.ok(Object.keys(presetsByName).length > 0);
+			assert.ok(Object.keys(presetsByToken).length > 0);
+			// original API: name → token (also stored on #presets); duplicate names overwrite — last wins
+			assert.strictEqual(cam.presets, presetsByName);
+			Object.keys(presetsByName).forEach((name) => {
+				const token = presetsByName[name];
+				assert.strictEqual(typeof token, 'string');
+				assert.ok(isValidPrest(presetsByToken[token]));
+				assert.strictEqual(presetsByToken[token].name, name);
+				assert.strictEqual(presetsByToken[token].$.token, token);
+			});
+			// token → full preset object (unique even when names duplicate)
+			Object.keys(presetsByToken).forEach((token) => {
+				const preset = presetsByToken[token];
 				assert.ok(isValidPrest(preset));
+				assert.strictEqual(preset.$.token, token);
 			});
-			// callback data is keyed by name (duplicate names overwrite — last wins)
-			Object.keys(data).forEach((name) => {
-				const preset = data[name];
-				assert.strictEqual(preset.name, name);
-				assert.strictEqual(cam.presets[preset.$.token], preset);
-			});
+			// mock has two presets named Home (tokens Home and Home2) — name map keeps the last
+			if (presetsByToken.Home && presetsByToken.Home2) {
+				assert.strictEqual(presetsByToken.Home.name, 'Home');
+				assert.strictEqual(presetsByToken.Home2.name, 'Home');
+				assert.strictEqual(presetsByName.Home, 'Home2');
+			}
 		};
-		it('should return array of preset objects and sets them to #presets', (done) => {
-			cam.getPresets({}, (err, data) => {
+		it('should return name→token and token→preset maps and set #presets', (done) => {
+			cam.getPresets({}, (err, presetsByName, presetsByToken) => {
 				assert.strictEqual(err, null);
-				assertPresetsShape(data);
+				assertPresetsShape(presetsByName, presetsByToken);
 				done();
 			});
 		});
-		it('should return array of preset objects and sets them to #presets without options', (done) => {
-			cam.getPresets((err, data) => {
+		it('should return name→token and token→preset maps without options', (done) => {
+			cam.getPresets((err, presetsByName, presetsByToken) => {
 				assert.strictEqual(err, null);
-				assertPresetsShape(data);
+				assertPresetsShape(presetsByName, presetsByToken);
 				done();
 			});
 		});
 		if (synthTest) {
 			it('should work with one preset', (done) => {
 				serverMockup.conf.one = true;
-				cam.getPresets((err, data) => {
+				cam.getPresets((err, presetsByName, presetsByToken) => {
 					assert.strictEqual(err, null);
-					assertPresetsShape(data);
+					assert.strictEqual(Object.keys(presetsByName).length, 1);
+					assert.strictEqual(Object.keys(presetsByToken).length, 1);
+					assertPresetsShape(presetsByName, presetsByToken);
 					delete serverMockup.conf.one;
 					done();
 				});
