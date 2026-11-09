@@ -207,10 +207,12 @@ export interface VideoEncoderConfigurationOptions {
 		bitrateLimit?: number;
 		$?: { ConstantBitRate?: boolean };
 	};
-	MPEG4?: { govLength?: number; profile?: 'SP' | 'ASP' | string };
+	MPEG4?: { govLength?: number; profile?: 'SP' | 'ASP' | string; mpeg4Profile?: 'SP' | 'ASP' | string };
 	H264?: {
 		govLength?: number;
 		profile?: 'Baseline' | 'Main' | 'Extended' | 'High' | string;
+		/** The name getVideoEncoderConfiguration returns; accepted as an alternative to `profile` */
+		H264Profile?: 'Baseline' | 'Main' | 'Extended' | 'High' | string;
 	};
 	multicast?: MulticastConfiguration;
 	sessionTimeout?: string;
@@ -311,6 +313,11 @@ export interface ImagingSettingsOptions {
 	};
 	sharpness?: number;
 	irCutFilter?: 'AUTO' | 'ON' | 'OFF';
+	backlightCompensation?: { mode: 'OFF' | 'ON' | string; level?: number };
+	wideDynamicRange?: { mode: 'OFF' | 'ON' | string; level?: number };
+	whiteBalance?: { mode: 'AUTO' | 'MANUAL' | string; crGain?: number; cbGain?: number };
+	/** As returned by getImagingSettings; only extension.extension.extension.noiseReduction.level is sent */
+	extension?: { extension?: { extension?: { noiseReduction?: { level?: number } } } };
 	[key: string]: any;
 }
 
