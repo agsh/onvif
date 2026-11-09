@@ -3,7 +3,7 @@
 [![Coverage Status](https://img.shields.io/coveralls/agsh/onvif.svg)](https://coveralls.io/r/agsh/onvif?branch=master)
 [![NPM version](https://img.shields.io/npm/v/onvif.svg)](https://www.npmjs.com/package/onvif)
 
-ONVIF Client protocol Node.js implementation.
+ONVIF client protocol implementation for Node.js.
 
 > [!IMPORTANT]
 > This repository has two incompatible major lines. Pick deliberately:
@@ -30,11 +30,10 @@ The library is tested on a test bed with 5 x Axis, 2 x Bosch, 1 x Canon, 2 x Han
 2 x Sony and 2 x unknown vendor cameras. There is a mix of PTZ and Fixed cameras and a mix of Pre-Profile, Profile S, 
 Profile G and Profile T devices.
 
-It is also tested with some Analogue Encoders from Avigilon, Axis, Bosch and HikVision including testing the RS485 
-output.
+It is also tested with some analogue encoders from Avigilon, Axis, Bosch, and HikVision, including RS485 output.
 
-We welcome any donations or long term loans cameras from other vendors to test compatibility especially when testing 
-the Media2 API, ONVIF Events and OSD.
+We welcome donations or long-term loans of cameras from other vendors, especially for testing Media2, ONVIF Events,
+and OSD compatibility.
 
 
 ## Installation
@@ -89,90 +88,196 @@ tests.
 To build jsdoc for the library with default theme run `npm run jsdoc`. Otherwise use `jsdoc` with sources from
 `./lib/*.js`
 
-## Quick example
+Full API reference: https://onvif.pages.dev
 
-Special teasing example how to create little funny video server (http://localhost:6147) with 1 ffmpeg and 3 node.js 
-libraries:
-<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
+## Quick start
 
-```shell
-sudo apt install ffmpeg
-npm install onvif socket.io rtsp-ffmpeg
-```
+Minimal connect + first RTSP URL using the classic `Cam` API.
 
 ```js
-const server = require('http').createServer((req, res) =>
-        res.end(`
-<!DOCTYPE html><body>
-<canvas width='640' height='480' />
-<script src="/socket.io/socket.io.js"></script><script>
-  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
-  socket.on('data', (data) => {
-    const img = new Image;    
-    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
-    img.onload = () => {
-      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
-      ctx.drawImage(img, 100, 100);
-    };
-    img.src = url;
-  });
-</script></body></html>`));
-const { Cam } = require('onvif/promises'), io = require('socket.io')(server), rtsp = require('rtsp-ffmpeg');
-server.listen(6147);
+const { Cam } = require('onvif');
 
-const cam = new Cam({username: 'username', password: 'password', hostname: '192.168.0.116', port: 2020});
-(async() => {
-  await cam.connect();
-  const input = (await cam.getStreamUri({protocol:'RTSP'})).uri.replace('://', `://${cam.username}:${cam.password}@`);
-  const stream = new rtsp.FFMpeg({input, resolution: '320x240', quality: 3});
-  io.on('connection', (socket) => {
-    const pipeStream = socket.emit.bind(socket, 'data');
-    stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
+const cam = new Cam({
+  hostname: '192.168.0.10',
+  username: 'admin',
+  password: 'secret',
+  port: 80
+}, function(err) {
+  if (err) {
+    console.error('connect failed', err);
+    return;
+  }
+  console.log('connected', this.deviceInformation);
+  this.getStreamUri({ protocol: 'RTSP' }, function(err, stream) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log('RTSP', stream.uri);
   });
-  setInterval(() => cam.absoluteMove({
-    x: Math.random() * 2 - 1,
-    y: Math.random() * 2 - 1,
-    zoom: Math.random()
-  }), 3000);
+});
+```
+
+Equivalent with promises (`onvif/promises` disables autoconnect by default; shown
+explicitly here so the async sequence is clear):
+
+```js
+const { Cam } = require('onvif/promises');
+
+(async () => {
+  const cam = new Cam({
+    hostname: '192.168.0.10',
+    username: 'admin',
+    password: 'secret',
+    autoconnect: false
+  });
+  await cam.connect();
+  const stream = await cam.getStreamUri({ protocol: 'RTSP' });
+  console.log(stream.uri);
 })().catch(console.error);
 ```
 
-## Other examples (located in the Examples Folder on the Github)
-* [example.js](https://github.com/agsh/onvif/blob/v0.x/examples/example.js) - Move camera to a pre-defined position then
-  server the RTSP URL up via a HTTP Server. Click on the RTSP address in a browser to open the video (if you have the
-  VLC plugin installed)
-* [example2.js](https://github.com/agsh/onvif/blob/v0.x/examples/example2.js) - takes an IP address range, scans the
-  range for ONVIF devices (brute force scan) and displays information about each device found including make and model
-  and RTSP URLs
-For Profile S Cameras and Encoders it displays the default RTSP address
-For Profile G Recorders it displays the RTSP address of the first recording
-* [example3.js](https://github.com/agsh/onvif/blob/v0.x/examples/example3.js) - reads the command line cursor keys and
-  sends PTZ commands to the Camera
-* [example4.js](https://github.com/agsh/onvif/blob/v0.x/examples/example4.js) - uses Discovery to find cameras on the
-  local network
-* [example5.js](https://github.com/agsh/onvif/blob/v0.x/examples/example5.js) - connect to a camera via SOCKS proxy.
-  Note SSH includes a SOCKS proxy so you can use this example to connect to remote cameras via SSH
-* [example6.js](https://github.com/agsh/onvif/blob/v0.x/examples/example6.js) - ONVIF Events. Example can be switched
-  between using Pull Point Subscriptions and using Base Subscribe with a built in mini HTTP Server
-* [example7.js](https://github.com/agsh/onvif/blob/v0.x/examples/example7.js) - example using a Promise API. It uses
-  'promisify' to convert the ONVIF Library to return promises and uses Await to wait for responses
-* [example8.js](https://github.com/agsh/onvif/blob/v0.x/examples/example8.js) - example setting OSD On Screen Display.
-  (also uses Promises API)
+## Common use cases
 
-# API
+Everyday camera tasks after a successful `connect`.
 
-## You can find this page and full API class documentation here: [https://onvif.pages.dev/](https://onvif.pages.dev/) ##
+### Get an RTSP URL
 
-Short description of library possibilities is below.
+After `connect`, call `getStreamUri`. Default profile is `#activeSource.profileToken`.
 
-## Discovery
+```js
+cam.getStreamUri({ protocol: 'RTSP' }, (err, stream) => {
+  // stream.uri looks like rtsp://192.168.0.10/onvif1
+  // Many players need credentials in the URL:
+  const user = encodeURIComponent(cam.username);
+  const pass = encodeURIComponent(cam.password);
+  const withAuth = stream.uri.replace('://', `://${user}:${pass}@`);
+  console.log(withAuth);
+});
+```
 
-Since 0.2.7 version library supports WS-Discovery of NVT devices. Currently it uses only `Probe` SOAP method that just
-works well.
-You can find devices in your subnetwork using `probe` method of the Discovery singleton.
-Discovery is an EventEmitter inheritor, so you can wait until discovery timeout, or subscribe on `device` event.
-You must subscribe to the `error` event as a device on your network could reply with bad XML
-Here some examples:
+Be careful when embedding credentials in RTSP URLs. Avoid logging or exposing
+authenticated URLs, as they contain camera credentials. If the username or password
+includes reserved characters (`@`, `:`, `/`, `#`, and others), URL-encode them (as in
+the example above) or the player may parse the URL incorrectly.
+
+Options worth knowing: `protocol` (`RTSP` / `UDP` / `TCP` / `HTTP`), `stream`
+(`RTP-Unicast` default, or `RTP-Multicast`), `profileToken` for a non-default profile.
+
+### Get a JPEG snapshot URI
+
+```js
+cam.getSnapshotUri({}, (err, result) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  console.log(result.uri); // HTTP GET, often with camera credentials
+});
+```
+
+Uses Media2 when available, otherwise Media1. Not every device implements snapshots.
+
+### Check PTZ capabilities before moving
+
+Not every PTZ device supports Absolute or Relative moves. PanTilt and Zoom are
+advertised separately - a camera may allow Absolute PanTilt but not Absolute Zoom.
+
+Important for this library: `absoluteMove` / `continuousMove` default omitted `x` /
+`y` / `zoom` to `0`, so "leave zoom out" is not enough. When Zoom (or PanTilt) is
+unsupported, set `onlySendPanTilt` or `onlySendZoom` so that axis is not written
+into the SOAP body.
+
+```js
+cam.getNodes((err, nodes) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  const tokens = Object.keys(nodes || {});
+  if (!tokens.length) {
+    console.error('no PTZ nodes');
+    return;
+  }
+
+  const spaces = nodes[tokens[0]].supportedPTZSpaces || {};
+  const canAbsolutePanTilt = Boolean(spaces.absolutePanTiltPositionSpace);
+  const canAbsoluteZoom = Boolean(spaces.absoluteZoomPositionSpace);
+  const canContinuousPanTilt = Boolean(spaces.continuousPanTiltVelocitySpace);
+  const canContinuousZoom = Boolean(spaces.continuousZoomVelocitySpace);
+
+  if (canContinuousPanTilt) {
+    cam.continuousMove({
+      x: 0.5,
+      y: 0,
+      ...(canContinuousZoom ? { zoom: 0 } : { onlySendPanTilt: true })
+    });
+    setTimeout(() => cam.stop({}), 500);
+  } else if (canContinuousZoom) {
+    cam.continuousMove({ zoom: 0.5, onlySendZoom: true });
+    setTimeout(() => cam.stop({}), 500);
+  } else if (canAbsolutePanTilt) {
+    cam.absoluteMove({
+      x: 0,
+      y: 0,
+      ...(canAbsoluteZoom ? { zoom: 0 } : { onlySendPanTilt: true })
+    });
+  } else if (canAbsoluteZoom) {
+    cam.absoluteMove({ zoom: 0, onlySendZoom: true });
+  }
+  // Otherwise prefer presets / home, or skip PTZ moves.
+});
+```
+
+See also `getNodes` / `absoluteMove` / `relativeMove` in the API section.
+
+### Use another media profile
+
+Multi-stream cameras expose several profiles (main / sub / low-res). After connect,
+`profiles` is the full media profile list; `activeSources` is one entry per video
+source (with a default profile for that source). Do not assume `profiles[i]` lines
+up with `activeSources[i]` - several profiles often share one source.
+
+```js
+// List what connect() discovered
+cam.profiles.forEach((p) => {
+  console.log(p.$.token, p.name, p.videoEncoderConfiguration && {
+    encoding: p.videoEncoderConfiguration.encoding,
+    width: p.videoEncoderConfiguration.resolution.width,
+    height: p.videoEncoderConfiguration.resolution.height
+  });
+});
+
+// Pick a profile by name/token (example: second profile, or find by name)
+const profile = cam.profiles.find((p) => p.name === 'Profile_1') || cam.profiles[1];
+const token = profile.$.token;
+
+// Option A: pass profileToken per call (safest)
+cam.getStreamUri({ protocol: 'RTSP', profileToken: token }, console.log);
+
+// Option B: switch the default used when methods omit profileToken.
+// Match activeSources by the profile's video source, not by array index.
+const sourceToken = profile.videoSourceConfiguration
+  && profile.videoSourceConfiguration.sourceToken;
+const base = (cam.activeSources || []).find((s) => s.sourceToken === sourceToken)
+  || cam.activeSource;
+cam.activeSource = Object.assign({}, base, { profileToken: token });
+```
+
+## Advanced examples
+
+Discovery, events, promises, Profile G, and a larger integration demo.
+
+### Discovery
+
+Since version 0.2.7, the library has supported WS-Discovery of NVT devices. It currently uses the SOAP `Probe`
+operation to discover devices on the local network.
+
+Use the `probe` method on the `Discovery` singleton. `Discovery` extends `EventEmitter`, so you can wait for the
+probe timeout or listen for each `device` as it appears. Always subscribe to `error` as well - devices on the
+network may reply with invalid XML.
+
+Examples:
 
 ```js
 var onvif = require('onvif');
@@ -211,28 +316,43 @@ onvif.Discovery.probe(function(err, cams) {
 });
 ```
 
-In all of that cases you've got disconnected cameras. To access each camera (and issue ONVIF commands) you normally need
-the tuple `username:password`. So, as shown in the examples, you can assign these properties and call `connect` method
-to get full functionality.
+In all these cases you receive disconnected camera objects. To issue ONVIF commands you normally need
+`username` and `password`. Assign those properties and call `connect`, as shown above.
 
-### Discovery.probe(options, callback)
-Options
+#### Discovery.probe(options, callback)
+Options:
 
-- `timeout`, number. Time the probe method will wait NVT responses in ms
-- `resolve`, boolean. If this argument is false, all discovered NVTs would be presented as data object instead of Cam
-  instance
+- `timeout` (number) - how long to wait for NVT responses, in milliseconds
+- `resolve` (boolean) - if `false`, discovered NVTs are plain data objects instead of `Cam` instances
 
-### Discovery events
-- `device(cam, remoteInfo, responseXML)` fires on device discover. `cam` is a Cam instance, remoteInfo is an object with
-  network information
- and responseXML is a body of SOAP response
-- `error(error)` fires on some UDP error or on bad SOAP response from NVT
+#### Discovery events
+- `device(cam, remoteInfo, responseXML)` - emitted when a device is found. `cam` is a `Cam` instance,
+  `remoteInfo` holds network details, and `responseXML` is the SOAP response body
+- `error(error)` - emitted on UDP errors or when an NVT returns a bad SOAP response
 
-## Promises
+### Events
 
-Since version 0.7.2 this library have a `onvif/promises` namespace. It have promisified version of Cam constructor which
-returns an object with the same methods as described below or in documentation but returns promises instead of callback 
-function. Short example of common usage is here:
+
+Simplest path is a PullPoint subscription: register an `event` listener after connect.
+The library creates and renews the pull point for you.
+
+```js
+cam.on('event', (event) => {
+  console.log(event.topic, event.message);
+});
+cam.on('eventsError', console.error);
+
+// Stop pulling when finished:
+// cam.removeAllListeners('event');
+```
+
+Base Subscribe (camera pushes to your HTTP URL) is more involved; see
+[example6.js](https://github.com/agsh/onvif/blob/v0.x/examples/example6.js).
+
+### Promises
+
+Since version 0.7.2 the library provides `onvif/promises`: a Promise-based `Cam` with the same methods as the
+callback API (and the full docs), but returning promises instead of taking a callback. Short example:
 
 ```js
 const onvif = require('onvif/promises');
@@ -247,7 +367,7 @@ onvif.Discovery.on('device', async (cam) => {
   console.log((await cam.getStreamUri({protocol:'RTSP'})).uri);
   const date = await cam.getSystemDateAndTime();
   console.log(date);
-  await cam.absoluteMove({
+  await cam.continuousMove({
     x: Math.random() * 2 - 1,
     y: Math.random() * 2 - 1,
     zoom: Math.random()
@@ -257,13 +377,134 @@ onvif.Discovery.on('error', console.error);
 onvif.Discovery.probe();
 ```
 
-## Cam class
+### Profile G / NVR recordings
+
+
+Profile G devices can list recordings and return a replay RTSP URL:
+
+```js
+cam.getRecordings((err, recordings) => {
+  if (err || !recordings.length) {
+    console.error(err || 'no recordings');
+    return;
+  }
+  const recordingToken = recordings[0].recordingToken;
+  cam.getReplayUri({ protocol: 'RTSP', recordingToken }, (err, replay) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log(replay.uri);
+  });
+});
+```
+
+See `getReplayUri(options, callback)` in the API reference for `recordingToken`,
+`protocol`, and the callback result shape. `getRecordingOptions` helps match
+recording tokens to sources. Full flow:
+[example9.js](https://github.com/agsh/onvif/blob/v0.x/examples/example9.js).
+
+### Demo: ffmpeg + socket.io
+
+Example: a small video server (http://localhost:6147) using ffmpeg and three Node.js libraries:
+<video src="https://github.com/agsh/onvif/assets/576263/e816fed6-067a-4f77-b3f5-ccd9d5ff1310" width="300" />
+
+```shell
+sudo apt install ffmpeg
+npm install onvif socket.io rtsp-ffmpeg
+```
+
+```js
+const server = require('http').createServer((req, res) =>
+        res.end(`
+<!DOCTYPE html><body>
+<canvas width='640' height='480' />
+<script src="/socket.io/socket.io.js"></script><script>
+  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+  socket.on('data', (data) => {
+    const img = new Image;    
+    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
+    img.onload = () => {
+      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
+      ctx.drawImage(img, 100, 100);
+    };
+    img.src = url;
+  });
+</script></body></html>`));
+const { Cam } = require('onvif/promises'), io = require('socket.io')(server), rtsp = require('rtsp-ffmpeg');
+server.listen(6147);
+
+const cam = new Cam({
+  username: 'username',
+  password: 'password',
+  hostname: '192.168.0.116',
+  port: 2020,
+  autoconnect: false
+});
+(async() => {
+  await cam.connect();
+  const input = (await cam.getStreamUri({protocol:'RTSP'})).uri.replace(
+    '://',
+    `://${encodeURIComponent(cam.username)}:${encodeURIComponent(cam.password)}@`
+  );
+  const stream = new rtsp.FFMpeg({input, resolution: '320x240', quality: 3});
+  io.on('connection', (socket) => {
+    const pipeStream = socket.emit.bind(socket, 'data');
+    stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
+  });
+  setInterval(() => cam.absoluteMove({
+    x: Math.random() * 2 - 1,
+    y: Math.random() * 2 - 1,
+    zoom: Math.random()
+  }), 3000);
+})().catch(console.error);
+```
+
+### More examples in the repository
+* [example.js](https://github.com/agsh/onvif/blob/v0.x/examples/example.js) - Move to a preset, then serve the RTSP
+  URL over a small HTTP page. Open the address in a browser (VLC plugin) to view the stream.
+* [example2.js](https://github.com/agsh/onvif/blob/v0.x/examples/example2.js) - Scan an IP range for ONVIF devices
+  and print make/model plus RTSP URLs. Profile S cameras show the default live URL; Profile G recorders show the
+  first recording replay URL.
+* [example3.js](https://github.com/agsh/onvif/blob/v0.x/examples/example3.js) - Map terminal cursor keys to PTZ
+  commands.
+* [example4.js](https://github.com/agsh/onvif/blob/v0.x/examples/example4.js) - Discover cameras on the local network.
+* [example5.js](https://github.com/agsh/onvif/blob/v0.x/examples/example5.js) - Connect through a SOCKS proxy (for
+  example via SSH port forwarding).
+* [example6.js](https://github.com/agsh/onvif/blob/v0.x/examples/example6.js) - ONVIF Events with PullPoint or Base
+  Subscribe (includes a small HTTP receiver).
+* [example7.js](https://github.com/agsh/onvif/blob/v0.x/examples/example7.js) - Async/await against the camera API
+  (newer apps should use `onvif/promises`).
+* [example8.js](https://github.com/agsh/onvif/blob/v0.x/examples/example8.js) - Set OSD (On-Screen Display) using
+  `onvif/promises`.
+
+### Troubleshooting connection issues
+
+
+- Confirm `hostname`, `port`, and `path` (default `/onvif/device_service`). Some vendors
+  use another path from Discovery/`XAddr`.
+- Auth: try `useWSSecurity: false` to force Digest if WS-Security fails.
+- NAT / port mapping: set `preserveAddress: true` so service URLs keep your constructor
+  host/port.
+- Time skew breaks WS-Security; `getSystemDateAndTime` runs first to compute `timeShift`.
+- Non-media devices (door controllers, etc.): `connect` may succeed with empty
+  profiles and emit `warning` - listen with `cam.on('warning', console.warn)`.
+- Discovery: always handle `Discovery.on('error', ...)` - bad XML from the network is
+  common.
+- Enable packet/XML logging in your app when a single SOAP call fails; compare with
+  the device's ONVIF test tool.
+
+## API reference
+
+Short description of the classic `Cam` API. Full docs: https://onvif.pages.dev
+
+### Cam class
 
 ```javascript
 const Cam = require('onvif').Cam;
 ```
 
-## new Cam(options, callback)
+### new Cam(options, callback)
 
 Options are:
 - `hostname`
@@ -276,20 +517,19 @@ Options are:
 - `preserveAddress` (optional) - keep constructor hostname/port for service URLs (NAT)
 - `autoconnect` (optional, default `true`) - set `false` to skip automatic `connect()`
 
-The library calls connect() automatically which executes the `getSystemDateAndTime`, `getCapabilities` and other
+The library calls `connect()` automatically, which runs `getSystemDateAndTime`, `getCapabilities`, and related
 methods.
 Note on username and password:
-- Some cameras do not require username:password credentials.
-- If a camera does require a username:password but you do not provide them, you will be limited to executing a few ONVIF
-  methods that can operate without credentials, for example you can execute only `getSystemDateAndTime` method.
+- Some cameras do not require credentials.
+- If the camera requires credentials and you omit them, only a few unauthenticated methods work (for example
+  `getSystemDateAndTime`).
 
-Callback (optional) executes when the cam is initialised. Single argument for this function is possible error.
+The optional callback runs when the cam is initialized. Its single argument is an error, if any.
 
 #### Technical description
 
-When the cam object is created it automatically sends a `getCapabilities` command to the ONVIF device. If the device is
-a camera or encoder (NVT) it sends two commands to the ONVIF device:
-`getVideoSources` and `getProfiles`. It fills corresponding properties of an object:
+On creation the cam sends `getCapabilities`. For a camera or encoder (NVT) it also calls `getVideoSources` and
+`getProfiles`, then fills:
 
 + capabilities
   - device
@@ -298,23 +538,22 @@ a camera or encoder (NVT) it sends two commands to the ONVIF device:
   - media
   - PTZ
   - extension
-+ uri (this is a links to different NVT services)
++ uri (service endpoints for the different NVT services)
 + videoSources
   - $.token
   - framerate
   - resolution
-+ profiles, array of profile object
++ profiles (array of profile objects)
   - name
   - videoSourceConfiguration
   - videoEncoderConfiguration
   - PTZConfiguration
 
-After that it runs `getActiveSources` method. It iterates over all video sources and tries to find out proper
-configuration for profile and videosource. First matching profile becomes a member of defaultProfiles array and video 
-source configuration with ptz configuration becomes a member of activeSources array.
+Then `getActiveSources` walks video sources and picks a matching profile for each. The first match becomes an entry
+in `defaultProfiles`; the matching video source (with PTZ when present) goes into `activeSources`.
 
-Configuration for the first or the only one video source becomes defaultProfile and activeSource properties. All methods
-without passing options object use it. You can change it manually at any time.
+The first (or only) video source becomes `defaultProfile` and `activeSource`. Methods that omit an options object
+use that active source. You can change it manually at any time.
 
 + defaultProfile (link to the first profile in profiles)
 + activeSource (based on the default profile)
@@ -476,9 +715,12 @@ these advertised ranges over hard-coded assumptions.
 
 ```js
 cam.getNodes((err, nodes) => {
-  const node = nodes[Object.keys(nodes)[0]];
-  const spaces = node.supportedPTZSpaces;
-  // e.g. spaces.absolutePanTiltPositionSpace must exist before absoluteMove({x,y})
+  if (err || !nodes || !Object.keys(nodes).length) {
+    return;
+  }
+  const spaces = nodes[Object.keys(nodes)[0]].supportedPTZSpaces || {};
+  // Check PanTilt and Zoom spaces separately before absoluteMove / relativeMove.
+  // e.g. absolutePanTiltPositionSpace vs absoluteZoomPositionSpace
 });
 ```
 
@@ -571,16 +813,50 @@ corresponding
 configuration object
 
 ### getRecordings(callback)
-*Recordings.* Get all the recordings tracks available on the device. Note: Only [Onvif Profile
-G](https://www.onvif.org/profiles/profile-g/) devices provide this feature.
+*Recordings.* Get all recording tracks available on the device. Callback receives
+`(err, recordings, xml)`; results are also stored on `#recordingItems`. Note: only
+[ONVIF Profile G](https://www.onvif.org/profiles/profile-g/) devices provide this feature.
 
-### getReplayUri(callback)
-*Recordings.* Get the replay stream or streams (if using a NVR) - usually RTSP - for the provided recording token/s.
+### getReplayUri(options, callback)
+*Recordings.* Get a replay stream URI for a recording on an NVR / Profile G device
+(typically RTSP).
 
-### getRecordingOptions(callback)
-*Recordings.* Get the information of a recording token. Needed in order to match a recordingToken with a sourceToken.
-Used with both **GetRecordings** and **GetReplayUri** will allow to retrieve recordings from an [Onvif Profile
-G](https://www.onvif.org/profiles/profile-g/) device. Note: not all devices are 100% Onvif G compliant.
+Signature: `getReplayUri(options, callback)` - not callback-only.
+
+The options are:
+
+- `recordingToken` (required) - recording token from `getRecordings` /
+  `#recordingItems` (the ONVIF `RecordingToken`)
+- `protocol` (optional) - transport protocol for `StreamSetup` / `Transport`,
+  default `RTSP` (other values such as `UDP`, `TCP`, or `HTTP` only if the device
+  supports them)
+- `stream` (optional) - stream type, default `RTP-Unicast` (or `RTP-Multicast`)
+
+The callback is `(err, result, xml)`:
+
+- `err` - request / SOAP fault, or `null`
+- `result` - object with a `uri` string (replay URL), same general shape as
+  `getStreamUri` / `getSnapshotUri`
+- `xml` - raw SOAP response body
+
+```js
+cam.getReplayUri(
+  { protocol: 'RTSP', recordingToken: recordings[0].recordingToken },
+  (err, replay) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log(replay.uri);
+  }
+);
+```
+
+### getRecordingOptions(options, callback)
+*Recordings.* Get options/metadata for a recording token - useful to match a
+`recordingToken` with a source. Pass `{ RecordingToken: '<token>' }` (capital `R`, as in
+the ONVIF request). Used together with `getRecordings` and `getReplayUri`. Note: not all
+devices are fully Profile G compliant.
 
 ## Changelog
 
@@ -599,13 +875,17 @@ See [CHANGELOG.md](./CHANGELOG.md) for the full list. Recent **0.8.x** highlight
 - **0.7.2** Promises API via `onvif/promises`.
 - Older history: Profile G, Imaging, Discovery, HTTPS / Profile T / Media2 foundations - see CHANGELOG.md.
 
-## Related: v1.x on master
+## Links and further resources
+
+### v1.x on master
+
 - Main line (TypeScript, separate API):
   [https://github.com/agsh/onvif/tree/master](https://github.com/agsh/onvif/tree/master)
 - npm preview: `npm install onvif@rc` (stable 1.x publish expected soon)
 - Demo project Broviki: [https://github.com/agsh/broviki](https://github.com/agsh/broviki)
 
-## Links
+### ONVIF specifications
+
 WSDL schemes and docs:
 - [Operations index](http://www.onvif.org/onvif/ver20/util/operationIndex.html)
 - http://www.onvif.org/onvif/ver10/tc/onvif_core_ver10.pdf
