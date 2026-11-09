@@ -300,12 +300,23 @@ The options are:
 *Media.* Obtain a JPEG snapshot URI from the device.
 
 ### getPresets(options, callback)
-Returns the saved presets as a key-value object where the key is the preset token and the value is an object holding preset information with the preset name and other optional information.
-This method also stores the presets information in a `#presets` property of an object.
+*PTZ.* Returns the list of presets for the PTZ node in the selected profile.
+
+The callback receives `(err, presets, presetsByToken, xml)`:
+- `presets` — map of preset name → token (also stored on `#presets`)
+- `presetsByToken` — map of token → full preset object (name and optional ONVIF fields). Prefer this when names may duplicate; tokens are unique
+- `xml` — raw SOAP response body
+
+```js
+cam.getPresets((err, presets, presetsByToken) => {
+  // presets['Home'] === 'token-1'
+  // presetsByToken['token-1'].name === 'Home'
+});
+```
 
 The options are:
 
-* `profileToken` (optional) - defines media profile to use and will define the configuration of the content of the stream. Default is `#activeSource.profileToken`
+* `profileToken` (optional) - defines media profile to use. Default is `#activeSource.profileToken`
 
 ### gotoPreset(options, callback)
 *PTZ.* Operation to go to a saved preset position for the PTZ node in the selected profile.
@@ -441,11 +452,14 @@ configuration object
 
 ## Changelog
 - V0.x BRANCH...
-- 15th October 2026 - Restore the original GetPresets API (the API used form v0.1 to v0.7.1)
-- 
+- 0.8.4 BREAKING: `getPresets` callback argument order is now `(err, presetsByName, presetsByToken, xml)` Use `presetsByToken` when preset names can duplicate.
+- 0.8.3 Skip Media/VideoSource probing when the device does not support it; fall back to Media2 when Media fails
+- 0.8.2 Digest auth RFC fixes. Discovery UDP buffer fix and undefined props checks
+  Replace splitargs with own implementation, promises probe return
+- 15th October 2026 - Restore the original GetPresets API (the API used from v0.1 to v0.7.1), with `presetsByToken` as an extra callback parameter
 - 0.8.1 BREAKING CHANGES TO GetPresets() [Which have since been returned to the original API]
-The original API of 9 years returned an array indexed by the Preset Name. This does not work with cameras that have duplicate preset names (thanks to @Craytor for the fix). In addition ONVIF now includes extra Preset parameters added by @momoAmch. Note example3.js was missed and is broken in 0.8.1 but is now fixed in the master branch
- So in this version, GetPresets() returns an array indexed by Preset Token. The result is an array of Objects where Objects include a .name value
+  The original API of 9 years returned a map indexed by Preset Name. This does not work with cameras that have duplicate preset names (thanks to @Craytor for the fix). In addition ONVIF now includes extra Preset parameters added by @momoAmch. Note example3.js was missed and is broken in 0.8.1 but is now fixed in the master branch.
+  So in this version, GetPresets() returns an array indexed by Preset Token. The result is an array of Objects where Objects include a .name value
 - 0.8.0 Only Digest Auth support
 - 0.7.1 Improved events handling
 - 0.6.5 Add MEDIA2 support, Profile T and GetServices XAddrs support for H265 cameras. Add support for HTTPS. Add Discovery.on('error') to examples. Add flag to only send Zoom, or only send Pan/Tilt for some broken cameras (Sony XP1 Xiongmai). Fix bug in GetServices. Improve setNTP command. API changed on getNetworkInterfaces and other methods that could return an Array or a Single Item. We now return an Array in all cases. Add example converting library so it uses Promises with Promisify. Enable 3702 Discovery on Windows for MockServer. Add MockServer test cases)

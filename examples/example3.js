@@ -37,7 +37,7 @@
  */
 
 var HOSTNAME = '192.168.0.116',
-	PORT = 2020,
+	PORT = 80,
 	USERNAME = 'username',
 	PASSWORD = 'password',
 	STOP_DELAY_MS = 50;
@@ -90,7 +90,8 @@ new Cam({
 	cam_obj.getPresets({}, // use 'default' profileToken
 		// Completion callback function
 		// This callback is executed once we have a list of presets
-		function(err, stream, xml) {
+		// 0.8.4+ callback: (err, presetsByName, presetsByToken, xml)
+		function(err, presetsByName, presetsByToken, xml) {
 			if (err) {
 				console.log("GetPreset Error " + err);
 				return;
@@ -99,9 +100,9 @@ new Cam({
 				// Do this for the first 9 presets
 				console.log("GetPreset Reply");
 				var count = 1;
-				for (var token in stream) {
+				for (var token in presetsByToken) {
 					var name = "";
-					if ('name' in stream[token]) name = stream[token].name;
+					if ('name' in presetsByToken[token]) name = presetsByToken[token].name;
 					// It is possible to have a preset with a blank name so generate a name
 					if (name.length == 0) {name = 'no name (' + token + ')';}
 					preset_names.push(name);

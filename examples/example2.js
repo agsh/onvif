@@ -14,16 +14,14 @@
 var IP_RANGE_START = '192.168.1.1',
 	IP_RANGE_END = '192.168.1.1',
 	PORT_LIST = [80],
-	USERNAME = 'roger',
-	PASSWORD = 'roger1videosoft';
+	USERNAME = 'admin',
+	PASSWORD = 'password';
 
 var Cam = require('../lib/onvif').Cam;
 var flow = require('nimble');
 
-var ip_list = ['demo.videosoft.live']
-var port_list = [8080];
-//var ip_list = ['127.0.0.1'];
-//var port_list = [8900];
+var ip_list = generate_range(IP_RANGE_START, IP_RANGE_END);
+var port_list = PORT_LIST;
 
 // hide error messages
 console.error = function() {};
