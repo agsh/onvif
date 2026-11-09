@@ -258,6 +258,21 @@ export interface OSDOptions {
 	[key: string]: any;
 }
 
+export interface PTZPreset {
+	$?: { token: string };
+	name?: string;
+	PTZPosition?: any;
+	[key: string]: any;
+}
+
+/** Callback for Cam#getPresets — (err, name→token, token→preset, xml) */
+export type GetPresetsCallback = (
+	err: Error | null,
+	presetsByName?: Record<string, string>,
+	presetsByToken?: Record<string, PTZPreset>,
+	xml?: string
+) => void;
+
 export interface GotoPresetOptions {
 	profileToken?: string;
 	preset: string;
@@ -516,8 +531,8 @@ export class Cam extends EventEmitter {
 	getMediaServiceCapabilities(callback?: RequestCallback): void;
 
 	// PTZ
-	getPresets(options?: { profileToken?: string }, callback?: RequestCallback): void;
-	getPresets(callback: RequestCallback): void;
+	getPresets(options?: { profileToken?: string }, callback?: GetPresetsCallback): void;
+	getPresets(callback: GetPresetsCallback): void;
 	gotoPreset(options: GotoPresetOptions, callback?: RequestCallback): void;
 	setPreset(options: SetPresetOptions, callback?: RequestCallback): void;
 	removePreset(options: { profileToken?: string; presetToken: string }, callback?: RequestCallback): void;
