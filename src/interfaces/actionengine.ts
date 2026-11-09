@@ -7,7 +7,7 @@ import { ReferenceToken } from './common';
 /** Describes the configuration parameters of an action. */
 export interface ActionConfigDescription {
   /** Action type name */
-  name: unknown;
+  name: string;
   /** Action configuration parameter descriptions */
   parameterDescription: ItemListDescription;
 }
@@ -40,7 +40,7 @@ export interface ActionEngineCapabilitiesExtension {
 /** ActionTypeLimits data structure contains maximum and current usage information for a specific action type in the service provider */
 export interface ActionTypeLimits {
   /** Action Type */
-  type: unknown;
+  type: string;
   /** For the specific action type, the maximum number of actions that could be concurrently supported by the service provider */
   maximum: PositiveInteger;
   /** For the specific action type, the number of actions in use by the service provider */
@@ -53,7 +53,7 @@ export interface ActionConfiguration {
   /** User given name. */
   name: string;
   /** Denotes the action type. */
-  type: unknown;
+  type: string;
   /** Action configuration parameter settings. */
   parameters: ItemList;
   [key: string]: unknown;

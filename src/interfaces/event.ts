@@ -54,12 +54,16 @@ export interface CreatePullPointSubscription {
   initialTerminationTime?: unknown;
   /** Refer to Web Services Base Notification 1.3 (WS-BaseNotification). */
   subscriptionPolicy?: SubscriptionPolicy;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PullMessages {
   /** Maximum time to block until this method returns. */
   timeout: Duration;
   /** Upper limit for the number of messages to return at once. A server implementation may decide to return less messages. */
   messageLimit: number;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetEventPropertiesResponse {
   /** List of topic namespaces supported. */
@@ -74,7 +78,6 @@ export interface GetEventPropertiesResponse {
    *
    * http://docs.oasis-open.org/wsn/t-1/TopicExpression/Concrete
    * http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet.
-   *
    */
   topicExpressionDialect: unknown[];
   /**
@@ -96,6 +99,8 @@ export interface GetEventPropertiesResponse {
    * This list shall at least contain the URI of the ONVIF schema file.
    */
   messageContentSchemaLocation: AnyURI[];
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AddEventBroker {
   eventBroker: EventBrokerConfig;

@@ -228,7 +228,6 @@ export interface Mask {
    * Color - The masked area is colored with color defined by the Color field.
    * Pixelated - The masked area is filled in mosaic style to hide details.
    * Blurred - The masked area is low pass filtered to hide details.
-   *
    */
   type: string;
   /** Color of the masked area. */

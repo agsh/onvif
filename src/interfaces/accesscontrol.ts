@@ -63,7 +63,7 @@ export interface AccessPointInfoBase extends DataEntity {
    * extensions; it will allow an access point being extended to cover entity types
    * other than doors as well.
    */
-  entityType?: unknown;
+  entityType?: string;
   /**
    * Reference to the entity used to control access; the entity type
    * may be specified by the optional EntityType field explained below but is

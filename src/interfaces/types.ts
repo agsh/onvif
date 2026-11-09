@@ -3,6 +3,9 @@
  * Token may be extended by intermediate terminal with adding prefix to make it global unique.
  * The length should be within 36 characters for generating as a local token.
  * See "Remote Token" section in Resource Query specification.
+ *
+ * Minimum length: 0
+ * Maximum length: 64
  */
 export type ReferenceToken = string;
 /**

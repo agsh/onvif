@@ -2,26 +2,52 @@ import { NCName, PositiveInteger, AnyURI, Duration } from './basics';
 import { StringList, DeviceEntity } from './onvif';
 import { ReferenceToken } from './common';
 
-/** Unique identifier for keys in the keystore. */
+/**
+ * Unique identifier for keys in the keystore.
+ *
+ * Maximum length: 64
+ */
 export type KeyID = NCName;
-/** Unique identifier for certificates in the keystore. */
+/**
+ * Unique identifier for certificates in the keystore.
+ *
+ * Maximum length: 64
+ */
 export type CertificateID = NCName;
-/** Unique identifier for certification paths in the keystore. */
+/**
+ * Unique identifier for certification paths in the keystore.
+ *
+ * Maximum length: 64
+ */
 export type CertificationPathID = NCName;
-/** Unique identifier for passphrases in the keystore. */
+/**
+ * Unique identifier for passphrases in the keystore.
+ *
+ * Maximum length: 64
+ */
 export type PassphraseID = NCName;
-/** Unique identifier for 802.1X configurations in the keystore. */
+/**
+ * Unique identifier for 802.1X configurations in the keystore.
+ *
+ * Maximum length: 64
+ */
 export type Dot1XID = NCName;
-/** An object identifier (OID) in dot-decimal form as specified in RFC4512. */
+/**
+ * An object identifier (OID) in dot-decimal form as specified in RFC4512.
+ *
+ * Pattern: [0-9]+(.[0-9]+)*
+ */
 export type DotDecimalOID = string;
 /** The distinguished name attribute type encoded as specified in RFC 4514. */
 export type DNAttributeType = string;
 export type DNAttributeValue = string;
 /** A base64-encoded ASN.1 value. */
-export type Base64DERencodedASN1Value = unknown;
+export type Base64DERencodedASN1Value = string;
 /** A list of supported 802.1X authentication methods, such as "EAP-PEAP/MSCHAPv2" and "EAP-MD5".  The '/' character is used as a separator between the outer and inner methods. */
 export type Dot1XMethods = string[];
+/** Maximum length: 64 */
 export type CRLID = NCName;
+/** Maximum length: 64 */
 export type CertPathValidationPolicyID = NCName;
 /** A list of RSA key lenghts in bits. */
 export type RSAKeyLengths = number[];
@@ -35,7 +61,10 @@ export type TLSVersions = string[];
 export type PasswordBasedEncryptionAlgorithms = string[];
 /** A list of password based MAC algorithms. */
 export type PasswordBasedMACAlgorithms = string[];
-export interface Extension {}
+export interface Extension {
+  [key: string]: unknown;
+  [key: symbol]: unknown;
+}
 /** The attributes of a key in the keystore. */
 export interface KeyAttribute {
   /** The ID of the key. */
@@ -51,6 +80,8 @@ export interface KeyAttribute {
   /** True if and only if the key is stored in a specially protected hardware component inside the device. */
   securelyStored?: boolean;
   extension?: Extension;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A distinguished name attribute type and value pair. */
 export interface DNAttributeTypeAndValue {
@@ -810,7 +841,7 @@ export interface GetAssignedMediaSigningCertificatesResponse {
    * The IDs of all certification paths that are assigned for media signing. Response list shall be ordered with factory-provisioned ID first, followed by user-provisioned ID.
    * As response structure includes just CertificationPathID, the client may retrieve the assigned media signing certificates by invoking GetCertificationPath with the CertificationPathID, followed by GetCertificates
    */
-  certificationPathID?: CertificationPathID;
+  certificationPathID?: CertificationPathID[];
 }
 export interface GetAuthorizationServerConfigurations {
   token?: ReferenceToken;

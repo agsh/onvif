@@ -25,7 +25,7 @@ export interface Capabilities {
 }
 export interface ConfigOptions {
   /** The RuleType the ConfigOptions applies to if the Name attribute is ambiguous. */
-  ruleType?: unknown;
+  ruleType?: string;
   /**
    * The Name of the SimpleItemDescription/ElementItemDescription
    * the ConfigOptions applies to.
@@ -36,9 +36,9 @@ export interface ConfigOptions {
    * The Type defines the element contained in this structure.
    * This attribute is deprecated since its value must be identical to the embedded element.
    */
-  type?: unknown;
+  type?: string;
   /** Optional name of the analytics module this constraint applies to. This option is only necessary in cases where different constraints for elements with the same Name exist. */
-  analyticsModule?: unknown;
+  analyticsModule?: string;
   /** Minimal number of occurrences. Defaults to one. */
   minOccurs?: number;
   /** Maximum number of occurrences. Defaults to one. */
@@ -49,7 +49,7 @@ export interface ConfigOptions {
 }
 export interface MetadataInfo {
   /** Reference to an AnalyticsModule Type. */
-  type: unknown;
+  type: string;
   /** Sample frame content starting with the tt:Frame node. */
   sampleFrame: Frame;
   [key: string]: unknown;
@@ -84,7 +84,7 @@ export interface GetRules {
 }
 export interface GetRuleOptions {
   /** Reference to an SupportedRule Type returned from GetSupportedRules. */
-  ruleType?: unknown;
+  ruleType?: string;
   /** Reference to an existing analytics configuration. */
   configurationToken: ReferenceToken;
 }
@@ -114,11 +114,11 @@ export interface GetAnalyticsModules {
 }
 export interface GetAnalyticsModuleOptions {
   /** Reference to an SupportedAnalyticsModule Type returned from GetSupportedAnalyticsModules. */
-  type?: unknown;
+  type?: string;
   /** Reference to an existing AnalyticsConfiguration. */
   configurationToken: ReferenceToken;
 }
 export interface GetSupportedMetadata {
   /** Optional reference to an AnalyticsModule Type returned from GetSupportedAnalyticsModules. */
-  type?: unknown;
+  type?: string;
 }

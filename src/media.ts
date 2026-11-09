@@ -1500,7 +1500,7 @@ export default class Media extends Service {
           UseCount: configuration.useCount,
           OutputToken: configuration.outputToken,
           ...(configuration.sendPrimacy && { SendPrimacy: configuration.sendPrimacy }),
-          ...(configuration.outputLevel && { OutputLevel: configuration.outputLevel }),
+          ...(configuration.outputLevel !== undefined && { OutputLevel: configuration.outputLevel }),
         },
       },
     });

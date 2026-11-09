@@ -26,7 +26,7 @@ export interface Appearance {
   humanFace?: HumanFace;
   humanBody?: HumanBody;
   imageRef?: AnyURI;
-  image?: unknown;
+  image?: string;
   barcodeInfo?: BarcodeInfo;
   sphericalCoordinate?: SphericalCoordinate;
   label?: LabelInfo[];
@@ -86,7 +86,10 @@ export interface ShapeDescriptorExtension {
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
-export interface StringLikelihood {}
+export interface StringLikelihood {
+  _: string;
+  likelihood?: number;
+}
 export interface ClassDescriptor {
   classCandidate?: ClassCandidate[];
   extension?: ClassDescriptorExtension;
@@ -103,6 +106,8 @@ export interface ClassCandidate {
 }
 export interface ClassDescriptorExtension {
   otherTypes?: OtherType[];
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OtherType {
   /** Object Class Type */
@@ -139,7 +144,7 @@ export interface Frame {
   objectTree?: ObjectTree;
   extension?: FrameExtension;
   sceneImageRef?: AnyURI;
-  sceneImage?: unknown;
+  sceneImage?: string;
   aspectRatioTransformation?: AspectRatioTransformation[];
   [key: string]: unknown;
   [key: symbol]: unknown;
@@ -147,8 +152,13 @@ export interface Frame {
 export interface FrameExtension {
   motionInCells?: MotionInCells;
   extension?: FrameExtension2;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface FrameExtension2 {}
+export interface FrameExtension2 {
+  [key: string]: unknown;
+  [key: symbol]: unknown;
+}
 export interface Merge {
   from?: ObjectId[];
   to: ObjectId;
@@ -166,8 +176,14 @@ export interface ObjectId {
   /** Object unique identifier. */
   UUID?: string;
 }
-export interface Removed {}
-export interface Idle {}
+export interface Removed {
+  [key: string]: unknown;
+  [key: symbol]: unknown;
+}
+export interface Idle {
+  [key: string]: unknown;
+  [key: symbol]: unknown;
+}
 export interface Behaviour {
   removed?: Removed;
   idle?: Idle;
@@ -201,7 +217,7 @@ export interface MotionInCells {
   /** Number of rows of the cell grid (y dimension) */
   rows: number;
   /** A "1" denotes a cell where motion is detected and a "0" an empty cell. The first cell is in the upper left corner. Then the cell order goes first from left to right and then from up to down.  If the number of cells is not a multiple of 8 the last byte is filled with zeros. The information is run length encoded according to Packbit coding in ISO 12369 (TIFF, Revision 6.0). */
-  cells: unknown;
+  cells: string;
   [key: string]: unknown;
   [key: symbol]: unknown;
 }

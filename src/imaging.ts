@@ -105,15 +105,15 @@ export default class Imaging extends Service {
           Left: exposure.window.left,
         },
       }),
-      ...(exposure.minExposureTime && { MinExposureTime: exposure.minExposureTime }),
-      ...(exposure.maxExposureTime && { MaxExposureTime: exposure.maxExposureTime }),
-      ...(exposure.minGain && { MinGain: exposure.minGain }),
-      ...(exposure.maxGain && { MaxGain: exposure.maxGain }),
-      ...(exposure.minIris && { MinIris: exposure.minIris }),
-      ...(exposure.maxIris && { MaxIris: exposure.maxIris }),
-      ...(exposure.exposureTime && { ExposureTime: exposure.exposureTime }),
-      ...(exposure.gain && { Gain: exposure.gain }),
-      ...(exposure.iris && { Iris: exposure.iris }),
+      ...(exposure.minExposureTime !== undefined && { MinExposureTime: exposure.minExposureTime }),
+      ...(exposure.maxExposureTime !== undefined && { MaxExposureTime: exposure.maxExposureTime }),
+      ...(exposure.minGain !== undefined && { MinGain: exposure.minGain }),
+      ...(exposure.maxGain !== undefined && { MaxGain: exposure.maxGain }),
+      ...(exposure.minIris !== undefined && { MinIris: exposure.minIris }),
+      ...(exposure.maxIris !== undefined && { MaxIris: exposure.maxIris }),
+      ...(exposure.exposureTime !== undefined && { ExposureTime: exposure.exposureTime }),
+      ...(exposure.gain !== undefined && { Gain: exposure.gain }),
+      ...(exposure.iris !== undefined && { Iris: exposure.iris }),
     };
   }
 
@@ -123,9 +123,9 @@ export default class Imaging extends Service {
         ...(focus.AFMode && { AFMode: stringListToBuild(focus.AFMode) }),
       },
       AutoFocusMode: focus.autoFocusMode,
-      ...(focus.defaultSpeed && { DefaultSpeed: focus.defaultSpeed }),
-      ...(focus.nearLimit && { NearLimit: focus.nearLimit }),
-      ...(focus.farLimit && { FarLimit: focus.farLimit }),
+      ...(focus.defaultSpeed !== undefined && { DefaultSpeed: focus.defaultSpeed }),
+      ...(focus.nearLimit !== undefined && { NearLimit: focus.nearLimit }),
+      ...(focus.farLimit !== undefined && { FarLimit: focus.farLimit }),
       ...(focus.extension && { Extension: focus.extension }),
     };
   }
@@ -133,15 +133,15 @@ export default class Imaging extends Service {
   private static wideDynamicRangeToBuild(wideDynamicRange: WideDynamicRange20) {
     return {
       Mode: wideDynamicRange.mode,
-      ...(wideDynamicRange.level && { Level: wideDynamicRange.level }),
+      ...(wideDynamicRange.level !== undefined && { Level: wideDynamicRange.level }),
     };
   }
 
   private static whiteBalanceToBuild(whiteBalance: WhiteBalance20) {
     return {
       Mode: whiteBalance.mode,
-      ...(whiteBalance.crGain && { CrGain: whiteBalance.crGain }),
-      ...(whiteBalance.cbGain && { CbGain: whiteBalance.cbGain }),
+      ...(whiteBalance.crGain !== undefined && { CrGain: whiteBalance.crGain }),
+      ...(whiteBalance.cbGain !== undefined && { CbGain: whiteBalance.cbGain }),
       ...(whiteBalance.extension && { Extension: whiteBalance.extension }),
     };
   }
@@ -151,13 +151,13 @@ export default class Imaging extends Service {
       ...(settings.backlightCompensation && {
         BacklightCompensation: Imaging.backlightCompensationToBuild(settings.backlightCompensation),
       }),
-      ...(settings.brightness && { Brightness: settings.brightness }),
-      ...(settings.colorSaturation && { ColorSaturation: settings.colorSaturation }),
-      ...(settings.contrast && { Contrast: settings.contrast }),
+      ...(settings.brightness !== undefined && { Brightness: settings.brightness }),
+      ...(settings.colorSaturation !== undefined && { ColorSaturation: settings.colorSaturation }),
+      ...(settings.contrast !== undefined && { Contrast: settings.contrast }),
       ...(settings.exposure && { Exposure: Imaging.exposureToBuild(settings.exposure) }),
       ...(settings.focus && { Focus: Imaging.focusConfigurationToBuild(settings.focus) }),
       ...(settings.irCutFilter && { IrCutFilter: settings.irCutFilter }),
-      ...(settings.sharpness && { Sharpness: settings.sharpness }),
+      ...(settings.sharpness !== undefined && { Sharpness: settings.sharpness }),
       ...(settings.wideDynamicRange && {
         WideDynamicRange: Imaging.wideDynamicRangeToBuild(settings.wideDynamicRange),
       }),
@@ -173,13 +173,13 @@ export default class Imaging extends Service {
       ...(focus.absolute && {
         Absolute: {
           Position: focus.absolute.position,
-          ...(focus.absolute.speed && { Speed: focus.absolute.speed }),
+          ...(focus.absolute.speed !== undefined && { Speed: focus.absolute.speed }),
         },
       }),
       ...(focus.relative && {
         Relative: {
           Distance: focus.relative.distance,
-          ...(focus.relative.speed && { Speed: focus.relative.speed }),
+          ...(focus.relative.speed !== undefined && { Speed: focus.relative.speed }),
         },
       }),
       ...(focus.continuous && {
@@ -226,7 +226,7 @@ export default class Imaging extends Service {
       SetImagingSettings: {
         VideoSourceToken: this.videoSourceToken(videoSourceToken),
         ImagingSettings: Imaging.imagingSettingsToBuild(imagingSettings),
-        ...(forcePersistence && { ForcePersistence: forcePersistence }),
+        ...(forcePersistence !== undefined && { ForcePersistence: forcePersistence }),
       },
     });
   }

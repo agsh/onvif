@@ -68,7 +68,7 @@ export interface DigitalInputConfigurationOptions {
 }
 /** The serial port data. */
 export interface SerialData {
-  binary?: unknown;
+  binary?: string;
   string?: string;
 }
 /** Lists all available serial ports of a device */

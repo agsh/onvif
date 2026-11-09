@@ -149,7 +149,7 @@ export interface CredentialIdentifier {
    */
   exemptedFromAuthentication: boolean;
   /** The value of the identifier in hexadecimal representation. */
-  value: unknown;
+  value: string;
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
@@ -272,7 +272,7 @@ export interface CredentialIdentifierItem {
   /** Contains the details of the credential identifier type. */
   type: CredentialIdentifierType;
   /** The value of the identifier in hexadecimal representation. */
-  value: unknown;
+  value: string;
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
@@ -435,7 +435,7 @@ export interface GetWhitelist {
   /** Get only whitelisted credential identifiers with the specified identifier format type. */
   formatType?: string;
   /** Get only whitelisted credential identifiers with the specified identifier value. */
-  value?: unknown;
+  value?: string;
   [key: string]: unknown;
   [key: symbol]: unknown;
 }
@@ -473,7 +473,7 @@ export interface GetBlacklist {
   /** Get only blacklisted credential identifiers with the specified identifier format type. */
   formatType?: string;
   /** Get only blacklisted credential identifiers with the specified identifier value. */
-  value?: unknown;
+  value?: string;
   [key: string]: unknown;
   [key: symbol]: unknown;
 }

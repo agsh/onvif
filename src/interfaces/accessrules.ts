@@ -51,7 +51,7 @@ export interface AccessPolicy {
    * Service Specification. This field is provided for future extensions; it will allow an
    * access policy being	extended to cover entity types other than access points as well.
    */
-  entityType?: unknown;
+  entityType?: string;
   extension?: AccessPolicyExtension;
 }
 export interface AccessPolicyExtension {
