@@ -452,7 +452,7 @@ configuration object
 
 ## Changelog
 - V0.x BRANCH...
-- 0.8.4 BREAKING: `getPresets` callback argument order is now `(err, presetsByName, presetsByToken, xml)` Use `presetsByToken` when preset names can duplicate.
+- 0.8.4 BREAKING: `getPresets` callback argument order is now `(err, presetsByName, presetsByToken, xml)` Use `presetsByToken` when preset names can duplicate. SOAP setters send `0` / `false` via `isSet` (omit only undefined/null/'').
 - 0.8.3 Skip Media/VideoSource probing when the device does not support it; fall back to Media2 when Media fails
 - 0.8.2 Digest auth RFC fixes. Discovery UDP buffer fix and undefined props checks
   Replace splitargs with own implementation, promises probe return

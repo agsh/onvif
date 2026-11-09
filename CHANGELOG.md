@@ -2,6 +2,8 @@
 - 0.8.4 BREAKING: `getPresets` callback is now `(err, presetsByName, presetsByToken, xml)` -
   `presetsByToken` and `xml` swapped vs previous versions. Name - token map unchanged; use `presetsByToken` for
   duplicate preset names / full preset objects.
+  SOAP setters use `isSet` so numeric `0` and boolean `false` are written into XML; omit only `undefined` / `null` / `''`
+  (imaging, media, PTZ).
 - 0.8.3 Skip Media/VideoSource probing when the device does not support it; fall back to Media2 when
   Media fails (@agsh).
 - 0.8.2 Probably the last stable v0.x before v1. Digest auth RFC fixes (@RogerHardiman, @anupamme).
