@@ -64,7 +64,7 @@ describe('v1 lazy-loading contract', () => {
     jest.spyOn(connectSteps, 'getServices').mockImplementation(async (cam) => {
       cam.uri.media = new URL('http://127.0.0.1/onvif/media');
       cam.services = [];
-      return { service: [] } as never;
+      return [] as never;
     });
     jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
       cam.profiles = [{ token: 'p1' } as never];

@@ -73,22 +73,16 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
   Note: published `onvif@0.8.2` still returns name -> preset from the `getPresets` *callback* while storing
   token -> preset on `cam.presets` - compatibility aligns both with the token-keyed shape.
 - **Return shapes after 1.x unwrap:** the modern `Onvif` API often returns a single useful value
-  (boolean / token / array). Multi-field values stay as objects — not SOAP wrappers like
-  `{ mediaUri: { uri } }`. For stream/snapshot URIs specifically:
-  - `onvif.media.getStreamUri()` / `getSnapshotUri()` -> `MediaUriResult` (always `.uri`; Media 1.0
-    also returns `invalidAfter*` / `timeout`)
-  - With `media2Support`, those `media.*` helpers route via Media2 and return `{ uri }` only —
-    validity fields are **not** invented. Set `onvif.media2Support = false` to force Media 1.0
-  - `onvif.media2.getStreamUri()` / `getSnapshotUri()` always return `{ uri }`
-  Callback `Cam` remaps the ones v0 apps commonly destructure; the **promises** entry inherits
-  the same shapes via the proxy:
+  (boolean / token / array). Multi-field values stay as objects (e.g. `media.getStreamUri()` /
+  `getSnapshotUri()` -> `MediaUri` with `.uri`, not `{ mediaUri: { uri } }`). Media2 stream/snapshot
+  methods unwrap further to an `AnyURI` string. Callback `Cam` remaps the ones v0 apps commonly
+  destructure; the **promises** entry inherits the same shapes via the proxy:
   - `setNetworkInterfaces` -> `{ rebootNeeded }` (not a bare boolean)
   - `createOSD` -> `{ OSDToken }` (not a bare token string)
   - `setPreset` -> preset token string (v0 passed through raw SOAP; Cam matches practical 0.8.x usage)
   - `getOSDs` -> `OSD[]` (v0 returned `{ getOSDsResponse: { OSDs } }`)
   - `getOSDOptions` -> options object (v0 returned `{ getOSDOptionsResponse: { OSDOptions } }`)
-  - `getStreamUri` / `getSnapshotUri` -> same `MediaUriResult` shape as `onvif.media.*` (Cam
-    normalizers keep a top-level `.uri`)
+  - `getStreamUri` / `getSnapshotUri` -> `MediaUri` (use `.uri`; Cam normalizers keep a top-level `.uri`)
 - `close()` is available on compatibility `Cam` (callback and promises) even though classic v0.x had no
   equivalent - needed so keep-alive sockets do not keep the process alive after 1.x agent ownership.
 - **Active media profile (token bag):** v0.x exposed `cam.activeSource` / `cam.activeSources` with a mix of

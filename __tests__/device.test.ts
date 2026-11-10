@@ -41,7 +41,7 @@ describe('Getters', () => {
 describe('getServices', () => {
   it('should return services and populate device uri', async () => {
     const result = await cam.device.getServices();
-    expect(result.service?.length).toBeGreaterThan(0);
+    expect(result.length).toBeGreaterThan(0);
     expect(cam.device.services.length).toBeGreaterThan(0);
     expect(cam.uri.device?.href).toContain('device_service');
   });

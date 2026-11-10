@@ -25,9 +25,7 @@ import {
   GetAudioOutputConfigurations,
   GetAudioDecoderConfigurations,
   WebRTCConfiguration,
-  GetStreamUriResponse,
   GetSnapshotUri,
-  GetSnapshotUriResponse,
   GetAudioSourceConfigurations,
   GetVideoEncoderInstances,
   EncoderInstanceInfo,
@@ -67,6 +65,7 @@ import {
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
+import { AnyURI } from './interfaces/basics';
 import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
 import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
@@ -147,9 +146,9 @@ export interface AudioOutputConfigurationExtended extends AudioOutputConfigurati
  * const encoders = await onvif.media2.getVideoEncoderConfigurations({ profileToken });
  * console.log(profiles[0]?.name, encoders[0]?.encoding, encoders[0]?.resolution);
  *
- * const { uri } = await onvif.media2.getStreamUri({ profileToken, protocol: 'RtspUnicast' });
+ * const uri = await onvif.media2.getStreamUri({ profileToken, protocol: 'RtspUnicast' });
  * const snap = await onvif.media2.getSnapshotUri({ profileToken });
- * console.log(uri, snap.uri);
+ * console.log(uri, snap);
  *
  * const sources = await onvif.media2.getVideoSourceConfigurations({ profileToken });
  * const osds = await onvif.media2.getOSDs({ configurationToken: sources[0]!.token });
@@ -1256,14 +1255,14 @@ export default class Media2 extends Service {
    * MetadataConfiguration shall have a valid multicast setting.
    */
   @v2
-  async getStreamUri({ protocol = 'RtspUnicast', profileToken }: GetStreamUri): Promise<GetStreamUriResponse> {
+  async getStreamUri({ protocol = 'RtspUnicast', profileToken }: GetStreamUri): Promise<AnyURI> {
     const response = await this.request({
       GetStreamUri: {
         Protocol: protocol,
         ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
-    return response.getStreamUriResponse;
+    return response.getStreamUriResponse.uri;
   }
 
   /**
@@ -1274,16 +1273,17 @@ export default class Media2 extends Service {
    * from the profile if suitable. The provided image will be updated automatically and independent from
    * calls to GetSnapshotUri.
    * @param options
+   * @returns Snapshot {@link AnyURI}
    */
   @v2
-  async getSnapshotUri(options?: GetSnapshotUri): Promise<GetSnapshotUriResponse> {
+  async getSnapshotUri(options?: GetSnapshotUri): Promise<AnyURI> {
     const { profileToken } = options ?? {};
     const response = await this.request({
       GetSnapshotUri: {
         ProfileToken: profileToken ?? this.onvif.activeMediaProfile?.profileToken,
       },
     });
-    return response.getSnapshotUriResponse;
+    return response.getSnapshotUriResponse.uri;
   }
 }
 function v2(originalMethod: any, context: ClassMethodDecoratorContext) {

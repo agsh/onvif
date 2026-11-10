@@ -874,12 +874,11 @@ describe('setVideoSourceMode', () => {
 describe('getStreamUri', () => {
   const protocol = 'RtspUnicast';
 
-  it('should return a stream URI for the given protocol and profile token', async () => {
+  it('should return an AnyURI string for the given protocol and profile token', async () => {
     const profileToken = cam.activeSource!.profileToken;
     const result = await cam.media2.getStreamUri({ protocol, profileToken });
-    expect(result).toHaveProperty('uri');
-    expect(typeof result.uri).toBe('string');
-    expect(result.uri!.length).toBeGreaterThan(0);
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
   });
 
   it('should default profile token from activeSource when omitted', async () => {
@@ -888,20 +887,21 @@ describe('getStreamUri', () => {
       profileToken: cam.activeSource!.profileToken,
     });
     const withDefault = await cam.media2.getStreamUri({ protocol });
-    expect(withDefault.uri).toBe(withExplicit.uri);
+    expect(withDefault).toBe(withExplicit);
   });
 
   it('should accept alternate stream protocols', async () => {
     const profileToken = cam.activeSource!.profileToken;
     const rtspTcp = await cam.media2.getStreamUri({ protocol: 'RTSP', profileToken });
-    expect(rtspTcp.uri).toBeDefined();
+    expect(typeof rtspTcp).toBe('string');
+    expect(rtspTcp.length).toBeGreaterThan(0);
   });
 
   it('should default protocol to RtspUnicast when omitted', async () => {
     const profileToken = cam.activeSource!.profileToken;
     const explicit = await cam.media2.getStreamUri({ protocol: 'RtspUnicast', profileToken });
     const defaulted = await cam.media2.getStreamUri({ profileToken });
-    expect(defaulted.uri).toBe(explicit.uri);
+    expect(defaulted).toBe(explicit);
   });
 
   it('should fail if media ver20 is not supported', () => {
@@ -917,12 +917,11 @@ describe('getStreamUri', () => {
 });
 
 describe('getSnapshotUri', () => {
-  it('should return a snapshot URI for the given profile token', async () => {
+  it('should return an AnyURI string for the given profile token', async () => {
     const profileToken = cam.activeSource!.profileToken;
     const result = await cam.media2.getSnapshotUri({ profileToken });
-    expect(result).toHaveProperty('uri');
-    expect(typeof result.uri).toBe('string');
-    expect(result.uri!.length).toBeGreaterThan(0);
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
   });
 
   it('should default profile token from activeSource when omitted', async () => {
@@ -930,13 +929,13 @@ describe('getSnapshotUri', () => {
       profileToken: cam.activeSource!.profileToken,
     });
     const withDefault = await cam.media2.getSnapshotUri();
-    expect(withDefault.uri).toBe(withExplicit.uri);
+    expect(withDefault).toBe(withExplicit);
   });
 
   it('should treat an empty options object like omitted profile token', async () => {
     const withDefault = await cam.media2.getSnapshotUri();
     const withEmptyOptions = await cam.media2.getSnapshotUri({});
-    expect(withEmptyOptions.uri).toBe(withDefault.uri);
+    expect(withEmptyOptions).toBe(withDefault);
   });
 
   it('should fail if media ver20 is not supported', () => {

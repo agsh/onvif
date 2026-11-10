@@ -468,10 +468,10 @@ export class Cam extends EventEmitter {
 
   getServices(includeCapability: boolean | Callback, callback?: Callback) {
     if (isCallback(includeCapability)) {
-      this.invoke(() => this.onvif.device.getServices(), includeCapability, (result) => result.service);
+      this.invoke(() => this.onvif.device.getServices(), includeCapability);
       return;
     }
-    this.invoke(() => this.onvif.device.getServices({ includeCapability }), callback!, (result) => result.service);
+    this.invoke(() => this.onvif.device.getServices({ includeCapability }), callback!);
   }
 
   getDeviceInformation(callback: Callback) {
