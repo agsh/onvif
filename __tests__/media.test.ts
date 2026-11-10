@@ -741,7 +741,6 @@ describe('OSD (Media)', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
     });
-
   });
 
   describe('getOSD', () => {
@@ -1263,8 +1262,8 @@ describe('Configurations', () => {
           bounds: {
             x: 1,
             y: 1,
-            width: 10,
-            height: 10,
+            width: 1280,
+            height: 720,
           },
           extension: {
             __clean__: true,

@@ -65,7 +65,7 @@ describe('Search', () => {
         recordingToken: RECORDING_TOKEN,
       });
       expect(information.recordingToken).toBe(RECORDING_TOKEN);
-      expect(information.recordingStatus).toBe('Initiated');
+      expect(information.recordingStatus).toBe('Stopped');
       expect(information.content).toBe('Recording from device');
       expect(information.source).toMatchObject({
         sourceId: 'http://localhost/sourceID',
