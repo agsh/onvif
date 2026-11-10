@@ -1,4 +1,5 @@
 import {
+  StringList,
   StringAttrList,
   VideoSourceConfiguration,
   AudioSourceConfiguration,
@@ -12,33 +13,11 @@ import {
   ReceiverConfiguration,
   Name,
   VideoResolution,
-  StringList,
   Description,
   ColorOptions,
-  EQPreset,
-  VideoSourceConfigurationOptions,
-  VideoEncoder2ConfigurationOptions,
-  AudioSourceConfigurationOptions,
-  AudioEncoder2ConfigurationOptions,
-  MetadataConfigurationOptions,
-  AudioOutputConfigurationOptions,
-  OSDConfiguration,
-  OSDConfigurationOptions,
-  Date,
-  MulticastAudioDecoderConfiguration,
-  MulticastAudioDecoderConfigurationOptions,
 } from './onvif';
 import { AnyURI } from './basics';
 import { ReferenceToken, Polygon, Color } from './common';
-
-export type SupportedAudioClipFormat =
-  | 'audio/vnd.wave;codec=1'
-  | 'audio/vnd.wave;codec=7'
-  | 'audio/mpeg'
-  | 'audio/ogg;codecs=opus'
-  | 'audio/ogg;codecs=vorbis'
-  | 'audio/ogg;codecs=flac'
-  | 'audio/ogg;codecs=speex';
 export type ConfigurationEnumeration =
   | 'All'
   | 'VideoSource'
@@ -51,14 +30,6 @@ export type ConfigurationEnumeration =
   | 'Analytics'
   | 'PTZ'
   | 'Receiver';
-export type TransportProtocol =
-  | 'RtspUnicast'
-  | 'RtspMulticast'
-  | 'RtspsUnicast'
-  | 'RtspsMulticast'
-  | 'RTSP'
-  | 'RtspOverHttp';
-export type MaskType = 'Color' | 'Pixelated' | 'Blurred';
 export interface Capabilities2 {
   /** Indicates if GetSnapshotUri is supported. */
   snapshotUri?: boolean;
@@ -80,17 +51,18 @@ export interface Capabilities2 {
   sourceMask?: boolean;
   /** Indicates number of supported WebRTC configurations. */
   webRTC?: number;
+  /** List of supported video and audio media types as defined by IANA. E.g. "video/H264 audio/opus". */
+  webRTC_codecs?: StringList;
   /** Media profile capabilities. */
   profileCapabilities: ProfileCapabilities;
   /** Streaming capabilities. */
   streamingCapabilities: StreamingCapabilities;
-  /** Media signing capabilities. */
-  mediaSigningCapabilities?: MediaSigningCapabilities;
   /** Audio clip capabilities. */
   audioClipCapabilities?: AudioClipCapabilities;
   /** MulticastAudioDecoder capabilities. */
   multicastAudioDecoderCapabilities?: MulticastAudioDecoderCapabilities;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ProfileCapabilities {
   /** Maximum number of profiles supported. */
@@ -98,6 +70,7 @@ export interface ProfileCapabilities {
   /** The configurations supported by the device as defined by tr2:ConfigurationEnumeration. The enumeration value "All" shall not be included in this list. */
   configurationsSupported?: StringAttrList;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface StreamingCapabilities {
   /** Indicates support for live media streaming via RTSP. */
@@ -115,6 +88,7 @@ export interface StreamingCapabilities {
   /** Indicates support for live media streaming via RTSPS and SRTP. */
   secureRTSPStreaming?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MulticastAudioDecoderCapabilities {
   /** Indicates support for multicast audio decoder. */
@@ -124,11 +98,7 @@ export interface MulticastAudioDecoderCapabilities {
   /** Indicates whether the IPv6 is supported in MulticastAudioDecoder or not. */
   IPv6?: boolean;
   [key: string]: unknown;
-}
-export interface MediaSigningCapabilities {
-  /** Indicates whether the device supports signing of media according to the Media Signing Specification. */
-  mediaSigningSupported?: boolean;
-  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AudioClipCapabilities {
   /** Indicates the maximum number of audio clips that can be uploaded to the device. */
@@ -137,7 +107,23 @@ export interface AudioClipCapabilities {
   maxAudioClipSize?: number;
   /** Enumerates the supported audio clip formats. See tr2: SupportedAudioClipFormat. */
   supportedAudioClipFormat?: StringAttrList;
+  /** Indicates device has TTS capability. */
+  TTSCapabilities?: TTSCapabilities;
   [key: string]: unknown;
+  [key: symbol]: unknown;
+}
+export interface TTSCapabilities {
+  /** Indicates the maximum length of content of a text for device to convert to an audio clip. */
+  maxContentLength?: number;
+  /**
+   * List of supported languages. Uses ISO 639-1 alpha-2 language codes, such as"en" for English. See Codes for the Representation of Names of Languages.
+   * Optionally combined with ISO 3166-1 alpha-2 country codes using the "language-country" format to specify regional variations, such as"en-US" for American English. For country codes, see ISO 3166-1 Country Codes.
+   */
+  TTSLanguage?: StringAttrList;
+  /** List of supported voice types. See tr2: TTSVoiceType. */
+  TTSVoiceType?: StringAttrList;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ConfigurationRef {
   /** Type of the configuration as defined by tr2:ConfigurationEnumeration. */
@@ -174,6 +160,7 @@ export interface ConfigurationSet {
   /** Optional configuration of the Receiver. */
   receiver?: ReceiverConfiguration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** A media profile consists of a set of media configurations. */
 export interface MediaProfile {
@@ -192,7 +179,6 @@ export interface GetConfiguration {
   /** Contains the token of an existing media profile the configurations shall be compatible with. */
   profileToken?: ReferenceToken;
 }
-export interface SetConfigurationResponse {}
 export interface EncoderInstance {
   /** Video Media Subtype for the video format. For definitions see tt:VideoEncodingMimeNames and  IANA Media Types. */
   encoding: string;
@@ -205,6 +191,7 @@ export interface EncoderInstanceInfo {
   /** The minimum guaranteed total number of encoder instances (applications) per VideoSourceConfiguration. The device is able to deliver the Total number of streams */
   total: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface StartStopMulticastStreaming {
   /** Contains the token of the Profile that is used to define the multicast stream. */
@@ -226,6 +213,7 @@ export interface VideoSourceMode {
   /** Informative description of this video source mode. This field should be described in English. */
   description?: Description;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Mask {
   /** Token of the mask. */
@@ -240,7 +228,6 @@ export interface Mask {
    * Color - The masked area is colored with color defined by the Color field.
    * Pixelated - The masked area is filled in mosaic style to hide details.
    * Blurred - The masked area is low pass filtered to hide details.
-   *
    */
   type: string;
   /** Color of the masked area. */
@@ -248,6 +235,7 @@ export interface Mask {
   /** If set the mask will cover the image, otherwise it will be fully transparent. */
   enabled: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface MaskOptions {
   /** Information whether the polygon must have four points and a rectangular shape. */
@@ -263,6 +251,7 @@ export interface MaskOptions {
   /** Colors supported. */
   color: ColorOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface WebRTCConfiguration {
   /** The signaling server URI. */
@@ -280,74 +269,19 @@ export interface WebRTCConfiguration {
   /** Optional user readable error information (readonly). */
   error?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
-export interface AudioClip {
-  /** Enables/disables the audio clip. */
-  enabled: boolean;
-  /** Name of the audio clip. */
-  name: string;
-  /** Optional token list of physical audio outputs. */
-  audioOutputToken?: ReferenceToken[];
-  /** Format of the audio clip. For definitions see tr2:SupportedAudioClipFormat parameter. */
-  type: string;
-  /** The number of times the audio clip can be repeated when it is played. A value of 0 means no repeat (i.e., the audio clip plays once and does not repeat). A value of 1 means the audio clip plays once and repeats once after the first play. A value of -1 means the audio clip repeats infinitely after the first play until it is stopped by the user. */
-  repeatCycles: number;
-  /** Optional time interval, in seconds, between audio clips when the audio clip is repeated. */
-  repeatInterval?: number;
-  /** Optional level to control the volume of the audio clip when it is played. */
-  audioOutputLevel?: number;
-  /** Optional schedule token associated with the audio clip configuration. The audio clip should be played when the configured schedule is triggered. */
-  scheduleToken?: ReferenceToken;
-  [key: string]: unknown;
-}
-export interface GetAudioClipsResponseItem {
-  /** Unique token associated with the audio clip. */
-  token: ReferenceToken;
-  /** Configuration of the audio clip. */
-  configuration: AudioClip;
-  [key: string]: unknown;
-}
-export interface PlayingAudioClips {
-  /** Unique token associated with the audio clip. */
-  token: ReferenceToken;
-  /** Name of the audio clip. */
-  name: string;
-  /** Token list of physical audio outputs. */
-  audioOutputToken: ReferenceToken[];
-  /** Output level to control the volume of the audio clip when it is played. */
-  audioOutputLevel: number;
-  /** Number of repeat cycles left while playing the audio clip. */
-  repeatsLeft: number;
-  [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the media service is returned in the Capabilities element. */
-  capabilities: Capabilities2;
-}
-export interface Capabilities extends Capabilities2 {}
 export interface CreateProfile {
   /** friendly name of the profile to be created */
   name: Name;
   /** Optional set of configurations to be assigned to the profile. List entries with tr2:ConfigurationEnumeration value "All" shall be ignored. */
   configuration?: ConfigurationRef[];
 }
-export interface CreateProfileResponse {
-  /** Token assigned by the device for the newly created profile. */
-  token: ReferenceToken;
-}
 export interface GetProfiles {
   /** Optional token of the requested profile. */
   token?: ReferenceToken;
   /** The types shall be provided as defined by tr2:ConfigurationEnumeration. */
   type?: string[];
-}
-export interface GetProfilesResponse {
-  /**
-   * Lists all profiles that exist in the media service. The response provides the requested types of Configurations as far as available.
-   * If a profile doesn't contain a type no error shall be provided.
-   */
-  profiles?: MediaProfile[];
 }
 export interface AddConfiguration {
   /** Reference to the profile where the configuration should be added */
@@ -357,175 +291,41 @@ export interface AddConfiguration {
   /** List of configurations to be added. The types shall be provided in the order defined by tr2:ConfigurationEnumeration. List entries with tr2:ConfigurationEnumeration value "All" shall be ignored. */
   configuration?: ConfigurationRef[];
 }
-export interface AddConfigurationResponse {}
 export interface RemoveConfiguration {
   /** This element contains a  reference to the media profile from which the configuration shall be removed. */
   profileToken?: ReferenceToken;
   /** List of configurations to be removed. The types shall be provided in the order defined by tr2:ConfigurationEnumeration. Tokens appearing in the configuration list shall be ignored. Presence of the "All" type shall result in an empty profile. */
   configuration?: ConfigurationRef[];
 }
-export interface RemoveConfigurationResponse {}
 export interface DeleteProfile {
   /** This element contains a  reference to the profile that should be deleted. */
   token: ReferenceToken;
 }
-export interface DeleteProfileResponse {}
 export interface GetVideoEncoderConfigurations extends GetConfiguration {}
-export interface GetVideoEncoderConfigurationsResponse {
-  /** This element contains a list of video encoder configurations. */
-  configurations?: VideoEncoder2Configuration[];
-}
 export interface GetVideoSourceConfigurations extends GetConfiguration {}
-export interface GetVideoSourceConfigurationsResponse {
-  /** This element contains a list of video source configurations. */
-  configurations?: VideoSourceConfiguration[];
-}
 export interface GetAudioEncoderConfigurations extends GetConfiguration {}
-export interface GetAudioEncoderConfigurationsResponse {
-  /** This element contains a list of audio encoder configurations. */
-  configurations?: AudioEncoder2Configuration[];
-}
 export interface GetAudioSourceConfigurations extends GetConfiguration {}
-export interface GetAudioSourceConfigurationsResponse {
-  /** This element contains a list of audio source configurations. */
-  configurations?: AudioSourceConfiguration[];
-}
 export interface GetAnalyticsConfigurations extends GetConfiguration {}
-export interface GetAnalyticsConfigurationsResponse {
-  /** This element contains a list of Analytics configurations. */
-  configurations?: VideoAnalyticsConfiguration[];
-}
 export interface GetMetadataConfigurations extends GetConfiguration {}
-export interface GetMetadataConfigurationsResponse {
-  /** This element contains a list of metadata configurations */
-  configurations?: MetadataConfiguration[];
-}
 export interface GetAudioOutputConfigurations extends GetConfiguration {}
-export interface GetAudioOutputConfigurationsResponse {
-  /** This element contains a list of audio output configurations */
-  configurations?: AudioOutputConfiguration[];
-}
 export interface GetAudioDecoderConfigurations extends GetConfiguration {}
-export interface GetAudioDecoderConfigurationsResponse {
-  /** This element contains a list of audio decoder configurations */
-  configurations?: AudioDecoderConfiguration[];
-}
-export interface SetVideoEncoderConfiguration {
-  /** Contains the modified video encoder configuration. The configuration shall exist in the device. */
-  configuration: VideoEncoder2Configuration;
-}
-export interface SetVideoEncoderConfigurationResponse extends SetConfigurationResponse {}
-export interface SetVideoSourceConfiguration {
-  /** Contains the modified video source configuration. The configuration shall exist in the device. */
-  configuration: VideoSourceConfiguration;
-}
-export interface SetVideoSourceConfigurationResponse extends SetConfigurationResponse {}
-export interface SetAudioEncoderConfiguration {
-  /** Contains the modified audio encoder configuration. The configuration shall exist in the device. */
-  configuration: AudioEncoder2Configuration;
-}
-export interface SetAudioEncoderConfigurationResponse extends SetConfigurationResponse {}
-export interface SetAudioSourceConfiguration {
-  /** Contains the modified audio source configuration. The configuration shall exist in the device. */
-  configuration: AudioSourceConfiguration;
-}
-export interface SetAudioSourceConfigurationResponse extends SetConfigurationResponse {}
-export interface SetMetadataConfiguration {
-  /** Contains the modified metadata configuration. The configuration shall exist in the device. */
-  configuration: MetadataConfiguration;
-}
-export interface SetMetadataConfigurationResponse extends SetConfigurationResponse {}
-export interface SetAudioOutputConfiguration {
-  /** Contains the modified audio output configuration. The configuration shall exist in the device. */
-  configuration: AudioOutputConfiguration;
-}
-export interface SetAudioOutputConfigurationResponse extends SetConfigurationResponse {}
-export interface SetAudioDecoderConfiguration {
-  /** Contains the modified audio decoder configuration. The configuration shall exist in the device. */
-  configuration: AudioDecoderConfiguration;
-}
-export interface SetAudioDecoderConfigurationResponse extends SetConfigurationResponse {}
-export interface SetEQPresetConfiguration {
-  /** Contains the modified EQ Preset configuration. */
-  configuration: EQPreset;
-}
-export interface SetEQPresetConfigurationResponse extends SetConfigurationResponse {}
-export interface GetVideoSourceConfigurationOptions extends GetConfiguration {}
-export interface GetVideoSourceConfigurationOptionsResponse {
-  /** This message contains the video source configuration options. If a video source configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options: VideoSourceConfigurationOptions;
-}
-export interface GetVideoEncoderConfigurationOptions extends GetConfiguration {}
-export interface GetVideoEncoderConfigurationOptionsResponse {
-  options?: VideoEncoder2ConfigurationOptions[];
-}
-export interface GetAudioSourceConfigurationOptions extends GetConfiguration {}
-export interface GetAudioSourceConfigurationOptionsResponse {
-  /** This message contains the audio source configuration options. If a audio source configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options: AudioSourceConfigurationOptions;
-}
-export interface GetAudioEncoderConfigurationOptions extends GetConfiguration {}
-export interface GetAudioEncoderConfigurationOptionsResponse {
-  /** This message contains the audio encoder configuration options. If a audio encoder configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options?: AudioEncoder2ConfigurationOptions[];
-}
-export interface GetMetadataConfigurationOptions extends GetConfiguration {}
-export interface GetMetadataConfigurationOptionsResponse {
-  /** This message contains the metadata configuration options. If a metadata configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options: MetadataConfigurationOptions;
-}
-export interface GetAudioOutputConfigurationOptions extends GetConfiguration {}
-export interface GetAudioOutputConfigurationOptionsResponse {
-  /** This message contains the audio output configuration options. If a audio output configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options: AudioOutputConfigurationOptions;
-}
-export interface GetAudioDecoderConfigurationOptions extends GetConfiguration {}
-export interface GetAudioDecoderConfigurationOptionsResponse {
-  /** This message contains the audio decoder configuration options. If a audio decoder configuration is specified, the options shall concern that particular configuration. If a media profile is specified, the options shall be compatible with that media profile. If no tokens are specified, the options shall be considered generic for the device. */
-  options?: AudioEncoder2ConfigurationOptions[];
-}
 export interface GetVideoEncoderInstances {
   /** Token of the video source configuration */
   configurationToken: ReferenceToken;
-}
-export interface GetVideoEncoderInstancesResponse {
-  /** The minimum guaranteed total number of encoder instances (applications) per VideoSourceConfiguration. */
-  info: EncoderInstanceInfo;
-}
-export interface GetStreamUri {
-  /** Defines the network protocol for streaming as defined by tr2:TransportProtocol */
-  protocol: string;
-  /** The ProfileToken element indicates the media profile to use and will define the configuration of the content of the stream. */
-  profileToken?: ReferenceToken;
-}
-export interface GetStreamUriResponse {
-  /** Stable Uri to be used for requesting the media stream */
-  uri: AnyURI;
 }
 export interface SetSynchronizationPoint {
   /** Contains a Profile reference for which a Synchronization Point is requested. */
   profileToken?: ReferenceToken;
 }
-export interface SetSynchronizationPointResponse {}
 export interface GetSnapshotUri {
   /** The ProfileToken element indicates the media profile to use and will define the source and dimensions of the snapshot. */
   profileToken?: ReferenceToken;
 }
-export interface GetSnapshotUriResponse {
-  /** Stable Uri to be used for requesting snapshot images. */
-  uri: AnyURI;
-}
 export interface StartMulticastStreaming extends StartStopMulticastStreaming {}
-export interface StartMulticastStreamingResponse extends SetConfigurationResponse {}
 export interface StopMulticastStreaming extends StartStopMulticastStreaming {}
-export interface StopMulticastStreamingResponse extends SetConfigurationResponse {}
 export interface GetVideoSourceModes {
   /** Contains a video source reference for which a video source mode is requested. */
   videoSourceToken: ReferenceToken;
-}
-export interface GetVideoSourceModesResponse {
-  /** Return the information for specified video source mode. */
-  videoSourceModes?: VideoSourceMode[];
 }
 export interface SetVideoSourceMode {
   /** Contains a video source reference for which a video source mode is requested. */
@@ -533,159 +333,31 @@ export interface SetVideoSourceMode {
   /** Indicate video source mode. */
   videoSourceModeToken: ReferenceToken;
 }
-export interface SetVideoSourceModeResponse {
-  /** The response contains information about rebooting after returning response. When Reboot is set true, a device will reboot automatically after setting mode. */
-  reboot: boolean;
-}
 export interface GetOSDs {
   /** The GetOSDs command fetches the OSD configuration if the OSD token is known. */
   OSDToken?: ReferenceToken;
   /** Token of the Video Source Configuration, which has OSDs associated with are requested. If token not exist, request all available OSDs. */
   configurationToken?: ReferenceToken;
 }
-export interface GetOSDsResponse {
-  /** This element contains a list of requested OSDs. */
-  OSDs?: OSDConfiguration[];
-}
-export interface SetOSD {
-  /** Contains the modified OSD configuration. */
-  OSD: OSDConfiguration;
-}
-export interface SetOSDResponse extends SetConfigurationResponse {}
 export interface GetOSDOptions {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
   configurationToken: ReferenceToken;
-}
-export interface GetOSDOptionsResponse {
-  /**/
-  OSDOptions: OSDConfigurationOptions;
-}
-export interface CreateOSD {
-  /** Contain the initial OSD configuration for create. */
-  OSD: OSDConfiguration;
-}
-export interface CreateOSDResponse {
-  /** Returns Token of the newly created OSD */
-  OSDToken: ReferenceToken;
 }
 export interface DeleteOSD {
   /** This element contains a reference to the OSD configuration that should be deleted. */
   OSDToken: ReferenceToken;
 }
-export interface DeleteOSDResponse extends SetConfigurationResponse {}
 export interface GetMasks {
   /** Optional mask token of an existing mask. */
   token?: ReferenceToken;
   /** Optional token of a Video Source Configuration. */
   configurationToken?: ReferenceToken;
 }
-export interface GetMasksResponse {
-  /** List of Mask configurations. */
-  masks?: Mask[];
-}
-export interface SetMask {
-  /** Mask to be updated. */
-  mask: Mask;
-}
-export interface SetMaskResponse extends SetConfigurationResponse {}
 export interface GetMaskOptions {
   /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
   configurationToken: ReferenceToken;
-}
-export interface GetMaskOptionsResponse {
-  /**/
-  options: MaskOptions;
-}
-export interface CreateMask {
-  /** Contain the initial mask configuration for create. */
-  mask: Mask;
-}
-export interface CreateMaskResponse {
-  /** Returns Token of the newly created Mask */
-  token: ReferenceToken;
 }
 export interface DeleteMask {
   /** This element contains a reference to the Mask configuration that should be deleted. */
   token: ReferenceToken;
 }
-export interface DeleteMaskResponse extends SetConfigurationResponse {}
-export interface GetWebRTCConfigurations {}
-export interface GetWebRTCConfigurationsResponse {
-  /** Video Source Configuration Token that specifies an existing video source configuration that the options shall be compatible with. */
-  webRTCConfiguration?: WebRTCConfiguration[];
-}
-export interface SetWebRTCConfigurations {
-  /** This message contains the WebRTC configurations to use for the device. If empty, existing WebRTC configurations are deleted. */
-  webRTCConfiguration?: WebRTCConfiguration[];
-}
-export interface SetWebRTCConfigurationsResponse {}
-export interface GetAudioClips {
-  /** Audio clip token. */
-  token?: ReferenceToken;
-}
-export interface GetAudioClipsResponse {
-  /** List of audio clip items. */
-  audioClipItem?: GetAudioClipsResponseItem[];
-}
-export interface AddAudioClip {
-  /** Optional token associated with the audio clip. */
-  token?: ReferenceToken;
-  /** Audio clip configuration to add. */
-  configuration: AudioClip;
-}
-export interface AddAudioClipResponse {
-  /** Unique token of the audio clip to be uploaded. */
-  token: ReferenceToken;
-  /** A URL to which the audio clip can be uploaded. */
-  uploadUri: AnyURI;
-  /** Expiry time by which the client should upload the audio clip to the device. */
-  expiryTime: Date;
-}
-export interface SetAudioClip {
-  /** Unique token associated with the audio clip. */
-  token: ReferenceToken;
-  /** Audio clip configuration to modify. */
-  configuration: AudioClip;
-}
-export interface SetAudioClipResponse {}
-export interface DeleteAudioClip {
-  /** Token of the audio clip to be deleted from the device. */
-  token: ReferenceToken;
-}
-export interface DeleteAudioClipResponse {}
-export interface PlayAudioClip {
-  /** Token of the audio clip to be played or stopped. */
-  token: ReferenceToken;
-  /** Optional token list of physical audio outputs. If the AudioOutputToken is not provided in the API request, the AudioOutputToken from the audio clip configuration will be used. */
-  audioOutputToken?: ReferenceToken[];
-  /** If it is true, play the audio clip; if it is false, stop the ongoing audio clip. */
-  play: boolean;
-  /** Optional RepeatCycles to be used for the current play operation. If RepeatCycles is not provided in the API request, the RepeatCycles specified in the audio clip configuration will be used for the current play operation. */
-  repeatCycles?: number;
-}
-export interface PlayAudioClipResponse {}
-export interface GetPlayingAudioClips {}
-export interface GetPlayingAudioClipsResponse {
-  /** List of audio clips currently playing in the device. */
-  playingAudioClips?: PlayingAudioClips[];
-}
-export interface GetMulticastAudioDecoderConfigurations {
-  /** Unique token of the multicast audio decoder configuration. If not passed, device shall respond with all configurations. */
-  configurationToken?: ReferenceToken;
-}
-export interface GetMulticastAudioDecoderConfigurationsResponse {
-  /** This message contains the list of multicast audio decoder configurations. */
-  configurations?: MulticastAudioDecoderConfiguration[];
-}
-export interface GetMulticastAudioDecoderConfigurationOptions {
-  /** This response contains the available MulticastAudioDecoderConfigurationOptions. If a multicast audio decoder configuration is specified, the options shall concern that particular configuration. */
-  configurationToken?: ReferenceToken;
-}
-export interface GetMulticastAudioDecoderConfigurationOptionsResponse {
-  options?: MulticastAudioDecoderConfigurationOptions[];
-}
-export interface SetMulticastAudioDecoderConfiguration {
-  /** Contains the modified multicast audio decoder configuration. The configuration shall exist in the device. */
-  configuration: MulticastAudioDecoderConfiguration;
-}
-export interface SetMulticastAudioDecoderConfigurationResponse extends SetConfigurationResponse {}

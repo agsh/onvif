@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/pacs/doorcontrol.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import { ReferenceToken } from './interfaces/common';
 import {
@@ -179,7 +179,7 @@ export default class DoorControl extends Service {
     const response = await this.request(
       {
         GetDoorList: {
-          ...(options.limit && { Limit: options.limit }),
+          ...(options.limit !== undefined && { Limit: options.limit }),
           ...(options.startReference && { StartReference: options.startReference }),
         },
       },
@@ -248,7 +248,7 @@ export default class DoorControl extends Service {
     await this.request({
       AccessDoor: {
         Token: options.token,
-        ...(options.useExtendedTime && { UseExtendedTime: options.useExtendedTime }),
+        ...(options.useExtendedTime !== undefined && { UseExtendedTime: options.useExtendedTime }),
         ...(options.accessTime && { AccessTime: options.accessTime }),
         ...(options.openTooLongTime && { OpenTooLongTime: options.openTooLongTime }),
         ...(options.preAlarmTime && { PreAlarmTime: options.preAlarmTime }),

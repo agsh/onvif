@@ -52,6 +52,7 @@ export interface ServiceCapabilities {
    */
   doorManagementSupported?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Used as extension base. */
 export interface DoorInfoBase extends DataEntity {
@@ -69,6 +70,7 @@ export interface DoorInfo extends DoorInfoBase {
   /** The capabilities of the Door. */
   capabilities: DoorCapabilities;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The door structure shall include all properties of the DoorInfo structure and also a timings
@@ -92,6 +94,7 @@ export interface Door extends DoorInfoBase {
 }
 export interface DoorExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * A structure defining times such as how long the door is unlocked when accessed,
@@ -137,6 +140,7 @@ export interface Timings {
 }
 export interface TimingsExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * DoorCapabilities reflect optional functionality of a particular physical entity.
@@ -216,6 +220,7 @@ export interface DoorCapabilities {
    */
   fault?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** The DoorState structure contains current aggregate runtime status of Door. */
 export interface DoorState {
@@ -260,6 +265,7 @@ export interface DoorState {
    */
   doorMode: DoorMode;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Tampering information for a Door. */
 export interface DoorTamper {
@@ -273,6 +279,7 @@ export interface DoorTamper {
   /** State of the tamper detector; it is of type DoorTamperState. */
   state: DoorTamperState;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * Fault information for a Door.
@@ -289,20 +296,14 @@ export interface DoorFault {
    */
   state: DoorFaultState;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Extension for the AccessDoor command. */
 export interface AccessDoorExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /**
-   * The capability response message contains the requested DoorControl
-   * service capabilities using a hierarchical XML capability structure.
-   */
-  capabilities: ServiceCapabilities;
-}
 export interface GetDoorInfoList {
   /**
    * Maximum number of entries to return. If Limit is omitted or if the
@@ -328,10 +329,6 @@ export interface GetDoorInfoListResponse {
 export interface GetDoorInfo {
   /** Tokens of DoorInfo items to get. */
   token?: ReferenceToken[];
-}
-export interface GetDoorInfoResponse {
-  /** List of DoorInfo items. */
-  doorInfo?: DoorInfo[];
 }
 export interface GetDoorList {
   /**
@@ -359,10 +356,6 @@ export interface GetDoors {
   /** Tokens of Door items to get. */
   token?: ReferenceToken[];
 }
-export interface GetDoorsResponse {
-  /** List of Door items. */
-  door?: Door[];
-}
 export interface CreateDoor {
   /** Door item to create */
   door: Door;
@@ -375,24 +368,17 @@ export interface SetDoor {
   /** The Door item to create or modify */
   door: Door;
 }
-export interface SetDoorResponse {}
 export interface ModifyDoor {
   /** The details of the door */
   door: Door;
 }
-export interface ModifyDoorResponse {}
 export interface DeleteDoor {
   /** The Token of the door to delete. */
   token: ReferenceToken;
 }
-export interface DeleteDoorResponse {}
 export interface GetDoorState {
   /** Token of the Door instance to get the state for. */
   token: ReferenceToken;
-}
-export interface GetDoorStateResponse {
-  /** The state of the door. */
-  doorState: DoorState;
 }
 export interface AccessDoor {
   /** Token of the Door instance to control. */
@@ -411,44 +397,35 @@ export interface AccessDoor {
   /** Future extension. */
   extension?: AccessDoorExtension;
 }
-export interface AccessDoorResponse {}
 export interface LockDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface LockDoorResponse {}
 export interface UnlockDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface UnlockDoorResponse {}
 export interface BlockDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface BlockDoorResponse {}
 export interface LockDownDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface LockDownDoorResponse {}
 export interface LockDownReleaseDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface LockDownReleaseDoorResponse {}
 export interface LockOpenDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface LockOpenDoorResponse {}
 export interface LockOpenReleaseDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface LockOpenReleaseDoorResponse {}
 export interface DoubleLockDoor {
   /** Token of the Door instance to control. */
   token: ReferenceToken;
 }
-export interface DoubleLockDoorResponse {}

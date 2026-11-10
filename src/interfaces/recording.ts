@@ -3,15 +3,11 @@ import {
   StringAttrList,
   RecordingConfiguration,
   RecordingReference,
-  GetRecordingsResponseItem,
   TrackConfiguration,
   TrackReference,
   RecordingJobConfiguration,
   RecordingJobReference,
-  GetRecordingJobsResponseItem,
   RecordingJobMode,
-  RecordingJobStateInformation,
-  Date,
   SearchScope,
   StorageReferencePath,
   ArrayOfFileProgress,
@@ -69,12 +65,20 @@ export interface Capabilities {
   overrideSegmentDuration?: boolean;
   /** Indicates if the device supports asymmetric encryption. */
   asymmetricEncryptionSupported?: boolean;
+  /** Indicates if the device supports scheduled recording. */
+  scheduledRecording?: boolean;
+  /** Indicates if the device supports recording to onboard storage, default value is true. If false, device shall support recording to an external target. */
+  onboardStorage?: boolean;
+  /** Indicates support for ExportRecordedSegments. */
+  segmentExport?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RecordingOptions {
   job: JobOptions;
   track: TrackOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface JobOptions {
   /** Number of spare jobs that can be created for the recording. */
@@ -92,28 +96,13 @@ export interface TrackOptions {
   /** Number of spare Metadata tracks that can be added to this recording. */
   spareMetadata?: number;
 }
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the recording service is returned in the Capabilities element. */
-  capabilities: Capabilities;
-}
 export interface CreateRecording {
   /** Initial configuration for the recording. */
   recordingConfiguration: RecordingConfiguration;
 }
-export interface CreateRecordingResponse {
-  /** The reference to the created recording. */
-  recordingToken: RecordingReference;
-}
 export interface DeleteRecording {
   /** The reference of the recording to be deleted. */
   recordingToken: RecordingReference;
-}
-export interface DeleteRecordingResponse {}
-export interface GetRecordings {}
-export interface GetRecordingsResponse {
-  /** List of recording items. */
-  recordingItem?: GetRecordingsResponseItem[];
 }
 export interface SetRecordingConfiguration {
   /** Token of the recording that shall be changed. */
@@ -121,14 +110,9 @@ export interface SetRecordingConfiguration {
   /** The new configuration. */
   recordingConfiguration: RecordingConfiguration;
 }
-export interface SetRecordingConfigurationResponse {}
 export interface GetRecordingConfiguration {
   /** Token of the configuration to be retrieved. */
   recordingToken: RecordingReference;
-}
-export interface GetRecordingConfigurationResponse {
-  /** Configuration of the recording. */
-  recordingConfiguration: RecordingConfiguration;
 }
 export interface CreateTrack {
   /** Identifies the recording to which a track shall be added. */
@@ -136,30 +120,17 @@ export interface CreateTrack {
   /** The configuration of the new track. */
   trackConfiguration: TrackConfiguration;
 }
-export interface CreateTrackResponse {
-  /**
-   * The TrackToken shall identify the newly created track. The
-   * TrackToken shall be unique within the recoding to which
-   * the new track belongs.
-   */
-  trackToken: TrackReference;
-}
 export interface DeleteTrack {
   /** Token of the recording the track belongs to. */
   recordingToken: RecordingReference;
   /** Token of the track to be deleted. */
   trackToken: TrackReference;
 }
-export interface DeleteTrackResponse {}
 export interface GetTrackConfiguration {
   /** Token of the recording the track belongs to. */
   recordingToken: RecordingReference;
   /** Token of the track. */
   trackToken: TrackReference;
-}
-export interface GetTrackConfigurationResponse {
-  /** Configuration of the track. */
-  trackConfiguration: TrackConfiguration;
 }
 export interface SetTrackConfiguration {
   /** Token of the recording the track belongs to. */
@@ -169,7 +140,6 @@ export interface SetTrackConfiguration {
   /** New configuration for the track. */
   trackConfiguration: TrackConfiguration;
 }
-export interface SetTrackConfigurationResponse {}
 export interface CreateRecordingJob {
   /** The initial configuration of the new recording job. */
   jobConfiguration: RecordingJobConfiguration;
@@ -187,32 +157,15 @@ export interface DeleteRecordingJob {
   /** The token of the job to be deleted. */
   jobToken: RecordingJobReference;
 }
-export interface DeleteRecordingJobResponse {}
-export interface GetRecordingJobs {}
-export interface GetRecordingJobsResponse {
-  /** List of recording jobs. */
-  jobItem?: GetRecordingJobsResponseItem[];
-}
 export interface SetRecordingJobConfiguration {
   /** Token of the job to be modified. */
   jobToken: RecordingJobReference;
   /** New configuration of the recording job. */
   jobConfiguration: RecordingJobConfiguration;
 }
-export interface SetRecordingJobConfigurationResponse {
-  /**
-   * The JobConfiguration structure shall be the configuration
-   * as it is used by the device. This may be different from the JobConfiguration passed to SetRecordingJobConfiguration.
-   */
-  jobConfiguration: RecordingJobConfiguration;
-}
 export interface GetRecordingJobConfiguration {
   /** Token of the recording job. */
   jobToken: RecordingJobReference;
-}
-export interface GetRecordingJobConfigurationResponse {
-  /** Current configuration of the recording job. */
-  jobConfiguration: RecordingJobConfiguration;
 }
 export interface SetRecordingJobMode {
   /** Token of the recording job. */
@@ -220,22 +173,13 @@ export interface SetRecordingJobMode {
   /** The new mode for the recording job. */
   mode: RecordingJobMode;
 }
-export interface SetRecordingJobModeResponse {}
 export interface GetRecordingJobState {
   /** Token of the recording job. */
   jobToken: RecordingJobReference;
 }
-export interface GetRecordingJobStateResponse {
-  /** The current state of the recording job. */
-  state: RecordingJobStateInformation;
-}
 export interface GetRecordingOptions {
   /** Token of the recording. */
   recordingToken: RecordingReference;
-}
-export interface GetRecordingOptionsResponse {
-  /** Configuration of the recording. */
-  options: RecordingOptions;
 }
 export interface ExportRecordedData {
   /** Optional parameter that specifies start time for the exporting. */
@@ -252,6 +196,7 @@ export interface ExportRecordedData {
 export interface Extension {
   /** Extensibility point. */
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ExportRecordedDataResponse {
   /** Unique operation token for client to associate the relevant events. */
@@ -270,6 +215,7 @@ export interface StopExportRecordedDataResponse {
   /**/
   fileProgressStatus: ArrayOfFileProgress;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GetExportRecordedDataState {
   /** Unique ExportRecordedData operation token */
@@ -281,6 +227,7 @@ export interface GetExportRecordedDataStateResponse {
   /**/
   fileProgressStatus: ArrayOfFileProgress;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface OverrideSegmentDuration {
   /** The new target duration for recorded segments. */
@@ -290,4 +237,3 @@ export interface OverrideSegmentDuration {
   /** The recording configuration for which the override is requested. */
   recordingConfiguration: RecordingReference;
 }
-export interface OverrideSegmentDurationResponse {}

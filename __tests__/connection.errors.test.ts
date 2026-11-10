@@ -33,7 +33,9 @@ describe('connect() errors and reconnect consistency', () => {
     const onConnect = jest.fn();
     onvif.on('connect', onConnect);
 
-    jest.spyOn(onvif, 'getSystemDateAndTime').mockRejectedValue(Object.assign(new Error('Network timeout'), { code: 'ETIMEDOUT' }));
+    jest
+      .spyOn(onvif, 'getSystemDateAndTime')
+      .mockRejectedValue(Object.assign(new Error('Network timeout'), { code: 'ETIMEDOUT' }));
     const getServices = jest.spyOn(connectSteps, 'getServices');
 
     await expect(onvif.connect({ media: false })).rejects.toMatchObject({ code: 'ETIMEDOUT' });
@@ -172,7 +174,7 @@ describe('connect() errors and reconnect consistency', () => {
 
 describe('mid-session transport errors', () => {
   it('ETIMEDOUT on one request does not leave the client closed or stuck', async () => {
-    const server = http.createServer((req, res) => {
+    const server = http.createServer((req, _res) => {
       // Never respond — client timeout fires
       req.resume();
     });

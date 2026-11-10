@@ -408,9 +408,9 @@ describe('Service options and builders', () => {
     expect('ping' in proxy).toBe(true);
     expect((proxy as any).value).toBe(42);
     expect(await (proxy as any).ping()).toBe('pong');
-    await expect(
-      (lazyService(onvif, async () => ({ default: Dummy })) as any).value(1),
-    ).rejects.toThrow(/not a method/);
+    await expect((lazyService(onvif, async () => ({ default: Dummy })) as any).value(1)).rejects.toThrow(
+      /not a method/,
+    );
     (proxy as any).value = 7;
     expect((proxy as any).value).toBe(7);
 
@@ -469,14 +469,14 @@ describe('Service options and builders', () => {
     await new Promise<void>((resolve, reject) =>
       cam.setNTP({ type: 'IPv4', ipv4Address: '8.8.8.8' }, (e: Error | null) => (e ? reject(e) : resolve())),
     );
-    await new Promise<void>((resolve, reject) =>
+    await new Promise<void>((resolve, _reject) =>
       cam.setUsers([{ username: 'u' }], (e: Error | null) => {
         expect(e).toBeInstanceOf(Error);
         resolve();
       }),
     );
     await new Promise<void>((resolve, reject) =>
-      cam.getVideoEncoderConfiguration((e: Error | null, result?: unknown) => (e ? reject(e) : resolve())),
+      cam.getVideoEncoderConfiguration((e: Error | null, _result?: unknown) => (e ? reject(e) : resolve())),
     );
     expect(cam.getVideoEncoderConfigurationOptions()).toBeUndefined();
     expect(cam.getStreamUri({})).toBeUndefined();
@@ -539,9 +539,9 @@ describe('Service options and builders', () => {
     (device.getDNS as jest.Mock).mockRestore();
     await device.getNTP();
     await device.getDNS();
-    await expect(device.setNTP({ fromDHCP: false, NTPManual: [{ type: 'IPv4', IPv4Address: '8.8.8.8' }] })).rejects.toThrow(
-      /Wrong `SetNTP`/,
-    );
+    await expect(
+      device.setNTP({ fromDHCP: false, NTPManual: [{ type: 'IPv4', IPv4Address: '8.8.8.8' }] }),
+    ).rejects.toThrow(/Wrong `SetNTP`/);
     await expect(
       device.setDNS({ fromDHCP: false, DNSManual: [{ type: 'IPv4', IPv4Address: '8.8.8.8' }] }),
     ).rejects.toThrow(/Wrong `SetDNS`/);
@@ -780,9 +780,7 @@ describe('Service options and builders', () => {
       new Promise((_, reject) => cam.pullMessages({}, (e: Error | null) => reject(e))),
     ).rejects.toBeInstanceOf(Error);
     expect(cam.pullMessages({})).toBeUndefined();
-    await expect(new Promise((_, reject) => cam.renew((e: Error | null) => reject(e)))).rejects.toBeInstanceOf(
-      Error,
-    );
+    await expect(new Promise((_, reject) => cam.renew((e: Error | null) => reject(e)))).rejects.toBeInstanceOf(Error);
     expect(cam.renew()).toBeUndefined();
     cam.events = { subscription: { subscriptionReference: { address: 'http://x' } } };
     cam.pullPointSubscription = {
@@ -793,8 +791,6 @@ describe('Service options and builders', () => {
     await new Promise<void>((resolve, reject) =>
       cam.pullMessages({}, (e: Error | null) => (e ? reject(e) : resolve())),
     );
-    await new Promise<void>((resolve, reject) =>
-      cam.renew({}, (e: Error | null) => (e ? reject(e) : resolve())),
-    );
+    await new Promise<void>((resolve, reject) => cam.renew({}, (e: Error | null) => (e ? reject(e) : resolve())));
   });
 });

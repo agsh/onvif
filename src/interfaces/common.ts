@@ -1,15 +1,15 @@
 import { AnyURI } from './basics';
-import { Date } from './onvif';
 
 /**
  * Unique identifier for a physical or logical resource.
  * Tokens should be assigned such that they are unique within a device. Tokens must be at least unique within its class.
  * Length up to 64 characters. Token may be extended by intermediate terminal with adding prefix to make it global unique.
  * The length should be within 36 characters for generating at local device. See "Remote Token" section in Resource Query specification.
+ *
+ * Maximum length: 64
  */
 export type ReferenceToken = string;
 export type MoveStatus = 'IDLE' | 'MOVING' | 'UNKNOWN';
-export type Entity = 'Device' | 'VideoSource' | 'AudioSource';
 /** Range of values greater equal Min value and less equal Max value. */
 export interface IntRange {
   min: number;
@@ -24,7 +24,6 @@ export interface Vector2D {
    *  http://www.onvif.org/ver10/tptz/PanTiltSpaces/TranslationGenericSpace
    *  http://www.onvif.org/ver10/tptz/PanTiltSpaces/VelocityGenericSpace
    *  http://www.onvif.org/ver10/tptz/PanTiltSpaces/GenericSpeedSpace
-   *
    */
   space?: AnyURI;
 }
@@ -36,7 +35,6 @@ export interface Vector1D {
    *  http://www.onvif.org/ver10/tptz/ZoomSpaces/TranslationGenericSpace
    *  http://www.onvif.org/ver10/tptz/ZoomSpaces/VelocityGenericSpace
    *  http://www.onvif.org/ver10/tptz/ZoomSpaces/ZoomGenericSpeedSpace
-   *
    */
   space?: AnyURI;
 }
@@ -64,6 +62,7 @@ export interface PTZStatus {
   /** States the current field of view of the video stream. */
   fieldOfView?: FieldOfView;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PTZMoveStatus {
   /**/
@@ -101,14 +100,12 @@ export interface Color {
    * Y attribute = G value
    * Z attribute = B value
    *
-   *
    * If the Colorspace attribute is absent and not defined on higher level, YCbCr is implied.
    * Deprecated values:
    *
    * http://www.onvif.org/ver10/colorspace/CIELUV - CIE LUV
    * http://www.onvif.org/ver10/colorspace/CIELAB - CIE 1976 (L*a*b*)
    * http://www.onvif.org/ver10/colorspace/HSV - HSV
-   *
    */
   colorspace?: AnyURI;
   /** Likelihood that the color is correct. */
@@ -129,11 +126,13 @@ export interface ColorCluster {
   weight?: number;
   covariance?: ColorCovariance;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ColorDescriptor {
   colorCluster?: ColorCluster[];
   extension?: unknown;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Transformation {
   translate?: Vector;
@@ -142,6 +141,14 @@ export interface Transformation {
 }
 export interface TransformationExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
+}
+export interface AspectRatioTransformation {
+  ratio: number;
+  translate?: Vector;
+  scale?: Vector;
+  [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GeoLocation {
   /** East west location as angle. */
@@ -151,6 +158,7 @@ export interface GeoLocation {
   /** Hight in meters above sea level. */
   elevation?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface GeoOrientation {
   /** Rotation around the x axis. */
@@ -160,6 +168,7 @@ export interface GeoOrientation {
   /** Rotation around the z axis. */
   yaw?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface LocalLocation {
   /** East west location as angle. */
@@ -169,6 +178,7 @@ export interface LocalLocation {
   /** Offset in meters from the sea level. */
   z?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface LocalOrientation {
   /** Rotation around the y axis. */
@@ -178,6 +188,7 @@ export interface LocalOrientation {
   /** Rotation around the x axis. */
   roll?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface SphericalCoordinate {
   /** Distance in meters to the object. */
@@ -187,6 +198,7 @@ export interface SphericalCoordinate {
   /** Azimuth angle in the range -180 to 180 degrees counter clockwise, where 0 is rightwards. */
   azimuthAngle?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface LocationEntity {
   /** Entity type the entry refers to, use a value from the tt:Entity enumeration. */

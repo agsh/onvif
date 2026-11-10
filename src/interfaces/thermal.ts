@@ -2,21 +2,6 @@ import { ReferenceToken } from './common';
 import { Name, FloatRange } from './onvif';
 
 export type Polarity = 'WhiteHot' | 'BlackHot';
-/**
- * Describes standard Color Palette types, used to facilitate Multi-language support and client display.
- * "Custom" Type shall be used when Color Palette Name does not match any of the types included in the standard classification.
- */
-export type ColorPaletteType =
-  | 'Custom'
-  | 'Grayscale'
-  | 'BlackHot'
-  | 'WhiteHot'
-  | 'Sepia'
-  | 'Red'
-  | 'Iron'
-  | 'Rain'
-  | 'Rainbow'
-  | 'Isotherm';
 /** Describes a Color Palette element. */
 export interface ColorPalette {
   /** Unique identifier of this Color Palette. */
@@ -29,6 +14,7 @@ export interface ColorPalette {
   /** User readable Color Palette name. */
   name: Name;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Type describing a NUC Table element. */
 export interface NUCTable {
@@ -41,6 +27,7 @@ export interface NUCTable {
   /** User reabable name for the Non-Uniformity Correction (NUC) Table. */
   name: Name;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Type describing the Cooler settings. */
 export interface Cooler {
@@ -49,6 +36,7 @@ export interface Cooler {
   /** Number of hours the Cooler has been running (unit: hours). Read-only. */
   runTime?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * Describes valid ranges for the thermal device cooler settings.
@@ -58,6 +46,7 @@ export interface CoolerOptions {
   /** Indicates the Device allows cooler status to be changed from running (Enabled) to stopped (Disabled), and viceversa. */
   enabled?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * Holds default values that will be used in measurement modules when local parameters are not specified for the module (these are still required for valid temperature calculations).
@@ -81,6 +70,7 @@ export interface RadiometryGlobalParameters {
   /** Transmittance value for the optics elements between the thermal device and the object being measured. */
   extOpticsTransmittance?: number;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /** Describes valid ranges for the different radiometry parameters required for accurate temperature calculation. */
 export interface RadiometryGlobalParameterOptions {
@@ -101,6 +91,7 @@ export interface RadiometryGlobalParameterOptions {
   /** Valid range of external optics transmittance. */
   extOpticsTransmittance?: FloatRange;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Configuration {
   /** Current Color Palette in use by the Thermal Device. */
@@ -112,6 +103,7 @@ export interface Configuration {
   /** Cooler settings of the Thermal Device. */
   cooler?: Cooler;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Configurations {
   /** Reference token to the thermal VideoSource. */
@@ -119,6 +111,7 @@ export interface Configurations {
   /** Current Thermal Settings for the VideoSource. */
   configuration: Configuration;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RadiometryConfiguration {
   /**
@@ -127,6 +120,7 @@ export interface RadiometryConfiguration {
    */
   radiometryGlobalParameters?: RadiometryGlobalParameters;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface ConfigurationOptions {
   /** List of Color Palettes available for the requested Thermal VideoSource. */
@@ -136,6 +130,7 @@ export interface ConfigurationOptions {
   /** Specifies Cooler Options for cooled thermal devices. */
   coolerOptions?: CoolerOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface RadiometryConfigurationOptions {
   /**
@@ -144,37 +139,21 @@ export interface RadiometryConfigurationOptions {
    */
   radiometryGlobalParameterOptions?: RadiometryGlobalParameterOptions;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities {
   /** Indicates whether or not radiometric thermal measurements are supported by the thermal device. */
   radiometry?: boolean;
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities of the thermal service are returned in the Capabilities element. */
-  capabilities: Capabilities;
+  [key: symbol]: unknown;
 }
 export interface GetConfigurationOptions {
   /** Reference token to the VideoSource for which the Thermal Configuration Options are requested. */
   videoSourceToken: ReferenceToken;
 }
-export interface GetConfigurationOptionsResponse {
-  /** Valid ranges for the Thermal configuration parameters that are categorized as device specific. */
-  configurationOptions: ConfigurationOptions;
-}
 export interface GetConfiguration {
   /** Reference token to the VideoSource for which the Thermal Settings are requested. */
   videoSourceToken: ReferenceToken;
-}
-export interface GetConfigurationResponse {
-  /** Thermal Settings for the VideoSource that was requested. */
-  configuration: Configuration;
-}
-export interface GetConfigurations {}
-export interface GetConfigurationsResponse {
-  /** This element contains a list of thermal VideoSource configurations. */
-  configurations?: Configurations[];
 }
 export interface SetConfiguration {
   /** Reference token to the VideoSource for which the Thermal Settings are configured. */
@@ -182,22 +161,13 @@ export interface SetConfiguration {
   /** Thermal Settings to be configured. */
   configuration: Configuration;
 }
-export interface SetConfigurationResponse {}
 export interface GetRadiometryConfigurationOptions {
   /** Reference token to the VideoSource for which the Thermal Radiometry Options are requested. */
   videoSourceToken: ReferenceToken;
 }
-export interface GetRadiometryConfigurationOptionsResponse {
-  /** Valid ranges for the Thermal Radiometry parameters that are categorized as device specific. */
-  configurationOptions: RadiometryConfigurationOptions;
-}
 export interface GetRadiometryConfiguration {
   /** Reference token to the VideoSource for which the Radiometry Configuration is requested. */
   videoSourceToken: ReferenceToken;
-}
-export interface GetRadiometryConfigurationResponse {
-  /** Radiometry Configuration for the VideoSource that was requested. */
-  configuration: RadiometryConfiguration;
 }
 export interface SetRadiometryConfiguration {
   /** Reference token to the VideoSource for which the Radiometry settings are configured. */
@@ -205,4 +175,3 @@ export interface SetRadiometryConfiguration {
   /** Radiometry settings to be configured. */
   configuration: RadiometryConfiguration;
 }
-export interface SetRadiometryConfigurationResponse {}

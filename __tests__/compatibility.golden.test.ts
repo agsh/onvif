@@ -1,5 +1,5 @@
 /**
- * Golden compatibility: same scenarios on npm onvif@0.8.2 Cam and master `onvif/compatibility` Cam.
+ * Golden compatibility: same scenarios on npm onvif@0.8.x Cam and master `onvif/compatibility` Cam.
  * Asserts callback arity (err, data, xml), key result fields, post-connect properties, and events.
  *
  * Requires happytime-onvif-server (same as other integration suites).
@@ -18,8 +18,11 @@ type AnyCam = {
 
 type CallbackShot = {
   err: Error | null;
+  /** Second callback argument (usual `data`); for getPresets on v0.8.4+ this is presetsByName. */
   data: unknown;
   xml: unknown;
+  /** Full callback argument list (err first). Needed for getPresets 4-arg form. */
+  args: unknown[];
   /** Number of arguments the Cam passed to the callback (v0 always ≥ 3 on success). */
   argc: number;
 };
@@ -54,7 +57,8 @@ function callMethod(cam: AnyCam, method: string, ...methodArgs: unknown[]): Prom
       resolve({
         err,
         data: cbArgs[1],
-        xml: cbArgs[2],
+        xml: cbArgs[cbArgs.length - 1],
+        args: cbArgs,
         argc: cbArgs.length,
       });
     });
@@ -99,7 +103,7 @@ beforeAll(async () => {
   [v0, compat] = await Promise.all([connectCam(V0Cam as any), connectCam(CompatCam as any)]);
 });
 
-describe('Golden compatibility (0.8.2 Cam ↔ master compatibility Cam)', () => {
+describe('Golden compatibility (0.8.x Cam ↔ master compatibility Cam)', () => {
   describe('post-connect properties', () => {
     it('exposes the same connection and startup surface', () => {
       for (const cam of [v0, compat]) {
@@ -175,7 +179,7 @@ describe('Golden compatibility (0.8.2 Cam ↔ master compatibility Cam)', () => 
       expect(compatSnap).toMatch(/^https?:\/\//i);
     });
 
-    it('getPresets: xml on both; cam.presets token-keyed; v0 callback still name-keyed', async () => {
+    it('getPresets: v0.8.4+ (err, byName, byToken, xml); compat token->preset + xml', async () => {
       // Sequential: avoid racing two GetPresets while other suites may mutate presets.
       const a = await callMethod(v0, 'getPresets');
       const b = await callMethod(compat, 'getPresets');
@@ -186,31 +190,37 @@ describe('Golden compatibility (0.8.2 Cam ↔ master compatibility Cam)', () => 
         throw b.err;
       }
 
-      expect(a.argc).toBeGreaterThanOrEqual(3);
+      // onvif@0.8.4+: (err, presetsByName, presetsByToken, xml)
+      expect(a.argc).toBe(4);
       expect(b.argc).toBeGreaterThanOrEqual(3);
       expectSoapXml(a.xml, 'v0 getPresets');
       expectSoapXml(b.xml, 'compat getPresets');
 
-      const v0ByName = a.data as Record<string, { name?: string; token?: string; $?: { token?: string } }>;
+      const v0ByName = a.args[1] as Record<string, string>;
+      const v0ByToken = a.args[2] as Record<string, { name?: string; token?: string }>;
+      // master compatibility: single data arg is still token -> preset (migration.md)
       const compatByToken = b.data as Record<string, { name?: string; token?: string }>;
       expect(typeof v0ByName).toBe('object');
+      expect(typeof v0ByToken).toBe('object');
       expect(typeof compatByToken).toBe('object');
 
-      // master compatibility: callback data is token → preset (0.8.1+ intent)
+      for (const [name, token] of Object.entries(v0ByName)) {
+        expect(typeof token).toBe('string');
+        expect(v0ByToken[token]?.name).toBe(name);
+      }
+      // byToken keeps duplicates; byName cannot — do not require a reverse mapping for every token
+      for (const [token, preset] of Object.entries(v0ByToken)) {
+        expect(preset.token ?? token).toBe(token);
+      }
       for (const [token, preset] of Object.entries(compatByToken)) {
         expect(preset.token ?? token).toBe(token);
       }
 
-      // published onvif@0.8.2: callback `result` is still name → preset
-      for (const [name, preset] of Object.entries(v0ByName)) {
-        expect(preset.name ?? name).toBe(name);
-      }
-
-      // Do not compare callback map keys (name-keyed vs token-keyed). Compare `.presets` tokens.
-      const v0Tokens = Object.keys((v0.presets as Record<string, unknown>) ?? {}).sort();
+      // v0 `#presets` stays name -> token; compatibility `#presets` is token -> preset
+      expect(v0.presets).toEqual(v0ByName);
       const compatTokens = Object.keys((compat.presets as Record<string, unknown>) ?? {}).sort();
-      expect(compatTokens).toEqual(v0Tokens);
-      expect(Object.keys(compatByToken).sort()).toEqual(compatTokens);
+      expect(compatTokens).toEqual(Object.keys(compatByToken).sort());
+      expect(Object.keys(v0ByToken).sort()).toEqual(compatTokens);
     });
 
     it('getStatus: both return position-like payload with xml', async () => {

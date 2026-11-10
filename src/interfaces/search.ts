@@ -1,19 +1,10 @@
 import {
-  RecordingSummary,
   RecordingReference,
-  RecordingInformation,
-  Date,
-  MediaAttributes,
   SearchScope,
   JobToken,
-  FindRecordingResultList,
   EventFilter,
-  FindEventResultList,
   PTZPositionFilter,
-  FindPTZPositionResultList,
   MetadataFilter,
-  FindMetadataResultList,
-  SearchState,
 } from './onvif';
 import { Duration } from './basics';
 
@@ -21,29 +12,20 @@ export interface Capabilities {
   metadataSearch?: boolean;
   /** Indicates support for general virtual property events in the FindEvents method. */
   generalStartEvents?: boolean;
+  /** Indicates support for natural language based search. */
+  NLSearch?: boolean;
+  /** Indicates support for image based search. */
+  imageSearch?: boolean;
   [key: string]: unknown;
-}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /** The capabilities for the search service is returned in the Capabilities element. */
-  capabilities: Capabilities;
+  [key: symbol]: unknown;
 }
 export interface GetRecordingSummary {}
-export interface GetRecordingSummaryResponse {
-  summary: RecordingSummary;
-}
 export interface GetRecordingInformation {
   recordingToken: RecordingReference;
-}
-export interface GetRecordingInformationResponse {
-  recordingInformation: RecordingInformation;
 }
 export interface GetMediaAttributes {
   recordingTokens?: RecordingReference[];
   time: Date;
-}
-export interface GetMediaAttributesResponse {
-  mediaAttributes?: MediaAttributes[];
 }
 export interface FindRecordings {
   /** Scope defines the dataset to consider for this search. */
@@ -52,9 +34,6 @@ export interface FindRecordings {
   maxMatches?: number;
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
   keepAliveTime: Duration;
-}
-export interface FindRecordingsResponse {
-  searchToken: JobToken;
 }
 export interface GetRecordingSearchResults {
   /** The search session to get results from. */
@@ -65,9 +44,6 @@ export interface GetRecordingSearchResults {
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
   waitTime?: Duration;
-}
-export interface GetRecordingSearchResultsResponse {
-  resultList: FindRecordingResultList;
 }
 export interface FindEvents {
   /** The point of time where the search will start. */
@@ -83,10 +59,6 @@ export interface FindEvents {
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
   keepAliveTime: Duration;
 }
-export interface FindEventsResponse {
-  /** A unique reference to the search session created by this request. */
-  searchToken: JobToken;
-}
 export interface GetEventSearchResults {
   /** The search session to get results from. */
   searchToken: JobToken;
@@ -96,9 +68,6 @@ export interface GetEventSearchResults {
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
   waitTime?: Duration;
-}
-export interface GetEventSearchResultsResponse {
-  resultList: FindEventResultList;
 }
 export interface FindPTZPosition {
   /** The point of time where the search will start. */
@@ -112,10 +81,6 @@ export interface FindPTZPosition {
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
   keepAliveTime: Duration;
 }
-export interface FindPTZPositionResponse {
-  /** A unique reference to the search session created by this request. */
-  searchToken: JobToken;
-}
 export interface GetPTZPositionSearchResults {
   /** The search session to get results from. */
   searchToken: JobToken;
@@ -125,9 +90,6 @@ export interface GetPTZPositionSearchResults {
   maxResults?: number;
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
   waitTime?: Duration;
-}
-export interface GetPTZPositionSearchResultsResponse {
-  resultList: FindPTZPositionResultList;
 }
 export interface FindMetadata {
   /** The point of time where the search will start. */
@@ -141,10 +103,6 @@ export interface FindMetadata {
   /** The time the search session will be kept alive after responding to this and subsequent requests. A device shall support at least values up to ten seconds. */
   keepAliveTime: Duration;
 }
-export interface FindMetadataResponse {
-  /** A unique reference to the search session created by this request. */
-  searchToken: JobToken;
-}
 export interface GetMetadataSearchResults {
   /** The search session to get results from. */
   searchToken: JobToken;
@@ -155,15 +113,9 @@ export interface GetMetadataSearchResults {
   /** The maximum time before responding to the request, even if the MinResults parameter is not fulfilled. */
   waitTime?: Duration;
 }
-export interface GetMetadataSearchResultsResponse {
-  resultList: FindMetadataResultList;
-}
 export interface GetSearchState {
   /** The search session to get the state from. */
   searchToken: JobToken;
-}
-export interface GetSearchStateResponse {
-  state: SearchState;
 }
 export interface EndSearch {
   /** The search session to end. */

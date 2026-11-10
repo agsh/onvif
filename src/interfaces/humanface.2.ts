@@ -1,26 +1,4 @@
 import { ColorDescriptor, GeoOrientation, IntRange } from './common';
-
-export type Gender = 'Male' | 'Female';
-export type Complexion = 'White' | 'Black' | 'Asian' | 'Other';
-export type FacialShape = 'Long' | 'Round' | 'Square' | 'Oval' | 'Other';
-export type Length = 'Long' | 'Medium' | 'Short';
-export type HairStyle = 'Straight' | 'Wave' | 'Curly' | 'CrewCut' | 'Bald' | 'Ponytail' | 'Pigtail' | 'Other';
-export type EyebrowWidth = 'Long' | 'Short';
-export type EyebrowSpace = 'Joint' | 'Separate';
-export type EyeShape = 'Almond' | 'Round' | 'Other';
-export type Eyelid = 'Single' | 'Double' | 'Other';
-export type Eyeball = 'Black' | 'Blue' | 'Brown' | 'Gray' | 'Green' | 'Pink' | 'Other';
-export type EarShape = 'Round' | 'Pointed' | 'Narrow' | 'BroadLobe' | 'Other';
-export type NoseLength = 'Short' | 'Long';
-export type NoseBridge = 'Straight' | 'Arch';
-export type NoseWing = 'Narrow' | 'Broad';
-export type NoseEnd = 'Snub' | 'Turnedup' | 'Flat' | 'Hooked' | 'Other';
-export type Lip = 'Full' | 'Medium' | 'Thin';
-export type Chin = 'Double' | 'Pointed' | 'Round';
-export type Expression = 'Natural' | 'Smile' | 'RaisedEyebrows' | 'Squint' | 'Frown' | 'Other';
-export type HatType = 'Cap';
-export type HelmetType = 'ConstructionCap' | 'CycleCap' | 'RidingHat';
-export type FrecklesType = 'AroundCheek' | 'Nose' | 'forehead' | 'Other';
 export interface Hair {
   /**
    * Describe the length of the Hair, acceptable values are defined in fc:Length. Short usually means that the end of the hair doesn’t exceed the shoulder.
@@ -45,6 +23,7 @@ export interface Eyebrow {
   /** Describe the space of two eyebrows, acceptable values are defined in fc:EyebrowSpace. */
   space?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Eye {
   /** Describe the shape of the eye, acceptable values are defined in fc:EyeShape. */
@@ -54,6 +33,7 @@ export interface Eye {
   /** Describe the eyeball of the eye, acceptable values are defined in fc:Eyeball. */
   eyeball?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Nose {
   /**
@@ -69,6 +49,7 @@ export interface Nose {
   /** Describe the end of the nose, acceptable values are defined in fc:NoseEnd. */
   noseEnd?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface FacialHair {
   /** Describe if there is mustache on the face. */
@@ -78,6 +59,7 @@ export interface FacialHair {
   /** Describe if there are sideburns on the face. */
   sideburn?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface PoseAngle {
   /** Describe the pose angle of the face. */
@@ -85,6 +67,7 @@ export interface PoseAngle {
   /** Describe the expected degree of uncertainty of the pose angle yaw, pitch, and roll. */
   uncertainty?: GeoOrientation;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AccessoryDescription {
   /** Describe if the object wear a accessory . */
@@ -97,6 +80,7 @@ export interface AccessoryDescription {
    */
   subtype?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Accessory {
   /** Describe if the object wear opticals. */
@@ -116,6 +100,7 @@ export interface Accessory {
   /** Describe if there is a patch on the left eye. */
   leftEyePatch?: AccessoryDescription;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface AdditionalFeatures {
   /** Is there scar on the face. */
@@ -127,6 +112,7 @@ export interface AdditionalFeatures {
   /** Describe freckles on the face, acceptable values are defined in fc:FrecklesType. */
   freckles?: string;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface HumanFace {
   /** Describe the age of the face. */
@@ -164,4 +150,5 @@ export interface HumanFace {
   /** Describe the other features, eg scar, mole etc of the face. */
   additionalFeatures?: AdditionalFeatures;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }

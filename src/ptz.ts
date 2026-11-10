@@ -5,7 +5,7 @@
  * @see https://www.onvif.org/specs/srv/ptz/ONVIF-PTZ-Service-Spec-v1712.pdf
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
 import { OnvifValidationError } from './utils';
@@ -182,11 +182,17 @@ export type GetPresetsExtended = Record<ReferenceToken, PTZPreset>;
  */
 export default class PTZ extends Service {
   #nodes: GetNodesExtended = {};
-  get nodes() { return this.#nodes; }
+  get nodes() {
+    return this.#nodes;
+  }
   #configurations: GetConfigurationsExtended = {};
-  get configurations() { return this.#configurations; }
+  get configurations() {
+    return this.#configurations;
+  }
   #presets: GetPresetsExtended = {};
-  get presets() { return this.#presets; }
+  get presets() {
+    return this.#presets;
+  }
 
   constructor(onvif: Onvif) {
     super(onvif, 'ptz');
@@ -274,8 +280,7 @@ export default class PTZ extends Service {
    * @param options
    */
   async getConfiguration(options: Partial<GetConfiguration> = {}): Promise<PTZConfiguration> {
-    const PTZConfigurationToken =
-      options.PTZConfigurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
+    const PTZConfigurationToken = options.PTZConfigurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
     if (!PTZConfigurationToken) {
       throw new OnvifValidationError(
         'PTZConfigurationToken is required (pass it or connect with a profile that has PTZConfiguration)',
@@ -356,11 +361,8 @@ export default class PTZ extends Service {
    * @param options
    * @param options.configurationToken Token of an existing configuration that the options are intended for
    */
-  async getConfigurationOptions(
-    options: Partial<GetConfigurationOptions> = {},
-  ): Promise<PTZConfigurationOptions> {
-    const configurationToken =
-      options.configurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
+  async getConfigurationOptions(options: Partial<GetConfigurationOptions> = {}): Promise<PTZConfigurationOptions> {
+    const configurationToken = options.configurationToken ?? this.onvif.activeMediaProfile?.ptzConfigurationToken;
     if (!configurationToken) {
       throw new OnvifValidationError(
         'configurationToken is required (pass it or connect with a profile that has PTZConfiguration)',
@@ -751,7 +753,11 @@ export default class PTZ extends Service {
    * default speed set by the PTZConfiguration will be used.
    * @param options
    */
-  async absoluteMove({ profileToken = this.onvif.activeMediaProfile!.profileToken, position, speed }: AbsoluteMoveExtended) {
+  async absoluteMove({
+    profileToken = this.onvif.activeMediaProfile!.profileToken,
+    position,
+    speed,
+  }: AbsoluteMoveExtended) {
     if (!position) {
       throw new OnvifValidationError("'position' is required");
     }

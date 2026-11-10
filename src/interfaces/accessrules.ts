@@ -28,6 +28,7 @@ export interface ServiceCapabilities {
    */
   clientSuppliedTokenSupported?: boolean;
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The access policy is an association of an access point and a schedule. It defines when an access
@@ -46,15 +47,16 @@ export interface AccessPolicy {
   /**
    * Optional entity type; if missing, an access point type as defined by the ONVIF Access
    * Control Service Specification should be assumed. This can also be represented by the
-   * QName value	“tac:AccessPoint” where tac is the namespace of ONVIF Access Control
+   * QName value	"tac:AccessPoint" where tac is the namespace of ONVIF Access Control
    * Service Specification. This field is provided for future extensions; it will allow an
    * access policy being	extended to cover entity types other than access points as well.
    */
-  entityType?: unknown;
+  entityType?: string;
   extension?: AccessPolicyExtension;
 }
 export interface AccessPolicyExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 /**
  * The AccessProfileInfo structure contains basic information about an access profile. The device
@@ -84,23 +86,12 @@ export interface AccessProfile extends AccessProfileInfo {
 }
 export interface AccessProfileExtension {
   [key: string]: unknown;
+  [key: symbol]: unknown;
 }
 export interface Capabilities extends ServiceCapabilities {}
-export interface GetServiceCapabilities {}
-export interface GetServiceCapabilitiesResponse {
-  /**
-   * The capability response message contains the requested access rules
-   * service capabilities using a hierarchical XML capability structure.
-   */
-  capabilities: ServiceCapabilities;
-}
 export interface GetAccessProfileInfo {
   /** Tokens of AccessProfileInfo items to get. */
   token: ReferenceToken[];
-}
-export interface GetAccessProfileInfoResponse {
-  /** List of AccessProfileInfo items. */
-  accessProfileInfo?: AccessProfileInfo[];
 }
 export interface GetAccessProfileInfoList {
   /**
@@ -127,10 +118,6 @@ export interface GetAccessProfileInfoListResponse {
 export interface GetAccessProfiles {
   /** Tokens of AccessProfile items to get. */
   token: ReferenceToken[];
-}
-export interface GetAccessProfilesResponse {
-  /** List of Access Profile items. */
-  accessProfile?: AccessProfile[];
 }
 export interface GetAccessProfileList {
   /**
@@ -166,14 +153,11 @@ export interface ModifyAccessProfile {
   /** The details of Access Profile */
   accessProfile: AccessProfile;
 }
-export interface ModifyAccessProfileResponse {}
 export interface SetAccessProfile {
   /** The AccessProfile item to create or modify */
   accessProfile: AccessProfile;
 }
-export interface SetAccessProfileResponse {}
 export interface DeleteAccessProfile {
   /** The token of the access profile to delete. */
   token: ReferenceToken;
 }
-export interface DeleteAccessProfileResponse {}

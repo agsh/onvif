@@ -29,13 +29,6 @@ interface TerminationTimeResponse {
   terminationTime: Date;
 }
 
-interface OnvifEvents {
-  name?: string;
-  messageLimit: number;
-  subscription?: PullPointSubscription;
-  eventReconnectMs?: number;
-}
-
 /** ONVIF topic expression dialects from WS-Topics and [event.wsdl](https://www.onvif.org/ver10/events/wsdl/event.wsdl). */
 export type TopicExpressionDialect =
   | 'http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet'

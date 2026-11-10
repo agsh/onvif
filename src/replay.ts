@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/replay.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import { AnyURI } from './interfaces/basics';
 import { ReplayConfiguration, StreamSetup, StreamType, TransportProtocol } from './interfaces/onvif';
 import { Capabilities, GetReplayUri, SetReplayConfiguration } from './interfaces/replay';

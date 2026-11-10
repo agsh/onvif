@@ -154,7 +154,7 @@ describe('public API regression (breaking changes)', () => {
       ]);
       expect(pkg.main).toBe('build/index.js');
       expect(pkg.types).toBe('build/index.d.ts');
-      expect(pkg.files).toEqual(expect.arrayContaining(['build', 'CHANGELOG.md']));
+      expect(pkg.files).toEqual(expect.arrayContaining(['build/**/*.js', 'build/**/*.d.ts', 'CHANGELOG.md']));
       expect(pkg.engines?.node).toBe('>=18.0');
       for (const [subpath, entry] of Object.entries(pkg.exports) as Array<[string, Record<string, string>]>) {
         if (subpath === './package.json') {

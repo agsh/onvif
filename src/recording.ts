@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/recording.wsdl
  */
 
-import { Onvif, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import Service from './service';
 import {
   GetRecordingsResponseItem,
