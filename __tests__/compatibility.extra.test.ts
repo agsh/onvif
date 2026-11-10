@@ -4,9 +4,9 @@ import happytimeOnvifOptions from './happytime.json';
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
 const VIDEO_SOURCE_TOKEN = 'VideoSourceToken_1';
-const TRACK_TOKEN = 'VIDEO001';
 
 let cam: Cam;
+let trackToken: string;
 
 function promisify<T>(fn: (callback: Callback) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -27,6 +27,14 @@ beforeAll(async () => {
       (error) => (error ? reject(error) : resolve()),
     );
   });
+  const recordings = await promisify<any[]>((callback) => cam.getRecordings(callback));
+  const tracks = recordings?.[0]?.tracks?.track;
+  const list = (Array.isArray(tracks) ? tracks : [tracks]).filter(Boolean);
+  const video = list.find((track: any) => track?.configuration?.trackType === 'Video');
+  trackToken = video?.trackToken ?? list[0]?.trackToken;
+  if (!trackToken) {
+    throw new Error('No recording track token available for compatibility tests');
+  }
 });
 
 describe('Compatibility Cam helpers', () => {
@@ -261,7 +269,7 @@ describe('Compatibility Cam helpers', () => {
     await expect(
       settled(
         promisify<any>((callback) =>
-          cam.getTrackConfiguration({ recordingToken: RECORDING_TOKEN, trackToken: TRACK_TOKEN }, callback),
+          cam.getTrackConfiguration({ recordingToken: RECORDING_TOKEN, trackToken }, callback),
         ),
       ),
     ).resolves.toMatch(/fulfilled|rejected/);

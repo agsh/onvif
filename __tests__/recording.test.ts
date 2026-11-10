@@ -4,10 +4,11 @@ import happytimeOnvifOptions from './happytime.json';
 
 const RECORDING_TOKEN = 'RecordingToken_1';
 const RECORDING_JOB_TOKEN = 'RecordingJobToken_1';
-const VIDEO_TRACK_TOKEN = 'VIDEO001';
 
 let cam: Onvif;
 let baselineConfiguration: RecordingConfiguration;
+/** Resolved from GetRecordings — Happytime 11.6 uses TrackToken_N, older builds used VIDEO001. */
+let videoTrackToken: string;
 
 beforeAll(async () => {
   cam = new Onvif(happytimeOnvifOptions);
@@ -23,6 +24,14 @@ describe('Recording', () => {
     baselineConfiguration = await cam.recording.getRecordingConfiguration({
       recordingToken: recordings[0].recordingToken,
     });
+    const tracks = (
+      Array.isArray(recordings[0].tracks.track) ? recordings[0].tracks.track : [recordings[0].tracks.track]
+    ).filter((track): track is NonNullable<typeof track> => track !== undefined);
+    const videoTrack = tracks.find((track) => track.configuration.trackType === 'Video');
+    if (!videoTrack?.trackToken) {
+      throw new Error('No Video track found on RecordingToken_1');
+    }
+    videoTrackToken = videoTrack.trackToken;
   });
 
   describe('getServiceCapabilities', () => {
@@ -143,7 +152,7 @@ describe('Recording', () => {
     it('should return track configuration for an existing track', async () => {
       const configuration = await cam.recording.getTrackConfiguration({
         recordingToken: RECORDING_TOKEN,
-        trackToken: VIDEO_TRACK_TOKEN,
+        trackToken: videoTrackToken,
       });
       expect(configuration).toBeDefined();
       expect(configuration.trackType).toBe('Video');

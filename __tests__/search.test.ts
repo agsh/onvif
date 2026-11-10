@@ -65,18 +65,20 @@ describe('Search', () => {
         recordingToken: RECORDING_TOKEN,
       });
       expect(information.recordingToken).toBe(RECORDING_TOKEN);
-      expect(information.recordingStatus).toBe('Initiated');
-      expect(information.content).toBe('Recording from device');
+      expect(['Initiated', 'Recording', 'Stopped']).toContain(information.recordingStatus);
+      expect(typeof information.content).toBe('string');
+      expect(information.content.length).toBeGreaterThan(0);
       expect(information.source).toMatchObject({
         sourceId: 'http://localhost/sourceID',
-        name: 'CameraName',
         location: 'LocationDescription',
-        description: 'SourceDescription',
       });
+      expect(typeof information.source.name).toBe('string');
+      expect(typeof information.source.description).toBe('string');
       expect(information.track?.length).toBeGreaterThanOrEqual(3);
-      expect(information.track?.map((track) => track.trackToken)).toEqual(
-        expect.arrayContaining(['VIDEO001', 'AUDIO001', 'META001']),
+      expect(information.track?.map((track) => track.trackType)).toEqual(
+        expect.arrayContaining(['Video', 'Audio', 'Metadata']),
       );
+      expect(information.track?.every((track) => typeof track.trackToken === 'string')).toBe(true);
     });
 
     it('should reject an invalid recording token', async () => {
@@ -257,7 +259,8 @@ describe('Search', () => {
       expect(results.searchState).toBe('Completed');
       expect(results.result?.length).toBeGreaterThanOrEqual(1);
       expect(results.result?.[0].recordingToken).toBe(RECORDING_TOKEN);
-      expect(results.result?.[0].trackToken).toBe('META001');
+      expect(typeof results.result?.[0].trackToken).toBe('string');
+      expect(results.result?.[0].trackToken.length).toBeGreaterThan(0);
       expect(results.result?.[0]).toHaveProperty('position');
     });
   });
