@@ -281,10 +281,73 @@ describe('ParseSOAPString', () => {
     expect(caught).toMatchObject({
       faultCode: 's:Sender',
       faultSubcode: 'ter:NotAuthorized',
+      faultSubcodes: ['ter:NotAuthorized'],
       faultReason: 'Sender not authorized',
     });
     expect(isSenderNotAuthorizedFault(caught)).toBe(true);
     expect(isSenderNotAuthorizedFault(new Error('Sender not authorized'))).toBe(false);
+  });
+
+  it('normalizes SOAP 1.1 fault fields and detail child subcodes', async () => {
+    const { isSenderNotAuthorizedFault } = await import('../src/utils');
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ter="http://www.onvif.org/ver10/error">' +
+      '<s:Body>' +
+      '<s:Fault>' +
+      '<faultcode>s:Client</faultcode>' +
+      '<faultstring>Sender not authorized</faultstring>' +
+      '<detail><s:Text>denied</s:Text><ter:NotAuthorized/></detail>' +
+      '</s:Fault>' +
+      '</s:Body>' +
+      '</s:Envelope>';
+
+    let caught: unknown;
+    try {
+      await parseSOAPString(xml);
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(OnvifSoapFaultError);
+    expect(caught).toMatchObject({
+      faultCode: 's:Client',
+      faultReason: 'Sender not authorized',
+      faultDetail: 'denied',
+      faultSubcode: 'NotAuthorized',
+      faultSubcodes: ['NotAuthorized'],
+    });
+    expect(isSenderNotAuthorizedFault(caught)).toBe(true);
+  });
+
+  it('collects nested SOAP 1.2 Subcode chain', async () => {
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error">' +
+      '<s:Body>' +
+      '<s:Fault>' +
+      '<s:Code>' +
+      '<s:Value>s:Sender</s:Value>' +
+      '<s:Subcode><s:Value>ter:InvalidArgVal</s:Value>' +
+      '<s:Subcode><s:Value>ter:PasswordTooWeak</s:Value></s:Subcode>' +
+      '</s:Subcode>' +
+      '</s:Code>' +
+      '<s:Reason><s:Text xml:lang="en">weak password</s:Text></s:Reason>' +
+      '</s:Fault>' +
+      '</s:Body>' +
+      '</s:Envelope>';
+
+    await expect(parseSOAPString(xml)).rejects.toMatchObject({
+      faultCode: 's:Sender',
+      faultSubcode: 'ter:InvalidArgVal',
+      faultSubcodes: ['ter:InvalidArgVal', 'ter:PasswordTooWeak'],
+      faultReason: 'weak password',
+    });
+  });
+
+  it('throws OnvifParseError for malformed XML', async () => {
+    const { OnvifParseError } = await import('../src/utils');
+    // Lone '<' is rejected by fast-xml-parser (many unclosed tags are accepted leniently).
+    await expect(parseSOAPString('<')).rejects.toBeInstanceOf(OnvifParseError);
   });
 });
 

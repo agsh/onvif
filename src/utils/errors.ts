@@ -68,18 +68,53 @@ export function assignErrorContext(
   return error;
 }
 
-/** Empty, non-SOAP, or otherwise unexpected response body.
+/** Empty, non-SOAP, or otherwise unexpected HTTP response body.
  * @category Errors
  */
 export class OnvifResponseError extends OnvifError {}
 
-/** SOAP 1.2 Fault from the device.
+/** Malformed XML that could not be parsed into a SOAP envelope.
+ * @category Errors
+ */
+export class OnvifParseError extends OnvifError {}
+
+/**
+ * HTTP / socket timeout (`ETIMEDOUT`).
+ * Keeps `code: 'ETIMEDOUT'` for callers that match on errno-style codes.
+ * @category Errors
+ */
+export class OnvifTimeoutError extends OnvifError {
+  public readonly code = 'ETIMEDOUT' as const;
+}
+
+/**
+ * Network / transport failure (connection reset, refused, DNS, …).
+ * `code` mirrors the underlying `ErrnoException` when present.
+ * @category Errors
+ */
+export class OnvifTransportError extends OnvifError {
+  public readonly code?: string;
+
+  constructor(message: string, options?: OnvifErrorOptions & { code?: string }) {
+    super(message, options);
+    const fromCause =
+      options?.cause && typeof options.cause === 'object' && options.cause !== null && 'code' in options.cause
+        ? String((options.cause as { code?: unknown }).code ?? '')
+        : '';
+    this.code = options?.code ?? (fromCause || undefined);
+  }
+}
+
+/** SOAP Fault from the device (SOAP 1.1 or 1.2 fields normalized).
  * @category Errors
  */
 export class OnvifSoapFaultError extends OnvifError {
+  /** Top-level fault code (`s:Sender` / `s:Client`, `s:Receiver` / `s:Server`, …). */
   public readonly faultCode?: string;
-  /** SOAP 1.2 Subcode Value when present (e.g. `ter:NotAuthorized`). */
+  /** First SOAP 1.2 Subcode Value, or a SOAP 1.1 detail child name when present. */
   public readonly faultSubcode?: string;
+  /** Full Subcode chain (SOAP 1.2) or detail-derived codes (SOAP 1.1), outermost first. */
+  public readonly faultSubcodes?: string[];
   public readonly faultReason?: string;
   public readonly faultDetail?: string;
 
@@ -88,6 +123,7 @@ export class OnvifSoapFaultError extends OnvifError {
     options?: OnvifErrorOptions & {
       faultCode?: string;
       faultSubcode?: string;
+      faultSubcodes?: string[];
       faultReason?: string;
       faultDetail?: string;
     },
@@ -95,6 +131,7 @@ export class OnvifSoapFaultError extends OnvifError {
     super(message, options);
     this.faultCode = options?.faultCode;
     this.faultSubcode = options?.faultSubcode;
+    this.faultSubcodes = options?.faultSubcodes;
     this.faultReason = options?.faultReason;
     this.faultDetail = options?.faultDetail;
   }
@@ -118,7 +155,13 @@ export function isSenderNotAuthorizedFault(error: unknown): boolean {
   if (!(error instanceof OnvifSoapFaultError)) {
     return false;
   }
-  const normalized = [error.faultCode, error.faultSubcode, error.faultReason, error.faultDetail]
+  const normalized = [
+    error.faultCode,
+    error.faultSubcode,
+    ...(error.faultSubcodes ?? []),
+    error.faultReason,
+    error.faultDetail,
+  ]
     .filter((part): part is string => typeof part === 'string' && part.length > 0)
     .map((part) => part.toLowerCase().replace(/[\s_-]+/g, ''));
   return normalized.some(
