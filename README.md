@@ -166,6 +166,7 @@ const onvif = new Onvif({ username: 'username', password: 'password', hostname: 
 - WS-Discovery on the LAN - see [Discovery](#discovery)
 - Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
 - SOAP XML (`build` / `parseSOAPString` / `request` / `requestContext`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
+- Typed errors (timeout / transport / parse / SOAP Fault 1.1+1.2) - [innerDocs/errors.md](innerDocs/errors.md)
 - Default Media Profile token bag (`activeMediaProfile` / `setActiveMediaProfile`) - see [Connection](#default-media-profile-activemediaprofile)
 - Services - see [Services](#services)
 
@@ -182,7 +183,8 @@ Override with `{ media: true | false }`. For capability blocks from GetServices,
 
 On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
-connect. Details: [innerDocs/connection.md](innerDocs/connection.md).
+connect. `connect()` is not a login check - call `device.getDeviceInformation()` afterwards if you
+need to verify username/password early. Details: [innerDocs/connection.md](innerDocs/connection.md).
 
 ### Default Media Profile (`activeMediaProfile`)
 
@@ -400,6 +402,12 @@ Details: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
 
 `build` / `parseSOAPString`, public `onvif.request()`, and per-call `requestContext` request/response
 capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
+
+## Errors
+
+`OnvifTimeoutError`, `OnvifTransportError`, `OnvifParseError`, `OnvifResponseError`,
+`OnvifSoapFaultError` (SOAP 1.1 + 1.2 normalized), `OnvifAuthError`, `OnvifValidationError` —
+details: [innerDocs/errors.md](innerDocs/errors.md).
 
 ## Migration from v0.x
 

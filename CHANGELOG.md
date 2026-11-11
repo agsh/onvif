@@ -15,6 +15,7 @@ Not yet published to npm (`1.0.0-rc.3` is the latest on the registry). Collects 
 
 ### Added
 
+- **Typed transport / parse errors** - `OnvifTimeoutError` (`code: 'ETIMEDOUT'`), `OnvifTransportError`, `OnvifParseError`; SOAP Faults normalize SOAP 1.1 + 1.2 fields and expose `faultSubcodes`. Docs: [innerDocs/errors.md](innerDocs/errors.md).
 - **`OnvifOptions.url`** - device service URL (`http(s)://host[:port]/path]`) instead of separate hostname/port/path/useSecure (credentials stay in `username`/`password`).
 - **Uplink** and **AppManagement** service modules.
 - **Auth module** - WS-Security PasswordDigest + HTTP Digest helpers; prefer strongest Digest algorithm (SHA-512-256 > SHA-256 > SHA-1 > MD5); cache Digest headers after the first 401; time-shift fixes.

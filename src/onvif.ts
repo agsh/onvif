@@ -13,6 +13,8 @@ import {
   build,
   getDigestHeaders,
   isSenderNotAuthorizedFault,
+  OnvifTimeoutError,
+  OnvifTransportError,
   assignErrorContext,
   linerase,
   OnvifAuthError,
@@ -944,8 +946,21 @@ export class Onvif extends EventEmitter<OnvifEvents> {
           return;
         }
         alreadyReturned = true;
-        // Keep ErrnoException identity (code ETIMEDOUT, ...) for existing callers.
-        fail(error);
+        // AbortSignal cancellation stays a native AbortError (see CallOptions.signal).
+        if (error.name === 'AbortError') {
+          fail(error);
+          return;
+        }
+        if (error.code === 'ETIMEDOUT') {
+          fail(new OnvifTimeoutError(error.message || 'Network timeout', { cause: error }));
+          return;
+        }
+        fail(
+          new OnvifTransportError(error.message || 'Network error', {
+            cause: error,
+            code: error.code,
+          }),
+        );
       });
 
       this.emit('rawRequest', options.body, requestOptions);

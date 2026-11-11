@@ -19,6 +19,9 @@ await onvif.connect(); // reopen after close
 5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails. If `media` is omitted, uses `onvif.defaultMedia` (Discovery may have set `false` for access-only door stations)
 6. Emits `connect` and returns the same instance
 
+`connect()` is not a login check - call `device.getDeviceInformation()` afterwards if you need to
+verify username/password early.
+
 ## Errors during `connect()`
 
 | Failure | Behaviour |
@@ -32,7 +35,10 @@ After a rejected `connect()`, the client is still open (`closed === false`). Cal
 
 ## Loss of connection after a successful connect
 
-A failed SOAP call (`ETIMEDOUT`, `ECONNRESET`, SOAP Fault, ...) rejects that Promise only. It does **not** mark the client closed or clear discovery cache. Retry the method, or `close()` + `connect()` for a full rediscovery (e.g. after camera reboot when PTZ XAddr disappeared).
+A failed SOAP call (`OnvifTimeoutError` / `OnvifTransportError` / SOAP Fault, …) rejects that
+Promise only. It does **not** mark the client closed or clear discovery cache. Retry the method, or
+`close()` + `connect()` for a full rediscovery (e.g. after camera reboot when PTZ XAddr disappeared).
+Error classes: [errors.md](errors.md).
 
 Pull-point / events reconnection is separate - see [events.md](events.md).
 

@@ -63,7 +63,10 @@ const [body, xml] = await parseSOAPString(rawSoapString, {
 ```
 
 - Expects a SOAP `Envelope` / `Body`. Empty or non-SOAP bodies throw `OnvifResponseError`.
-- SOAP Faults throw `OnvifSoapFaultError` (with `faultCode`, `faultReason`, ...).
+  Malformed XML throws `OnvifParseError`.
+- SOAP Faults throw `OnvifSoapFaultError` with a normalized shape for SOAP 1.1 and 1.2
+  (`faultCode`, `faultSubcode` / `faultSubcodes`, `faultReason`, `faultDetail`) — see
+  [errors.md](errors.md).
 - Returns `[body, originalXmlString]`. Tag names are camelCased; namespaces are stripped on the
   normal parse path (except under `rawXML` / `xsany`).
 - Typed service methods usually run the body through `linerase()` and unwrap a single useful value.
