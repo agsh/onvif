@@ -50,6 +50,27 @@ For a full interactive example, see
 
 This class is used internally by the `Onvif` class for the common `event` listener.
 
+## Pull-point reconnection
+
+`Subscription` (and `onvif.on('event')` via `events.globalSubscription`) keeps pulling after
+transient loss of the device link. You do not need to call `subscribe()` again yourself.
+
+Soft network errors (`ECONNRESET`, `ETIMEDOUT`, `ENETUNREACH`, `HPE_CLOSED_CONNECTION`) while the
+pull point is still within its termination time: Renew + SetSynchronizationPoint, then retry
+PullMessages on the same subscription. Emits `connectionError` (forwarded as `eventsError` on
+`Onvif` for the global listener).
+
+Fatal cases (SOAP Fault, expired pull point, soft renew cannot save it): wait with backoff
+(`eventReconnectMs`, about 1s up to about 2 minutes; a successful pull resets it), best-effort
+Unsubscribe the old pull point, then `CreatePullPointSubscription` again and resume the loop.
+Emits `error` / `eventsError` on each fatal failure.
+
+`unsubscribe()` / `onvif.close()` clear the reconnect timer and stop auto-resubscribe. Own
+`new Subscription(...)` instances are not torn down by `close()` - call `unsubscribe()` on them.
+
+Automated coverage: `__tests__/subscription.resubscribe.test.ts` (SOAP mock) and the recovery
+case in `__tests__/events.test.ts` (Happytime).
+
 ## Cancelling a long-poll with `AbortSignal`
 
 `PullMessages` can block for up to a minute waiting for notifications. Pass an

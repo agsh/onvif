@@ -90,8 +90,8 @@ export interface DiscoveryOptions {
   listeningPort?: number;
   /**
    * Optional IP-family filter for Probe sockets.
-   * - omit (default) — probe both IPv4 and IPv6
-   * - `'udp4'` / `'udp6'` — only that family
+   * - omit (default) -- probe both IPv4 and IPv6
+   * - `'udp4'` / `'udp6'` -- only that family
    */
   type?: 'udp4' | 'udp6';
   /** Receive buffer size in bytes for discovery responses */

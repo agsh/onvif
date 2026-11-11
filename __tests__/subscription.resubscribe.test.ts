@@ -289,6 +289,22 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
     await sub.unsubscribe();
   });
 
+  it('Unsubscribes the old pull point before CreatePullPointSubscription on fatal rebuild', async () => {
+    mock.pullBehavior = 'fault';
+    const sub = (activeSub = prepareSub(cam));
+
+    await sub.subscribe();
+    await waitFor(() => mock.stats.pull >= 1, 5000, 'failing pull');
+    expect(mock.stats.unsubscribe).toBe(0);
+
+    await waitFor(() => mock.stats.create >= 2, 5000, 'resubscribe create');
+    expect(mock.stats.unsubscribe).toBeGreaterThanOrEqual(1);
+    // Soft path must not Unsubscribe; fatal rebuild always tries before the next Create.
+    expect(mock.stats.unsubscribe).toBeGreaterThanOrEqual(mock.stats.create - 1);
+
+    await sub.unsubscribe();
+  });
+
   it('widens eventReconnectMs while the device keeps faulting', async () => {
     mock.pullBehavior = 'fault';
     const sub = (activeSub = prepareSub(cam));

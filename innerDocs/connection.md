@@ -40,7 +40,8 @@ Promise only. It does **not** mark the client closed or clear discovery cache. R
 `close()` + `connect()` for a full rediscovery (e.g. after camera reboot when PTZ XAddr disappeared).
 Error classes: [errors.md](errors.md).
 
-Pull-point / events reconnection is separate - see [events.md](events.md).
+Pull-point / events reconnection is separate - see
+[events.md#pull-point-reconnection](events.md#pull-point-reconnection).
 
 ## `preserveAddress` (NAT / loopback / wrong port in XAddr)
 
@@ -345,4 +346,5 @@ to override the bag for that request only.
 
 - Agents and timers: [resources.md](resources.md)
 - Lazy connect (no service class modules): [performance.md](performance.md)
-- Tests: `__tests__/activeMediaProfile.test.ts`, `__tests__/connection.errors.test.ts`, `__tests__/connection.lazy.test.ts`, `__tests__/events.clock.test.ts`
+- Tests: `__tests__/activeMediaProfile.test.ts`, `__tests__/activeMediaProfile.multisource.test.ts`,
+  `__tests__/connection.errors.test.ts`, `__tests__/connection.lazy.test.ts`

@@ -216,6 +216,42 @@ describe('Events', () => {
       expect(sub.subscription).toBeUndefined();
     });
 
+    it('rebuilds the pull point after the subscription endpoint becomes unreachable', async () => {
+      const expected = [HAPPYTIME_TOPICS.relay, HAPPYTIME_TOPICS.digitalInput] as const;
+      const sub = new Subscription(cam);
+      sub.eventReconnectMs = 200;
+      sub.on('error', () => undefined);
+      sub.on('connectionError', () => undefined);
+
+      const first = collectUntilTopics(sub, 'data', expected);
+      await sub.subscribe();
+      await first;
+      const oldAddr = String(sub.subscription!.subscriptionReference.address);
+
+      // Simulate lost link to this pull point (reboot / route gone): force fatal rebuild.
+      sub.subscription!.subscriptionReference.address = 'http://127.0.0.1:1/Subscription?dead=1';
+      sub.subscription!.terminationTime = new Date(Date.now() - 1000);
+      cam.events.resetAgent();
+
+      const deadline = Date.now() + 15_000;
+      while (Date.now() < deadline) {
+        const addr = sub.subscription?.subscriptionReference?.address;
+        if (addr && String(addr) !== oldAddr && !String(addr).includes('dead=1')) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      const rebuilt = String(sub.subscription?.subscriptionReference?.address ?? '');
+      expect(rebuilt).not.toBe('');
+      expect(rebuilt).not.toBe(oldAddr);
+      expect(rebuilt).not.toContain('dead=1');
+
+      const again = await collectUntilTopics(sub, 'data', expected);
+      expect(again.map(topicOf)).toEqual(expect.arrayContaining([...expected]));
+
+      await sub.unsubscribe();
+    });
+
     it('should filter by Relay topic expression', async () => {
       const sub = new Subscription(cam, {
         filter: {

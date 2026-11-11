@@ -799,30 +799,36 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     this.dontWantToRestartEvent = true;
     this.pulling = false;
     this.clearReconnectTimer();
+    await this.disposePullPoint(resetAgent);
+  }
+
+  /**
+   * Best-effort device Unsubscribe without stopping a fatal rebuild loop.
+   * Clears local {@link subscription} first so in-flight {@link eventPull} cannot race.
+   */
+  private async disposePullPoint(resetAgent = false): Promise<void> {
     if (!this.subscription) {
       return;
     }
-    const subscriptionParams = this.getSubscriptionUrlAndHeaders(
-      'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
-    );
-    const body = {
-      Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } },
-    };
-    // Drop local state first so an in-flight eventPull cannot auto-resubscribe after a race.
+    const subscription = this.subscription;
     delete this.subscription;
-    // Abort long-poll PullMessages before/while sending Unsubscribe.
     if (resetAgent) {
       this.onvif.events.resetAgent();
     }
     try {
+      const subscriptionParams = getSubscriptionUrlAndHeaders(
+        this.onvif,
+        subscription,
+        'http://docs.oasis-open.org/wsn/bw-2/SubscriptionManager/UnsubscribeRequest',
+      );
       await this.onvif.request({
         url: subscriptionParams.url,
-        body,
+        body: { Unsubscribe: { $: { xmlns: 'http://docs.oasis-open.org/wsn/b-2' } } },
         soapHeaders: subscriptionParams.additionalSoapHeaders,
         agent: this.onvif.events.agent,
       });
     } catch {
-      // Subscription may already be gone on the device; local state is cleared.
+      // Device may already be gone or subscription expired; local state is cleared.
     }
   }
 
@@ -852,6 +858,11 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     const interval = this.eventReconnectMs;
     this.eventReconnectMs = Math.min(1.111 * interval, MAX_EVENT_RECONNECT_MS);
     await this.scheduleReconnectDelay(interval);
+    if (!this.pulling) {
+      return;
+    }
+    // Drop the dead pull point on the device when possible so rebuilds do not pile up until TTL.
+    await this.disposePullPoint(false);
     if (!this.pulling) {
       return;
     }
