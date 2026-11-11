@@ -88,7 +88,11 @@ export interface DiscoveryOptions {
   port?: number;
   /** Client will listen to discovery data device sent */
   listeningPort?: number;
-  /** Socket type */
+  /**
+   * Optional IP-family filter for Probe sockets.
+   * - omit (default) — probe both IPv4 and IPv6
+   * - `'udp4'` / `'udp6'` — only that family
+   */
   type?: 'udp4' | 'udp6';
   /** Receive buffer size in bytes for discovery responses */
   bufferSize?: number;
@@ -387,38 +391,52 @@ export class DiscoverySingleton extends EventEmitter {
         resolve(Array.from(cams.values()));
       };
 
-      // A computer may have Multiple Network Interfaces (Network Devices) like eth0, eth1, wifi0, lo0, vpm0, vpn1
-      // Each Network Interface can have Multiple IP Addresses e.g. 192.168.1.99 and also 10.10.10.5
-      // And the IP Addresses can be IPv4 or IPv6
-      // To find every device on the network we want to send a Discovery Message from every IP Address on every Network Interface
+      // Probe from every IP on every NIC (optional: options.device, options.type udp4|udp6).
 
-      // None of my test cameras responded to IPv6 discovery so the IPv6 code in this code is untested
+      /**
+       * Link-local IPv6 bind needs a zone id (RFC 4007).
+       * Unix: interface name (`fe80::x%eth0`); Windows: numeric scope index (`fe80::x%2`).
+       */
+      const bindHost = (interfaceName: string, info: os.NetworkInterfaceInfo): string => {
+        if (info.family === 'IPv6' && info.address.toLowerCase().startsWith('fe80:')) {
+          const zone =
+            process.platform === 'win32' && typeof info.scopeid === 'number'
+              ? String(info.scopeid)
+              : interfaceName;
+          return `${info.address}%${zone}`;
+        }
+        return info.address;
+      };
 
-      // We can also restrict to a specific Interface using options.device
+      const familyFilter: 'IPv4' | 'IPv6' | undefined =
+        options.type === 'udp6' ? 'IPv6' : options.type === 'udp4' ? 'IPv4' : undefined;
 
-      // Make a list of IP addresses to send from
       const interfaces = os.networkInterfaces();
-      const sendList: os.NetworkInterfaceInfo[] = [];
+      const sendList: { interfaceName: string; info: os.NetworkInterfaceInfo }[] = [];
       for (const interfaceName in interfaces) {
         this.emit('status', `Found interface ${interfaceName}`);
         if (options.device && options.device != interfaceName) {
           continue;
         }
-        interfaces[interfaceName]?.forEach((addressItem) => {
-          // Only use IPv4 addresses
+        for (const addressItem of interfaces[interfaceName] ?? []) {
           if (addressItem.family === 'IPv4') {
-            sendList.push(addressItem);
+            if (familyFilter === 'IPv6') {
+              continue;
+            }
+            sendList.push({ interfaceName, info: addressItem });
+          } else if (addressItem.family === 'IPv6') {
+            if (familyFilter === 'IPv4' || addressItem.internal) {
+              continue;
+            }
+            sendList.push({ interfaceName, info: addressItem });
           }
-        });
+        }
       }
 
-      const udpNameConverter = (family: string) => {
-        return family === 'IPv6' ? 'udp6' : 'udp4';
-      };
-
       // Send a Discovery Message from each address in the SendList
-      for (const sendItem of sendList) {
-        const socket = createSocket({ type: options.type ?? udpNameConverter(sendItem.family), reuseAddr: true });
+      for (const { interfaceName, info: sendItem } of sendList) {
+        const socketType = options.type ?? (sendItem.family === 'IPv6' ? 'udp6' : 'udp4');
+        const socket = createSocket({ type: socketType, reuseAddr: true });
         sockets.push(socket);
         socket.on('error', (err) => {
           this.emit('error', err);
@@ -429,15 +447,19 @@ export class DiscoverySingleton extends EventEmitter {
             socket.setRecvBufferSize(options.bufferSize);
           }
           const destPort = options.port ?? WS_DISCOVERY_PORT;
-          const destAddress = options.address ?? (sendItem.family === 'IPv6' ? WS_DISCOVERY_IPV6 : WS_DISCOVERY_IPV4);
-          this.emit('status', `Sending ${sendItem.family} from ${sendItem.address} to ${destAddress}:${destPort}`);
+          const destAddress =
+            options.address ?? (sendItem.family === 'IPv6' ? WS_DISCOVERY_IPV6 : WS_DISCOVERY_IPV4);
+          this.emit(
+            'status',
+            `Sending ${sendItem.family} from ${sendItem.address} (${interfaceName}) to ${destAddress}:${destPort}`,
+          );
           socket.send(request, 0, request.length, destPort, destAddress);
         });
         socket.on('message', listener);
 
         // Bind to the local IP address and either an OS selected UDP Port, or the options.listeningPort UDP Port)
         // This fires 'listening' which sends the discovery message
-        socket.bind(options.listeningPort, sendItem.address);
+        socket.bind(options.listeningPort, bindHost(interfaceName, sendItem));
       }
 
       timeout = setTimeout(finish, options.timeout || 5000);

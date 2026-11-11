@@ -171,7 +171,9 @@ describe('Happytime custom events (/SendEvent)', () => {
       expect(topicOf(msg)).toBe(TOPICS.relay);
       expect(msg.topic.dialect).toBe(CONCRETE_SET_DIALECT);
       expect(msg.message.message.propertyOperation).toBe('Changed');
-      expect(msg.message.message.utcTime).toEqual(new Date('2026-11-10T22:10:00Z'));
+      // Happytime rewrites UtcTime (not the XML stamp); only assert it parsed as Date.
+      expect(msg.message.message.utcTime).toBeInstanceOf(Date);
+      expect(Number.isNaN(msg.message.message.utcTime.getTime())).toBe(false);
       expect(asSimpleItems(msg.message.message.source)).toEqual([{ name: 'RelayToken', value: 'RelayOutputToken_1' }]);
       expect(asSimpleItems(msg.message.message.data)).toEqual([{ name: 'LogicalState', value: 'inactive' }]);
 

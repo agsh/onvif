@@ -34,6 +34,7 @@ Not yet published to npm (`1.0.0-rc.3` is the latest on the registry). Collects 
 
 ### Fixed
 
+- **Discovery IPv6** - Probe also from non-loopback IPv6 (link-local bind with zone id: `%iface` on Unix, `%scopeid` on Windows) to `FF02::C`; `type: 'udp6'|'udp4'` filters family. Tests: `discovery.ipv6.test.ts` / `discovery.errors`.
 - `getMediaProfiles` treats `profiles` as an array.
 - Media ver10 `getStreamUri` return value (#512).
 - Discovery IPv6 / optional address+port; analytics device URI key; ESM interop; compatibility layer edge cases; PullMessages `useSecure`; event agent selection after close.
