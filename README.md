@@ -243,7 +243,22 @@ Switch back the same way (`encoding === 'H264'`). If both codecs sit on one prof
 must change the encoder config on the device, that is a Media `setVideoEncoderConfiguration`
 flow - not `setActiveMediaProfile`.
 
-How the bag is built, multi-source devices, and more examples:
+Multi-source (several `videoSources`): `activeMediaProfiles[i]` is the bag for source `i`;
+`activeMediaProfile` starts as slot `0`. Switch defaults to another source by selecting a
+profile that belongs to it:
+
+```ts
+await onvif.connect();
+console.log(onvif.activeMediaProfiles.map((b) => [b.videoSourceToken, b.profileToken]));
+
+const other = onvif.profiles.find(
+  (p) => p.videoSourceConfiguration?.sourceToken !== onvif.activeMediaProfile?.videoSourceToken,
+);
+if (other) await onvif.setActiveMediaProfile(other.token);
+// imaging / stream / PTZ defaults now follow that source's bag
+```
+
+How the bag is built and more examples:
 [innerDocs/connection.md#active-media-profile-token-bag](innerDocs/connection.md#active-media-profile-token-bag).
 
 ### `preserveAddress` (NAT / wrong XAddr host or port)
@@ -313,18 +328,18 @@ for (const cam of devices) {
 
 What `probe` does (beyond a single-interface IPv4 multicast):
 
-- **Dual-stack by default** — Probe from every non-loopback IPv4 and IPv6 address on every NIC
+- **Dual-stack by default** -- Probe from every non-loopback IPv4 and IPv6 address on every NIC
   (`239.255.255.250` / `FF02::C`, port `3702`). Pass `type: 'udp4' | 'udp6'` to limit the family;
   omit `type` for both.
-- **IPv6 link-local bind** — zone id is attached for `fe80::` binds (`%eth0` on Unix,
+- **IPv6 link-local bind** -- zone id is attached for `fe80::` binds (`%eth0` on Unix,
   numeric `%scopeid` on Windows).
-- **Multi-homed / directed Probe** — optional `device` (one NIC), or `address` + `port` for a
+- **Multi-homed / directed Probe** -- optional `device` (one NIC), or `address` + `port` for a
   unicast Probe still sent from each selected local address.
-- **Dedup & filtering** — devices are keyed by ProbeMatch `EndpointReference` (same NVT on
-  IPv4+IPv6 → one result); `RelatesTo` / MessageID drops replies meant for another client's Probe;
+- **Dedup & filtering** -- devices are keyed by ProbeMatch `EndpointReference` (same NVT on
+  IPv4+IPv6 -> one result); `RelatesTo` / MessageID drops replies meant for another client's Probe;
   `types` / `scopes` narrow the Probe; ProbeMatch scopes set `defaultMedia` (`false` for
   access-only Profile C/A without Streaming/T).
-- **Other options** — `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
+- **Other options** -- `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
   instead of `Onvif`).
 
 Runnable sample: [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js).
