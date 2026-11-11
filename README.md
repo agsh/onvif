@@ -29,13 +29,8 @@ Requires Node.js 18+. The published package ships compiled `build/` (CommonJS + 
 npm install onvif
 ```
 
-```js
-const { Onvif } = require('onvif'); // CommonJS
-```
-
-```ts
-import { Onvif } from 'onvif'; // ESM / TypeScript (Node loads the CJS build)
-```
+One build covers **CommonJS**, **ESM**, and **TypeScript** (`require` / `import` + `.d.ts`).
+ESM `import` loads the same CJS build via `exports.import` — examples: [Quick start](#quick-start).
 
 Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam` wrappers).
 
@@ -69,8 +64,7 @@ const onvif = new Onvif({
 });
 // or: { hostname, port, path?, useSecure? }
 await onvif.connect();
-const info = await onvif.device.getDeviceInformation();
-console.log(info);
+console.log(await onvif.device.getDeviceInformation());
 await onvif.close();
 ```
 
@@ -299,7 +293,9 @@ Discovery.on('error', (err) => console.error('discovery', err));
 
 const devices = await Discovery.probe({
   timeout: 5000,
-  // device: 'eth0', // bind to a NIC when needed
+  // device: 'eth0', // bind to one NIC (default: every address on every NIC)
+  // type: 'udp6', // optional family filter; omit = IPv4 + IPv6
+  // address: '192.168.1.50', port: 3702, // directed unicast Probe
   // types default to ['tds:Device']; pass [] to match any WS-Discovery type
   // types: ['dn:NetworkVideoTransmitter'],
   // scopes: ['onvif://www.onvif.org/Profile/T'],
@@ -315,9 +311,23 @@ for (const cam of devices) {
 }
 ```
 
-Options include `timeout`, `device` (interface), `types` / `scopes` filters, `bufferSize`, and
-IPv4/IPv6. RelatesTo / MessageID matching avoids mixing Probe replies. Runnable sample:
-[discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js).
+What `probe` does (beyond a single-interface IPv4 multicast):
+
+- **Dual-stack by default** — Probe from every non-loopback IPv4 and IPv6 address on every NIC
+  (`239.255.255.250` / `FF02::C`, port `3702`). Pass `type: 'udp4' | 'udp6'` to limit the family;
+  omit `type` for both.
+- **IPv6 link-local bind** — zone id is attached for `fe80::` binds (`%eth0` on Unix,
+  numeric `%scopeid` on Windows).
+- **Multi-homed / directed Probe** — optional `device` (one NIC), or `address` + `port` for a
+  unicast Probe still sent from each selected local address.
+- **Dedup & filtering** — devices are keyed by ProbeMatch `EndpointReference` (same NVT on
+  IPv4+IPv6 → one result); `RelatesTo` / MessageID drops replies meant for another client's Probe;
+  `types` / `scopes` narrow the Probe; ProbeMatch scopes set `defaultMedia` (`false` for
+  access-only Profile C/A without Streaming/T).
+- **Other options** — `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
+  instead of `Onvif`).
+
+Runnable sample: [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js).
 
 ## Services
 

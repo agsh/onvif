@@ -415,5 +415,302 @@ describe('Discovery error handling (mocked)', () => {
       expect(WS_DISCOVERY_IPV6).toBe('FF02::C');
       expect(WS_DISCOVERY_PORT).toBe(3702);
     });
+
+    it('type udp6 probes from link-local (zone bind) to FF02::C and skips ::1', async () => {
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        eth0: [
+          {
+            address: '192.168.1.10',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: '192.168.1.10/24',
+          },
+          {
+            address: 'fe80::1',
+            netmask: 'ffff:ffff:ffff:ffff::',
+            family: 'IPv6',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: 'fe80::1/64',
+            scopeid: 2,
+          },
+          {
+            address: '::1',
+            netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+            family: 'IPv6',
+            mac: '00:00:00:00:00:00',
+            internal: true,
+            cidr: '::1/128',
+            scopeid: 0,
+          },
+        ],
+      });
+
+      const probePromise = Discovery.probe({ timeout: 10, device: 'eth0', type: 'udp6' });
+      await jest.advanceTimersByTimeAsync(10);
+      await probePromise;
+
+      expect(mockedCreateSocket).toHaveBeenCalledWith({ type: 'udp6', reuseAddr: true });
+      expect(mockSocket.bind).toHaveBeenCalledWith(undefined, 'fe80::1%eth0');
+      expect(mockSocket.bind).not.toHaveBeenCalledWith(undefined, '::1');
+      expect(mockSocket.send).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        0,
+        expect.any(Number),
+        WS_DISCOVERY_PORT,
+        WS_DISCOVERY_IPV6,
+      );
+      niSpy.mockRestore();
+    });
+
+    it('type udp6 on Windows binds link-local with numeric scopeid zone', async () => {
+      const originalPlatform = process.platform;
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        Ethernet: [
+          {
+            address: 'fe80::1',
+            netmask: 'ffff:ffff:ffff:ffff::',
+            family: 'IPv6',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: 'fe80::1/64',
+            scopeid: 12,
+          },
+        ],
+      });
+
+      try {
+        const probePromise = Discovery.probe({ timeout: 10, device: 'Ethernet', type: 'udp6' });
+        await jest.advanceTimersByTimeAsync(10);
+        await probePromise;
+
+        expect(mockSocket.bind).toHaveBeenCalledWith(undefined, 'fe80::1%12');
+        expect(mockSocket.bind).not.toHaveBeenCalledWith(undefined, 'fe80::1%Ethernet');
+      } finally {
+        niSpy.mockRestore();
+        Object.defineProperty(process, 'platform', { value: originalPlatform });
+      }
+    });
+
+    it('type udp4 does not open udp6 sockets even when IPv6 addresses exist', async () => {
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        eth0: [
+          {
+            address: '172.16.0.5',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: '00:00:00:00:00:00',
+            internal: false,
+            cidr: '172.16.0.5/24',
+          },
+          {
+            address: 'fe80::abcd',
+            netmask: 'ffff:ffff:ffff:ffff::',
+            family: 'IPv6',
+            mac: '00:00:00:00:00:00',
+            internal: false,
+            cidr: 'fe80::abcd/64',
+            scopeid: 2,
+          },
+        ],
+      });
+
+      const probePromise = Discovery.probe({ timeout: 10, device: 'eth0', type: 'udp4' });
+      await jest.advanceTimersByTimeAsync(10);
+      await probePromise;
+
+      expect(mockedCreateSocket).toHaveBeenCalledWith({ type: 'udp4', reuseAddr: true });
+      expect(mockedCreateSocket).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'udp6' }));
+      expect(mockSocket.bind).toHaveBeenCalledWith(undefined, '172.16.0.5');
+      niSpy.mockRestore();
+    });
+  });
+
+  describe('sendList edge cases', () => {
+    function listeningSocket(): MockDgramSocket {
+      const socket = new MockDgramSocket();
+      socket.bind.mockImplementation(() => {
+        socket.emit('listening');
+        return socket as unknown as dgram.Socket;
+      });
+      return socket;
+    }
+
+    it('empty sendList resolves [] without opening sockets', async () => {
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        lo: [
+          {
+            address: '::1',
+            netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+            family: 'IPv6',
+            mac: '00:00:00:00:00:00',
+            internal: true,
+            cidr: '::1/128',
+            scopeid: 0,
+          },
+        ],
+        eth0: [
+          {
+            address: 'fe80::1',
+            netmask: 'ffff:ffff:ffff:ffff::',
+            family: 'IPv6',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: 'fe80::1/64',
+            scopeid: 2,
+          },
+        ],
+      });
+
+      // udp4 + only IPv6 on NICs → empty sendList; unknown device → also empty
+      const emptyFamily = Discovery.probe({ timeout: 10, type: 'udp4' });
+      await jest.advanceTimersByTimeAsync(10);
+      await expect(emptyFamily).resolves.toEqual([]);
+      expect(mockedCreateSocket).not.toHaveBeenCalled();
+
+      mockedCreateSocket.mockClear();
+      const missingDevice = Discovery.probe({ timeout: 10, device: 'no-such-nic' });
+      await jest.advanceTimersByTimeAsync(10);
+      await expect(missingDevice).resolves.toEqual([]);
+      expect(mockedCreateSocket).not.toHaveBeenCalled();
+
+      niSpy.mockRestore();
+    });
+
+    it('probes from every address on every NIC (multi-homed)', async () => {
+      const sockEth = listeningSocket();
+      const sockWlan = listeningSocket();
+      const sockV6 = listeningSocket();
+      mockedCreateSocket
+        .mockReturnValueOnce(sockEth as unknown as dgram.Socket)
+        .mockReturnValueOnce(sockWlan as unknown as dgram.Socket)
+        .mockReturnValueOnce(sockV6 as unknown as dgram.Socket);
+
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        eth0: [
+          {
+            address: '192.168.1.10',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: '192.168.1.10/24',
+          },
+        ],
+        wlan0: [
+          {
+            address: '10.0.0.5',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: 'aa:bb:cc:dd:ee:ff',
+            internal: false,
+            cidr: '10.0.0.5/24',
+          },
+          {
+            address: 'fe80::abcd',
+            netmask: 'ffff:ffff:ffff:ffff::',
+            family: 'IPv6',
+            mac: 'aa:bb:cc:dd:ee:ff',
+            internal: false,
+            cidr: 'fe80::abcd/64',
+            scopeid: 3,
+          },
+        ],
+      });
+
+      const probePromise = Discovery.probe({ timeout: 10 });
+      await jest.advanceTimersByTimeAsync(10);
+      await expect(probePromise).resolves.toEqual([]);
+
+      expect(mockedCreateSocket).toHaveBeenCalledTimes(3);
+      expect(mockedCreateSocket).toHaveBeenNthCalledWith(1, { type: 'udp4', reuseAddr: true });
+      expect(mockedCreateSocket).toHaveBeenNthCalledWith(2, { type: 'udp4', reuseAddr: true });
+      expect(mockedCreateSocket).toHaveBeenNthCalledWith(3, { type: 'udp6', reuseAddr: true });
+
+      expect(sockEth.bind).toHaveBeenCalledWith(undefined, '192.168.1.10');
+      expect(sockWlan.bind).toHaveBeenCalledWith(undefined, '10.0.0.5');
+      expect(sockV6.bind).toHaveBeenCalledWith(undefined, 'fe80::abcd%wlan0');
+
+      expect(sockEth.send).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        0,
+        expect.any(Number),
+        WS_DISCOVERY_PORT,
+        WS_DISCOVERY_IPV4,
+      );
+      expect(sockWlan.send).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        0,
+        expect.any(Number),
+        WS_DISCOVERY_PORT,
+        WS_DISCOVERY_IPV4,
+      );
+      expect(sockV6.send).toHaveBeenCalledWith(
+        expect.any(Buffer),
+        0,
+        expect.any(Number),
+        WS_DISCOVERY_PORT,
+        WS_DISCOVERY_IPV6,
+      );
+
+      niSpy.mockRestore();
+    });
+
+    it('directed unicast Probe sends to options.address:port from each local NIC', async () => {
+      const sockA = listeningSocket();
+      const sockB = listeningSocket();
+      mockedCreateSocket
+        .mockReturnValueOnce(sockA as unknown as dgram.Socket)
+        .mockReturnValueOnce(sockB as unknown as dgram.Socket);
+
+      const niSpy = jest.spyOn(os, 'networkInterfaces').mockReturnValue({
+        eth0: [
+          {
+            address: '192.168.1.10',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: '00:11:22:33:44:55',
+            internal: false,
+            cidr: '192.168.1.10/24',
+          },
+        ],
+        eth1: [
+          {
+            address: '192.168.2.10',
+            netmask: '255.255.255.0',
+            family: 'IPv4',
+            mac: '00:11:22:33:44:66',
+            internal: false,
+            cidr: '192.168.2.10/24',
+          },
+        ],
+      });
+
+      const probePromise = Discovery.probe({
+        timeout: 10,
+        address: '192.168.1.50',
+        port: 3703,
+        type: 'udp4',
+      });
+      await jest.advanceTimersByTimeAsync(10);
+      await probePromise;
+
+      expect(sockA.bind).toHaveBeenCalledWith(undefined, '192.168.1.10');
+      expect(sockB.bind).toHaveBeenCalledWith(undefined, '192.168.2.10');
+      expect(sockA.send).toHaveBeenCalledWith(expect.any(Buffer), 0, expect.any(Number), 3703, '192.168.1.50');
+      expect(sockB.send).toHaveBeenCalledWith(expect.any(Buffer), 0, expect.any(Number), 3703, '192.168.1.50');
+      expect(sockA.send).not.toHaveBeenCalledWith(
+        expect.any(Buffer),
+        0,
+        expect.any(Number),
+        WS_DISCOVERY_PORT,
+        WS_DISCOVERY_IPV4,
+      );
+
+      niSpy.mockRestore();
+    });
   });
 });
