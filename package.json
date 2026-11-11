@@ -59,7 +59,7 @@
     "url": "git+https://github.com/agsh/onvif.git"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.11.0"
+    "fast-xml-parser": "^5.12.0"
   },
   "keywords": [
     "onvif",
