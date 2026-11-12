@@ -25,8 +25,13 @@ subscription and remove all listeners you need to call `unsubscribe()` method.
 The first and the only one argument for `data` is the NotificationMessage object.
 
 `error` is emitted for pull / renew failures (those rebuild the pull point). If a synchronous
-`data` handler throws, that exception is also surfaced as `error`, but it does **not** tear down
-or recreate the PullPoint -- the pull loop continues with the remaining messages.
+`data` handler throws, that exception is also surfaced as `error` when an `error` listener is
+present, but it does **not** tear down or recreate the PullPoint -- the pull loop continues with
+the remaining messages.
+
+Always attach `sub.on('error', ...)` on a standalone `Subscription`. An emitted `error` with no
+listener follows the default `EventEmitter` rule and can terminate the Node process. (The global
+`onvif.on('event')` path forwards those failures as `eventError` on `Onvif` instead.)
 
 ```ts
 const onvif = new Onvif({/**...*/});
@@ -41,6 +46,7 @@ const sub = new Subscription(onvif, {
     ],
   },
 });
+sub.on('error', (err) => console.error('subscription', err));
 sub.on('data', async (data) => {
   console.log(new Date().toLocaleTimeString(), 'motion', data.topic._, data.message.message.data);
   await sub.unsubscribe();
@@ -49,7 +55,7 @@ await sub.subscribe();
 ```
 
 For a full interactive example, see
-[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts).
+[events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts).
 
 This class is used internally by the `Onvif` class for the common `event` listener.
 
@@ -61,18 +67,19 @@ transient loss of the device link. You do not need to call `subscribe()` again y
 Soft network errors (`ECONNRESET`, `ETIMEDOUT`, `ENETUNREACH`, `HPE_CLOSED_CONNECTION`) while the
 pull point is still within its termination time: Renew + SetSynchronizationPoint, then retry
 PullMessages on the same subscription. Emits `connectionError` as `Error` (forwarded as
-`eventsError` on `Onvif` for the global listener). Network errors may still carry a `code`
+`eventError` on `Onvif` for the global listener). Network errors may still carry a `code`
 field; SOAP faults are `OnvifError` subclasses -- both are typed as `Error`, not only
 `ErrnoException`.
 
 Fatal cases (SOAP Fault, expired pull point, soft renew cannot save it): wait with backoff
 (`eventReconnectMs`, about 1s up to about 2 minutes; a successful pull resets it), best-effort
 Unsubscribe the old pull point, then `CreatePullPointSubscription` again and resume the loop.
-Emits `error` / `eventsError` on each fatal failure.
+Emits `error` / `eventError` on each fatal failure.
 
 A throw from a `data` / `onvif.on('event')` handler is **not** a fatal pull failure: it is
-caught per message, optionally forwarded as `error` / `eventsError`, and the loop keeps the
-same PullPoint.
+caught per message, optionally forwarded as `error` (own `Subscription`) or `eventError`
+(`Onvif` global listener), and the loop keeps the same PullPoint. On an own `Subscription`,
+listen for `error` yourself -- an unhandled `error` emit can exit the process.
 
 `unsubscribe()` / `onvif.close()` clear the reconnect timer and stop auto-resubscribe. Own
 `new Subscription(...)` instances are not torn down by `close()` - call `unsubscribe()` on them.
@@ -129,7 +136,7 @@ polling the device.
 To use it: start an HTTP server reachable from the camera, call `subscribe` with that URL as the consumer reference,
 keep the subscription alive with `renew` before it expires, and call `unsubscribe` when you are done. Method signatures
 are in the [Events class documentation][events-docs]. A working flow is shown in
-[events.with.filter.ts](https://github.com/agsh/onvif/blob/v1/examples/events.with.filter.ts) - the HTTP server at
+[events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) - the HTTP server at
 lines 50-65, and subscribe / unsubscribe at lines 143-164.
 
 [events-docs]: https://agsh.github.io/onvif/classes/Events.html

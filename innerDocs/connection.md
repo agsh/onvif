@@ -14,7 +14,7 @@ await onvif.connect(); // reopen after close
 
 1. `ensureOpen` - owned agents + auto-`event` hooks (after a prior `close()`)
 2. `resetConnectState` - drops previous `uri` / services / profiles / active media / door defaults
-3. Time sync (`getSystemDateAndTime`) for WS-Security
+3. Time sync (`getSystemDateAndTime`) for WS-Security (see [auth.md](auth.md))
 4. `GetServices` (`IncludeCapability: false`), or `GetCapabilities` if that fails
 5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails. If `media` is omitted, uses `onvif.defaultMedia` (Discovery may have set `false` for access-only door stations)
 6. Entity defaults (parallel, each no-ops without XAddr): door / access point / recording(+job) / relay
@@ -201,6 +201,10 @@ For parallel work across sources, pass explicit `profileToken` / `videoSourceTok
 `activeMediaProfiles[i]`), do not rely on the shared bag.
 
 ## Active entity tokens (non-media)
+
+README sketch (door / recording / analytics onboarding):
+[Beyond cameras](../README.md#beyond-cameras-profiles-c--a--g--m). Task recipes:
+[guides.md](guides.md#unlock-a-door), [guides.md](guides.md#replay-a-recording).
 
 Services outside the Media Profile pipeline get their own default tokens. Connect probes
 each advertised XAddr in parallel (`getActiveEntityTokens`):
@@ -458,6 +462,7 @@ Non-media services use separate defaults (`activeDoorToken`, `activeAccessPointT
 
 ## Related
 
+- Auth (WS-Security / Digest / `timeShift`): [auth.md](auth.md)
 - Agents and timers: [resources.md](resources.md)
 - Lazy connect (no service class modules): [performance.md](performance.md)
 - Tests: `__tests__/activeMediaProfile.test.ts`, `__tests__/activeMediaProfile.multisource.test.ts`,

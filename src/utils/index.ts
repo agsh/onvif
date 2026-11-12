@@ -11,7 +11,7 @@ export {
   assignErrorContext,
   isSenderNotAuthorizedFault,
 } from './errors';
-export { type CommonDuration, toIsoDuration, toMs, guid, struct } from './helpers';
+export { type CommonDuration, toIsoDuration, toMs, guid, struct, withUrlCredentials } from './helpers';
 export { requestContext, type OnvifRequestContext } from './request-context';
 export { splitArgs, getDigestHeaders } from './digest';
 export { camelCase } from './naming';

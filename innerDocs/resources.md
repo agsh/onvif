@@ -47,5 +47,7 @@ PullMessages long-poll and reconnect timer running).
 
 Automated checks: `__tests__/unit.options.builders.test.ts` (destroy agents, push renew cancel,
 caller-supplied agent) and `__tests__/resources.lifecycle.test.ts` (connect/close cycles,
-reconnect timer cleared on close). There is no long soak / heap-growth suite - treat heap notes in
-[performance.md](performance.md) as illustrative.
+reconnect timer cleared on close). Jest CI uses `--forceExit` because long-poll / agents can
+otherwise keep the process open -- prefer explicit `close()` / `unsubscribe()` in new suites.
+How to run and what HappyTime covers: [testing.md](testing.md). There is no long soak /
+heap-growth suite - treat heap notes in [performance.md](performance.md) as illustrative.

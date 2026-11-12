@@ -1,6 +1,10 @@
 /**
  * RTSP preview in the browser (Socket.IO + FFmpeg) with random absolute PTZ moves.
  *
+ * AbsoluteMove is optional on many cameras. Prefer checking GetNodes /
+ * SupportedPTZSpaces first (examples/ptz.nodes.js); ContinuousMove demo:
+ * examples/ptz.keyboard.js.
+ *
  * Requires: ffmpeg on PATH, and `npm i socket.io rtsp-ffmpeg`
  *
  * Run after build:
@@ -10,7 +14,7 @@
  */
 
 const http = require('http');
-const { Onvif } = require('../build');
+const { Onvif, withUrlCredentials } = require('../build');
 const io = require('socket.io');
 const rtsp = require('rtsp-ffmpeg');
 
@@ -51,7 +55,9 @@ server.listen(6147);
   await onvif.connect();
 
   const { uri } = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-  const input = uri.replace('://', `://${onvif.username}:${onvif.password}@`);
+  // Replaces any existing userinfo; encodes special chars in login/password.
+  // Do not log `input` - it embeds the password in the RTSP URL.
+  const input = withUrlCredentials(uri, onvif.username, onvif.password);
 
   const stream = new rtsp.FFMpeg({ input, resolution: '320x240', quality: 3 });
   socketServer.on('connection', (socket) => {
@@ -59,6 +65,7 @@ server.listen(6147);
     stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
   });
 
+  // Demo only: AbsoluteMove may be unsupported - see examples/ptz.nodes.js
   setInterval(
     () =>
       onvif.ptz.absoluteMove({
@@ -71,6 +78,6 @@ server.listen(6147);
     3000,
   );
 
-  console.log('Stream URI:', uri);
+  console.log('Stream URI:', uri); // device URI without embedded password
   console.log('Open http://localhost:6147');
 })().catch(console.error);

@@ -339,7 +339,7 @@ interface OnvifEvents {
   [Onvif.REQUEST_BODY]: [body: string];
   [Onvif.RAW_RESPONSE]: [xml: string];
   [Onvif.WARN]: [error: Error];
-  [Onvif.EVENTS_ERROR]: [error: Error];
+  [Onvif.EVENT_ERROR]: [error: Error];
   newListener: [event: string, listener: (...args: any[]) => void];
   removeListener: [event: string, listener: (...args: any[]) => void];
 }
@@ -407,7 +407,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   static readonly REQUEST_BODY = 'requestBody';
 
   /**
-   * Indicates any errors except events errors
+   * Indicates any errors except pull-point / event subscription errors
    * @event error
    * @example
    * ```typescript
@@ -417,14 +417,14 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   static readonly ERROR = 'error';
 
   /**
-   * Indicates events errors
-   * @event eventsError
+   * Indicates pull-point / event subscription errors
+   * @event eventError
    * @example
    * ```typescript
-   * onvif.on('eventsError', console.error);
+   * onvif.on('eventError', console.error);
    * ```
    */
-  static readonly EVENTS_ERROR = 'eventsError';
+  static readonly EVENT_ERROR = 'eventError';
 
   /**
    * Indicates any event from Onvif device.
@@ -693,7 +693,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       }
       // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
+        this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENT_ERROR, error));
       }
     };
     this.onEventRemoveListener = (name) => {
@@ -701,7 +701,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         return;
       }
       if (name === 'event' && this.listeners(name).length === 0) {
-        this.events.globalSubscription.unsubscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
+        this.events.globalSubscription.unsubscribe().catch((error) => this.emit(Onvif.EVENT_ERROR, error));
       }
     };
     this.ensureOpen();
@@ -1411,7 +1411,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.closed = false;
     // Listeners that survived close do not re-fire newListener - restart pull-point if needed.
     if (this.listeners('event').length > 0) {
-      this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENTS_ERROR, error));
+      this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENT_ERROR, error));
     }
   }
 
