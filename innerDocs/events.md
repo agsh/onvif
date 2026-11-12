@@ -22,8 +22,11 @@ than the common one. It uses the pull-point subscription. It inherits from Event
 And emits two events: `data` and `error`. To use it you need to call `subscribe()` method. And to stop the device
 subscription and remove all listeners you need to call `unsubscribe()` method.
 
-The first and the only one argument for `data` is the NotificationMessage object. And an `error` raised only when
-the connection to the device is lost.
+The first and the only one argument for `data` is the NotificationMessage object.
+
+`error` is emitted for pull / renew failures (those rebuild the pull point). If a synchronous
+`data` handler throws, that exception is also surfaced as `error`, but it does **not** tear down
+or recreate the PullPoint -- the pull loop continues with the remaining messages.
 
 ```ts
 const onvif = new Onvif({/**...*/});
@@ -57,13 +60,19 @@ transient loss of the device link. You do not need to call `subscribe()` again y
 
 Soft network errors (`ECONNRESET`, `ETIMEDOUT`, `ENETUNREACH`, `HPE_CLOSED_CONNECTION`) while the
 pull point is still within its termination time: Renew + SetSynchronizationPoint, then retry
-PullMessages on the same subscription. Emits `connectionError` (forwarded as `eventsError` on
-`Onvif` for the global listener).
+PullMessages on the same subscription. Emits `connectionError` as `Error` (forwarded as
+`eventsError` on `Onvif` for the global listener). Network errors may still carry a `code`
+field; SOAP faults are `OnvifError` subclasses -- both are typed as `Error`, not only
+`ErrnoException`.
 
 Fatal cases (SOAP Fault, expired pull point, soft renew cannot save it): wait with backoff
 (`eventReconnectMs`, about 1s up to about 2 minutes; a successful pull resets it), best-effort
 Unsubscribe the old pull point, then `CreatePullPointSubscription` again and resume the loop.
 Emits `error` / `eventsError` on each fatal failure.
+
+A throw from a `data` / `onvif.on('event')` handler is **not** a fatal pull failure: it is
+caught per message, optionally forwarded as `error` / `eventsError`, and the loop keeps the
+same PullPoint.
 
 `unsubscribe()` / `onvif.close()` clear the reconnect timer and stop auto-resubscribe. Own
 `new Subscription(...)` instances are not torn down by `close()` - call `unsubscribe()` on them.

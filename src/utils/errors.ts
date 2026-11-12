@@ -164,7 +164,9 @@ export function isSenderNotAuthorizedFault(error: unknown): boolean {
   ]
     .filter((part): part is string => typeof part === 'string' && part.length > 0)
     .map((part) => part.toLowerCase().replace(/[\s_-]+/g, ''));
-  return normalized.some(
-    (part) => part.includes('notauthorized') || part.includes('sendernotauthorized'),
-  );
+  return normalized.some((part) => part.includes('notauthorized') || part.includes('sendernotauthorized'));
+}
+
+export function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
 }

@@ -3,7 +3,8 @@
  * SOAP used by {@link connect} lives here so `device` / `media` / `media2` modules are not loaded.
  */
 
-import type { ActiveMediaProfile, Onvif, OnvifServices } from './onvif';
+import type { ActiveMediaProfile, OnvifServices } from './onvif';
+import { Onvif } from './onvif';
 import type {
   Capabilities,
   CapabilitiesExtension,
@@ -12,15 +13,11 @@ import type {
   VideoSource,
   VideoSourceConfiguration,
 } from './interfaces/onvif';
-import type {
-  GetCapabilities,
-  GetServices,
-  Service as DeviceService,
-} from './interfaces/devicemgmt';
+import type { GetCapabilities, GetServices, Service as DeviceService } from './interfaces/devicemgmt';
 import type { GetProfilesResponse } from './interfaces/media';
 import type { MediaProfile } from './interfaces/media.2';
 import type { ReferenceToken } from './interfaces/common';
-import { OnvifError, OnvifValidationError } from './utils/errors';
+import { OnvifError, OnvifValidationError, toError } from './utils/errors';
 import { MEDIA_NESTED_PARSE, type LineraseOptions } from './utils/linerase';
 import { XMLNS } from './service';
 
@@ -146,7 +143,7 @@ export async function getCapabilities(onvif: Onvif, options?: GetCapabilities): 
     });
     if (onvif.uri.replay && !onvif.uri.recording) {
       const tempRecorderXaddr = onvif.uri.replay.href.replace('replay', 'recording');
-      onvif.emit('warn', new OnvifError(`Adding ${tempRecorderXaddr} for bad Profile G device`));
+      onvif.emit(Onvif.WARN, new OnvifError(`Adding ${tempRecorderXaddr} for bad Profile G device`));
       onvif.uri.recording = onvif.parseUrl(tempRecorderXaddr);
     }
   }
@@ -470,7 +467,7 @@ export async function getActiveMediaProfiles(onvif: Onvif): Promise<void> {
       bag = activeMediaProfileFromProfile(profile);
     } catch (error) {
       if (!mappedAny) {
-        onvif.emit('warn', error instanceof Error ? error : new OnvifValidationError(String(error)));
+        onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifValidationError(String(error)));
       }
       return;
     }
@@ -482,7 +479,7 @@ export async function getActiveMediaProfiles(onvif: Onvif): Promise<void> {
 
   if (!mappedAny) {
     onvif.emit(
-      'warn',
+      Onvif.WARN,
       new OnvifValidationError('Unrecognized configuration: no media profiles available for video sources'),
     );
     return;
@@ -575,7 +572,7 @@ export async function getActiveDoor(onvif: Onvif): Promise<void> {
       onvif.activeDoorToken = token;
     }
   } catch (error) {
-    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+    onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifError(String(error)));
   }
 }
 
@@ -603,7 +600,7 @@ export async function getActiveAccessPoint(onvif: Onvif): Promise<void> {
       onvif.activeAccessPointToken = token;
     }
   } catch (error) {
-    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+    onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifError(String(error)));
   }
 }
 
@@ -634,8 +631,14 @@ export async function getActiveRecording(onvif: Onvif): Promise<void> {
   }
   try {
     const [recordings, jobs] = await Promise.all([
-      onvif.recording.getRecordings(),
-      onvif.recording.getRecordingJobs(),
+      onvif.recording.getRecordings().catch((e) => {
+        onvif.emit(Onvif.ERROR, e);
+        return [];
+      }),
+      onvif.recording.getRecordingJobs().catch((e) => {
+        onvif.emit(Onvif.ERROR, e);
+        return [];
+      }),
     ]);
     const recordingToken = recordings[0]?.recordingToken;
     if (recordingToken) {
@@ -646,7 +649,7 @@ export async function getActiveRecording(onvif: Onvif): Promise<void> {
       onvif.activeRecordingJobToken = jobToken;
     }
   } catch (error) {
-    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+    onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifError(String(error)));
   }
 }
 
@@ -674,7 +677,7 @@ export async function getActiveRelayOutput(onvif: Onvif): Promise<void> {
       onvif.activeRelayOutputToken = token;
     }
   } catch (error) {
-    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+    onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifError(String(error)));
   }
 }
 
@@ -731,7 +734,7 @@ export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promi
             }
           }
         }
-        onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+        onvif.emit(Onvif.WARN, error instanceof Error ? error : new OnvifError(String(error)));
       }
       await connectSteps.getActiveMediaProfiles(onvif);
     } else if (onvif.media2Support && onvif.uri.media2) {
@@ -749,7 +752,7 @@ export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promi
         } catch (error) {
           onvif.profiles = [];
           onvif.videoSources = [];
-          onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+          onvif.emit(Onvif.WARN, toError(error));
         }
         await connectSteps.getActiveMediaProfiles(onvif);
       }
