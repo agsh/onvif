@@ -13,11 +13,12 @@ await onvif.connect(); // reopen after close
 `connect()`:
 
 1. `ensureOpen` - owned agents + auto-`event` hooks (after a prior `close()`)
-2. `resetConnectState` - drops previous `uri` / services / profiles / active media profiles
+2. `resetConnectState` - drops previous `uri` / services / profiles / active media / door defaults
 3. Time sync (`getSystemDateAndTime`) for WS-Security
 4. `GetServices` (`IncludeCapability: false`), or `GetCapabilities` if that fails
 5. Optional media discovery (unless `{ media: false }`): Media1 first; Media2 `GetProfiles` only if Media1 is absent or fails. If `media` is omitted, uses `onvif.defaultMedia` (Discovery may have set `false` for access-only door stations)
-6. Emits `connect` and returns the same instance
+6. Entity defaults (parallel, each no-ops without XAddr): door / access point / recording(+job) / relay
+7. Emits `connect` and returns the same instance
 
 `connect()` is not a login check - call `device.getDeviceInformation()` afterwards if you need to
 verify username/password early.
@@ -112,30 +113,122 @@ Runs only when media discovery ran and at least one video source exists. Skipped
 `connect({ media: false })` / access-only devices with no sources - then
 `activeMediaProfile` stays `undefined`.
 
-For each `videoSources[i]`:
-
-1. Prefer profiles whose `videoSourceConfiguration.sourceToken` matches that source **and** that have a `videoEncoderConfiguration`.
-2. Else any profile with a video encoder.
-3. Else any profile.
-4. Take the **first** match -> `defaultProfiles[i]` + `activeMediaProfiles[i]` (token bag).
-5. Slot `0` also becomes `defaultProfile` / `activeMediaProfile` (the process-wide defaults).
-
-Pseudo-flow:
+#### Connect overview
 
 ```text
-GetProfiles -> onvif.profiles
-GetVideoSources -> onvif.videoSources
-for each video source:
-  pick best Profile
-  bag = tokens copied from that Profile
-  activeMediaProfiles[i] = bag
-  defaultProfiles[i] = Profile
-activeMediaProfile = activeMediaProfiles[0]
-defaultProfile = defaultProfiles[0]
+connect({ media? })
+  |
+  +-- resetConnectState
+  +-- getSystemDateAndTime          (WS-Security clock)
+  +-- getServices | getCapabilities (fills uri / services)
+  |
+  +-- media === false ? skip media branch
+  |     else:
+  |       Media1 GetProfiles + GetVideoSources
+  |         (or Media2 probe if Media1 missing / fails)
+  |       getActiveMediaProfiles()      (builds bags below)
+  |
+  +-- getActiveEntityTokens()       (door / accessPoint / recording / relay)
+  +-- emit('connect')
+```
+
+Deprecated aliases: `activeSources` == `activeMediaProfiles`, `activeSource` == `activeMediaProfile`.
+
+#### Selecting `activeMediaProfiles` (per video source)
+
+Slots stay index-aligned with `videoSources`. A source with no usable profile leaves a hole.
+
+```text
+GetProfiles  --------->  onvif.profiles[]
+GetVideoSources ------->  onvif.videoSources[]
+
+for i, src in videoSources:
+  candidates = profilesForVideoSource(profiles, src.token, singleSource?)
+       |
+       |  1) same sourceToken AND has videoEncoderConfiguration
+       |  2) same sourceToken (encoder optional)
+       |  3) ONLY if videoSources.length === 1:
+       |       any profile with encoder, else any profile
+       |  multi-source: never borrow another source's profile
+       |
+  if no candidates: skip slot i
+  else:
+    profile = candidates[0]
+    bag     = tokens from that profile   (no forced sourceToken override)
+    activeMediaProfiles[i] = bag
+    defaultProfiles[i]     = profile
+```
+
+#### Selecting `activeMediaProfile` (process-wide default)
+
+```text
+activeMediaProfile / defaultProfile
+  =
+  first mapped bag WITH videoEncoderConfigurationToken
+  else first mapped bag
+
+later:
+  setActiveMediaProfile(profileToken)
+    -> replaces activeMediaProfile + matching source slot
+```
+
+Example (HikVision-style incomplete profiles):
+
+```text
+videoSources:  [VS001, VS006, VS007]
+profiles:      P001(VS001, no enc), P006(VS006, H264), P007(VS007, no enc)
+
+activeMediaProfiles[0] = bag(P001)   // same source, encoder optional
+activeMediaProfiles[1] = bag(P006)   // same source + encoder
+activeMediaProfiles[2] = bag(P007)
+activeMediaProfile     = bag(P006)   // first bag with encoder
 ```
 
 Rebuild the same way later with `await onvif.getActiveMediaProfiles()` (e.g. after you mutated
 profiles on the device and refreshed `onvif.profiles`).
+
+## Active entity tokens (non-media)
+
+Services outside the Media Profile pipeline get their own default tokens. Connect probes
+each advertised XAddr in parallel (`getActiveEntityTokens`):
+
+```text
+uri.doorcontrol   -> GetDoorInfoList(limit: 1)      -> activeDoorToken
+uri.accesscontrol -> GetAccessPointInfoList(limit: 1) -> activeAccessPointToken
+uri.recording     -> GetRecordings / GetRecordingJobs -> activeRecordingToken
+                                                    -> activeRecordingJobToken
+uri.deviceIO      -> GetRelayOutputs                -> activeRelayOutputToken
+```
+
+Omit-token calls fall back to these defaults. Explicit tokens always win.
+List/paging APIs (`getDoorInfoList`, `getAccessPointInfoList`, `getRecordings`, ...) do not
+require a default. For DeviceIO, `getRelayOutputOptions()` without a token still means
+**all** relays -- `activeRelayOutputToken` is only used where a token is required
+(e.g. `setRelayOutputState`).
+
+```ts
+await onvif.connect({ media: false });
+
+// DoorControl
+await onvif.doorControl.unlockDoor();
+await onvif.setActiveDoor('DoorToken_2');
+
+// AccessControl
+await onvif.accessControl.getAccessPointState();
+await onvif.setActiveAccessPoint('AccessPointToken_2');
+
+// Recording / Replay / Search
+await onvif.recording.getRecordingConfiguration();
+await onvif.replay.getReplayUri({ protocol: 'RTSP' });
+await onvif.search.getRecordingInformation();
+await onvif.recording.setRecordingJobMode({ mode: 'Active' });
+
+// DeviceIO relay
+await onvif.deviceIO.setRelayOutputState({ logicalState: 'active' });
+```
+
+Rebuild after device-side changes: `getActiveDoor()`, `getActiveAccessPoint()`,
+`getActiveRecording()`, `getActiveRelayOutput()`, or `getActiveEntityTokens()` via connect.
 
 ### Who uses the bag
 
@@ -284,7 +377,8 @@ try {
 
 #### Example: multi-source device
 
-Connect builds **one bag per video source**. `activeMediaProfile` is always slot `0` until you switch.
+Connect builds **one bag per video source**. `activeMediaProfile` is the first bag with an
+encoder (else the first mapped bag) until you switch.
 
 ```ts
 await onvif.connect();
@@ -308,14 +402,17 @@ if (other) {
 }
 ```
 
-#### Example: door station / `media: false` - no bag
+#### Example: door station / `media: false`
 
 ```ts
 await onvif.connect({ media: false });
-console.log(onvif.activeMediaProfile); // undefined
+console.log(onvif.activeMediaProfile); // undefined (media skipped)
+console.log(onvif.activeDoorToken); // first door
+console.log(onvif.activeAccessPointToken); // first access point (if advertised)
 
-// Pass tokens explicitly, or connect with media: true when streams exist.
-await onvif.doorControl.getDoorInfo({ token: 'DoorToken_1' });
+await onvif.doorControl.getDoorInfo();
+await onvif.doorControl.unlockDoor();
+await onvif.accessControl.getAccessPointState();
 ```
 
 #### Example: refresh bags after editing profiles on the device
@@ -342,9 +439,15 @@ When `media`, `media2`, `ptz`, `analytics`, `imaging`, and similar methods omit
 tokens, they read from `activeMediaProfile`. Pass an explicit token on the call
 to override the bag for that request only.
 
+Non-media services use separate defaults (`activeDoorToken`, `activeAccessPointToken`,
+`activeRecordingToken`, `activeRecordingJobToken`, `activeRelayOutputToken`) -- see
+[Active entity tokens](#active-entity-tokens-non-media).
+
 ## Related
 
 - Agents and timers: [resources.md](resources.md)
 - Lazy connect (no service class modules): [performance.md](performance.md)
 - Tests: `__tests__/activeMediaProfile.test.ts`, `__tests__/activeMediaProfile.multisource.test.ts`,
+  `__tests__/activeDoor.unit.test.ts`, `__tests__/activeEntityTokens.unit.test.ts`,
+  `__tests__/doorcontrol.test.ts`, `__tests__/accesscontrol.test.ts`,
   `__tests__/connection.errors.test.ts`, `__tests__/connection.lazy.test.ts`

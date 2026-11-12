@@ -6,6 +6,8 @@
 
 import { Onvif } from './onvif';
 import Service from './service';
+import { ReferenceToken } from './interfaces/common';
+import { OnvifValidationError } from './utils/errors';
 import {
   AccessPoint,
   AccessPointCapabilities,
@@ -54,22 +56,45 @@ import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
  * import { Onvif } from 'onvif';
  *
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
- * await onvif.connect();
+ * await onvif.connect({ media: false });
  *
- * const caps = await onvif.accessControl.getServiceCapabilities();
- * const list = await onvif.accessControl.getAccessPointInfoList();
- * const token = list.accessPointInfo![0].token;
- * const state = await onvif.accessControl.getAccessPointState({ token });
- * console.log(caps, list.accessPointInfo?.map((p) => p.name), state.enabled);
- *
- * await onvif.accessControl.disableAccessPoint({ token });
- * // await onvif.accessControl.enableAccessPoint({ token });
+ * // connect() sets activeAccessPointToken -- omit token on calls
+ * const state = await onvif.accessControl.getAccessPointState();
+ * console.log(state.enabled);
+ * await onvif.accessControl.disableAccessPoint();
+ * await onvif.accessControl.enableAccessPoint();
  * ```
  * @category Services
  */
 export default class AccessControl extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'accesscontrol');
+  }
+
+  private static tokensToBuild(tokens?: ReferenceToken[]) {
+    if (!tokens?.length) {
+      return undefined;
+    }
+    return tokens.length === 1 ? tokens[0] : tokens;
+  }
+
+  /** Resolve a single access-point token: explicit arg, else {@link Onvif.activeAccessPointToken}. */
+  private accessPointToken(token?: ReferenceToken): ReferenceToken {
+    const resolved = token ?? this.onvif.activeAccessPointToken;
+    if (resolved === undefined || resolved === '') {
+      throw new OnvifValidationError(
+        'Access point token is required (pass token or connect with AccessControl so activeAccessPointToken is set)',
+      );
+    }
+    return resolved;
+  }
+
+  /** Resolve token list: explicit list, else `[activeAccessPointToken]`. */
+  private accessPointTokens(tokens?: ReferenceToken[]): ReferenceToken[] {
+    if (tokens?.length) {
+      return tokens;
+    }
+    return [this.accessPointToken()];
   }
 
   private static accessPointCapabilitiesToBuild(capabilities: AccessPointCapabilities) {
@@ -167,11 +192,15 @@ export default class AccessControl extends Service {
 
   /**
    * Returns access point info items for the requested tokens.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    * @returns Access point info items
    */
-  async getAccessPointInfo({ token }: GetAccessPointInfo): Promise<AccessPointInfo[]> {
-    const response = await this.request({ GetAccessPointInfo: { Token: token } }, { array: ['accessPointInfo'] });
+  async getAccessPointInfo(options: GetAccessPointInfo = {}): Promise<AccessPointInfo[]> {
+    const response = await this.request(
+      { GetAccessPointInfo: { Token: AccessControl.tokensToBuild(this.accessPointTokens(options.token)) } },
+      { array: ['accessPointInfo'] },
+    );
     return response.getAccessPointInfoResponse?.accessPointInfo ?? [];
   }
 
@@ -195,11 +224,15 @@ export default class AccessControl extends Service {
 
   /**
    * Returns access point items for the requested tokens.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    * @returns Access points
    */
-  async getAccessPoints({ token }: GetAccessPoints): Promise<AccessPoint[]> {
-    const response = await this.request({ GetAccessPoints: { Token: token } }, { array: ['accessPoint'] });
+  async getAccessPoints(options: GetAccessPoints = {}): Promise<AccessPoint[]> {
+    const response = await this.request(
+      { GetAccessPoints: { Token: AccessControl.tokensToBuild(this.accessPointTokens(options.token)) } },
+      { array: ['accessPoint'] },
+    );
     return response.getAccessPointsResponse?.accessPoint ?? [];
   }
 
@@ -232,34 +265,41 @@ export default class AccessControl extends Service {
 
   /**
    * Deletes an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async deleteAccessPoint({ token }: DeleteAccessPoint): Promise<void> {
-    await this.request({ DeleteAccessPoint: { Token: token } });
+  async deleteAccessPoint(options: Partial<DeleteAccessPoint> = {}): Promise<void> {
+    await this.request({ DeleteAccessPoint: { Token: this.accessPointToken(options.token) } });
   }
 
   /**
    * Sets the authentication profile of an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async setAccessPointAuthenticationProfile({
-    token,
-    authenticationProfileToken,
-  }: SetAccessPointAuthenticationProfile): Promise<void> {
+  async setAccessPointAuthenticationProfile(
+    options: Partial<SetAccessPointAuthenticationProfile> &
+      Pick<SetAccessPointAuthenticationProfile, 'authenticationProfileToken'>,
+  ): Promise<void> {
     await this.request({
       SetAccessPointAuthenticationProfile: {
-        Token: token,
-        AuthenticationProfileToken: authenticationProfileToken,
+        Token: this.accessPointToken(options.token),
+        AuthenticationProfileToken: options.authenticationProfileToken,
       },
     });
   }
 
   /**
    * Deletes the authentication profile reference from an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async deleteAccessPointAuthenticationProfile({ token }: DeleteAccessPointAuthenticationProfile): Promise<void> {
-    await this.request({ DeleteAccessPointAuthenticationProfile: { Token: token } });
+  async deleteAccessPointAuthenticationProfile(
+    options: Partial<DeleteAccessPointAuthenticationProfile> = {},
+  ): Promise<void> {
+    await this.request({
+      DeleteAccessPointAuthenticationProfile: { Token: this.accessPointToken(options.token) },
+    });
   }
 
   /**
@@ -353,60 +393,64 @@ export default class AccessControl extends Service {
 
   /**
    * Returns the current state of an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async getAccessPointState({ token }: GetAccessPointState): Promise<AccessPointState> {
-    const response = await this.request({ GetAccessPointState: { Token: token } });
+  async getAccessPointState(options: Partial<GetAccessPointState> = {}): Promise<AccessPointState> {
+    const response = await this.request({
+      GetAccessPointState: { Token: this.accessPointToken(options.token) },
+    });
     return response.getAccessPointStateResponse.accessPointState;
   }
 
   /**
    * Enables an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async enableAccessPoint({ token }: EnableAccessPoint): Promise<void> {
-    await this.request({ EnableAccessPoint: { Token: token } });
+  async enableAccessPoint(options: Partial<EnableAccessPoint> = {}): Promise<void> {
+    await this.request({ EnableAccessPoint: { Token: this.accessPointToken(options.token) } });
   }
 
   /**
    * Disables an access point.
+   * When `token` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async disableAccessPoint({ token }: DisableAccessPoint): Promise<void> {
-    await this.request({ DisableAccessPoint: { Token: token } });
+  async disableAccessPoint(options: Partial<DisableAccessPoint> = {}): Promise<void> {
+    await this.request({ DisableAccessPoint: { Token: this.accessPointToken(options.token) } });
   }
 
   /**
    * Informs the device about an external authorization decision.
+   * When `accessPointToken` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async externalAuthorization({
-    accessPointToken,
-    credentialToken,
-    reason,
-    decision,
-  }: ExternalAuthorization): Promise<void> {
+  async externalAuthorization(
+    options: Partial<ExternalAuthorization> & Pick<ExternalAuthorization, 'decision'>,
+  ): Promise<void> {
     await this.request({
       ExternalAuthorization: {
-        AccessPointToken: accessPointToken,
-        ...(credentialToken && { CredentialToken: credentialToken }),
-        ...(reason && { Reason: reason }),
-        Decision: decision,
+        AccessPointToken: this.accessPointToken(options.accessPointToken),
+        ...(options.credentialToken && { CredentialToken: options.credentialToken }),
+        ...(options.reason && { Reason: options.reason }),
+        Decision: options.decision,
       },
     });
   }
 
   /**
    * Provides feedback for an access point.
+   * When `accessPointToken` is omitted, uses {@link Onvif.activeAccessPointToken}.
    * @param options
    */
-  async feedback({ accessPointToken, feedbackType, recognitionType, textMessage }: Feedback): Promise<void> {
+  async feedback(options: Partial<Feedback> & Pick<Feedback, 'feedbackType'>): Promise<void> {
     await this.request({
       Feedback: {
-        AccessPointToken: accessPointToken,
-        FeedbackType: feedbackType,
-        ...(recognitionType && { RecognitionType: recognitionType }),
-        ...(textMessage && { TextMessage: textMessage }),
+        AccessPointToken: this.accessPointToken(options.accessPointToken),
+        FeedbackType: options.feedbackType,
+        ...(options.recognitionType && { RecognitionType: options.recognitionType }),
+        ...(options.textMessage && { TextMessage: options.textMessage }),
       },
     });
   }

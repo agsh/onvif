@@ -249,6 +249,7 @@ describe('compatibility promises unit', () => {
         cam.services = [];
         return [] as never;
       });
+      jest.spyOn(connectSteps, 'getActiveEntityTokens').mockResolvedValue(undefined);
       const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
       const getVideoSources = jest.spyOn(connectSteps, 'getVideoSources');
       const getActiveMediaProfiles = jest.spyOn(connectSteps, 'getActiveMediaProfiles');
@@ -274,6 +275,7 @@ describe('compatibility promises unit', () => {
         cam.uri.doorcontrol = new URL('http://127.0.0.1/onvif/doorcontrol');
         return [] as never;
       });
+      jest.spyOn(connectSteps, 'getActiveEntityTokens').mockResolvedValue(undefined);
       const probeMedia2Profiles = jest.spyOn(connectSteps, 'probeMedia2Profiles');
       const getMediaProfiles = jest.spyOn(connectSteps, 'getMediaProfiles');
       const getVideoSources = jest.spyOn(connectSteps, 'getVideoSources');
@@ -312,6 +314,8 @@ describe('compatibility promises unit', () => {
       jest
         .spyOn(connectSteps, 'getVideoSources')
         .mockRejectedValue(new Error('ONVIF SOAP Fault: Optional action not implemented'));
+      // Keep entity probes off the wire -- this test is about Media failure only.
+      jest.spyOn(connectSteps, 'getActiveEntityTokens').mockResolvedValue(undefined);
       const getActiveMediaProfiles = jest.spyOn(connectSteps, 'getActiveMediaProfiles');
 
       await expect(onvif.connect()).resolves.toBe(onvif);

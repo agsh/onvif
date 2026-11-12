@@ -6,6 +6,7 @@
 
 import { Onvif } from './onvif';
 import Service from './service';
+import { ReferenceToken } from './interfaces/common';
 import {
   FindEventResultList,
   FindMetadataResultList,
@@ -38,6 +39,7 @@ import {
   GetRecordingSummary,
   GetSearchState,
 } from './interfaces/search';
+import { OnvifValidationError } from './utils/errors';
 import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
@@ -71,6 +73,16 @@ import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 export default class Search extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'search');
+  }
+
+  private recordingToken(recordingToken?: ReferenceToken): ReferenceToken {
+    const resolved = recordingToken ?? this.onvif.activeRecordingToken;
+    if (resolved === undefined || resolved === '') {
+      throw new OnvifValidationError(
+        'recordingToken is required (pass it or connect with Recording so activeRecordingToken is set)',
+      );
+    }
+    return resolved;
   }
 
   private static recordingTokensToBuild(tokens: RecordingReference[]) {
@@ -145,12 +157,15 @@ export default class Search extends Service {
 
   /**
    * Returns detailed information about a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingInformation({ recordingToken }: GetRecordingInformation): Promise<RecordingInformation> {
+  async getRecordingInformation(
+    options: Partial<GetRecordingInformation> = {},
+  ): Promise<RecordingInformation> {
     const response = await this.request({
       GetRecordingInformation: {
-        RecordingToken: recordingToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
       },
     });
     return response.getRecordingInformationResponse.recordingInformation;
