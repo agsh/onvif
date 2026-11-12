@@ -22,7 +22,7 @@ import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
 import https, { Agent as HttpsAgent } from 'https';
 import http, { Agent as HttpAgent } from 'http';
-import ErrnoException = NodeJS.ErrnoException;
+import { toError } from './utils/errors';
 
 interface TerminationTimeResponse {
   currentTime: Date;
@@ -134,7 +134,6 @@ const MESSAGE_LIMIT = 10;
 const PULL_TERMINATION_TIME = toIsoDuration(toMs(PULL_TIMEOUT) * 4);
 const PUSH_TERMINATION_TIME = 2 * 60 * 60 * 1000;
 
-/** True for transient network failures that warrant a pull-loop retry. */
 function isRetryableNetworkError(error: unknown): error is { code: string } {
   return (
     typeof error === 'object' &&
@@ -505,14 +504,17 @@ export default class Events {
 
 interface SubscriptionEvents {
   data: [msg: NotificationMessage];
-  error: [error: NodeJS.ErrnoException];
-  connectionError: [error: NodeJS.ErrnoException];
+  /** Pull/renew failure, SOAP fault, or sync throw from a `data` listener. */
+  error: [error: Error];
+  /** Soft network / renew glitch while the pull point is still alive. */
+  connectionError: [error: Error];
 }
 
 /**
  * Standalone pull-point subscription (separate from {@link Events.globalSubscription}).
  * @event data - emitted when an event notification is received
- * @event error - emitted when a pull / renew error occurs
+ * @event error - pull / renew failure (triggers resubscribe), or a synchronous throw from a
+ *   `data` listener (does not rebuild the pull point)
  *
  * @example Filtered pull-point with renew and clean shutdown:
  * ```ts
@@ -555,12 +557,16 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    */
   declare data: (msg: NotificationMessage) => void;
   /**
-   * Any subscription error
+   * Pull/renew failure (resubscribe) or synchronous throw from a `data` listener (no resubscribe)
    * @event
-   * @param error Error object
+   * @param error Error object (may be OnvifError / SOAP fault / network Error)
    */
-  declare error: (error: NodeJS.ErrnoException) => void;
-  declare connectionError: (error: NodeJS.ErrnoException) => void;
+  declare error: (error: Error) => void;
+  /**
+   * Soft network / renew issue; same subscription is retried
+   * @event
+   */
+  declare connectionError: (error: Error) => void;
 
   constructor(onvif: Onvif, options: CreatePullPointSubscriptionExtended = {}) {
     super({ captureRejections: true });
@@ -629,6 +635,27 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   }
 
   /**
+   * Deliver notification messages to `data` listeners.
+   * Listener exceptions must not fall into the PullMessages/Renew transport catch
+   * (that path rebuilds the pull point). Surface them via `error` when someone listens.
+   */
+  private dispatchNotificationMessages(messages: NotificationMessage[]) {
+    for (const msg of messages) {
+      try {
+        this.emit('data', msg);
+      } catch (listenerError) {
+        if (this.listenerCount('error') > 0) {
+          try {
+            this.emit('error', toError(listenerError));
+          } catch {
+            // Ignore secondary failures in error listeners.
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Loop events from the subscription
    */
   async eventPull() {
@@ -644,9 +671,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
         return;
       }
       this.eventReconnectMs = MIN_EVENT_RECONNECT_MS;
-      msgs.notificationMessage.forEach((msg: NotificationMessage) => {
-        this.emit('data', msg);
-      });
+      // Emit outside transport classification: user handler throws must not resubscribe.
+      this.dispatchNotificationMessages(msgs.notificationMessage ?? []);
       // PullMessages times are device-clock; convert before comparing / storing vs Date.now().
       const localTerm = localTerminationTime(msgs);
       if (+localTerm <= Date.now()) {
@@ -676,16 +702,16 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
           }
         } catch (renewError) {
           // do nothing, we're just trying not to lose subscription
-          this.emit('connectionError', renewError as ErrnoException);
+          this.emit('connectionError', toError(renewError));
         }
         if (!this.pulling) {
           return;
         }
-        this.emit('connectionError', error as ErrnoException);
+        this.emit('connectionError', toError(error));
         this.restartEventRequest();
       } else {
         // there was an error pulling the message (device shut down, corrupted)
-        this.emit('error', error as NodeJS.ErrnoException);
+        this.emit('error', toError(error));
         // A device that answers every pull with a fault would be re-subscribed as fast as the
         // network allows, and every attempt authenticates, so some devices lock the account. Wait
         // the interval the branch above uses; a successful pull resets it.

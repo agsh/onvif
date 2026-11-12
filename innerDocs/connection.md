@@ -187,6 +187,19 @@ activeMediaProfile     = bag(P006)   // first bag with encoder
 Rebuild the same way later with `await onvif.getActiveMediaProfiles()` (e.g. after you mutated
 profiles on the device and refreshed `onvif.profiles`).
 
+#### Concurrent / multi-source caveat
+
+`activeMediaProfile` is **one shared process-wide default**. Omit-token methods read it
+synchronously when the call starts (before `await` transport), so:
+
+- an in-flight omit-token call is **not** rewritten by a later `setActiveMediaProfile`
+- starting two omit-token calls around a switch **can** target different profiles
+- `activeMediaProfiles[i]` slots stay source-aligned under switches; only the matching slot
+  and the shared `activeMediaProfile` change
+
+For parallel work across sources, pass explicit `profileToken` / `videoSourceToken` (from
+`activeMediaProfiles[i]`), do not rely on the shared bag.
+
 ## Active entity tokens (non-media)
 
 Services outside the Media Profile pipeline get their own default tokens. Connect probes

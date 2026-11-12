@@ -229,6 +229,157 @@ describe('activeMediaProfile multi-source bags', () => {
   });
 });
 
+describe('activeMediaProfile concurrent multi-source switches', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((res) => {
+      resolve = res;
+    });
+    return { promise, resolve };
+  }
+
+  it('omit-token call snapshots activeMediaProfile before await (in-flight switch is safe)', async () => {
+    const onvif = dualSourceOnvif();
+    await getActiveMediaProfiles(onvif);
+    const media = new Media(onvif);
+
+    const gate = deferred<{ getStreamUriResponse: { mediaUri: { uri: string } } }>();
+    const seen: unknown[] = [];
+    jest.spyOn(media as any, 'request').mockImplementation(async (body: unknown) => {
+      seen.push(body);
+      return gate.promise;
+    });
+
+    const pending = media.getStreamUri({ protocol: 'RTSP' });
+    // Switch while the first call is still awaiting transport.
+    setActiveMediaProfile(onvif, 'p2-main');
+    expect(onvif.activeMediaProfile?.profileToken).toBe('p2-main');
+
+    gate.resolve({ getStreamUriResponse: { mediaUri: { uri: 'rtsp://x' } } });
+    await pending;
+
+    expect(seen).toEqual([
+      expect.objectContaining({
+        GetStreamUri: expect.objectContaining({ ProfileToken: 'p1-main' }),
+      }),
+    ]);
+  });
+
+  it('parallel omit-token calls race if setActiveMediaProfile runs between them', async () => {
+    const onvif = dualSourceOnvif();
+    await getActiveMediaProfiles(onvif);
+    const media = new Media(onvif);
+
+    const tokens: string[] = [];
+    jest.spyOn(media as any, 'request').mockImplementation(async (body: any) => {
+      tokens.push(body.GetStreamUri.ProfileToken);
+      return { getStreamUriResponse: { mediaUri: { uri: 'rtsp://x' } } };
+    });
+
+    // Single-threaded: first omit-token call captures p1-main, then we switch, then second captures p2-main.
+    const first = media.getStreamUri({ protocol: 'RTSP' });
+    setActiveMediaProfile(onvif, 'p2-main');
+    const second = media.getStreamUri({ protocol: 'RTSP' });
+    await Promise.all([first, second]);
+
+    expect(tokens).toEqual(['p1-main', 'p2-main']);
+  });
+
+  it('explicit profileToken is immune to concurrent setActiveMediaProfile', async () => {
+    const onvif = dualSourceOnvif();
+    await getActiveMediaProfiles(onvif);
+    const media = new Media(onvif);
+
+    const tokens: string[] = [];
+    const gates = [deferred<any>(), deferred<any>()];
+    let call = 0;
+    jest.spyOn(media as any, 'request').mockImplementation(async (body: any) => {
+      tokens.push(body.GetStreamUri.ProfileToken);
+      const idx = call;
+      call += 1;
+      return gates[idx].promise;
+    });
+
+    const a = media.getStreamUri({ protocol: 'RTSP', profileToken: 'p1-main' });
+    const b = media.getStreamUri({ protocol: 'RTSP', profileToken: 'p2-main' });
+    setActiveMediaProfile(onvif, 'p1-sub');
+    setActiveMediaProfile(onvif, 'p2-sub');
+
+    gates[0].resolve({ getStreamUriResponse: { mediaUri: { uri: 'rtsp://1' } } });
+    gates[1].resolve({ getStreamUriResponse: { mediaUri: { uri: 'rtsp://2' } } });
+    await Promise.all([a, b]);
+
+    expect(tokens).toEqual(['p1-main', 'p2-main']);
+    expect(onvif.activeMediaProfile?.profileToken).toBe('p2-sub');
+  });
+
+  it('switching one source does not rewrite the other source slot under parallel reads', async () => {
+    const onvif = dualSourceOnvif();
+    await getActiveMediaProfiles(onvif);
+
+    const reads: Array<{ slot0: string; slot1: string; active: string }> = [];
+    const workers = Array.from({ length: 20 }, async (_, i) => {
+      if (i % 2 === 0) {
+        setActiveMediaProfile(onvif, i % 4 === 0 ? 'p1-main' : 'p1-sub');
+      } else {
+        setActiveMediaProfile(onvif, i % 4 === 1 ? 'p2-main' : 'p2-sub');
+      }
+      reads.push({
+        slot0: onvif.activeMediaProfiles[0].profileToken,
+        slot1: onvif.activeMediaProfiles[1].profileToken,
+        active: onvif.activeMediaProfile!.profileToken,
+      });
+    });
+    await Promise.all(workers);
+
+    for (const row of reads) {
+      expect(['p1-main', 'p1-sub']).toContain(row.slot0);
+      expect(['p2-main', 'p2-sub']).toContain(row.slot1);
+      expect([row.slot0, row.slot1]).toContain(row.active);
+      // Slots stay source-aligned: vs1 profiles never land in slot1 and vice versa.
+      expect(row.slot0.startsWith('p1-')).toBe(true);
+      expect(row.slot1.startsWith('p2-')).toBe(true);
+    }
+  });
+
+  it('parallel multi-source work should pass explicit tokens (not rely on shared active bag)', async () => {
+    const onvif = dualSourceOnvif();
+    await getActiveMediaProfiles(onvif);
+    const media = new Media(onvif);
+    const imaging = new Imaging(onvif);
+
+    const mediaTokens: string[] = [];
+    const imagingTokens: string[] = [];
+    jest.spyOn(media as any, 'request').mockImplementation(async (body: any) => {
+      mediaTokens.push(body.GetStreamUri.ProfileToken);
+      return { getStreamUriResponse: { mediaUri: { uri: 'rtsp://x' } } };
+    });
+    jest.spyOn(imaging as any, 'request').mockImplementation(async (body: any) => {
+      imagingTokens.push(body.GetImagingSettings.VideoSourceToken);
+      return { getImagingSettingsResponse: { imagingSettings: {} } };
+    });
+
+    // Correct pattern for concurrent multi-source: explicit tokens from activeMediaProfiles slots.
+    await Promise.all([
+      media.getStreamUri({ protocol: 'RTSP', profileToken: onvif.activeMediaProfiles[0].profileToken }),
+      media.getStreamUri({ protocol: 'RTSP', profileToken: onvif.activeMediaProfiles[1].profileToken }),
+      imaging.getImagingSettings({ videoSourceToken: onvif.activeMediaProfiles[0].videoSourceToken }),
+      imaging.getImagingSettings({ videoSourceToken: onvif.activeMediaProfiles[1].videoSourceToken }),
+      (async () => {
+        setActiveMediaProfile(onvif, 'p1-sub');
+        setActiveMediaProfile(onvif, 'p2-sub');
+      })(),
+    ]);
+
+    expect(mediaTokens.sort()).toEqual(['p1-main', 'p2-main']);
+    expect(imagingTokens.sort()).toEqual(['vs1', 'vs2']);
+  });
+});
+
 describe('activeMediaProfile service SOAP token consistency', () => {
   afterEach(() => {
     jest.restoreAllMocks();
