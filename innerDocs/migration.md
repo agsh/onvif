@@ -30,7 +30,7 @@ const cam = new Cam(
 );
 ```
 
-Runnable sample: [compatibility.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibility.cjs).
+Runnable sample: [compatibility.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs).
 
 ## Promises (`onvif/compatibility/promises`)
 
@@ -45,7 +45,7 @@ const cam = new Cam({ hostname: '192.168.1.13', port: 8000, username: 'admin', p
 })();
 ```
 
-Runnable sample: [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/v1/examples/compatibilityPromises.cjs).
+Runnable sample: [compatibilityPromises.cjs](https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs).
 
 The promisified `Cam` wraps the callback implementation:
 
@@ -85,6 +85,8 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
   - `getStreamUri` / `getSnapshotUri` -> `MediaUri` (use `.uri`; Cam normalizers keep a top-level `.uri`)
 - `close()` is available on compatibility `Cam` (callback and promises) even though classic v0.x had no
   equivalent - needed so keep-alive sockets do not keep the process alive after 1.x agent ownership.
+- **Event subscription errors:** listen for `eventError` (was `eventsError` in earlier 1.x drafts /
+  docs). Same name on `Onvif` and compatibility `Cam`; constant `Onvif.EVENT_ERROR`.
 - **Active media profile (token bag):** v0.x exposed `cam.activeSource` / `cam.activeSources` with a mix of
   tokens and encoder snapshots (`encoding`, resolution, fps, nested `ptz: { name, token }`). In 1.x the
   modern names are `activeMediaProfile` / `activeMediaProfiles` (on `Onvif` and on compatibility `Cam`).
@@ -93,3 +95,9 @@ The compatibility `Cam` covers the v0.8 method surface used in practice. Remaini
   `defaultProfile` (or `profiles`). Switch the current pipeline with
   `setActiveMediaProfile(profileToken)` (callback or Promise Cam). Do not assign bag fields by hand.
   Details: [connection.md#active-media-profile-token-bag](connection.md#active-media-profile-token-bag).
+- **Active entity tokens (non-media):** 1.x also sets `activeDoorToken`, `activeAccessPointToken`,
+  `activeRecordingToken` / `activeRecordingJobToken`, and `activeRelayOutputToken` during
+  `connect()` when those services are advertised. Omit-token DoorControl / AccessControl /
+  Recording / Replay / Search / DeviceIO relay calls use them. Switch with `setActiveDoor`,
+  `setActiveAccessPoint`, `setActiveRecording`, `setActiveRecordingJob`, `setActiveRelayOutput`.
+  Details: [connection.md#active-entity-tokens-non-media](connection.md#active-entity-tokens-non-media).

@@ -106,8 +106,8 @@ describe('eventPull listener exceptions', () => {
     };
     (sub as any).pulling = true;
 
-    const eventsErrors: Error[] = [];
-    onvif.on('eventsError', (err) => eventsErrors.push(err));
+    const eventErrors: Error[] = [];
+    onvif.on('eventError', (err) => eventErrors.push(err));
     onvif.on('event', () => {
       throw new Error('onvif event handler boom');
     });
@@ -128,7 +128,7 @@ describe('eventPull listener exceptions', () => {
 
     await sub.eventPull();
 
-    expect(eventsErrors.some((e) => e.message === 'onvif event handler boom')).toBe(true);
+    expect(eventErrors.some((e) => e.message === 'onvif event handler boom')).toBe(true);
     expect(restartEvent).not.toHaveBeenCalled();
     expect(pulls).toBe(2);
   });

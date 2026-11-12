@@ -20,6 +20,10 @@ Discovery.on('error', (err) => {
   console.error('Discovery error', err);
 });
 
+Discovery.on('status', (msg) => {
+  console.log('Discovery status', msg);
+});
+
 (async () => {
   const devices = await Discovery.probe();
   console.log(`Probe finished, ${devices.length} device(s)`);

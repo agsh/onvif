@@ -105,8 +105,8 @@ function onEvent(msg: NotificationMessage) {
 
   await onvif.connect();
   onvif.on('event', onEvent);
-  onvif.on('eventsError', (err) => {
-    console.error('eventsError', err);
+  onvif.on('eventError', (err) => {
+    console.error('eventError', err);
   });
 
   console.log(`Connected to ${HOSTNAME}:${PORT}. Waiting for motion… (Ctrl+C to quit)`);

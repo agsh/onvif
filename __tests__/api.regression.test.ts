@@ -47,6 +47,7 @@ const MAIN_RUNTIME_EXPORTS = [
   'struct',
   'toIsoDuration',
   'toMs',
+  'withUrlCredentials',
   'xsany',
 ].sort();
 
