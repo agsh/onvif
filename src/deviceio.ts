@@ -68,10 +68,10 @@ import { OnvifValidationError } from './utils';
  * const videoOutputs = await onvif.deviceIO.getVideoOutputs();
  * console.log(caps, relays.length, inputs.length, videoOutputs.map((v) => v.token));
  *
- * const relayOutputToken = relays[0]!.token;
- * await onvif.deviceIO.setRelayOutputState({ relayOutputToken, logicalState: 'active' });
+ * // connect() may set activeRelayOutputToken -- omit token when toggling the default relay
+ * await onvif.deviceIO.setRelayOutputState({ logicalState: 'active' });
  * await new Promise((r) => setTimeout(r, 500));
- * await onvif.deviceIO.setRelayOutputState({ relayOutputToken, logicalState: 'inactive' });
+ * await onvif.deviceIO.setRelayOutputState({ logicalState: 'inactive' });
  * ```
  * @category Services
  */
@@ -84,6 +84,20 @@ export default class DeviceIO extends Service {
     const token = videoSourceToken ?? this.onvif.activeMediaProfile?.videoSourceToken;
     if (!token) {
       throw new OnvifValidationError('videoSourceToken is required (pass it or connect with a media profile)');
+    }
+    return token;
+  }
+
+  /**
+   * Resolve a required relay token. Not used when omitting the token means "all relays"
+   * (e.g. {@link getRelayOutputOptions}).
+   */
+  private relayOutputToken(relayOutputToken?: ReferenceToken): ReferenceToken {
+    const token = relayOutputToken ?? this.onvif.activeRelayOutputToken;
+    if (!token) {
+      throw new OnvifValidationError(
+        'relayOutputToken is required (pass it or connect with DeviceIO so activeRelayOutputToken is set)',
+      );
     }
     return token;
   }
@@ -449,13 +463,16 @@ export default class DeviceIO extends Service {
 
   /**
    * Sets the logical state of a relay output.
+   * When `relayOutputToken` is omitted, uses {@link Onvif.activeRelayOutputToken}.
    * @param options
    */
-  async setRelayOutputState({ relayOutputToken, logicalState }: SetRelayOutputState): Promise<void> {
+  async setRelayOutputState(
+    options: Partial<SetRelayOutputState> & Pick<SetRelayOutputState, 'logicalState'>,
+  ): Promise<void> {
     await this.request({
       SetRelayOutputState: {
-        RelayOutputToken: relayOutputToken,
-        LogicalState: logicalState,
+        RelayOutputToken: this.relayOutputToken(options.relayOutputToken),
+        LogicalState: options.logicalState,
       },
     });
   }

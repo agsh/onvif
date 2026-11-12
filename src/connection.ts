@@ -383,9 +383,69 @@ export function setActiveMediaProfile(onvif: Onvif, profileToken: ReferenceToken
 }
 
 /**
+ * Pick Media Profiles for one video source.
+ *
+ * Order:
+ * 1. same `sourceToken` + `videoEncoderConfiguration`
+ * 2. same `sourceToken` (encoder optional; HikVision NVR stubs, etc.)
+ * 3. single-source last resort only: any encoder profile, else any profile
+ *
+ * Multi-source devices never borrow another source's profile (avoids wrong-channel defaults).
+ */
+export function profilesForVideoSource(
+  profiles: Profile[],
+  videoSrcToken: ReferenceToken,
+  singleSource: boolean,
+): Profile[] {
+  const sameSource = profiles.filter((profile) => profile.videoSourceConfiguration?.sourceToken === videoSrcToken);
+  const sameWithEncoder = sameSource.filter((profile) => profile.videoEncoderConfiguration !== undefined);
+  if (sameWithEncoder.length > 0) {
+    return sameWithEncoder;
+  }
+  if (sameSource.length > 0) {
+    return sameSource;
+  }
+  if (!singleSource) {
+    return [];
+  }
+  const anyEncoder = profiles.filter((profile) => profile.videoEncoderConfiguration !== undefined);
+  if (anyEncoder.length > 0) {
+    return anyEncoder;
+  }
+  return [...profiles];
+}
+
+/**
+ * Pick process-wide defaults from index-aligned bags.
+ * Prefer the first bag that has a video encoder; else the first mapped slot.
+ */
+export function selectDefaultActiveMediaProfile(
+  activeMediaProfiles: ActiveMediaProfile[],
+  defaultProfiles: Profile[],
+): { bag?: ActiveMediaProfile; profile?: Profile } {
+  for (let idx = 0; idx < activeMediaProfiles.length; idx += 1) {
+    const bag = activeMediaProfiles[idx];
+    if (bag?.videoEncoderConfigurationToken) {
+      return { bag, profile: defaultProfiles[idx] };
+    }
+  }
+  for (let idx = 0; idx < activeMediaProfiles.length; idx += 1) {
+    const bag = activeMediaProfiles[idx];
+    if (bag) {
+      return { bag, profile: defaultProfiles[idx] };
+    }
+  }
+  return {};
+}
+
+/**
  * Build {@link Onvif.activeMediaProfiles} from video sources + media profiles.
  * No-op when the device has no video sources (e.g. Profile C door stations).
  * Always resets prior state so a reconnect with fewer sources cannot leave stale slots.
+ *
+ * Slots stay index-aligned with {@link Onvif.videoSources}. Unmatched sources leave a hole.
+ * {@link Onvif.activeMediaProfile} / {@link Onvif.defaultProfile} prefer the first bag with a
+ * video encoder; otherwise the first successfully mapped slot.
  */
 export async function getActiveMediaProfiles(onvif: Onvif): Promise<void> {
   resetActiveMediaProfileState(onvif);
@@ -394,49 +454,43 @@ export async function getActiveMediaProfiles(onvif: Onvif): Promise<void> {
     return;
   }
 
-  onvif.videoSources.forEach(({ token: videoSrcToken }, idx) => {
-    let appropriateProfiles = onvif.profiles.filter(
-      (profile) =>
-        profile.videoSourceConfiguration?.sourceToken === videoSrcToken &&
-        profile.videoEncoderConfiguration !== undefined,
-    );
+  const singleSource = onvif.videoSources.length === 1;
+  let mappedAny = false;
 
+  onvif.videoSources.forEach(({ token: videoSrcToken }, idx) => {
+    const appropriateProfiles = profilesForVideoSource(onvif.profiles, videoSrcToken, singleSource);
     if (appropriateProfiles.length === 0) {
-      appropriateProfiles = onvif.profiles.filter((profile) => profile.videoEncoderConfiguration !== undefined);
-    }
-    if (appropriateProfiles.length === 0) {
-      appropriateProfiles = [...onvif.profiles];
-    }
-    if (appropriateProfiles.length === 0) {
-      if (idx === 0) {
-        onvif.emit(
-          'warn',
-          new OnvifValidationError('Unrecognized configuration: no media profiles available for video sources'),
-        );
-      }
       return;
     }
 
-    if (idx === 0) {
-      [onvif.defaultProfile] = appropriateProfiles;
-    }
-
-    [onvif.defaultProfiles[idx]] = appropriateProfiles;
-    const profile = onvif.defaultProfiles[idx];
-
+    const profile = appropriateProfiles[0];
+    let bag: ActiveMediaProfile;
     try {
-      onvif.activeMediaProfiles[idx] = activeMediaProfileFromProfile(profile, videoSrcToken);
+      // Bag tokens always come from the chosen profile (no forced videoSrcToken override).
+      bag = activeMediaProfileFromProfile(profile);
     } catch (error) {
-      if (idx === 0) {
+      if (!mappedAny) {
         onvif.emit('warn', error instanceof Error ? error : new OnvifValidationError(String(error)));
       }
       return;
     }
 
-    if (idx === 0) {
-      onvif.activeMediaProfile = onvif.activeMediaProfiles[idx];
-    }
+    onvif.defaultProfiles[idx] = profile;
+    onvif.activeMediaProfiles[idx] = bag;
+    mappedAny = true;
   });
+
+  if (!mappedAny) {
+    onvif.emit(
+      'warn',
+      new OnvifValidationError('Unrecognized configuration: no media profiles available for video sources'),
+    );
+    return;
+  }
+
+  const selected = selectDefaultActiveMediaProfile(onvif.activeMediaProfiles, onvif.defaultProfiles);
+  onvif.activeMediaProfile = selected.bag;
+  onvif.defaultProfile = selected.profile;
 }
 
 /** @deprecated Use {@link getActiveMediaProfiles}. */
@@ -469,7 +523,171 @@ export function resetConnectState(onvif: Onvif): void {
   onvif.profiles = [];
   onvif.videoSources = [];
   onvif.deviceInformation = undefined;
+  onvif.activeDoorToken = undefined;
+  onvif.activeAccessPointToken = undefined;
+  onvif.activeRecordingToken = undefined;
+  onvif.activeRecordingJobToken = undefined;
+  onvif.activeRelayOutputToken = undefined;
   resetActiveMediaProfileState(onvif);
+}
+
+/** Assign a non-empty active entity token or throw. */
+export function setActiveEntityToken(
+  onvif: Onvif,
+  field:
+    | 'activeDoorToken'
+    | 'activeAccessPointToken'
+    | 'activeRecordingToken'
+    | 'activeRecordingJobToken'
+    | 'activeRelayOutputToken',
+  token: ReferenceToken,
+  label: string,
+): ReferenceToken {
+  if (token === undefined || token === '') {
+    throw new OnvifValidationError(`${label} is required`);
+  }
+  onvif[field] = token;
+  return token;
+}
+
+/**
+ * Set {@link Onvif.activeDoorToken} used when DoorControl methods omit `token`.
+ * @throws {@link OnvifValidationError} when the token is empty
+ */
+export function setActiveDoor(onvif: Onvif, token: ReferenceToken): ReferenceToken {
+  return setActiveEntityToken(onvif, 'activeDoorToken', token, 'door token');
+}
+
+/**
+ * Pick the first DoorControl door as {@link Onvif.activeDoorToken}.
+ * No-op when the device has no DoorControl XAddr.
+ * Uses `GetDoorInfoList` with `limit: 1` (loads the DoorControl module once).
+ */
+export async function getActiveDoor(onvif: Onvif): Promise<void> {
+  onvif.activeDoorToken = undefined;
+  if (!onvif.uri.doorcontrol) {
+    return;
+  }
+  try {
+    const list = await onvif.doorControl.getDoorInfoList({ limit: 1 });
+    const token = list.doorInfo?.[0]?.token;
+    if (token) {
+      onvif.activeDoorToken = token;
+    }
+  } catch (error) {
+    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+  }
+}
+
+/**
+ * Set {@link Onvif.activeAccessPointToken} used when AccessControl methods omit `token`.
+ * @throws {@link OnvifValidationError} when the token is empty
+ */
+export function setActiveAccessPoint(onvif: Onvif, token: ReferenceToken): ReferenceToken {
+  return setActiveEntityToken(onvif, 'activeAccessPointToken', token, 'access point token');
+}
+
+/**
+ * Pick the first AccessControl access point as {@link Onvif.activeAccessPointToken}.
+ * No-op when AccessControl is not advertised.
+ */
+export async function getActiveAccessPoint(onvif: Onvif): Promise<void> {
+  onvif.activeAccessPointToken = undefined;
+  if (!onvif.uri.accesscontrol) {
+    return;
+  }
+  try {
+    const list = await onvif.accessControl.getAccessPointInfoList({ limit: 1 });
+    const token = list.accessPointInfo?.[0]?.token;
+    if (token) {
+      onvif.activeAccessPointToken = token;
+    }
+  } catch (error) {
+    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+  }
+}
+
+/**
+ * Set {@link Onvif.activeRecordingToken} used when Recording / Replay / Search omit `recordingToken`.
+ * @throws {@link OnvifValidationError} when the token is empty
+ */
+export function setActiveRecording(onvif: Onvif, token: ReferenceToken): ReferenceToken {
+  return setActiveEntityToken(onvif, 'activeRecordingToken', token, 'recording token');
+}
+
+/**
+ * Set {@link Onvif.activeRecordingJobToken} used when Recording job methods omit `jobToken`.
+ * @throws {@link OnvifValidationError} when the token is empty
+ */
+export function setActiveRecordingJob(onvif: Onvif, token: ReferenceToken): ReferenceToken {
+  return setActiveEntityToken(onvif, 'activeRecordingJobToken', token, 'recording job token');
+}
+
+/**
+ * Pick first recording + first job tokens when Recording is advertised.
+ */
+export async function getActiveRecording(onvif: Onvif): Promise<void> {
+  onvif.activeRecordingToken = undefined;
+  onvif.activeRecordingJobToken = undefined;
+  if (!onvif.uri.recording) {
+    return;
+  }
+  try {
+    const [recordings, jobs] = await Promise.all([
+      onvif.recording.getRecordings(),
+      onvif.recording.getRecordingJobs(),
+    ]);
+    const recordingToken = recordings[0]?.recordingToken;
+    if (recordingToken) {
+      onvif.activeRecordingToken = recordingToken;
+    }
+    const jobToken = jobs[0]?.jobToken;
+    if (jobToken) {
+      onvif.activeRecordingJobToken = jobToken;
+    }
+  } catch (error) {
+    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+  }
+}
+
+/**
+ * Set {@link Onvif.activeRelayOutputToken} used when DeviceIO relay methods require a token.
+ * @throws {@link OnvifValidationError} when the token is empty
+ */
+export function setActiveRelayOutput(onvif: Onvif, token: ReferenceToken): ReferenceToken {
+  return setActiveEntityToken(onvif, 'activeRelayOutputToken', token, 'relay output token');
+}
+
+/**
+ * Pick the first DeviceIO relay output as {@link Onvif.activeRelayOutputToken}.
+ * No-op when DeviceIO is not advertised.
+ */
+export async function getActiveRelayOutput(onvif: Onvif): Promise<void> {
+  onvif.activeRelayOutputToken = undefined;
+  if (!onvif.uri.deviceIO) {
+    return;
+  }
+  try {
+    const relays = await onvif.deviceIO.getRelayOutputs();
+    const token = relays[0]?.token;
+    if (token) {
+      onvif.activeRelayOutputToken = token;
+    }
+  } catch (error) {
+    onvif.emit('warn', error instanceof Error ? error : new OnvifError(String(error)));
+  }
+}
+
+/**
+ * Probe Door / AccessPoint / Recording / Relay defaults in parallel (each no-ops without XAddr).
+ */
+export async function getActiveEntityTokens(onvif: Onvif): Promise<void> {
+  await Promise.all([
+    connectSteps.getActiveDoor(onvif),
+    connectSteps.getActiveAccessPoint(onvif),
+    connectSteps.getActiveRecording(onvif),
+    connectSteps.getActiveRelayOutput(onvif),
+  ]);
 }
 
 /**
@@ -538,6 +756,9 @@ export async function connect(onvif: Onvif, options: ConnectOptions = {}): Promi
     }
   }
 
+  // PACS / recording / IO: cheap list probes so omit-token calls work after connect.
+  await connectSteps.getActiveEntityTokens(onvif);
+
   onvif.emit('connect');
   return onvif;
 }
@@ -552,4 +773,14 @@ export const connectSteps = {
   getActiveMediaProfiles,
   getActiveSources,
   setActiveMediaProfile,
+  getActiveDoor,
+  setActiveDoor,
+  getActiveAccessPoint,
+  setActiveAccessPoint,
+  getActiveRecording,
+  setActiveRecording,
+  setActiveRecordingJob,
+  getActiveRelayOutput,
+  setActiveRelayOutput,
+  getActiveEntityTokens,
 };

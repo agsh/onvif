@@ -72,6 +72,12 @@ describe('DoorControl', () => {
       expect(state.lockPhysicalState).toBe('Locked');
     });
 
+    it('should use activeDoorToken when token is omitted', async () => {
+      expect(cam.activeDoorToken).toBe(DOOR_TOKEN_1);
+      const state = await cam.doorControl.getDoorState();
+      expect(state.doorMode).toBe('Locked');
+    });
+
     it('should reject an invalid door token', async () => {
       await expect(cam.doorControl.getDoorState({ token: 'InvalidToken' })).rejects.toThrow();
     });

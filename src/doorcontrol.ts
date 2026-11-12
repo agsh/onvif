@@ -7,6 +7,7 @@
 import { Onvif } from './onvif';
 import Service from './service';
 import { ReferenceToken } from './interfaces/common';
+import { OnvifValidationError } from './utils/errors';
 import {
   AccessDoor,
   BlockDoor,
@@ -45,18 +46,14 @@ import {
  * import { Onvif } from 'onvif';
  *
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
- * await onvif.connect();
+ * await onvif.connect({ media: false });
  *
- * const caps = await onvif.doorControl.getServiceCapabilities();
- * const list = await onvif.doorControl.getDoorList();
- * const token = list.door![0].token;
- * console.log(caps, await onvif.doorControl.getDoorInfo({ token: [token] }));
- *
- * console.log((await onvif.doorControl.getDoorState({ token })).doorMode);
- * await onvif.doorControl.unlockDoor({ token });
+ * // connect() sets activeDoorToken from GetDoorInfoList -- omit token on calls
+ * console.log(await onvif.doorControl.getDoorInfo());
+ * console.log((await onvif.doorControl.getDoorState()).doorMode);
+ * await onvif.doorControl.unlockDoor();
  * await new Promise((r) => setTimeout(r, 2000));
- * await onvif.doorControl.lockDoor({ token });
- * console.log((await onvif.doorControl.getDoorState({ token })).doorMode);
+ * await onvif.doorControl.lockDoor();
  * ```
  * @category Services
  */
@@ -70,6 +67,25 @@ export default class DoorControl extends Service {
       return undefined;
     }
     return tokens.length === 1 ? tokens[0] : tokens;
+  }
+
+  /** Resolve a single door token: explicit arg, else {@link Onvif.activeDoorToken}. */
+  private doorToken(token?: ReferenceToken): ReferenceToken {
+    const resolved = token ?? this.onvif.activeDoorToken;
+    if (resolved === undefined || resolved === '') {
+      throw new OnvifValidationError(
+        'Door token is required (pass token or connect with DoorControl so activeDoorToken is set)',
+      );
+    }
+    return resolved;
+  }
+
+  /** Resolve GetDoorInfo / GetDoors token list: explicit list, else `[activeDoorToken]`. */
+  private doorTokens(tokens?: ReferenceToken[]): ReferenceToken[] {
+    if (tokens?.length) {
+      return tokens;
+    }
+    return [this.doorToken()];
   }
 
   private static doorCapabilitiesToBuild(capabilities: DoorCapabilities) {
@@ -159,12 +175,13 @@ export default class DoorControl extends Service {
 
   /**
    * Returns door info items for the requested tokens.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken} (set by connect).
    * @param options
    * @returns Door info items
    */
-  async getDoorInfo({ token }: GetDoorInfo): Promise<DoorInfo[]> {
+  async getDoorInfo(options: GetDoorInfo = {}): Promise<DoorInfo[]> {
     const response = await this.request(
-      { GetDoorInfo: { Token: DoorControl.tokensToBuild(token) } },
+      { GetDoorInfo: { Token: DoorControl.tokensToBuild(this.doorTokens(options.token)) } },
       { array: ['doorInfo'] },
     );
     return response.getDoorInfoResponse?.doorInfo ?? [];
@@ -190,11 +207,15 @@ export default class DoorControl extends Service {
 
   /**
    * Returns door items for the requested tokens.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken} (set by connect).
    * @param options
    * @returns Doors
    */
-  async getDoors({ token }: GetDoors): Promise<Door[]> {
-    const response = await this.request({ GetDoors: { Token: DoorControl.tokensToBuild(token) } }, { array: ['door'] });
+  async getDoors(options: GetDoors = {}): Promise<Door[]> {
+    const response = await this.request(
+      { GetDoors: { Token: DoorControl.tokensToBuild(this.doorTokens(options.token)) } },
+      { array: ['door'] },
+    );
     return response.getDoorsResponse?.door ?? [];
   }
 
@@ -225,29 +246,32 @@ export default class DoorControl extends Service {
 
   /**
    * Deletes a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async deleteDoor({ token }: DeleteDoor): Promise<void> {
-    await this.request({ DeleteDoor: { Token: token } });
+  async deleteDoor(options: Partial<DeleteDoor> = {}): Promise<void> {
+    await this.request({ DeleteDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Returns the current state of a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async getDoorState({ token }: GetDoorState): Promise<DoorState> {
-    const response = await this.request({ GetDoorState: { Token: token } });
+  async getDoorState(options: Partial<GetDoorState> = {}): Promise<DoorState> {
+    const response = await this.request({ GetDoorState: { Token: this.doorToken(options.token) } });
     return response.getDoorStateResponse.doorState;
   }
 
   /**
    * Grants momentary access to a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async accessDoor(options: AccessDoor): Promise<void> {
+  async accessDoor(options: Partial<AccessDoor> = {}): Promise<void> {
     await this.request({
       AccessDoor: {
-        Token: options.token,
+        Token: this.doorToken(options.token),
         ...(options.useExtendedTime !== undefined && { UseExtendedTime: options.useExtendedTime }),
         ...(options.accessTime && { AccessTime: options.accessTime }),
         ...(options.openTooLongTime && { OpenTooLongTime: options.openTooLongTime }),
@@ -259,65 +283,73 @@ export default class DoorControl extends Service {
 
   /**
    * Locks a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async lockDoor({ token }: LockDoor): Promise<void> {
-    await this.request({ LockDoor: { Token: token } });
+  async lockDoor(options: Partial<LockDoor> = {}): Promise<void> {
+    await this.request({ LockDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Unlocks a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async unlockDoor({ token }: UnlockDoor): Promise<void> {
-    await this.request({ UnlockDoor: { Token: token } });
+  async unlockDoor(options: Partial<UnlockDoor> = {}): Promise<void> {
+    await this.request({ UnlockDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Blocks a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async blockDoor({ token }: BlockDoor): Promise<void> {
-    await this.request({ BlockDoor: { Token: token } });
+  async blockDoor(options: Partial<BlockDoor> = {}): Promise<void> {
+    await this.request({ BlockDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Puts a door in lock-down mode.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async lockDownDoor({ token }: LockDownDoor): Promise<void> {
-    await this.request({ LockDownDoor: { Token: token } });
+  async lockDownDoor(options: Partial<LockDownDoor> = {}): Promise<void> {
+    await this.request({ LockDownDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Releases lock-down mode on a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async lockDownReleaseDoor({ token }: LockDownReleaseDoor): Promise<void> {
-    await this.request({ LockDownReleaseDoor: { Token: token } });
+  async lockDownReleaseDoor(options: Partial<LockDownReleaseDoor> = {}): Promise<void> {
+    await this.request({ LockDownReleaseDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Puts a door in lock-open mode.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async lockOpenDoor({ token }: LockOpenDoor): Promise<void> {
-    await this.request({ LockOpenDoor: { Token: token } });
+  async lockOpenDoor(options: Partial<LockOpenDoor> = {}): Promise<void> {
+    await this.request({ LockOpenDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Releases lock-open mode on a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async lockOpenReleaseDoor({ token }: LockOpenReleaseDoor): Promise<void> {
-    await this.request({ LockOpenReleaseDoor: { Token: token } });
+  async lockOpenReleaseDoor(options: Partial<LockOpenReleaseDoor> = {}): Promise<void> {
+    await this.request({ LockOpenReleaseDoor: { Token: this.doorToken(options.token) } });
   }
 
   /**
    * Activates double-lock on a door.
+   * When `token` is omitted, uses {@link Onvif.activeDoorToken}.
    * @param options
    */
-  async doubleLockDoor({ token }: DoubleLockDoor): Promise<void> {
-    await this.request({ DoubleLockDoor: { Token: token } });
+  async doubleLockDoor(options: Partial<DoubleLockDoor> = {}): Promise<void> {
+    await this.request({ DoubleLockDoor: { Token: this.doorToken(options.token) } });
   }
 }

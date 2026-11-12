@@ -159,6 +159,74 @@ describe('activeMediaProfile multi-source bags', () => {
     expect(onvif.activeMediaProfiles[0].profileToken).toBe('p1-enc');
     expect(onvif.activeMediaProfiles[1].profileToken).toBe('p2-enc');
   });
+
+  it('keeps same-source profiles without encoder (HikVision-style stubs)', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.videoSources = [
+      { token: 'VideoSourceToken001' } as never,
+      { token: 'VideoSourceToken006' } as never,
+      { token: 'VideoSourceToken007' } as never,
+    ];
+    onvif.profiles = [
+      {
+        token: 'ProfileToken001',
+        videoSourceConfiguration: { token: 'VSC001', sourceToken: 'VideoSourceToken001' },
+      } as never,
+      profile({
+        token: 'ProfileToken006',
+        sourceToken: 'VideoSourceToken006',
+        vsc: 'VSC006',
+        vec: 'VEC006',
+      }),
+      {
+        token: 'ProfileToken007',
+        videoSourceConfiguration: { token: 'VSC007', sourceToken: 'VideoSourceToken007' },
+      } as never,
+    ];
+
+    await getActiveMediaProfiles(onvif);
+
+    expect(onvif.activeMediaProfiles[0].profileToken).toBe('ProfileToken001');
+    expect(onvif.activeMediaProfiles[0].videoSourceToken).toBe('VideoSourceToken001');
+    expect(onvif.activeMediaProfiles[0].videoEncoderConfigurationToken).toBeUndefined();
+
+    expect(onvif.activeMediaProfiles[1].profileToken).toBe('ProfileToken006');
+    expect(onvif.activeMediaProfiles[1].videoSourceToken).toBe('VideoSourceToken006');
+    expect(onvif.activeMediaProfiles[1].videoEncoderConfigurationToken).toBe('VEC006');
+
+    expect(onvif.activeMediaProfiles[2].profileToken).toBe('ProfileToken007');
+    expect(onvif.activeMediaProfiles[2].videoSourceToken).toBe('VideoSourceToken007');
+
+    // Process-wide default prefers the first bag that has an encoder.
+    expect(onvif.activeMediaProfile?.profileToken).toBe('ProfileToken006');
+    expect(onvif.defaultProfile?.token).toBe('ProfileToken006');
+  });
+
+  it('does not borrow another source encoder profile on multi-source devices', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.videoSources = [{ token: 'vs1' } as never, { token: 'vs2' } as never];
+    onvif.profiles = [profile({ token: 'p2', sourceToken: 'vs2', vsc: 'vsc2', vec: 'vec2' })];
+
+    await getActiveMediaProfiles(onvif);
+
+    expect(onvif.activeMediaProfiles[0]).toBeUndefined();
+    expect(onvif.activeMediaProfiles[1].profileToken).toBe('p2');
+    expect(onvif.activeMediaProfile?.profileToken).toBe('p2');
+    expect(onvif.defaultProfile?.token).toBe('p2');
+  });
+
+  it('single-source last resort may use any encoder profile', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.videoSources = [{ token: 'vs-broken' } as never];
+    onvif.profiles = [profile({ token: 'p-other', sourceToken: 'vs-other', vsc: 'vsc', vec: 'vec' })];
+
+    await getActiveMediaProfiles(onvif);
+
+    expect(onvif.activeMediaProfiles).toHaveLength(1);
+    expect(onvif.activeMediaProfiles[0].profileToken).toBe('p-other');
+    expect(onvif.activeMediaProfiles[0].videoSourceToken).toBe('vs-other');
+    expect(onvif.activeMediaProfile?.profileToken).toBe('p-other');
+  });
 });
 
 describe('activeMediaProfile service SOAP token consistency', () => {

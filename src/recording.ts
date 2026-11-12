@@ -19,6 +19,7 @@ import {
   TrackConfiguration,
 } from './interfaces/onvif';
 import { ReferenceToken } from './interfaces/common';
+import { OnvifValidationError } from './utils/errors';
 import {
   Capabilities,
   RecordingOptions,
@@ -50,33 +51,43 @@ import {
 /**
  * Recording service (Profile G) — recordings, tracks, and recording jobs.
  *
- * @example List recordings and jobs, then inspect configuration / options:
+ * @example After connect, omit tokens to use activeRecordingToken / activeRecordingJobToken:
  * ```ts
  * import { Onvif } from 'onvif';
  *
  * const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
  * await onvif.connect();
  *
- * const caps = await onvif.recording.getServiceCapabilities();
- * const recordings = await onvif.recording.getRecordings();
- * const jobs = await onvif.recording.getRecordingJobs();
- * console.log(caps, recordings.length, jobs.length);
- *
- * const recordingToken = recordings[0]?.recordingToken;
- * if (recordingToken) {
- *   const cfg = await onvif.recording.getRecordingConfiguration({ recordingToken });
- *   const opts = await onvif.recording.getRecordingOptions({ recordingToken });
- *   console.log(cfg.source, opts);
- * }
- *
- * // Start / stop a job when you know the token:
- * // await onvif.recording.setRecordingJobMode({ jobToken: jobs[0]!.jobToken, mode: 'Active' });
+ * const cfg = await onvif.recording.getRecordingConfiguration();
+ * const opts = await onvif.recording.getRecordingOptions();
+ * console.log(cfg.source, opts);
+ * // await onvif.recording.setRecordingJobMode({ mode: 'Active' });
  * ```
  * @category Services
  */
 export default class Recording extends Service {
   constructor(onvif: Onvif) {
     super(onvif, 'recording');
+  }
+
+  private recordingToken(recordingToken?: ReferenceToken): ReferenceToken {
+    const resolved = recordingToken ?? this.onvif.activeRecordingToken;
+    if (resolved === undefined || resolved === '') {
+      throw new OnvifValidationError(
+        'recordingToken is required (pass it or connect with Recording so activeRecordingToken is set)',
+      );
+    }
+    return resolved;
+  }
+
+  private recordingJobToken(jobToken?: ReferenceToken): ReferenceToken {
+    const resolved = jobToken ?? this.onvif.activeRecordingJobToken;
+    if (resolved === undefined || resolved === '') {
+      throw new OnvifValidationError(
+        'jobToken is required (pass it or connect with Recording so activeRecordingJobToken is set)',
+      );
+    }
+    return resolved;
   }
 
   private static recordingSourceToBuild(source: RecordingSourceInformation) {
@@ -203,12 +214,13 @@ export default class Recording extends Service {
 
   /**
    * Delete a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async deleteRecording({ recordingToken }: DeleteRecording): Promise<void> {
+  async deleteRecording(options: Partial<DeleteRecording> = {}): Promise<void> {
     await this.request({
       DeleteRecording: {
-        RecordingToken: recordingToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
       },
     });
   }
@@ -223,28 +235,31 @@ export default class Recording extends Service {
 
   /**
    * Change the configuration of a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async setRecordingConfiguration({
-    recordingToken,
-    recordingConfiguration,
-  }: SetRecordingConfiguration): Promise<void> {
+  async setRecordingConfiguration(
+    options: Partial<SetRecordingConfiguration> & Pick<SetRecordingConfiguration, 'recordingConfiguration'>,
+  ): Promise<void> {
     await this.request({
       SetRecordingConfiguration: {
-        RecordingToken: recordingToken,
-        RecordingConfiguration: Recording.recordingConfigurationToBuild(recordingConfiguration),
+        RecordingToken: this.recordingToken(options.recordingToken),
+        RecordingConfiguration: Recording.recordingConfigurationToBuild(options.recordingConfiguration),
       },
     });
   }
 
   /**
    * Retrieve the recording configuration for a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingConfiguration({ recordingToken }: GetRecordingConfiguration): Promise<RecordingConfiguration> {
+  async getRecordingConfiguration(
+    options: Partial<GetRecordingConfiguration> = {},
+  ): Promise<RecordingConfiguration> {
     const response = await this.request({
       GetRecordingConfiguration: {
-        RecordingToken: recordingToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
       },
     });
     return response.getRecordingConfigurationResponse.recordingConfiguration;
@@ -252,12 +267,13 @@ export default class Recording extends Service {
 
   /**
    * Return recording options for a recording token.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingOptions({ recordingToken }: GetRecordingOptions): Promise<RecordingOptions> {
+  async getRecordingOptions(options: Partial<GetRecordingOptions> = {}): Promise<RecordingOptions> {
     const response = await this.request({
       GetRecordingOptions: {
-        RecordingToken: recordingToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
       },
     });
     return response.getRecordingOptionsResponse.options;
@@ -265,13 +281,16 @@ export default class Recording extends Service {
 
   /**
    * Create a new track within a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async createTrack({ recordingToken, trackConfiguration }: CreateTrack): Promise<ReferenceToken> {
+  async createTrack(
+    options: Partial<CreateTrack> & Pick<CreateTrack, 'trackConfiguration'>,
+  ): Promise<ReferenceToken> {
     const response = await this.request({
       CreateTrack: {
-        RecordingToken: recordingToken,
-        TrackConfiguration: Recording.trackConfigurationToBuild(trackConfiguration),
+        RecordingToken: this.recordingToken(options.recordingToken),
+        TrackConfiguration: Recording.trackConfigurationToBuild(options.trackConfiguration),
       },
     });
     return response.createTrackResponse.trackToken;
@@ -279,26 +298,30 @@ export default class Recording extends Service {
 
   /**
    * Remove a track from a recording.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async deleteTrack({ recordingToken, trackToken }: DeleteTrack): Promise<void> {
+  async deleteTrack(options: Partial<DeleteTrack> & Pick<DeleteTrack, 'trackToken'>): Promise<void> {
     await this.request({
       DeleteTrack: {
-        RecordingToken: recordingToken,
-        TrackToken: trackToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
+        TrackToken: options.trackToken,
       },
     });
   }
 
   /**
    * Retrieve the configuration for a specific track.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getTrackConfiguration({ recordingToken, trackToken }: GetTrackConfiguration): Promise<TrackConfiguration> {
+  async getTrackConfiguration(
+    options: Partial<GetTrackConfiguration> & Pick<GetTrackConfiguration, 'trackToken'>,
+  ): Promise<TrackConfiguration> {
     const response = await this.request({
       GetTrackConfiguration: {
-        RecordingToken: recordingToken,
-        TrackToken: trackToken,
+        RecordingToken: this.recordingToken(options.recordingToken),
+        TrackToken: options.trackToken,
       },
     });
     return response.getTrackConfigurationResponse.trackConfiguration;
@@ -306,18 +329,17 @@ export default class Recording extends Service {
 
   /**
    * Change the configuration of a track.
+   * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async setTrackConfiguration({
-    recordingToken,
-    trackToken,
-    trackConfiguration,
-  }: SetTrackConfiguration): Promise<void> {
+  async setTrackConfiguration(
+    options: Partial<SetTrackConfiguration> & Pick<SetTrackConfiguration, 'trackToken' | 'trackConfiguration'>,
+  ): Promise<void> {
     await this.request({
       SetTrackConfiguration: {
-        RecordingToken: recordingToken,
-        TrackToken: trackToken,
-        TrackConfiguration: Recording.trackConfigurationToBuild(trackConfiguration),
+        RecordingToken: this.recordingToken(options.recordingToken),
+        TrackToken: options.trackToken,
+        TrackConfiguration: Recording.trackConfigurationToBuild(options.trackConfiguration),
       },
     });
   }
@@ -337,12 +359,13 @@ export default class Recording extends Service {
 
   /**
    * Remove a recording job.
+   * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    */
-  async deleteRecordingJob({ jobToken }: DeleteRecordingJob): Promise<void> {
+  async deleteRecordingJob(options: Partial<DeleteRecordingJob> = {}): Promise<void> {
     await this.request({
       DeleteRecordingJob: {
-        JobToken: jobToken,
+        JobToken: this.recordingJobToken(options.jobToken),
       },
     });
   }
@@ -357,17 +380,17 @@ export default class Recording extends Service {
 
   /**
    * Change the configuration for a recording job.
+   * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    * @returns Job configuration as used by the device
    */
-  async setRecordingJobConfiguration({
-    jobToken,
-    jobConfiguration,
-  }: SetRecordingJobConfiguration): Promise<RecordingJobConfiguration> {
+  async setRecordingJobConfiguration(
+    options: Partial<SetRecordingJobConfiguration> & Pick<SetRecordingJobConfiguration, 'jobConfiguration'>,
+  ): Promise<RecordingJobConfiguration> {
     const response = await this.request({
       SetRecordingJobConfiguration: {
-        JobToken: jobToken,
-        JobConfiguration: Recording.recordingJobConfigurationToBuild(jobConfiguration),
+        JobToken: this.recordingJobToken(options.jobToken),
+        JobConfiguration: Recording.recordingJobConfigurationToBuild(options.jobConfiguration),
       },
     });
     return response.setRecordingJobConfigurationResponse.jobConfiguration;
@@ -375,12 +398,15 @@ export default class Recording extends Service {
 
   /**
    * Return the current configuration for a recording job.
+   * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    */
-  async getRecordingJobConfiguration({ jobToken }: GetRecordingJobConfiguration): Promise<RecordingJobConfiguration> {
+  async getRecordingJobConfiguration(
+    options: Partial<GetRecordingJobConfiguration> = {},
+  ): Promise<RecordingJobConfiguration> {
     const response = await this.request({
       GetRecordingJobConfiguration: {
-        JobToken: jobToken,
+        JobToken: this.recordingJobToken(options.jobToken),
       },
     });
     return response.getRecordingJobConfigurationResponse.jobConfiguration;
@@ -388,25 +414,29 @@ export default class Recording extends Service {
 
   /**
    * Change the mode of a recording job.
+   * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    */
-  async setRecordingJobMode({ jobToken, mode }: SetRecordingJobMode): Promise<void> {
+  async setRecordingJobMode(
+    options: Partial<SetRecordingJobMode> & Pick<SetRecordingJobMode, 'mode'>,
+  ): Promise<void> {
     await this.request({
       SetRecordingJobMode: {
-        JobToken: jobToken,
-        Mode: mode,
+        JobToken: this.recordingJobToken(options.jobToken),
+        Mode: options.mode,
       },
     });
   }
 
   /**
    * Return the state of a recording job.
+   * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    */
-  async getRecordingJobState({ jobToken }: GetRecordingJobState) {
+  async getRecordingJobState(options: Partial<GetRecordingJobState> = {}) {
     const response = await this.request({
       GetRecordingJobState: {
-        JobToken: jobToken,
+        JobToken: this.recordingJobToken(options.jobToken),
       },
     });
     return response.getRecordingJobStateResponse.state;

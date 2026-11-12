@@ -585,6 +585,32 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public activeMediaProfiles: ActiveMediaProfile[] = [];
   /** Currently selected media pipeline defaults when methods omit tokens. */
   public activeMediaProfile?: ActiveMediaProfile;
+  /**
+   * Default DoorControl door token when methods omit `token`.
+   * Filled by {@link connect} via `GetDoorInfoList` when DoorControl is advertised.
+   */
+  public activeDoorToken?: ReferenceToken;
+  /**
+   * Default AccessControl access-point token when methods omit `token`.
+   * Filled by {@link connect} via `GetAccessPointInfoList` when AccessControl is advertised.
+   */
+  public activeAccessPointToken?: ReferenceToken;
+  /**
+   * Default Recording token when Recording / Replay / Search omit `recordingToken`.
+   * Filled by {@link connect} via `GetRecordings` when Recording is advertised.
+   */
+  public activeRecordingToken?: ReferenceToken;
+  /**
+   * Default Recording job token when Recording job methods omit `jobToken`.
+   * Filled by {@link connect} via `GetRecordingJobs` when Recording is advertised.
+   */
+  public activeRecordingJobToken?: ReferenceToken;
+  /**
+   * Default DeviceIO relay output token when relay methods require a token.
+   * Filled by {@link connect} via `GetRelayOutputs` when DeviceIO is advertised.
+   * Not used for calls where omitting the token means "all relays".
+   */
+  public activeRelayOutputToken?: ReferenceToken;
   /** @deprecated Use {@link activeMediaProfiles}. */
   get activeSources(): ActiveMediaProfile[] {
     return this.activeMediaProfiles;
@@ -1282,6 +1308,80 @@ export class Onvif extends EventEmitter<OnvifEvents> {
   public async setActiveMediaProfile(profileToken: ReferenceToken): Promise<ActiveMediaProfile> {
     const { setActiveMediaProfile } = await import('./connection');
     return setActiveMediaProfile(this, profileToken);
+  }
+
+  /**
+   * Rebuild {@link activeDoorToken} from DoorControl `GetDoorInfoList` (first door).
+   * Used by {@link connect} when DoorControl is advertised.
+   */
+  public async getActiveDoor() {
+    const { getActiveDoor } = await import('./connection');
+    return getActiveDoor(this);
+  }
+
+  /**
+   * Switch the default door used when DoorControl methods omit `token`.
+   *
+   * @example
+   * ```ts
+   * await onvif.connect({ media: false });
+   * await onvif.setActiveDoor('DoorToken_2');
+   * await onvif.doorControl.unlockDoor();
+   * ```
+   */
+  public async setActiveDoor(token: ReferenceToken): Promise<ReferenceToken> {
+    const { setActiveDoor } = await import('./connection');
+    return setActiveDoor(this, token);
+  }
+
+  /** Rebuild {@link activeAccessPointToken} from AccessControl `GetAccessPointInfoList`. */
+  public async getActiveAccessPoint() {
+    const { getActiveAccessPoint } = await import('./connection');
+    return getActiveAccessPoint(this);
+  }
+
+  /** Switch the default access point used when AccessControl methods omit `token`. */
+  public async setActiveAccessPoint(token: ReferenceToken): Promise<ReferenceToken> {
+    const { setActiveAccessPoint } = await import('./connection');
+    return setActiveAccessPoint(this, token);
+  }
+
+  /** Rebuild {@link activeRecordingToken} / {@link activeRecordingJobToken} from Recording lists. */
+  public async getActiveRecording() {
+    const { getActiveRecording } = await import('./connection');
+    return getActiveRecording(this);
+  }
+
+  /** Switch the default recording used when Recording / Replay / Search omit `recordingToken`. */
+  public async setActiveRecording(token: ReferenceToken): Promise<ReferenceToken> {
+    const { setActiveRecording } = await import('./connection');
+    return setActiveRecording(this, token);
+  }
+
+  /** Switch the default recording job used when Recording job methods omit `jobToken`. */
+  public async setActiveRecordingJob(token: ReferenceToken): Promise<ReferenceToken> {
+    const { setActiveRecordingJob } = await import('./connection');
+    return setActiveRecordingJob(this, token);
+  }
+
+  /** Rebuild {@link activeRelayOutputToken} from DeviceIO `GetRelayOutputs`. */
+  public async getActiveRelayOutput() {
+    const { getActiveRelayOutput } = await import('./connection');
+    return getActiveRelayOutput(this);
+  }
+
+  /** Switch the default relay used when DeviceIO relay methods require a token. */
+  public async setActiveRelayOutput(token: ReferenceToken): Promise<ReferenceToken> {
+    const { setActiveRelayOutput } = await import('./connection');
+    return setActiveRelayOutput(this, token);
+  }
+
+  /**
+   * Rebuild door / access-point / recording / relay defaults (same probes as {@link connect}).
+   */
+  public async getActiveEntityTokens() {
+    const { getActiveEntityTokens } = await import('./connection');
+    return getActiveEntityTokens(this);
   }
 
   /**

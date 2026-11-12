@@ -63,6 +63,10 @@ describe('AccessControl', () => {
   });
 
   describe('getAccessPointInfoList / getAccessPointInfo', () => {
+    it('should set activeAccessPointToken during connect', () => {
+      expect(cam.activeAccessPointToken).toBe(ACCESS_POINT_TOKEN_1);
+    });
+
     it('should return access point info list from the mock server', async () => {
       const list = await cam.accessControl.getAccessPointInfoList();
       expect(list.accessPointInfo?.length).toBeGreaterThanOrEqual(2);
@@ -70,6 +74,11 @@ describe('AccessControl', () => {
       expect(list.accessPointInfo?.[0]).toHaveProperty('name');
       expect(list.accessPointInfo?.[0]).toHaveProperty('capabilities');
       expect(list.accessPointInfo?.[0].token).toBe(ACCESS_POINT_TOKEN_1);
+    });
+
+    it('should use activeAccessPointToken when token is omitted', async () => {
+      const info = await cam.accessControl.getAccessPointInfo();
+      expect(info.map((item) => item.token)).toEqual([ACCESS_POINT_TOKEN_1]);
     });
 
     it('should return access point info for requested tokens', async () => {
