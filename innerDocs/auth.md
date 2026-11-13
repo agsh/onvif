@@ -3,8 +3,8 @@
 ONVIF SOAP calls may use two independent credential mechanisms. This package supports both and
 often uses them together.
 
-- **WS-Security PasswordDigest** -- UsernameToken in the SOAP header (`Created` + `Nonce` +
-  SHA-1 digest of the password). Controlled by `useWSSecurity` (default `true`).
+- **WS-Security PasswordDigest** -- UsernameToken in the SOAP header (`Created`, `Nonce`, and
+  `Base64(SHA-1(Nonce + Created + Password))`). Controlled by `useWSSecurity` (default `true`).
 - **HTTP Digest** -- `Authorization: Digest ...` after an HTTP `401` with `WWW-Authenticate:
   Digest ...` (RFC 7616 plus SHA-1, which some cameras advertise). Always available when
   `username` / `password` are set; independent of `useWSSecurity`.

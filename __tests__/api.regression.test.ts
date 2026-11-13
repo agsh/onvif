@@ -3,7 +3,9 @@
  * Failures here usually mean a semver-major change for consumers.
  */
 
+import fs from 'fs';
 import Module from 'module';
+import path from 'path';
 import * as mainApi from '../src';
 import { Onvif } from '../src';
 import { connectSteps } from '../src/connection';
@@ -154,6 +156,7 @@ describe('public API regression (breaking changes)', () => {
         '.',
         './compatibility',
         './compatibility/promises',
+        './interfaces/*',
         './package.json',
       ]);
       expect(pkg.main).toBe('build/index.js');
@@ -175,6 +178,10 @@ describe('public API regression (breaking changes)', () => {
           }),
         );
       }
+      // Deep WSDL types: onvif/interfaces/<file> (e.g. MediaUri from interfaces/onvif).
+      const interfaceEntry = path.join(__dirname, '../build/interfaces/onvif');
+      expect(fs.existsSync(`${interfaceEntry}.js`)).toBe(true);
+      expect(fs.existsSync(`${interfaceEntry}.d.ts`)).toBe(true);
     });
 
     it('compiled build entry matches the public runtime surface (no stale utils.js shadow)', () => {

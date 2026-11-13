@@ -26,6 +26,8 @@ API; keep 0.8 via `npm install onvif@previous` or `onvif/compatibility`.
 
 ### Added
 
+- **`onvif/interfaces/*` deep imports** - WSDL request/response types without root barrel collisions
+  (e.g. `import type { MediaUri } from 'onvif/interfaces/onvif'`).
 - **Typed transport / parse errors** - `OnvifTimeoutError` (`code: 'ETIMEDOUT'`),
   `OnvifTransportError`, `OnvifParseError`; SOAP Faults normalize SOAP 1.1 + 1.2 fields and expose
   `faultSubcodes`. Docs: [innerDocs/errors.md](innerDocs/errors.md).

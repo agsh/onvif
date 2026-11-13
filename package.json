@@ -29,6 +29,12 @@
       "import": "./build/compatibility/promises/index.js",
       "default": "./build/compatibility/promises/index.js"
     },
+    "./interfaces/*": {
+      "types": "./build/interfaces/*.d.ts",
+      "require": "./build/interfaces/*.js",
+      "import": "./build/interfaces/*.js",
+      "default": "./build/interfaces/*.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

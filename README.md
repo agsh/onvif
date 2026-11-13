@@ -35,7 +35,8 @@ npm install onvif
 One build covers **CommonJS**, **ESM**, and **TypeScript** (`require` / `import` + `.d.ts`).
 ESM `import` loads the same CJS build via `exports.import` - examples: [Quick start](#quick-start).
 
-Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam` wrappers).
+Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam`
+wrappers), `onvif/interfaces/*` (WSDL types, e.g. `onvif/interfaces/onvif`).
 
 To pin the previous major line explicitly:
 
@@ -47,6 +48,7 @@ npm install onvif@previous
 
 API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** -
 start from the [`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) class.
+WSDL types: `import type { MediaUri } from 'onvif/interfaces/onvif'`.
 
 After `connect()`, call methods on lazy namespaces (`onvif.media`, `onvif.ptz`, ...;
 `events` is eager) - see [Services](#services). Also exported:
@@ -54,15 +56,21 @@ After `connect()`, call methods on lazy namespaces (`onvif.media`, `onvif.ptz`, 
 
 ### Deep docs
 
-Longer notes in [`innerDocs/`](innerDocs/) (GitHub; not in the npm tarball):
+Longer notes in [`innerDocs/`](https://github.com/agsh/onvif/tree/master/innerDocs/) (GitHub; not in the npm tarball):
 
-- Start here: [guides.md](innerDocs/guides.md), [troubleshooting.md](innerDocs/troubleshooting.md),
-  [connection.md](innerDocs/connection.md), [auth.md](innerDocs/auth.md)
-- Also: [events.md](innerDocs/events.md), [errors.md](innerDocs/errors.md),
-  [migration.md](innerDocs/migration.md), [quirks.md](innerDocs/quirks.md),
-  [performance.md](innerDocs/performance.md), [resources.md](innerDocs/resources.md),
-  [soap-xml.md](innerDocs/soap-xml.md), [vendor-extensions.md](innerDocs/vendor-extensions.md),
-  [testing.md](innerDocs/testing.md)
+- Start here: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md),
+  [troubleshooting.md](https://github.com/agsh/onvif/blob/master/innerDocs/troubleshooting.md),
+  [connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md),
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
+- Also: [events.md](https://github.com/agsh/onvif/blob/master/innerDocs/events.md),
+  [errors.md](https://github.com/agsh/onvif/blob/master/innerDocs/errors.md),
+  [migration.md](https://github.com/agsh/onvif/blob/master/innerDocs/migration.md),
+  [quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md),
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md),
+  [resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md),
+  [soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md),
+  [vendor-extensions.md](https://github.com/agsh/onvif/blob/master/innerDocs/vendor-extensions.md),
+  [testing.md](https://github.com/agsh/onvif/blob/master/innerDocs/testing.md)
 
 ## Quick start
 
@@ -91,8 +99,10 @@ RTSP preview + Socket.IO / FFmpeg demo:
 ## Features
 
 - Typed WSDL interfaces (26.06) and [TypeDoc API](https://agsh.github.io/onvif/)
-- Lazy service namespaces; eager `events` - [performance.md](innerDocs/performance.md)
-- Auth: WS-Security + HTTP Digest - [auth.md](innerDocs/auth.md)
+- Lazy service namespaces; eager `events` -
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md)
+- Auth: WS-Security + HTTP Digest -
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
 - WS-Discovery - [Discovery](#discovery)
 - Media profile bag and non-camera profiles (C / A / G / M) -
   [Connection](#default-media-profile-activemediaprofile),
@@ -105,11 +115,12 @@ Address the device with `url` **or** `hostname` / `port` / `path` / `useSecure`,
 `username` / `password`. Other common flags:
 
 - `timeout` - HTTP socket timeout for ordinary SOAP (ms; default 10000). PullMessages uses its own
+  longer timeout (pull wait + margin)
 - `useWSSecurity` - SOAP PasswordDigest headers (default `true`; HTTP Digest still applies; see
-  [auth.md](innerDocs/auth.md))
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md))
 - `autoConnect` - call `connect()` from the constructor (default `false`)
 - `agent` - custom `http(s).Agent`, proxy agent, or `false` (see
-  [resources.md](innerDocs/resources.md))
+  [resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md))
 - `preserveAddress` - rewrite XAddr host/port to the constructor address (NAT / loopback); see
   [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port)
 - `secureOptions` - TLS options when using HTTPS
@@ -131,7 +142,8 @@ Override with `{ media: true | false }`. For capability blocks from GetServices,
 On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
 connect. `connect()` is not a login check - call `device.getDeviceInformation()` afterwards if you
-need to verify username/password early. Details: [connection.md](innerDocs/connection.md).
+need to verify username/password early. Details:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md).
 
 ### Default Media Profile (`activeMediaProfile`)
 
@@ -144,7 +156,8 @@ await onvif.setActiveMediaProfile('ProfileToken_2');
 const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
 ```
 
-Details: [connection.md](innerDocs/connection.md#active-media-profile-token-bag).
+Details:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md#active-media-profile-token-bag).
 
 ### Beyond cameras (Profiles C / A / G / M)
 
@@ -164,18 +177,20 @@ await onvif.doorControl.unlockDoor(); // uses activeDoorToken
 await onvif.setActiveDoor('DoorToken_2');
 ```
 
-Recipe: [guides.md](innerDocs/guides.md#unlock-a-door) /
+Recipe: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#unlock-a-door) /
 [door.unlock.js](examples/door.unlock.js).
 
 **Profile [G](https://www.onvif.org/profiles/profile-g/) (recording / replay / search):** connect
 still probes Media when present. Defaults: `activeRecordingToken` /
-`activeRecordingJobToken`. See [guides.md](innerDocs/guides.md#replay-a-recording) /
+`activeRecordingJobToken`. See
+[guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#replay-a-recording) /
 [replay.uri.js](examples/replay.uri.js).
 
 **Profile [M](https://www.onvif.org/profiles/profile-m/) (analytics):** `onvif.analytics` /
 `onvif.analyticsDevice` - [analytics.rules.js](examples/analytics.rules.js).
 
-Entity tokens: [connection.md](innerDocs/connection.md#active-entity-tokens-non-media).
+Entity tokens:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md#active-entity-tokens-non-media).
 
 ### `preserveAddress` (NAT / wrong XAddr host or port)
 
@@ -206,7 +221,7 @@ HTTP keep-alive sockets. Without `close()`, idle connections can keep a Node pro
 Safe to call more than once. Call `await onvif.connect()` again to reopen after `close()`.
 
 Agents, renew/reconnect timers, and custom `Subscription` teardown:
-[resources.md](innerDocs/resources.md).
+[resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md).
 
 ## Discovery
 
@@ -271,7 +286,7 @@ Runnable sample (includes `status`):
 ## Services
 
 Methods take typed ONVIF options. Returns are unwrapped - [What methods return](#what-methods-return).
-Task recipes: [guides.md](innerDocs/guides.md). Method details:
+Task recipes: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md). Method details:
 [TypeDoc](https://agsh.github.io/onvif/) (start at `Onvif`).
 
 Namespaces (lazy except `events`):
@@ -329,34 +344,35 @@ sub.on('data', (msg) => console.log('motion', msg.topic?._));
 await sub.subscribe();
 ```
 
-More: [events.md](innerDocs/events.md),
-[guides.md](innerDocs/guides.md#listen-for-motion-events),
+More: [events.md](https://github.com/agsh/onvif/blob/master/innerDocs/events.md),
+[guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#listen-for-motion-events),
 [events.with.filter.ts](examples/events.with.filter.ts).
 
 ## Vendor XML
 
 `xs:any` / `xs:anyAttribute` via `xsany` and `$`. Parse gives camelCase **and** a wire tree on
 `obj[xsany]`. Setters serialize **`[xsany]` only**. Details:
-[vendor-extensions.md](innerDocs/vendor-extensions.md).
+[vendor-extensions.md](https://github.com/agsh/onvif/blob/master/innerDocs/vendor-extensions.md).
 
 ## SOAP XML
 
 `build` / `parseSOAPString`, `onvif.request()`, `requestContext`:
-[soap-xml.md](innerDocs/soap-xml.md).
+[soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md).
 
 ## Errors
 
 Typed failures (`OnvifTimeoutError`, `OnvifTransportError`, `OnvifParseError`,
 `OnvifResponseError`, `OnvifSoapFaultError`, `OnvifAuthError`, `OnvifValidationError`):
-[errors.md](innerDocs/errors.md).
+[errors.md](https://github.com/agsh/onvif/blob/master/innerDocs/errors.md).
 
 ## Troubleshooting / FAQ
 
-Full catalog: [troubleshooting.md](innerDocs/troubleshooting.md). Quirks:
-[quirks.md](innerDocs/quirks.md).
+Full catalog: [troubleshooting.md](https://github.com/agsh/onvif/blob/master/innerDocs/troubleshooting.md). Quirks:
+[quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md).
 
 - **Auth / Unauthorized after connect** - `connect()` is not a login check; call
-  `getDeviceInformation()`. See troubleshooting Auth + [auth.md](innerDocs/auth.md).
+  `getDeviceInformation()`. See troubleshooting Auth +
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md).
 - **Empty profiles / no RTSP** - media skipped, wrong bag, or Media2-only. Access-only C/A:
   [Beyond cameras](#beyond-cameras-profiles-c--a--g--m). Else troubleshooting Media / RTSP.
 - **RTSP host wrong; SOAP OK with `preserveAddress`** - flag does not rewrite RTSP body URLs.
@@ -375,7 +391,7 @@ Cheat-sheet (or keep `Cam` via `onvif/compatibility` / `.../promises`):
 - Unwrapped returns - [What methods return](#what-methods-return)
 - `activeSource` -> `activeMediaProfile` + `defaultProfile` for codec/fps
 
-Checklist and diffs: [migration.md](innerDocs/migration.md). Older line:
+Checklist and diffs: [migration.md](https://github.com/agsh/onvif/blob/master/innerDocs/migration.md). Older line:
 [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 ## Examples
@@ -407,7 +423,8 @@ Samples in [`examples/`](examples/):
 
 Tested against many vendors (issues + lab), including ACTi, Amcrest, Avigilon, Axis, Bosch,
 Canon, Dahua, D-Link, Foscam, Hanwha / Wisenet, Hikvision, Panasonic, Pelco, Reolink, Sony,
-TP-Link / Tapo, Uniview, Vivotek, and others. Known quirks: [quirks.md](innerDocs/quirks.md).
+TP-Link / Tapo, Uniview, Vivotek, and others. Known quirks:
+[quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md).
 
 Report manufacturer / model / firmware via the [compatibility form][compat-form].
 

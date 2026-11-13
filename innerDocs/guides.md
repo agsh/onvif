@@ -43,9 +43,11 @@ if (onvif.uri.media) {
   uri = await onvif.media2.getStreamUri({ protocol: 'RtspUnicast' });
 }
 
-// Optional: embed credentials for players that need userinfo in the URL
+// Optional: embed credentials for players that need userinfo in the URL.
+// Do not log `playable` - it embeds the password in cleartext userinfo.
 const playable = withUrlCredentials(uri, onvif.username, onvif.password);
-console.log(playable);
+// Pass `playable` to VLC / FFmpeg / your RTSP client.
+console.log(uri); // device URI without credentials
 
 await onvif.close();
 ```

@@ -9,7 +9,7 @@ inherits from the `EventEmitter` class.
 const onvif = new Onvif({/**...*/});
 function eventHandler(msg) {
   console.log(msg);
-  onvif.off('event');
+  onvif.off('event', eventHandler);
 }
 onvif.on('event', eventHandler);
 ```
