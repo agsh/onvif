@@ -1,6 +1,9 @@
 # ONVIF
 
-[![Coverage Status](https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages-debug/badges/coverage.svg)](https://github.com/agsh/onvif/tree/v1)
+[![Coverage Status][cov-badge]][cov-link]
+
+[cov-badge]: https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages/badges/coverage.svg
+[cov-link]: https://github.com/agsh/onvif/tree/master
 
 ONVIF client for all ONVIF devices with TypeScript types.
 
@@ -9,7 +12,7 @@ ONVIF client for all ONVIF devices with TypeScript types.
 - Profiles [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
   [G](https://www.onvif.org/profiles/profile-g/), [M](https://www.onvif.org/profiles/profile-m/),
   [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/)
-- WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256)
+- WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256)
 - Lazy-loaded service modules
 - Built to work around real-camera quirks across vendors
 
@@ -30,9 +33,10 @@ npm install onvif
 ```
 
 One build covers **CommonJS**, **ESM**, and **TypeScript** (`require` / `import` + `.d.ts`).
-ESM `import` loads the same CJS build via `exports.import` — examples: [Quick start](#quick-start).
+ESM `import` loads the same CJS build via `exports.import` - examples: [Quick start](#quick-start).
 
-Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam` wrappers).
+Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam`
+wrappers), `onvif/interfaces/*` (WSDL types, e.g. `onvif/interfaces/onvif`).
 
 To pin the previous major line explicitly:
 
@@ -44,15 +48,34 @@ npm install onvif@previous
 
 API reference (TypeDoc): **[https://agsh.github.io/onvif/](https://agsh.github.io/onvif/)** -
 start from the [`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) class.
+WSDL types: `import type { MediaUri } from 'onvif/interfaces/onvif'`.
 
-After `connect()`, call methods on lazy-loaded service namespaces (`onvif.media`, `onvif.ptz`, ...; `events` is eager) -
-see [Services](#services). Also exported: [`Discovery`](https://agsh.github.io/onvif/variables/Discovery.html).
+After `connect()`, call methods on lazy namespaces (`onvif.media`, `onvif.ptz`, ...;
+`events` is eager) - see [Services](#services). Also exported:
+[`Discovery`](https://agsh.github.io/onvif/variables/Discovery.html).
+
+### Deep docs
+
+Longer notes in [`innerDocs/`](https://github.com/agsh/onvif/tree/master/innerDocs/) (GitHub; not in the npm tarball):
+
+- Start here: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md),
+  [troubleshooting.md](https://github.com/agsh/onvif/blob/master/innerDocs/troubleshooting.md),
+  [connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md),
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
+- Also: [events.md](https://github.com/agsh/onvif/blob/master/innerDocs/events.md),
+  [errors.md](https://github.com/agsh/onvif/blob/master/innerDocs/errors.md),
+  [migration.md](https://github.com/agsh/onvif/blob/master/innerDocs/migration.md),
+  [quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md),
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md),
+  [resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md),
+  [soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md),
+  [vendor-extensions.md](https://github.com/agsh/onvif/blob/master/innerDocs/vendor-extensions.md),
+  [testing.md](https://github.com/agsh/onvif/blob/master/innerDocs/testing.md)
 
 ## Quick start
 
-Call `connect()` before service methods (or pass `autoConnect: true`). Call `close()` when you no longer need the connection.
-
-### TypeScript / ESM
+Call `connect()` before service methods (or pass `autoConnect: true`). Call `close()` when done.
+Same pattern works with `require('onvif')` (CommonJS).
 
 ```ts
 import { Onvif } from 'onvif';
@@ -68,101 +91,42 @@ console.log(await onvif.device.getDeviceInformation());
 await onvif.close();
 ```
 
-### CommonJS
+RTSP preview + Socket.IO / FFmpeg demo:
+[rtsp.socketio.ptz.js](examples/rtsp.socketio.ptz.js).
 
-```js
-const { Onvif } = require('onvif');
-
-(async () => {
-  const onvif = new Onvif({
-    url: 'http://192.168.1.13:8000/onvif/device_service',
-    username: 'admin',
-    password: 'admin',
-  });
-  await onvif.connect();
-  console.log(await onvif.device.getDeviceInformation());
-  await onvif.close();
-})();
-```
-
-### Example project
-
-> [!NOTE]
-> **Node.js** - works with plain JavaScript (`require` / `import`). TypeScript is optional;
-> types ship with the package.
-
-ONVIF with FFmpeg, RTSP and Socket.IO (http://localhost:6147):
-
-<video src="https://github.com/user-attachments/assets/fd725700-f60e-4c3b-ba2d-bdf2d07b3376" controls width="720"></video>
-
-```shell
-sudo apt install ffmpeg
-npm install onvif socket.io rtsp-ffmpeg
-```
-
-```js
-const server = require('http').createServer((req, res) =>
-  res.end(`
-<!DOCTYPE html><body>
-<canvas width='640' height='480' />
-<script src="/socket.io/socket.io.js"></script><script>
-  const socket = io(), ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
-  socket.on('data', (data) => {
-    const img = new Image;
-    const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type: 'application/octet-binary'}));
-    img.onload = () => {
-      URL.revokeObjectURL(url, {type: 'application/octet-binary'});
-      ctx.drawImage(img, 100, 100);
-    };
-    img.src = url;
-  });
-</script></body></html>`),
-);
-const { Onvif } = require('onvif');
-const io = require('socket.io')(server);
-const rtsp = require('rtsp-ffmpeg');
-server.listen(6147);
-
-const onvif = new Onvif({ username: 'username', password: 'password', hostname: '192.168.0.116', port: 2020 });
-(async () => {
-  await onvif.connect();
-  const input = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).uri.replace(
-    '://',
-    `://${onvif.username}:${onvif.password}@`,
-  );
-  const stream = new rtsp.FFMpeg({ input, resolution: '320x240', quality: 3 });
-  io.on('connection', (socket) => {
-    const pipeStream = socket.emit.bind(socket, 'data');
-    stream.on('disconnect', () => stream.removeListener('data', pipeStream)).on('data', pipeStream);
-  });
-  setInterval(
-    () =>
-      onvif.ptz.absoluteMove({
-        position: {
-          x: Math.random() * 2 - 1,
-          y: Math.random() * 2 - 1,
-          zoom: Math.random(),
-        },
-      }),
-    3000,
-  );
-})().catch(console.error);
-```
+<video src="https://github.com/user-attachments/assets/fd725700-f60e-4c3b-ba2d-bdf2d07b3376" controls></video>
 
 ## Features
 
-- Typed request/response interfaces from the latest ONVIF WSDL (26.06)
-  ([onvif-generate-interfaces](https://github.com/agsh/onvif-generate-interfaces))
-- [API documentation](https://agsh.github.io/onvif/)
-- Events: pull-point, WS-BaseNotification, filters, `EventEmitter` - [innerDocs/events.md](innerDocs/events.md)
-- Lazy-loaded services
-- Auth: WS-Security, Digest; Advanced Security (experimental)
-- WS-Discovery on the LAN - see [Discovery](#discovery)
-- Vendor XML extensions (`xs:any` / `xs:anyAttribute`) - [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md)
-- SOAP XML (`build` / `parseSOAPString` / `request` / `requestContext`) - [innerDocs/soap-xml.md](innerDocs/soap-xml.md)
-- Typed errors (timeout / transport / parse / SOAP Fault 1.1+1.2) - [innerDocs/errors.md](innerDocs/errors.md)
-- Default Media Profile token bag (`activeMediaProfile` / `setActiveMediaProfile`) - see [Connection](#default-media-profile-activemediaprofile)
-- Services - see [Services](#services)
+- Typed WSDL interfaces (26.06) and [TypeDoc API](https://agsh.github.io/onvif/)
+- Lazy service namespaces; eager `events` -
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md)
+- Auth: WS-Security + HTTP Digest -
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
+- WS-Discovery - [Discovery](#discovery)
+- Media profile bag and non-camera profiles (C / A / G / M) -
+  [Connection](#default-media-profile-activemediaprofile),
+  [Beyond cameras](#beyond-cameras-profiles-c--a--g--m)
+- Typed errors, vendor `xs:any`, SOAP helpers - see [Deep docs](#deep-docs)
+
+## Constructor options
+
+Address the device with `url` **or** `hostname` / `port` / `path` / `useSecure`, plus
+`username` / `password`. Other common flags:
+
+- `timeout` - HTTP socket timeout for ordinary SOAP (ms; default 10000). PullMessages uses its own
+  longer timeout (pull wait + margin)
+- `useWSSecurity` - SOAP PasswordDigest headers (default `true`; HTTP Digest still applies; see
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md))
+- `autoConnect` - call `connect()` from the constructor (default `false`)
+- `agent` - custom `http(s).Agent`, proxy agent, or `false` (see
+  [resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md))
+- `preserveAddress` - rewrite XAddr host/port to the constructor address (NAT / loopback); see
+  [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port)
+- `secureOptions` - TLS options when using HTTPS
+- `defaultMedia` - default for `connect({ media })` when omitted (Discovery may set `false`)
+
+Full field list: [`OnvifOptions`](https://agsh.github.io/onvif/interfaces/OnvifOptions.html).
 
 ## Connection
 
@@ -178,88 +142,55 @@ Override with `{ media: true | false }`. For capability blocks from GetServices,
 On success, `connect()` emits `connect` and returns the instance. A failed `connect()` rejects after
 clearing prior discovery state (safe to retry). Media probe failures emit `warn` but still complete
 connect. `connect()` is not a login check - call `device.getDeviceInformation()` afterwards if you
-need to verify username/password early. Details: [innerDocs/connection.md](innerDocs/connection.md).
+need to verify username/password early. Details:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md).
 
 ### Default Media Profile (`activeMediaProfile`)
 
-After media discovery, `connect()` builds a **token bag** - `onvif.activeMediaProfile` - from one
-selected Media Profile (typically the first usable profile per video source). Multi-source devices
-also fill `onvif.activeMediaProfiles` (one bag per video source); slot `0` is the process-wide
-default until you switch. Service methods that omit `profileToken` / `configurationToken` /
-`videoSourceToken` read defaults from the current bag (`media`, `media2`, `ptz`, `analytics`,
-`imaging`, `deviceIO`, `thermal`, ...).
-
-The bag holds **tokens only**. Codec / resolution / fps stay on the full profile object
-`onvif.defaultProfile` (same selection as the bag). Deprecated aliases: `activeSource` /
-`activeSources` (same objects). Rebuild after mutating profiles on the device with
-`getActiveMediaProfiles()`.
-
-Switch the current pipeline with `setActiveMediaProfile(profileToken)` (must exist in
-`onvif.profiles`; validated against `videoSources` when those were loaded):
+After media discovery, omitted `profileToken` / source tokens default from the token bag
+`onvif.activeMediaProfile` (tokens only; codec/fps live on `onvif.defaultProfile`). Switch with
+`setActiveMediaProfile(profileToken)`:
 
 ```ts
-await onvif.connect();
-
-console.log(onvif.profiles.map((p) => p.token));
-// e.g. ['ProfileToken_1', 'ProfileToken_2'] - main vs sub stream
-
 await onvif.setActiveMediaProfile('ProfileToken_2');
 const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-// uses ProfileToken_2 / its encoder without passing tokens
-
-// one-off override still works:
-await onvif.media.getStreamUri({
-  protocol: 'RTSP',
-  profileToken: 'ProfileToken_1',
-});
 ```
 
-Same video source, different codecs (H.264 vs H.265): cameras usually expose that as
-**two Media Profiles** that share one `videoSource`, each with its own
-`videoEncoderConfiguration.encoding`. Pick the profile by encoding, then switch the bag
-(codec metadata lives on `defaultProfile`, not on the token bag):
+Details:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md#active-media-profile-token-bag).
+
+### Beyond cameras (Profiles C / A / G / M)
+
+Profiles [S](https://www.onvif.org/profiles/profile-s/) / [T](https://www.onvif.org/profiles/profile-t/)
+are the video path above (`media` / `media2` / `ptz` / `imaging`). The same `Onvif` client also
+covers access control, recording, and analytics - without treating every device as a camera.
+
+**Profile [C](https://www.onvif.org/profiles/profile-c/) / [A](https://www.onvif.org/profiles/profile-a/)
+(door / access):** skip Media probing. Discovery sets `defaultMedia: false` when ProbeMatch scopes
+look access-only (no Streaming/T); or pass `{ media: false }` yourself. After connect, omit-token
+DoorControl / AccessControl calls use `activeDoorToken` / `activeAccessPointToken`.
 
 ```ts
-await onvif.connect();
-
-for (const p of onvif.profiles) {
-  const enc = p.videoEncoderConfiguration;
-  console.log(p.token, enc?.encoding, enc?.resolution);
-}
-
-const h265 = onvif.profiles.find(
-  (p) => p.videoEncoderConfiguration?.encoding === 'H265',
-);
-if (!h265) throw new Error('no H265 profile on this device');
-
-await onvif.setActiveMediaProfile(h265.token);
-console.log(onvif.defaultProfile?.videoEncoderConfiguration?.encoding); // H265
-
-const uri = (await onvif.media.getStreamUri({ protocol: 'RTSP' })).uri;
-// RTSP for the H265 pipeline; PTZ / imaging still use the same video source tokens
+await onvif.connect({ media: false });
+console.log(onvif.activeDoorToken, onvif.uri.doorcontrol);
+await onvif.doorControl.unlockDoor(); // uses activeDoorToken
+await onvif.setActiveDoor('DoorToken_2');
 ```
 
-Switch back the same way (`encoding === 'H264'`). If both codecs sit on one profile and you
-must change the encoder config on the device, that is a Media `setVideoEncoderConfiguration`
-flow - not `setActiveMediaProfile`.
+Recipe: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#unlock-a-door) /
+[door.unlock.js](examples/door.unlock.js).
 
-Multi-source (several `videoSources`): `activeMediaProfiles[i]` is the bag for source `i`;
-`activeMediaProfile` starts as slot `0`. Switch defaults to another source by selecting a
-profile that belongs to it:
+**Profile [G](https://www.onvif.org/profiles/profile-g/) (recording / replay / search):** connect
+still probes Media when present. Defaults: `activeRecordingToken` /
+`activeRecordingJobToken`. See
+[guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#replay-a-recording) /
+[replay.uri.js](examples/replay.uri.js).
 
-```ts
-await onvif.connect();
-console.log(onvif.activeMediaProfiles.map((b) => [b.videoSourceToken, b.profileToken]));
+**Profile [M](https://www.onvif.org/profiles/profile-m/) (analytics):** `onvif.analytics` /
+`onvif.analyticsDevice` - [analytics.rules.js](examples/analytics.rules.js).
 
-const other = onvif.profiles.find(
-  (p) => p.videoSourceConfiguration?.sourceToken !== onvif.activeMediaProfile?.videoSourceToken,
-);
-if (other) await onvif.setActiveMediaProfile(other.token);
-// imaging / stream / PTZ defaults now follow that source's bag
-```
-
-How the bag is built and more examples:
-[innerDocs/connection.md#active-media-profile-token-bag](innerDocs/connection.md#active-media-profile-token-bag).
+Entity tokens:
+[connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md#active-entity-tokens-non-media).
 
 ### `preserveAddress` (NAT / wrong XAddr host or port)
 
@@ -290,13 +221,15 @@ HTTP keep-alive sockets. Without `close()`, idle connections can keep a Node pro
 Safe to call more than once. Call `await onvif.connect()` again to reopen after `close()`.
 
 Agents, renew/reconnect timers, and custom `Subscription` teardown:
-[innerDocs/resources.md](innerDocs/resources.md).
+[resources.md](https://github.com/agsh/onvif/blob/master/innerDocs/resources.md).
 
 ## Discovery
 
 Find ONVIF devices on the LAN with WS-Discovery (`Discovery.probe`). Each match is an
 [`Onvif`](https://agsh.github.io/onvif/classes/Onvif.html) instance (set credentials, then `connect()`).
 `probe()` always resolves (possibly `[]`); bad replies and socket issues emit `error` only.
+Informational progress uses `status` (NIC enumeration and each Probe send) - useful when
+nothing appears on a multi-homed host.
 
 ```ts
 import { Discovery } from 'onvif';
@@ -305,6 +238,9 @@ Discovery.on('device', (cam, rinfo) => {
   console.log('found', rinfo.address, cam.hostname, cam.xaddrs?.map((u) => u.href));
 });
 Discovery.on('error', (err) => console.error('discovery', err));
+Discovery.on('status', (msg) => console.log('discovery', msg));
+// Found interface eth0
+// Sending IPv4 from 192.168.1.10 (eth0) to 239.255.255.250:3702
 
 const devices = await Discovery.probe({
   timeout: 5000,
@@ -328,152 +264,171 @@ for (const cam of devices) {
 
 What `probe` does (beyond a single-interface IPv4 multicast):
 
-- **Dual-stack by default** -- Probe from every non-loopback IPv4 and IPv6 address on every NIC
+- **Dual-stack by default** - Probe from every non-loopback IPv4 and IPv6 address on every NIC
   (`239.255.255.250` / `FF02::C`, port `3702`). Pass `type: 'udp4' | 'udp6'` to limit the family;
   omit `type` for both.
-- **IPv6 link-local bind** -- zone id is attached for `fe80::` binds (`%eth0` on Unix,
+- **IPv6 link-local bind** - zone id is attached for `fe80::` binds (`%eth0` on Unix,
   numeric `%scopeid` on Windows).
-- **Multi-homed / directed Probe** -- optional `device` (one NIC), or `address` + `port` for a
+- **Multi-homed / directed Probe** - optional `device` (one NIC), or `address` + `port` for a
   unicast Probe still sent from each selected local address.
-- **Dedup & filtering** -- devices are keyed by ProbeMatch `EndpointReference` (same NVT on
+- **`status` diagnostics** - `Discovery.on('status', ...)` gets human-readable lines while
+  interfaces are listed and Probes are sent (not errors). See the sample below.
+- **Dedup & filtering** - devices are keyed by ProbeMatch `EndpointReference` (same NVT on
   IPv4+IPv6 -> one result); `RelatesTo` / MessageID drops replies meant for another client's Probe;
   `types` / `scopes` narrow the Probe; ProbeMatch scopes set `defaultMedia` (`false` for
   access-only Profile C/A without Streaming/T).
-- **Other options** -- `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
+- **Other options** - `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
   instead of `Onvif`).
 
-Runnable sample: [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js).
+Runnable sample (includes `status`):
+[discovery.js](examples/discovery.js).
 
 ## Services
 
-Methods take typed ONVIF request options. Return values are simplified (unwrapped) — see
-[What methods return](#what-methods-return). Some helpers also accept more convenient input fields
-(for example `dateTime?: Date` on `SetSystemDateAndTimeExtended`).
+Methods take typed ONVIF options. Returns are unwrapped - [What methods return](#what-methods-return).
+Task recipes: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md). Method details:
+[TypeDoc](https://agsh.github.io/onvif/) (start at `Onvif`).
 
-| Service | Namespace | Profile |
-| --- | --- | --- |
-| [Device](https://agsh.github.io/onvif/interfaces/Device.html) | `onvif.device` | Core (all) |
-| [Media](https://agsh.github.io/onvif/interfaces/Media.html) | `onvif.media` | [S](https://www.onvif.org/profiles/profile-s/) |
-| [Media2](https://agsh.github.io/onvif/interfaces/Media2.html) | `onvif.media2` | [T](https://www.onvif.org/profiles/profile-t/) |
-| [PTZ](https://agsh.github.io/onvif/interfaces/PTZ.html) | `onvif.ptz` | [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/) |
-| [Events](https://agsh.github.io/onvif/classes/Events.html) | `onvif.events` | Core (all) |
-| [Imaging](https://agsh.github.io/onvif/interfaces/Imaging.html) | `onvif.imaging` | [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/) |
-| [Analytics](https://agsh.github.io/onvif/interfaces/Analytics.html) | `onvif.analytics` | [T](https://www.onvif.org/profiles/profile-t/), [M](https://www.onvif.org/profiles/profile-m/) |
-| [AnalyticsDevice](https://agsh.github.io/onvif/interfaces/AnalyticsDevice.html) | `onvif.analyticsDevice` | [M](https://www.onvif.org/profiles/profile-m/) |
-| [Recording](https://agsh.github.io/onvif/interfaces/Recording.html) | `onvif.recording` | [G](https://www.onvif.org/profiles/profile-g/) |
-| [Replay](https://agsh.github.io/onvif/interfaces/Replay.html) | `onvif.replay` | [G](https://www.onvif.org/profiles/profile-g/) |
-| [Search](https://agsh.github.io/onvif/interfaces/Search.html) | `onvif.search` | [G](https://www.onvif.org/profiles/profile-g/) |
-| [Receiver](https://agsh.github.io/onvif/interfaces/Receiver.html) | `onvif.receiver` | [G](https://www.onvif.org/profiles/profile-g/) |
-| [DeviceIO](https://agsh.github.io/onvif/interfaces/DeviceIO.html) | `onvif.deviceIO` | [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/), [C](https://www.onvif.org/profiles/profile-c/) |
-| [Display](https://agsh.github.io/onvif/interfaces/Display.html) | `onvif.display` | - |
-| [ActionEngine](https://agsh.github.io/onvif/interfaces/ActionEngine.html) | `onvif.actionEngine` | - |
-| [Thermal](https://agsh.github.io/onvif/interfaces/Thermal.html) | `onvif.thermal` | - |
-| [DoorControl](https://agsh.github.io/onvif/interfaces/DoorControl.html) | `onvif.doorControl` | [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/) |
-| [AccessControl](https://agsh.github.io/onvif/interfaces/AccessControl.html) | `onvif.accessControl` | [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/) |
-| [Credential](https://agsh.github.io/onvif/interfaces/Credential.html) | `onvif.credential` | [A](https://www.onvif.org/profiles/profile-a/), [C](https://www.onvif.org/profiles/profile-c/) |
-| [AccessRules](https://agsh.github.io/onvif/interfaces/AccessRules.html) | `onvif.accessRules` | [A](https://www.onvif.org/profiles/profile-a/) |
-| [Schedule](https://agsh.github.io/onvif/interfaces/Schedule.html) | `onvif.schedule` | [A](https://www.onvif.org/profiles/profile-a/) |
-| [Provisioning](https://agsh.github.io/onvif/interfaces/Provisioning.html) | `onvif.provisioning` | - |
-| [AdvancedSecurity](https://agsh.github.io/onvif/interfaces/AdvancedSecurity.html) | `onvif.advancedSecurity` | - |
+Namespaces (lazy except `events`):
+
+- **Core** - `device`, `events`
+- **Video (S / T)** - `media`, `media2`, `ptz`, `imaging`, `deviceIO`
+- **Recording (G)** - `recording`, `replay`, `search`, `receiver`
+- **Access (C / A)** - `doorControl`, `accessControl`, `credential`, `accessRules`, `schedule`
+- **Analytics (T / M)** - `analytics`, `analyticsDevice`
+- **Other** - `display`, `actionEngine`, `thermal`, `provisioning`, `uplink`,
+  `appManagement`, `advancedSecurity` (experimental)
 
 ### What methods return
 
-ONVIF SOAP replies are nested wrappers (`GetFooResponse` → `Foo` → …). This library unwraps them so you get the useful value directly — the simplest type that still carries everything you need.
+SOAP replies are nested (`GetFooResponse` -> `Foo` -> ...). This library unwraps them to the
+simplest useful value:
 
-- One useful field → that value alone.
-  `systemReboot()` → `"Rebooting"`; `media2.getStreamUri()` → `"rtsp://…"`; `createDoor()` → token string.
-- Several useful fields → one plain object (not a SOAP envelope).
-  `getDeviceInformation()` → `{ manufacturer, model, … }`; `media.getStreamUri()` → `MediaUri` (`uri`, `invalidAfterConnect`, …).
-- Lists → always an array, even when the camera returns a single item (or none).
-  XML with one `<Door>` would otherwise become a lone object; the parser’s `array` option forces `Door[]` / `[]` instead.
-  Same for `getProfiles()`, `getDoors({ token })`, `getAccessPoints({ token })`, `device.getServices()`, …
-- Paginated `*List` methods keep the list envelope so you can page: `{ door?, nextStartReference? }`, …
+- One useful field -> that value alone (`systemReboot()` -> `"Rebooting"`;
+  `media2.getStreamUri()` -> `"rtsp://..."`; `createDoor()` -> token string).
+- Several fields -> one plain object (`getDeviceInformation()`;
+  `media.getStreamUri()` -> `MediaUri` with `.uri`).
+- Lists -> always an array, even for one item (`getProfiles()`, `getDoors({ token })`, ...).
+- Paginated `*List` methods keep `{ items?, nextStartReference? }` (or door/access list shape).
 
 ```ts
-// Media 1.0 — MediaUri object (uri + validity fields)
 const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
-console.log(stream.uri);
+console.log(stream.uri); // Media 1.0 -> MediaUri
 
-// Media 2 — WSDL has only Uri, so you get the string
 const uri = await onvif.media2.getStreamUri({ protocol: 'RtspUnicast' });
-console.log(uri);
+console.log(uri); // Media 2 -> string
 
-// Lists are arrays even for one match
 const doors = await onvif.doorControl.getDoors({ token: ['Door_1'] });
-console.log(doors.length); // 1, not a bare Door object
-
-const info = await onvif.device.getDeviceInformation();
-console.log(info.manufacturer, info.model);
+console.log(doors.length); // always an array
 ```
 
-Rule of thumb: strip SOAP nesting; return a scalar or a single object when that is all there is; return arrays for repeating elements (never collapse one element to a non-array); keep a wrapper only for paging (`*List`) or multi-field values that belong together.
+Rule of thumb: strip SOAP nesting; scalars/objects when that is all there is; arrays for
+repeating elements; keep a wrapper only for paging (`*List`) or multi-field values.
 
 ## Events
 
+First `onvif.on('event', ...)` starts a global pull-point (`Events` is eager). Use `eventError`
+for pull / reconnect failures; remove listeners or `close()` to stop. For topic filters or another
+pull-point, use `Subscription` and `unsubscribe()` yourself (`close()` does not tear those down).
+
 ```ts
-onvif.on('event', (msg) => console.log(msg));
+import { Onvif, Subscription } from 'onvif';
+
+onvif.on('event', (msg) => console.log(msg.topic?._));
+onvif.on('eventError', (err) => console.error(err));
+
+const sub = new Subscription(onvif, {
+  filter: { topicExpression: [{ expression: 'tns1:RuleEngine/CellMotionDetector/Motion' }] },
+});
+sub.on('data', (msg) => console.log('motion', msg.topic?._));
+await sub.subscribe();
 ```
 
-Pull-point, WS-BaseNotification, filters, and push: [innerDocs/events.md](innerDocs/events.md).
+More: [events.md](https://github.com/agsh/onvif/blob/master/innerDocs/events.md),
+[guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#listen-for-motion-events),
+[events.with.filter.ts](examples/events.with.filter.ts).
 
 ## Vendor XML
 
-ONVIF `xs:any` / `xs:anyAttribute` extension points are exposed via `xsany` and `$`.
-After parse you get a camelCase view **and** a wire tree on `obj[xsany]`. Setters serialize **`[xsany]` only**.
-
-Details: [innerDocs/vendor-extensions.md](innerDocs/vendor-extensions.md).
+`xs:any` / `xs:anyAttribute` via `xsany` and `$`. Parse gives camelCase **and** a wire tree on
+`obj[xsany]`. Setters serialize **`[xsany]` only**. Details:
+[vendor-extensions.md](https://github.com/agsh/onvif/blob/master/innerDocs/vendor-extensions.md).
 
 ## SOAP XML
 
-`build` / `parseSOAPString`, public `onvif.request()`, and per-call `requestContext` request/response
-capture: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
+`build` / `parseSOAPString`, `onvif.request()`, `requestContext`:
+[soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md).
 
 ## Errors
 
-`OnvifTimeoutError`, `OnvifTransportError`, `OnvifParseError`, `OnvifResponseError`,
-`OnvifSoapFaultError` (SOAP 1.1 + 1.2 normalized), `OnvifAuthError`, `OnvifValidationError` —
-details: [innerDocs/errors.md](innerDocs/errors.md).
+Typed failures (`OnvifTimeoutError`, `OnvifTransportError`, `OnvifParseError`,
+`OnvifResponseError`, `OnvifSoapFaultError`, `OnvifAuthError`, `OnvifValidationError`):
+[errors.md](https://github.com/agsh/onvif/blob/master/innerDocs/errors.md).
+
+## Troubleshooting / FAQ
+
+Full catalog: [troubleshooting.md](https://github.com/agsh/onvif/blob/master/innerDocs/troubleshooting.md). Quirks:
+[quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md).
+
+- **Auth / Unauthorized after connect** - `connect()` is not a login check; call
+  `getDeviceInformation()`. See troubleshooting Auth +
+  [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md).
+- **Empty profiles / no RTSP** - media skipped, wrong bag, or Media2-only. Access-only C/A:
+  [Beyond cameras](#beyond-cameras-profiles-c--a--g--m). Else troubleshooting Media / RTSP.
+- **RTSP host wrong; SOAP OK with `preserveAddress`** - flag does not rewrite RTSP body URLs.
+  See troubleshooting + [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port).
+- **PTZ AbsoluteMove Fault** - check SupportedPTZSpaces; prefer ContinuousMove.
+- **Events stop / process exit** -`eventError`; always `sub.on('error')` on own Subscription.
+- **Discovery finds nothing** - `Discovery.on('status')`; bind NIC / family.
+- **Timeout ~10 s / process never exits** - raise `timeout`; `close()` / `unsubscribe()`.
 
 ## Migration from v0.x
 
-This package uses the `Onvif` API. Existing `Cam` apps can keep working via
-`onvif/compatibility` / `onvif/compatibility/promises` - see
-[innerDocs/migration.md](innerDocs/migration.md).
-Older line docs: [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
+Cheat-sheet (or keep `Cam` via `onvif/compatibility` / `.../promises`):
+
+- `Cam` -> `Onvif` (+ `await connect()` / `close()`)
+- Flat `cam.getStreamUri(...)` -> `onvif.media.getStreamUri(...)`, `onvif.ptz.*`, ...
+- Unwrapped returns - [What methods return](#what-methods-return)
+- `activeSource` -> `activeMediaProfile` + `defaultProfile` for codec/fps
+
+Checklist and diffs: [migration.md](https://github.com/agsh/onvif/blob/master/innerDocs/migration.md). Older line:
+[branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
 
 ## Examples
 
-Samples in the [`examples`](https://github.com/agsh/onvif/blob/master/examples) folder:
+Samples in [`examples/`](examples/):
 
-- [device.info.js](https://github.com/agsh/onvif/blob/master/examples/device.info.js) - device info, hostname, scopes, services
-- [media.stream.js](https://github.com/agsh/onvif/blob/master/examples/media.stream.js) - profiles, RTSP stream and snapshot URIs
-- [media.snapshot.ts](https://github.com/agsh/onvif/blob/master/examples/media.snapshot.ts) - GetSnapshotUri + HTTP Digest download (`digestAuth` / `getDigestHeaders`)
-- [media2.profiles.js](https://github.com/agsh/onvif/blob/master/examples/media2.profiles.js) - Profile T Media2 profiles / encoders
-- [imaging.settings.js](https://github.com/agsh/onvif/blob/master/examples/imaging.settings.js) - imaging settings and options
-- [analytics.rules.js](https://github.com/agsh/onvif/blob/master/examples/analytics.rules.js) - analytics rules and modules
-- [deviceio.relay.js](https://github.com/agsh/onvif/blob/master/examples/deviceio.relay.js) - DeviceIO relays / digital inputs
-- [door.unlock.js](https://github.com/agsh/onvif/blob/master/examples/door.unlock.js) - Profile C/A door unlock / lock
-- [rtsp.socketio.ptz.js](https://github.com/agsh/onvif/blob/master/examples/rtsp.socketio.ptz.js) - RTSP preview over Socket.IO with PTZ
-- [ptz.keyboard.js](https://github.com/agsh/onvif/blob/master/examples/ptz.keyboard.js) - keyboard PTZ + presets
-- [discovery.js](https://github.com/agsh/onvif/blob/master/examples/discovery.js) - WS-Discovery
-- [scan.ip.range.js](https://github.com/agsh/onvif/blob/master/examples/scan.ip.range.js) - IP range scan
-- [proxy.socks5.js](https://github.com/agsh/onvif/blob/master/examples/proxy.socks5.js) - SOCKS5 proxy
-- [https.digest.mjs](https://github.com/agsh/onvif/blob/master/examples/https.digest.mjs) - HTTPS + Digest (SHA-1 / SHA-256) with in-process mock (ESM)
-- [events.with.filter.ts](https://github.com/agsh/onvif/blob/master/examples/events.with.filter.ts) - events with topic filters
-- [osd.js](https://github.com/agsh/onvif/blob/master/examples/osd.js) - on-screen text overlays
-- [replay.uri.js](https://github.com/agsh/onvif/blob/master/examples/replay.uri.js) - Profile G replay URI
-
-Compatibility-layer demos: [`compatibility.cjs`](https://github.com/agsh/onvif/blob/master/examples/compatibility.cjs), [`compatibilityPromises.cjs`](https://github.com/agsh/onvif/blob/master/examples/compatibilityPromises.cjs).
+- [device.info.js](examples/device.info.js) - device info, hostname, scopes, services
+- [media.stream.js](examples/media.stream.js) - profiles, RTSP + snapshot URIs
+- [media.snapshot.ts](examples/media.snapshot.ts) - snapshot URI + HTTP Digest download
+- [media2.profiles.js](examples/media2.profiles.js) - Profile T Media2 profiles / encoders
+- [imaging.settings.js](examples/imaging.settings.js) - imaging settings and options
+- [analytics.rules.js](examples/analytics.rules.js) - analytics rules and modules
+- [deviceio.relay.js](examples/deviceio.relay.js) - DeviceIO relays / digital inputs
+- [door.unlock.js](examples/door.unlock.js) - Profile C/A door unlock / lock
+- [rtsp.socketio.ptz.js](examples/rtsp.socketio.ptz.js) - RTSP preview + PTZ over Socket.IO
+- [ptz.nodes.js](examples/ptz.nodes.js) - GetNodes / SupportedPTZSpaces
+- [ptz.keyboard.js](examples/ptz.keyboard.js) - keyboard ContinuousMove + presets
+- [discovery.js](examples/discovery.js) - WS-Discovery (includes `status`)
+- [scan.ip.range.js](examples/scan.ip.range.js) - IP range scan
+- [proxy.socks5.js](examples/proxy.socks5.js) - SOCKS5 proxy
+- [https.digest.mjs](examples/https.digest.mjs) - HTTPS + Digest mock (ESM)
+- [events.with.filter.ts](examples/events.with.filter.ts) - topic-filtered events
+- [osd.js](examples/osd.js) - on-screen text overlays
+- [replay.uri.js](examples/replay.uri.js) - Profile G replay URI
+- [compatibility.cjs](examples/compatibility.cjs) /
+  [compatibilityPromises.cjs](examples/compatibilityPromises.cjs) - Cam layer
 
 ## Device compatibility
 
-Tested and quirk-fixed against real devices from many vendors (closed GitHub issues and lab use), including
-[360 Vision Technology Predator](https://www.360visiontechnology.com/predator/), ACTi, Amcrest, Avigilon,
-Axis, Bosch, Canon, Dahua, D-Link, Foscam, Hanwha / Wisenet, Hikvision, Panasonic, Pelco, Reolink, Sony,
-Sricam, TP-Link / Tapo, Tyco, Uniview, Vivotek, and others.
+Tested against many vendors (issues + lab), including ACTi, Amcrest, Avigilon, Axis, Bosch,
+Canon, Dahua, D-Link, Foscam, Hanwha / Wisenet, Hikvision, Panasonic, Pelco, Reolink, Sony,
+TP-Link / Tapo, Uniview, Vivotek, and others. Known quirks:
+[quirks.md](https://github.com/agsh/onvif/blob/master/innerDocs/quirks.md).
 
-Report your device and firmware via the
-[compatibility form](https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform).
+Report manufacturer / model / firmware via the [compatibility form][compat-form].
+
+[compat-form]: https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11UurvgO5veYzUw/viewform
 
 ```ts
 console.log(await onvif.device.getDeviceInformation());
@@ -491,9 +446,11 @@ console.log(await onvif.device.getDeviceInformation());
 
 ## Thanks
 
-Thanks to [HappyTimeSoft](https://www.happytimesoft.com/) for
-[HappyTime ONVIF Server](https://www.happytimesoft.com/products/onvif-server/index.html) used in integration tests,
-to [@RogerHardiman](https://github.com/RogerHardiman) for ongoing support and real-camera testing,
-and to everyone who filed issues over the years.
+Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for
+[HappyTime ONVIF Server](https://www.happytimesoft.com/products/onvif-server/index.html)
+used in integration tests, to [@RogerHardiman](https://github.com/RogerHardiman) for support
+and real-camera testing, and to everyone who filed issues over the years.
 
-[![OBEY!](https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3)](https://www.onvif.org/resources/)
+[![OBEY!][obey-img]](https://www.onvif.org/resources/)
+
+[obey-img]: https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3

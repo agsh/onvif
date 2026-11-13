@@ -10,6 +10,7 @@ import {
   struct,
   toIsoDuration,
   toMs,
+  withUrlCredentials,
 } from '../src/utils';
 import { Config, LensDescription } from '../src/interfaces/onvif';
 import { config, xsany } from '../src/utils/toOnvifXMLSchemaObject';
@@ -164,6 +165,31 @@ describe('GUID function', () => {
     expect(guid()).toMatch(
       /^(?:\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\}{0,1})$/,
     ));
+});
+
+describe('withUrlCredentials', () => {
+  it('embeds username and password into an RTSP URL', () => {
+    expect(withUrlCredentials('rtsp://192.168.1.13:554/stream1', 'admin', 'secret')).toBe(
+      'rtsp://admin:secret@192.168.1.13:554/stream1',
+    );
+  });
+
+  it('replaces existing userinfo instead of doubling it', () => {
+    expect(withUrlCredentials('rtsp://old:pass@cam.local/live', 'admin', 'secret')).toBe(
+      'rtsp://admin:secret@cam.local/live',
+    );
+  });
+
+  it('percent-encodes reserved characters in username and password', () => {
+    expect(withUrlCredentials('rtsp://cam.local/path', 'user@name', 'p@ss:w/ord')).toBe(
+      'rtsp://user%40name:p%40ss%3Aw%2Ford@cam.local/path',
+    );
+  });
+
+  it('accepts a URL instance', () => {
+    const url = new URL('rtsp://192.168.1.13/stream');
+    expect(withUrlCredentials(url, 'a', 'b')).toBe('rtsp://a:b@192.168.1.13/stream');
+  });
 });
 
 const SOAPResponse = `

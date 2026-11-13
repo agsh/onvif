@@ -99,32 +99,32 @@ describe('compatibility promises unit', () => {
   });
 
   describe('Cam event forwarding', () => {
-    it('forwards rawRequest/rawResponse/connect/warning/eventsError from Onvif', () => {
+    it('forwards rawRequest/rawResponse/connect/warning/eventError from Onvif', () => {
       const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });
       const onvif = (cam as unknown as { onvif: Onvif }).onvif;
       const rawRequest = jest.fn();
       const rawResponse = jest.fn();
       const connect = jest.fn();
       const warning = jest.fn();
-      const eventsError = jest.fn();
+      const eventError = jest.fn();
 
       cam.on('rawRequest', rawRequest);
       cam.on('rawResponse', rawResponse);
       cam.on('connect', connect);
       cam.on('warning', warning);
-      cam.on('eventsError', eventsError);
+      cam.on('eventError', eventError);
 
       onvif.emit(Onvif.RAW_REQUEST, '<req/>', {});
       onvif.emit(Onvif.RAW_RESPONSE, '<res/>');
       onvif.emit(Onvif.CONNECT);
       onvif.emit(Onvif.WARN, new Error('no sources'));
-      onvif.emit(Onvif.EVENTS_ERROR, new Error('pull failed'));
+      onvif.emit(Onvif.EVENT_ERROR, new Error('pull failed'));
 
       expect(rawRequest).toHaveBeenCalledWith('<req/>', {});
       expect(rawResponse).toHaveBeenCalledWith('<res/>');
       expect(connect).toHaveBeenCalled();
       expect(warning).toHaveBeenCalledWith(expect.any(Error));
-      expect(eventsError).toHaveBeenCalledWith(expect.any(Error));
+      expect(eventError).toHaveBeenCalledWith(expect.any(Error));
     });
 
     it('lazily bridges event listeners and starts/stops pull subscription', async () => {

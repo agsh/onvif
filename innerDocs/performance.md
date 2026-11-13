@@ -1,10 +1,8 @@
 # Performance / lazy loading
 
-Full write-up (feature comparison, loading mechanics, short example, and heap benchmarks) lives in the
-[README](../README.md#performance--lazy-loading).
-
-This note adds footprint details, methodology, and a longer walkthrough of how lazy proxies interact with
-Promises. For agents / timers / `close()` ownership, see [resources.md](resources.md).
+Footprint details, methodology, heap notes, and a longer walkthrough of how lazy proxies interact with
+Promises. Short feature list: [README Features](../README.md#features). For agents / timers / `close()`
+ownership, see [resources.md](resources.md).
 
 ## Compiled JS footprint (approx.)
 
@@ -23,10 +21,20 @@ Eagerly loading every service would put the initial JS footprint well over 400 K
 
 ## Snapshot methodology
 
-Heap numbers in the README were measured against
-[happytime-onvif-server](https://github.com/agsh/happytime-onvif-server) on Node.js 24 (median of 3 runs,
-`heapUsed` after GC). RSS after connect is typically ~72-86 MiB for all clients (SOAP/HTTP dominates). Empty Node
-~ 3.4 MiB heap / ~ 47 MiB RSS; `require`/`import` alone ~ 5.3-5.5 MiB heap for each package.
+Heap numbers for this package were measured against
+[HappyTime ONVIF Server](https://www.happytimesoft.com/products/onvif-server/index.html)
+([HappyTimeSoft](https://www.happytimesoft.com/index.html)) on Node.js 24 (median of 3 runs,
+`heapUsed` after GC). Scenarios:
+
+- **Core** -- connect + device information (~6.2 MiB)
+- **Partial** -- + media / PTZ / discovery / media2 (~7.0 MiB)
+- **All** -- every service module loaded (~7.5 MiB; 20+ services)
+
+Baseline: empty Node ~ 3.4 MiB heap / ~ 47 MiB RSS; `require` / `import` this package alone ~
+5.3-5.5 MiB heap. RSS after connect is typically ~72-86 MiB (SOAP/HTTP dominates).
+
+Lazy loading keeps the Core path small: you pay for a service module only when that namespace
+is first used.
 
 Numbers change with Node, OS, and releases - treat them as illustrative, not as a guarantee.
 

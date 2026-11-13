@@ -178,7 +178,7 @@ export class Cam extends EventEmitter {
     this.onvif.on(Onvif.RAW_REQUEST, relay('rawRequest'));
     this.onvif.on(Onvif.RAW_RESPONSE, relay('rawResponse'));
     this.onvif.on(Onvif.CONNECT, relay('connect'));
-    this.onvif.on(Onvif.EVENTS_ERROR, relay('eventsError'));
+    this.onvif.on(Onvif.EVENT_ERROR, relay('eventError'));
     // v0.x used `warning`; Onvif emits `warn`
     this.onvif.on(Onvif.WARN, relay('warning'));
 

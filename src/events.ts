@@ -185,7 +185,7 @@ interface SubscribeOptions {
  * onvif.on('event', (msg) => {
  *   console.log(msg.topic, msg.message?.message?.data);
  * });
- * onvif.on('eventsError', (err) => console.error(err));
+ * onvif.on('eventError', (err) => console.error(err));
  *
  * // Or a dedicated filtered subscription:
  * // const sub = new Subscription(onvif, 'pullPoint', {
@@ -213,8 +213,8 @@ export default class Events {
     this.agent = this.createAgent();
     this.globalSubscription = new Subscription(onvif);
     this.globalSubscription.on('data', (msg) => onvif.emit('event', msg));
-    this.globalSubscription.on('error', (error) => onvif.emit('eventsError', error));
-    this.globalSubscription.on('connectionError', (error) => onvif.emit('eventsError', error));
+    this.globalSubscription.on('error', (error) => onvif.emit('eventError', error));
+    this.globalSubscription.on('connectionError', (error) => onvif.emit('eventError', error));
   }
 
   private createAgent(): HttpsAgent | HttpAgent {

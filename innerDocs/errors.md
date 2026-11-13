@@ -81,5 +81,8 @@ Sender-not-authorized Fault (used internally for Digest / WS-Security retry path
 
 ## Related
 
+- Symptom catalog: [troubleshooting.md](troubleshooting.md)
+- Auth (WS-Security / Digest / `useWSSecurity`): [auth.md](auth.md)
 - SOAP build / parse / `requestContext`: [soap-xml.md](soap-xml.md)
 - Connect failures and mid-session transport errors: [connection.md](connection.md)
+- Vendor firmware notes: [quirks.md](quirks.md)

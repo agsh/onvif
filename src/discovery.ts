@@ -232,6 +232,21 @@ export class DiscoverySingleton extends EventEmitter {
    */
   static error = 'error' as const;
 
+  /**
+   * Progress text while {@link DiscoverySingleton.probe} enumerates NICs and sends Probes.
+   * Informational only (not an error). Emitted once per local interface found, then once per
+   * Probe send (family, source address, interface name, destination host:port).
+   * @param message Human-readable status line
+   * @event status
+   * @example
+   * ```typescript
+   * Discovery.on('status', console.log);
+   * // Found interface eth0
+   * // Sending IPv4 from 192.168.1.10 (eth0) to 239.255.255.250:3702
+   * ```
+   */
+  static status = 'status' as const;
+
   private static instance?: DiscoverySingleton;
 
   public static get getInstance(): DiscoverySingleton {
@@ -414,7 +429,7 @@ export class DiscoverySingleton extends EventEmitter {
       const interfaces = os.networkInterfaces();
       const sendList: { interfaceName: string; info: os.NetworkInterfaceInfo }[] = [];
       for (const interfaceName in interfaces) {
-        this.emit('status', `Found interface ${interfaceName}`);
+        this.emit(DiscoverySingleton.status, `Found interface ${interfaceName}`);
         if (options.device && options.device != interfaceName) {
           continue;
         }
@@ -450,7 +465,7 @@ export class DiscoverySingleton extends EventEmitter {
           const destAddress =
             options.address ?? (sendItem.family === 'IPv6' ? WS_DISCOVERY_IPV6 : WS_DISCOVERY_IPV4);
           this.emit(
-            'status',
+            DiscoverySingleton.status,
             `Sending ${sendItem.family} from ${sendItem.address} (${interfaceName}) to ${destAddress}:${destPort}`,
           );
           socket.send(request, 0, request.length, destPort, destAddress);

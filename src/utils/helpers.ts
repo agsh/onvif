@@ -76,6 +76,25 @@ export function guid() {
 }
 
 /**
+ * Set or replace URL userinfo (e.g. RTSP from GetStreamUri for FFmpeg).
+ * Uses the WHATWG URL API so existing credentials are replaced (not doubled) and
+ * reserved characters in username/password are percent-encoded.
+ *
+ * The returned string embeds the password in cleartext userinfo. Do not log it;
+ * log the device URI from GetStreamUri, or redact userinfo first.
+ */
+export function withUrlCredentials(
+  url: string | URL,
+  username: string = '',
+  password: string = '',
+): string {
+  const parsed = typeof url === 'string' ? new URL(url) : new URL(url.href);
+  parsed.username = username;
+  parsed.password = password;
+  return parsed.toString();
+}
+
+/**
  * Create a record from the list where the key is commonly used parameter
  * For example, from the profiles array get an object where we can have rapid access to profile using its token
  * @param list
