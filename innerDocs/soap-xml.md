@@ -10,9 +10,22 @@ machine-generated ONVIF SOAP 1.2 (not a general-purpose XML stack):
 | Module | Role |
 | --- | --- |
 | `src/utils/builder.ts` (`buildXml`) | Compact serializer (`$` / `_` object model) |
-| `src/utils/parser.ts` (`parseXml`) | Character-level parser (normal / `xsanyTree` / `rawXML`) |
+| `src/utils/parser.ts` (`parseXml`) | Stack / `indexOf` / `charCodeAt` parser (normal / `xsanyTree` / `rawXML`) |
 | `src/utils/xml.ts` | Re-exports + test helper `soapEnvelope` |
 | `src/utils/soap.ts` | `build` / `parseSOAPString` on top of the above |
+
+### Stack parser (1.1.0+)
+
+`parseXml` walks the document with an explicit element stack: find the next `<`, copy text,
+push on open tags, finalize + pop on close. Names and attributes use `charCodeAt` bounds (no
+per-character `charAt` walker). Entities early-return when there is no `&`. `rawXML` hosts
+accumulate the camelCase tree and the `xsany` write-back tree in **one** pass (no second scan of
+the same subtree). Leaf coerce and camelCase keep the same public shapes as `1.0.0`, with a
+fast path + name cache.
+
+On representative ONVIF SOAP workloads (device / media / events / large NVR-style envelopes),
+parse speed is about **~4x** vs `1.0.0`. Among ONVIF clients for Node.js, this parse path sits in
+the top tier for SOAP XML throughput. See also [performance.md](performance.md).
 
 ## Object model (`$` / `_`)
 
@@ -70,7 +83,7 @@ const xml = build({
 
 ## Parsing XML - `parseXml` / `parseSOAPString()`
 
-`parseXml` is a single-pass character reader (no DOM, no schema). Options:
+`parseXml` is a single-pass stack reader (no DOM, no schema, no runtime XML package). Options:
 
 | Option | Effect |
 | --- | --- |

@@ -104,6 +104,10 @@ RTSP preview + Socket.IO / FFmpeg demo:
 - Auth: WS-Security + HTTP Digest -
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
 - WS-Discovery - [Discovery](#discovery)
+- Stack SOAP XML parser (zero deps) - about ~4x faster than `1.0.0`, 
+  one of the fastest TypeScript-based parsers purpose-built for ONVIF SOAP XML payloads. -
+  [soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md),
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md)
 - Media profile bag and non-camera profiles (C / A / G / M) -
   [Connection](#default-media-profile-activemediaprofile),
   [Beyond cameras](#beyond-cameras-profiles-c--a--g--m)

@@ -30,6 +30,21 @@ describe('Feature: XML parsing (normal mode)', () => {
       });
     });
 
+    it('preserves digit-led codec tags (H264, G711DecOptions) -- not h264/g711...', () => {
+      const parsed = parseXml(
+        soapEnvelope(
+          `<R xmlns:tt="${TT_NS}">` +
+            `<tt:H264><tt:GovLength>30</tt:GovLength></tt:H264>` +
+            `<tt:G711DecOptions><tt:Bitrate>64</tt:Bitrate></tt:G711DecOptions>` +
+            `</R>`,
+        ),
+      );
+      expect(parsed.envelope.body.r.H264).toEqual({ govLength: 30 });
+      expect(parsed.envelope.body.r.G711DecOptions).toEqual({ bitrate: 64 });
+      expect(parsed.envelope.body.r.h264).toBeUndefined();
+      expect(parsed.envelope.body.r.g711DecOptions).toBeUndefined();
+    });
+
     it('camelCases attribute names and flattens them onto the element (no $ bag)', () => {
       const parsed = parseXml(soapEnvelope('<R><Self FooBar="1"/></R>'));
       expect(parsed.envelope.body.r.self).toEqual({ fooBar: 1 });

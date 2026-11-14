@@ -2,7 +2,23 @@
 
 Footprint details, methodology, heap notes, and a longer walkthrough of how lazy proxies interact with
 Promises. Short feature list: [README Features](../README.md#features). For agents / timers / `close()`
-ownership, see [resources.md](resources.md).
+ownership, see [resources.md](resources.md). SOAP XML parse design:
+[soap-xml.md](soap-xml.md).
+
+## SOAP XML parse speed (1.1.0+)
+
+Responses are parsed by an in-repo **stack** ONVIF SOAP XML parser (`parseXml`: `indexOf` /
+`charCodeAt`, no DOM, no `xml2js` / `fast-xml-parser` at runtime).
+
+Relative to **`onvif@1.0.0`** on the same machine and the same SOAP fixtures (GetSystemDateAndTime /
+GetServices / GetProfiles, PullMessages batches, ~500 KiB NVR-style profile lists):
+
+- Parse throughput and latency are about **~4x** better (docs/s up, ms/parse and event-burst wall
+  time down by a similar factor).
+- Among ONVIF clients for Node.js, the parse path is in the **top tier** for SOAP XML throughput.
+
+Absolute numbers vary with Node, CPU, and fixture shape; treat the ~4x figure as order-of-magnitude
+guidance, not a guarantee for every device response.
 
 ## Compiled JS footprint (approx.)
 
