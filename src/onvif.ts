@@ -68,8 +68,8 @@ import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
 import { requestContext } from './utils/request-context';
 
-/** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
-export const DEFAULT_TIMEOUT_MS = 10_000;
+export const DEFAULT_TIMEOUT_MS = 10000;
+export const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 const DEFAULT_DEVICE_PATH = '/onvif/device_service';
 
@@ -97,16 +97,8 @@ function resolveDeviceLocation(options: OnvifOptions): {
       throw new OnvifValidationError('`url` must use http: or https:');
     }
     const useSecure = parsed.protocol === 'https:';
-    const path =
-      parsed.pathname && parsed.pathname !== '/'
-        ? parsed.pathname + parsed.search
-        : DEFAULT_DEVICE_PATH;
-    const port =
-      parsed.port !== ''
-        ? Number.parseInt(parsed.port, 10)
-        : useSecure
-          ? 443
-          : 80;
+    const path = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname + parsed.search : DEFAULT_DEVICE_PATH;
+    const port = parsed.port !== '' ? Number.parseInt(parsed.port, 10) : useSecure ? 443 : 80;
     return { hostname: parsed.hostname, port, path, useSecure };
   }
   if (!options.hostname) {
@@ -151,6 +143,12 @@ export interface OnvifOptions {
    * timeout (pull wait + margin) and is not limited by this value.
    */
   timeout?: number;
+  /**
+   * Maximum SOAP response body size in bytes while reading HTTP.
+   * Defaults to {@link DEFAULT_MAX_RESPONSE_BYTES} (2 MiB). Oversized bodies are aborted
+   * mid-stream (`OnvifResponseError`); there is no separate size check in `parseXml`.
+   */
+  maxResponseBytes?: number;
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: HttpsAgent | HttpAgent | boolean;
@@ -549,6 +547,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public path: string;
   public timeout: number;
+  /** Max SOAP response body size in bytes (see {@link OnvifOptions.maxResponseBytes}). */
+  public maxResponseBytes: number;
   public agent: HttpsAgent | HttpAgent | boolean;
   /** True when the default keep-alive agent was created by this instance (not a caller-supplied agent). */
   private readonly ownsAgent: boolean;
@@ -649,6 +649,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.port = location.port;
     this.path = location.path;
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
+    this.maxResponseBytes = options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
     this.defaultMedia = options.defaultMedia ?? true;
@@ -918,10 +919,32 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         const bufs: Buffer[] = [];
         let length = 0;
         const statusCode = response.statusCode;
+        const maxBytes = this.maxResponseBytes;
+        const contentLengthHeader = response.headers['content-length'];
+        const declaredLength =
+          typeof contentLengthHeader === 'string' ? Number.parseInt(contentLengthHeader, 10) : Number.NaN;
+        if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+          alreadyReturned = true;
+          response.destroy();
+          fail(new OnvifResponseError(`ONVIF SOAP response exceeds maximum size (${maxBytes} bytes)`, { statusCode }));
+          return undefined;
+        }
 
-        response.on('data', (chunk) => {
-          bufs.push(chunk);
+        response.on('data', (chunk: Buffer) => {
+          if (alreadyReturned) {
+            return;
+          }
           length += chunk.length;
+          if (length > maxBytes) {
+            alreadyReturned = true;
+            bufs.length = 0;
+            response.destroy();
+            fail(
+              new OnvifResponseError(`ONVIF SOAP response exceeds maximum size (${maxBytes} bytes)`, { statusCode }),
+            );
+            return;
+          }
+          bufs.push(chunk);
         });
 
         response.on('end', () => {

@@ -19,7 +19,7 @@ All of these extend `OnvifError` and may carry:
 | `OnvifTimeoutError` | HTTP socket timeout. `code === 'ETIMEDOUT'` (same as the old plain errno Error). |
 | `OnvifTransportError` | Other network failures (`ECONNRESET`, `ECONNREFUSED`, DNS, …). `code` mirrors the errno when present. |
 | `OnvifParseError` | Response body is not well-formed XML. |
-| `OnvifResponseError` | Empty body, or a non-SOAP HTTP body (HTML / proxy noise) that is not a Fault envelope. |
+| `OnvifResponseError` | Empty body, oversize (`maxResponseBytes`), or non-SOAP HTTP body (not a Fault). |
 | `OnvifSoapFaultError` | Device returned a SOAP `Fault` (see below). |
 | `OnvifAuthError` | Digest / credentials rejected (missing challenge, failed auth after retry). |
 | `OnvifValidationError` | Bad client-side arguments or unexpected response shape in a helper. |
@@ -53,17 +53,18 @@ try {
 There is **no** automatic retry on Get* / ordinary SOAP calls. A dead camera and a brief 502 look
 similar at the transport layer — the application decides whether to retry.
 
-## SOAP Faults (SOAP 1.2)
+## SOAP Faults (1.2 preferred, 1.1 accepted)
 
-ONVIF requires SOAP 1.2. `parseSOAPString` maps Fault fields into `OnvifSoapFaultError`:
+ONVIF requires SOAP 1.2, but many firmwares still emit SOAP 1.1 Faults. `parseSOAPString`
+normalizes both into `OnvifSoapFaultError`:
 
-| Field | Wire (SOAP 1.2) |
-| --- | --- |
-| `faultCode` | `Code/Value` (`s:Sender`, `s:Receiver`, ...) |
-| `faultSubcode` | First `Code/Subcode/Value` |
-| `faultSubcodes` | Full nested Subcode chain, outermost first |
-| `faultReason` | `Reason/Text` |
-| `faultDetail` | `Detail` text when present |
+| Field | Wire (SOAP 1.2) | Wire (SOAP 1.1) |
+| --- | --- | --- |
+| `faultCode` | `Code/Value` (`s:Sender`, ...) | `faultcode` (`s:Client`, ...) |
+| `faultSubcode` | First `Code/Subcode/Value` | First empty detail child (`ter:NotAuthorized`) |
+| `faultSubcodes` | Nested Subcode chain | Detail child local names (PascalCase) |
+| `faultReason` | `Reason/Text` | `faultstring` |
+| `faultDetail` | `Detail` text when present | `detail` text when present |
 
 ```ts
 err.faultCode; // 's:Sender'

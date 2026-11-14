@@ -314,6 +314,37 @@ describe('ParseSOAPString', () => {
     expect(isSenderNotAuthorizedFault(new Error('Sender not authorized'))).toBe(false);
   });
 
+  it('normalizes SOAP 1.1 fault fields and detail child subcodes', async () => {
+    const { isSenderNotAuthorizedFault } = await import('../src/utils');
+    const xml =
+      '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ter="http://www.onvif.org/ver10/error">' +
+      '<s:Body>' +
+      '<s:Fault>' +
+      '<faultcode>s:Client</faultcode>' +
+      '<faultstring>Sender not authorized</faultstring>' +
+      '<detail><s:Text>denied</s:Text><ter:NotAuthorized/></detail>' +
+      '</s:Fault>' +
+      '</s:Body>' +
+      '</s:Envelope>';
+
+    let caught: unknown;
+    try {
+      await parseSOAPString(xml);
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(OnvifSoapFaultError);
+    expect(caught).toMatchObject({
+      faultCode: 's:Client',
+      faultReason: 'Sender not authorized',
+      faultDetail: 'denied',
+      faultSubcode: 'NotAuthorized',
+      faultSubcodes: ['NotAuthorized'],
+    });
+    expect(isSenderNotAuthorizedFault(caught)).toBe(true);
+  });
+
   it('collects nested SOAP 1.2 Subcode chain', async () => {
     const xml =
       '<?xml version="1.0" encoding="UTF-8"?>' +

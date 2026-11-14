@@ -94,7 +94,9 @@ function elementKey(rawName: string): string {
   if (cached !== undefined) {
     return cached;
   }
+  assertSafeName(local);
   const key = toCamelCaseFast(local);
+  assertSafeName(key);
   CAMEL_CACHE.set(local, key);
   return key;
 }
@@ -115,21 +117,17 @@ export interface ParseXmlOptions {
 }
 
 const EMPTY_SET: ReadonlySet<string> = new Set();
-const FORBIDDEN_NAMES: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
-function emptyMap(): Record<string, any> {
-  return Object.create(null);
-}
-
-/**
- * Reject element/attribute names that would become dangerous object keys.
- * Checks the full name and the local part after `prefix:`.
- */
 function assertSafeName(name: string): void {
-  if (FORBIDDEN_NAMES.has(name)) {
-    throw new Error(`Forbidden XML name: ${name}`);
-  }
+  let local = name;
   const colon = name.indexOf(':');
-  if (colon !== -1 && FORBIDDEN_NAMES.has(name.slice(colon + 1))) {
+  if (colon !== -1) {
+    local = name.slice(colon + 1);
+  }
+  const c0 = local.charCodeAt(0);
+  if (c0 !== 0x5f && c0 !== 0x63 && c0 !== 0x43 && c0 !== 0x70 && c0 !== 0x50) {
+    return;
+  }
+  if (local === '__proto__' || local === 'constructor' || local === 'prototype') {
     throw new Error(`Forbidden XML name: ${name}`);
   }
 }
@@ -154,7 +152,7 @@ function tagSetFrom(tags: readonly string[] | undefined): ReadonlySet<string> {
   }
   let key = tags[0]!;
   for (let i = 1; i < tags.length; i++) {
-    key += `\0${tags[i]}`;
+    key += '\0' + tags[i];
   }
   const byKey = TAG_SET_BY_KEY.get(key);
   if (byKey !== undefined) {
@@ -173,7 +171,8 @@ function tagSetFrom(tags: readonly string[] | undefined): ReadonlySet<string> {
   return set;
 }
 
-const isWhitespace = (code: number): boolean => code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
+const isWhitespace = (code: number): boolean =>
+  code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
 
 /**
  * Like `String.prototype.trim`, but skip the scan/alloc when edges are already non-ws
@@ -292,7 +291,6 @@ function hasOwnKeys(obj: Record<string, any>): boolean {
  *   Duplicates still become arrays even when `forceArray` is false.
  */
 function assignChild(parent: Record<string, any>, key: string, value: unknown, forceArray: boolean): void {
-  assertSafeName(key);
   const existing = parent[key];
   if (existing !== undefined) {
     if (Array.isArray(existing)) {
@@ -359,7 +357,7 @@ function finalizeXml2js(
   if (!hasChildren && !hasAttrs) {
     return text;
   }
-  const obj = children ?? emptyMap();
+  const obj = children ?? {};
   if (hasAttrs) {
     obj.$ = attrs;
   }
@@ -394,10 +392,9 @@ type Frame = {
 function attachXsany(parsed: Record<string, any>, xsAnyParsed: any, textRaw: string): Record<string, any> {
   let xs = xsAnyParsed;
   if (xs == null || xs === '') {
-    xs = emptyMap();
+    xs = {};
   } else if (typeof xs !== 'object') {
-    xs = emptyMap();
-    xs._ = xsAnyParsed;
+    xs = { _: xs };
   }
   let hasElementChildren = false;
   for (const k in xs) {
@@ -514,11 +511,9 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
         let parsed = finalizeNormal(closed.flatAttrs, closed.children, closed.text);
         const xsAnyParsed = finalizeXml2js(closed.rawAttrs, closed.xsChildren, closed.text);
         if (parsed == null || parsed === '') {
-          parsed = emptyMap();
+          parsed = {};
         } else if (typeof parsed !== 'object') {
-          const wrap = emptyMap();
-          wrap._ = parsed;
-          parsed = wrap;
+          parsed = { _: parsed };
         }
         const value = attachXsany(parsed, xsAnyParsed, closed.text);
         if (current === root) {
@@ -526,16 +521,16 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           rootKey = closed.key;
           rootValue = value;
         } else if (parentWantsDual) {
-          assignChild((current.children ??= emptyMap()), closed.localCamel, value, arrayTags.has(closed.localCamel));
-          assignChild((current.xsChildren ??= emptyMap()), closed.rawName, xsAnyParsed, true);
+          assignChild((current.children ??= {}), closed.localCamel, value, arrayTags.has(closed.localCamel));
+          assignChild((current.xsChildren ??= {}), closed.rawName, xsAnyParsed, true);
         } else {
-          assignChild((current.children ??= emptyMap()), closed.key, value, arrayTags.has(closed.key));
+          assignChild((current.children ??= {}), closed.key, value, arrayTags.has(closed.key));
         }
       } else if (closed.dual) {
         const normalVal = finalizeNormal(closed.flatAttrs, closed.children, closed.text);
         const xsVal = finalizeXml2js(closed.rawAttrs, closed.xsChildren, closed.text);
-        assignChild((current.children ??= emptyMap()), closed.localCamel, normalVal, arrayTags.has(closed.localCamel));
-        assignChild((current.xsChildren ??= emptyMap()), closed.rawName, xsVal, true);
+        assignChild((current.children ??= {}), closed.localCamel, normalVal, arrayTags.has(closed.localCamel));
+        assignChild((current.xsChildren ??= {}), closed.rawName, xsVal, true);
       } else if (xsanyTree) {
         const value = finalizeXml2js(closed.rawAttrs, closed.children, closed.text);
         if (current === root) {
@@ -543,7 +538,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           rootKey = closed.key;
           rootValue = value;
         } else {
-          assignChild((current.children ??= emptyMap()), closed.key, value, true);
+          assignChild((current.children ??= {}), closed.key, value, true);
         }
       } else {
         const value = finalizeNormal(closed.flatAttrs, closed.children, closed.text);
@@ -552,7 +547,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           rootKey = closed.key;
           rootValue = value;
         } else {
-          assignChild((current.children ??= emptyMap()), closed.key, value, arrayTags.has(closed.key));
+          assignChild((current.children ??= {}), closed.key, value, arrayTags.has(closed.key));
         }
       }
       position = gt + 1;
@@ -576,9 +571,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
     const rawName = xml.slice(nameStart, cursor);
     const localCamel = elementKey(rawName);
     const key = xsanyTree ? rawName : localCamel;
-    // Reject before attrs / subtree work (covers camelCase forms like Constructor -> constructor).
     assertSafeName(rawName);
-    assertSafeName(localCamel);
     const underDual = current.rawXML || current.dual;
     const isRawXML = !xsanyTree && rawXMLTags.has(localCamel);
     const isDual = underDual;
@@ -642,26 +635,19 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
 
       if (xsanyTree || isRawXML || isDual) {
         assertSafeName(attrName);
-        (rawAttrs ??= emptyMap())[attrName] = attrValue;
+        (rawAttrs ??= {})[attrName] = attrValue;
       }
       if (!xsanyTree && !isXmlnsAttr(attrName)) {
-        const flatKey = elementKey(attrName);
-        assertSafeName(flatKey);
-        (flatAttrs ??= emptyMap())[flatKey] = attrValue;
+        (flatAttrs ??= {})[elementKey(attrName)] = attrValue;
       }
     }
 
     if (selfClosing) {
       if (isRawXML) {
         // Self-closing rawXML: keep flat attr strings; attach xsany (reuse flatAttrs map).
-        const value: Record<string, any> = flatAttrs !== undefined ? flatAttrs : emptyMap();
-        let xsObj: Record<string, any>;
-        if (rawAttrs === undefined || !hasOwnKeys(rawAttrs)) {
-          xsObj = emptyMap();
-        } else {
-          xsObj = emptyMap();
-          xsObj.$ = rawAttrs;
-        }
+        const value: Record<string, any> = flatAttrs !== undefined ? flatAttrs : {};
+        const xsObj: Record<string, any> =
+          rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? {} : { $: rawAttrs };
         Object.defineProperty(value, xsany, {
           value: xsObj,
           writable: true,
@@ -673,34 +659,50 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           rootKey = key;
           rootValue = value;
         } else if (underDual) {
-          assignChild((current.children ??= emptyMap()), localCamel, value, arrayTags.has(localCamel));
-          assignChild((current.xsChildren ??= emptyMap()), rawName, finalizeXml2js(rawAttrs, undefined, ''), true);
+          assignChild((current.children ??= {}), localCamel, value, arrayTags.has(localCamel));
+          assignChild(
+            (current.xsChildren ??= {}),
+            rawName,
+            finalizeXml2js(rawAttrs, undefined, ''),
+            true,
+          );
         } else {
-          assignChild((current.children ??= emptyMap()), key, value, arrayTags.has(key));
+          assignChild((current.children ??= {}), key, value, arrayTags.has(key));
         }
       } else if (isDual) {
         const normalVal =
-          flatAttrs === undefined || !hasOwnKeys(flatAttrs) ? '' : finalizeNormal(flatAttrs, undefined, '');
-        const xsVal = rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? '' : finalizeXml2js(rawAttrs, undefined, '');
-        assignChild((current.children ??= emptyMap()), localCamel, normalVal, arrayTags.has(localCamel));
-        assignChild((current.xsChildren ??= emptyMap()), rawName, xsVal, true);
+          flatAttrs === undefined || !hasOwnKeys(flatAttrs)
+            ? ''
+            : finalizeNormal(flatAttrs, undefined, '');
+        const xsVal =
+          rawAttrs === undefined || !hasOwnKeys(rawAttrs)
+            ? ''
+            : finalizeXml2js(rawAttrs, undefined, '');
+        assignChild((current.children ??= {}), localCamel, normalVal, arrayTags.has(localCamel));
+        assignChild((current.xsChildren ??= {}), rawName, xsVal, true);
       } else if (xsanyTree) {
-        const value = rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? '' : finalizeXml2js(rawAttrs, undefined, '');
+        const value =
+          rawAttrs === undefined || !hasOwnKeys(rawAttrs)
+            ? ''
+            : finalizeXml2js(rawAttrs, undefined, '');
         if (current === root) {
           seenRoot = true;
           rootKey = key;
           rootValue = value;
         } else {
-          assignChild((current.children ??= emptyMap()), key, value, true);
+          assignChild((current.children ??= {}), key, value, true);
         }
       } else {
-        const value = flatAttrs === undefined || !hasOwnKeys(flatAttrs) ? '' : finalizeNormal(flatAttrs, undefined, '');
+        const value =
+          flatAttrs === undefined || !hasOwnKeys(flatAttrs)
+            ? ''
+            : finalizeNormal(flatAttrs, undefined, '');
         if (current === root) {
           seenRoot = true;
           rootKey = key;
           rootValue = value;
         } else {
-          assignChild((current.children ??= emptyMap()), key, value, arrayTags.has(key));
+          assignChild((current.children ??= {}), key, value, arrayTags.has(key));
         }
       }
       position = cursor;
@@ -765,7 +767,5 @@ export function parseXml(xml: string, options?: ParseXmlOptions): any {
   const { key, value } = parseElementTree(stripXmlPreamble(xml), options);
   // xsanyTree wraps every element in an array, including the document root.
   assertSafeName(key);
-  const doc = emptyMap();
-  doc[key] = options?.xsanyTree === true ? [value] : value;
-  return doc;
+  return { [key]: options?.xsanyTree === true ? [value] : value };
 }

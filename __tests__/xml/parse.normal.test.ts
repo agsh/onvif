@@ -244,13 +244,15 @@ describe('Feature: XML parsing (normal mode)', () => {
       expect(Object.prototype.hasOwnProperty('polluted')).toBe(false);
     });
 
-    it('keeps a null prototype on parsed object nodes (no inherited setters)', () => {
+    it('uses plain objects and does not pollute Object.prototype', () => {
       const parsed = parseXml('<R><Item Foo="1"><Child>2</Child></Item></R>');
       const item = parsed.r.item;
-      expect(Object.getPrototypeOf(item)).toBeNull();
-      expect(Object.getPrototypeOf(parsed)).toBeNull();
+      expect(Object.getPrototypeOf(item)).toBe(Object.prototype);
+      expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
       expect(item.foo).toBe(1);
       expect(item.child).toBe(2);
+      expect(Object.prototype.hasOwnProperty('polluted')).toBe(false);
+      expect(({} as any).polluted).toBeUndefined();
     });
   });
 

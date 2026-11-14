@@ -121,6 +121,8 @@ Address the device with `url` **or** `hostname` / `port` / `path` / `useSecure`,
 
 - `timeout` - HTTP socket timeout for ordinary SOAP (ms; default 10000). PullMessages uses its own
   longer timeout (pull wait + margin)
+- `maxResponseBytes` - abort SOAP body read above this size (default 1 MiB); enforced on HTTP,
+  not inside `parseXml`
 - `useWSSecurity` - SOAP PasswordDigest headers (default `true`; HTTP Digest still applies; see
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md))
 - `autoConnect` - call `connect()` from the constructor (default `false`)

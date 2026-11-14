@@ -105,7 +105,10 @@ export class OnvifTransportError extends OnvifError {
   }
 }
 
-/** SOAP 1.2 Fault from the device (`Code` / `Subcode` / `Reason` / `Detail`).
+/**
+ * SOAP Fault from the device.
+ * Prefers SOAP 1.2 (`Code` / `Subcode` / `Reason` / `Detail`); also accepts SOAP 1.1
+ * (`faultcode` / `faultstring` / `detail`) from non-compliant firmwares.
  * @category Errors
  */
 export class OnvifSoapFaultError extends OnvifError {

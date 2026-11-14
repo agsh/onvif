@@ -264,6 +264,87 @@ describe('SOAP Content-Type action (#497 / v0 parity)', () => {
       await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
     }
   });
+
+  it('aborts when Content-Length exceeds maxResponseBytes', async () => {
+    const server = http.createServer((_req, res) => {
+      res.writeHead(200, {
+        'Content-Type': 'application/soap+xml',
+        'Content-Length': '64',
+      });
+      res.end('x'.repeat(64));
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+
+    try {
+      const onvif = new Onvif({
+        hostname: '127.0.0.1',
+        port,
+        username: 'onvif',
+        password: 'secret',
+        autoConnect: false,
+        agent: false,
+        useWSSecurity: false,
+        maxResponseBytes: 32,
+      });
+      await expect(
+        onvif.request({
+          body: {
+            GetServices: {
+              $: { xmlns: DEVICE_NS },
+              IncludeCapability: true,
+            },
+          },
+        }),
+      ).rejects.toMatchObject({
+        name: 'OnvifResponseError',
+        message: expect.stringContaining('exceeds maximum size (32 bytes)'),
+        statusCode: 200,
+      });
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+    }
+  });
+
+  it('aborts mid-stream when body grows past maxResponseBytes without Content-Length', async () => {
+    const server = http.createServer((_req, res) => {
+      res.writeHead(200, { 'Content-Type': 'application/soap+xml' });
+      res.write('a'.repeat(40));
+      res.write('b'.repeat(40));
+      res.end();
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address() as AddressInfo;
+
+    try {
+      const onvif = new Onvif({
+        hostname: '127.0.0.1',
+        port,
+        username: 'onvif',
+        password: 'secret',
+        autoConnect: false,
+        agent: false,
+        useWSSecurity: false,
+        maxResponseBytes: 48,
+      });
+      await expect(
+        onvif.request({
+          body: {
+            GetServices: {
+              $: { xmlns: DEVICE_NS },
+              IncludeCapability: true,
+            },
+          },
+        }),
+      ).rejects.toMatchObject({
+        name: 'OnvifResponseError',
+        message: expect.stringContaining('exceeds maximum size (48 bytes)'),
+        statusCode: 200,
+      });
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+    }
+  });
 });
 
 describe('passwordDigest Created timestamp (timeShift)', () => {

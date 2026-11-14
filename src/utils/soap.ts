@@ -1,4 +1,5 @@
 import { OnvifParseError, OnvifResponseError, OnvifSoapFaultError } from './errors';
+import { toPascalCase } from './naming';
 import { buildXml, parseXml, type ParseXmlOptions } from './xml';
 
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
@@ -28,7 +29,7 @@ function soapFaultText(value: unknown): string {
 }
 
 /** Walk SOAP 1.2 `Code/Subcode` nesting (outermost first). */
-function collectSoapSubcodes(subcode: unknown): string[] {
+function collectSoap12Subcodes(subcode: unknown): string[] {
   const codes: string[] = [];
   let current: any = subcode;
   while (current != null && typeof current === 'object') {
@@ -42,8 +43,29 @@ function collectSoapSubcodes(subcode: unknown): string[] {
 }
 
 /**
- * Extract SOAP 1.2 Fault fields (`Code` / `Subcode` / `Reason` / `Detail`).
- * ONVIF mandates SOAP 1.2; SOAP 1.1 `faultcode` / `faultstring` are not handled.
+ * SOAP 1.1 often puts ONVIF `ter:*` codes as empty detail children
+ * (`<detail><ter:NotAuthorized/></detail>` -> `{ notAuthorized: '' }` after NS strip).
+ */
+function collectSoap11DetailSubcodes(detail: Record<string, unknown> | undefined): string[] {
+  if (!detail || typeof detail !== 'object') {
+    return [];
+  }
+  const codes: string[] = [];
+  for (const [key, value] of Object.entries(detail)) {
+    if (key === 'text' || key === '_' || key === '$') {
+      continue;
+    }
+    if (value === '' || value == null || (typeof value === 'object' && !Array.isArray(value))) {
+      codes.push(toPascalCase(key));
+    }
+  }
+  return codes;
+}
+
+/**
+ * Normalize SOAP 1.2 (`Code` / `Subcode` / `Reason` / `Detail`) and SOAP 1.1
+ * (`faultcode` / `faultstring` / `detail`) into one shape.
+ * ONVIF mandates 1.2, but many firmwares still emit 1.1 Faults -- accept both.
  */
 function extractSoapFault(fault: Record<string, any>): {
   faultCode?: string;
@@ -53,18 +75,30 @@ function extractSoapFault(fault: Record<string, any>): {
   faultDetail: string;
 } {
   let faultCode: string | undefined;
-  const codeValue = fault.code?.value ?? fault.code;
-  if (typeof codeValue === 'string') {
-    faultCode = codeValue;
-  } else if (codeValue != null && typeof codeValue === 'object') {
-    const asText = soapFaultText(codeValue);
-    faultCode = asText || undefined;
+  // SOAP 1.1 uses lowercase `faultcode` (stays as-is after camelCase).
+  const soap11Code = soapFaultText(fault.faultcode ?? fault.faultCode);
+  if (soap11Code) {
+    faultCode = soap11Code;
+  } else {
+    const codeValue = fault.code?.value ?? fault.code;
+    if (typeof codeValue === 'string') {
+      faultCode = codeValue;
+    } else if (codeValue != null && typeof codeValue === 'object') {
+      const asText = soapFaultText(codeValue);
+      faultCode = asText || undefined;
+    }
   }
 
-  const faultSubcodes = collectSoapSubcodes(fault.code?.subcode);
+  const soap12Subcodes = collectSoap12Subcodes(fault.code?.subcode);
+  const soap11Subcodes = soap12Subcodes.length ? [] : collectSoap11DetailSubcodes(fault.detail);
+  const faultSubcodes = soap12Subcodes.length ? soap12Subcodes : soap11Subcodes;
   const faultSubcode = faultSubcodes[0];
 
-  const faultReason = soapFaultText(fault.reason?.text) || faultCode || '';
+  const faultReason =
+    soapFaultText(fault.reason?.text) ||
+    soapFaultText(fault.faultstring ?? fault.faultString) ||
+    faultCode ||
+    '';
 
   let faultDetail = '';
   const detailText = fault.detail?.text ?? fault.detail?._;

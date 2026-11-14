@@ -122,13 +122,24 @@ The parser targets **machine-generated SOAP 1.2** from cameras / NVRs, not full 
 | Leading `<?xml version="..." encoding="..."?>` only (stripped) | Other PIs, mid-document / trailing PIs |
 | Elements, attributes, text, entities (`&amp;` / `&#...;`) | Comments (`<!-- -->`) |
 | CDATA -> text (mixed with entities; several CDATA ok) for vendor / `xs:any` | DOCTYPE / DTD / external entities |
-| SOAP 1.2 Fault fields only | SOAP 1.1 `faultcode` / `faultstring` |
+| SOAP 1.2 + SOAP 1.1 Faults (`faultcode` / `faultstring` / `detail`) | Strict 1.2-only rejection of 1.1 Faults |
 | Leaf coerce: bool / number / ISO `...T...Z` Date; `001` stays string | Date-only `YYYY-MM-DD` stays string; no full XSD typing |
 | Duplicate siblings -> arrays; optional `array` force | -- |
 
 Why keep it narrow: less code, predictable trees for ONVIF services, and no security surface from
 DOCTYPE / entity expansion. Quirky vendor markup that still fits elements + text + CDATA is
 handled; human-edited XML with comments or DOCTYPE is out of scope.
+
+**Soft limits / vendor leniency:** Many cameras and NVRs do not follow the ONVIF / SOAP specs
+strictly. This library deliberately uses soft bounds and accepts common deviations (SOAP 1.1
+Faults, tolerant entities, BOM / declaration quirks, heuristic coercion) instead of failing
+closed on every non-spec response. That is intentional product policy, not incomplete hardening.
+
+**Size bound:** HTTP transport enforces `maxResponseBytes` (default 1 MiB) while reading the
+response body and aborts mid-stream. There is intentionally **no** `maxLength` / `maxDepth` /
+`maxNodes` check inside `parseXml` -- the wire cap already bounds ONVIF envelopes. Same for
+skipping full namespace URIs, comment support, and `1`/`0` -> boolean coercion: product choices
+for camera SOAP. Reviewers should not score these as defects.
 
 ## `Onvif.request()` - public SOAP API
 
