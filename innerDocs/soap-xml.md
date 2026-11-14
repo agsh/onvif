@@ -4,10 +4,20 @@ This note covers how the library turns JS objects into SOAP envelopes, parses re
 to inspect per-call request/response XML. Vendor `xs:any` / `xs:anyAttribute` details live in
 [vendor-extensions.md](vendor-extensions.md).
 
+There is **no** runtime XML dependency. Build and parse are small in-repo helpers tuned for
+machine-generated ONVIF SOAP 1.2 (not a general-purpose XML stack):
+
+| Module | Role |
+| --- | --- |
+| `src/utils/builder.ts` (`buildXml`) | Compact serializer (`$` / `_` object model) |
+| `src/utils/parser.ts` (`parseXml`) | Character-level parser (normal / `xsanyTree` / `rawXML`) |
+| `src/utils/xml.ts` | Re-exports + test helper `soapEnvelope` |
+| `src/utils/soap.ts` | `build` / `parseSOAPString` on top of the above |
+
 ## Object model (`$` / `_`)
 
-Build and (for `rawXML` / `xsany`) parse use an [xml2js](https://github.com/Leonidas-from-XIV/node-xml2js)-style
-tree:
+Build and (for `rawXML` / `xsany`) parse use an
+[xml2js](https://github.com/Leonidas-from-XIV/node-xml2js)-style tree:
 
 | Key | Meaning |
 | --- | --- |
@@ -32,7 +42,7 @@ becomes:
 <Password Type="...#PasswordDigest">base64digest...</Password>
 ```
 
-## Building XML - `build()`
+## Building XML - `build()` / `buildXml`
 
 ```ts
 import { build } from 'onvif';
@@ -47,29 +57,65 @@ const xml = build({
 });
 ```
 
-- Output is **compact** (no pretty-print). Some cameras reject indented SOAP (#497).
-- `build` is a thin wrapper around `fast-xml-parser` `XMLBuilder` with `attributesGroupName: '$'`
-  and `textNodeName: '_'`.
+`build` is a thin wrapper around `buildXml`:
 
-## Parsing XML - `parseSOAPString()`
+- **Compact** output (no pretty-print). Some cameras reject indented SOAP (#497).
+- `$` -> attributes, `_` -> text, other keys -> children; arrays repeat the same tag.
+- Empty / `null` / `{}` / empty string -> self-closing `<Tag/>`.
+- `true` / `"true"` attributes emit a bare name (no `="..."`).
+- `Date` -> UTC ISO-8601 (`xs:dateTime`).
+- Escapes `& < > " '` in text and attribute values.
+- Does **not** emit `<?xml ...?>` or other PIs -- callers prepend the declaration when needed
+  (`soapEnvelope` in tests, or the request path).
+
+## Parsing XML - `parseXml` / `parseSOAPString()`
+
+`parseXml` is a single-pass character reader (no DOM, no schema). Options:
+
+| Option | Effect |
+| --- | --- |
+| (default) | Strip NS prefixes, camelCase tags/attrs, flatten attrs, trim text; coerce leaf strings (see below) |
+| `array: ['item']` | Force listed camelCase tags to always be arrays |
+| `rawXML: ['elementItem']` | Dual parse: camelCase flatten + non-enumerable `xsany` (xml2js-shaped write-back tree) |
+| `xsanyTree: true` | Whole document as write-back tree: keep prefixes, attrs in `$`, every element an array |
 
 ```ts
 import { parseSOAPString } from 'onvif';
 
 const [body, xml] = await parseSOAPString(rawSoapString, {
-  array: ['profiles'], // force these tag names to arrays
-  rawXML: ['elementItem'], // keep xml2js-style trees (+ xsany) for these tags
+  array: ['profiles'],
+  rawXML: ['elementItem'],
 });
 ```
 
-- Expects a SOAP `Envelope` / `Body`. Empty or non-SOAP bodies throw `OnvifResponseError`.
+`parseSOAPString` calls `parseXml` (normal mode coerces leaf strings in one pass; `xsany` /
+`xsanyTree` stay strings), then:
+
+- Expects SOAP `Envelope` / `Body`. Empty or non-SOAP bodies throw `OnvifResponseError`.
   Malformed XML throws `OnvifParseError`.
-- SOAP Faults throw `OnvifSoapFaultError` with a normalized shape for SOAP 1.1 and 1.2
-  (`faultCode`, `faultSubcode` / `faultSubcodes`, `faultReason`, `faultDetail`) — see
+- SOAP Faults throw `OnvifSoapFaultError` with SOAP 1.2 `Code` / `Subcode` / `Reason` / `Detail`
+  (`faultCode`, `faultSubcode` / `faultSubcodes`, `faultReason`, `faultDetail`) - see
   [errors.md](errors.md).
-- Returns `[body, originalXmlString]`. Tag names are camelCased; namespaces are stripped on the
-  normal parse path (except under `rawXML` / `xsany`).
+- Returns `[body, originalXmlString]`.
 - Typed service methods usually run the body through `linerase()` and unwrap a single useful value.
+
+### Intentional ONVIF SOAP simplifications
+
+The parser targets **machine-generated SOAP 1.2** from cameras / NVRs, not full XML 1.0:
+
+| Supported | Intentionally omitted / simplified |
+| --- | --- |
+| Leading UTF-8 BOM (`\uFEFF`), e.g. some XiongMai / XM firmwares | -- |
+| Leading `<?xml version="..." encoding="..."?>` only (stripped) | Other PIs, mid-document / trailing PIs |
+| Elements, attributes, text, entities (`&amp;` / `&#...;`) | Comments (`<!-- -->`) |
+| CDATA -> text (mixed with entities; several CDATA ok) for vendor / `xs:any` | DOCTYPE / DTD / external entities |
+| SOAP 1.2 Fault fields only | SOAP 1.1 `faultcode` / `faultstring` |
+| Leaf coerce: bool / number / ISO `...T...Z` Date; `001` stays string | Date-only `YYYY-MM-DD` stays string; no full XSD typing |
+| Duplicate siblings -> arrays; optional `array` force | -- |
+
+Why keep it narrow: less code, predictable trees for ONVIF services, and no security surface from
+DOCTYPE / entity expansion. Quirky vendor markup that still fits elements + text + CDATA is
+handled; human-edited XML with comments or DOCTYPE is out of scope.
 
 ## `Onvif.request()` - public SOAP API
 
@@ -210,3 +256,4 @@ call (same per-request store).
 - Vendor extensions / `xsany`: [vendor-extensions.md](vendor-extensions.md)
 - Events long-poll + `AbortSignal` on `request`: [events.md](events.md)
 - Automated tests / HappyTime: [testing.md](testing.md)
+- Fault shape: [errors.md](errors.md)

@@ -30,5 +30,5 @@ export {
   build,
   soapActionFromBody,
   soapActionFromXml,
-  formatXMLValues,
 } from './soap';
+export { type ParseXmlOptions, parseXml, buildXml } from './xml';

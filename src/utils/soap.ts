@@ -1,18 +1,9 @@
-import { XMLBuilder, XMLParser } from 'fast-xml-parser';
-import { DATE_RE, NUMBER_RE } from './helpers';
-
 import { OnvifParseError, OnvifResponseError, OnvifSoapFaultError } from './errors';
-import { toCamelCase, toPascalCase } from './naming';
-import { xsany } from './toOnvifXMLSchemaObject';
+import { buildXml, parseXml, type ParseXmlOptions } from './xml';
 
 export type OnvifResponse = Promise<[Record<string, any>, string]>;
 
-interface ParseSOAPStringOptions {
-  array?: string[];
-  rawXML?: string[];
-  attributesGroupName?: string;
-  attributeNamePrefix?: string;
-}
+interface ParseSOAPStringOptions extends ParseXmlOptions {}
 
 function soapFaultText(value: unknown): string {
   if (value == null) {
@@ -37,42 +28,22 @@ function soapFaultText(value: unknown): string {
 }
 
 /** Walk SOAP 1.2 `Code/Subcode` nesting (outermost first). */
-function collectSoap12Subcodes(subcode: unknown): string[] {
+function collectSoapSubcodes(subcode: unknown): string[] {
   const codes: string[] = [];
   let current: any = subcode;
   while (current != null && typeof current === 'object') {
-    const value = soapFaultText(current.value ?? current.Value);
+    const value = soapFaultText(current.value);
     if (value) {
       codes.push(value);
     }
-    current = current.subcode ?? current.Subcode;
+    current = current.subcode;
   }
   return codes;
 }
 
 /**
- * SOAP 1.1 often puts ONVIF `ter:*` codes as empty detail children
- * (`<detail><ter:NotAuthorized/></detail>` → `{ notAuthorized: '' }` after NS strip).
- */
-function collectSoap11DetailSubcodes(detail: Record<string, unknown> | undefined): string[] {
-  if (!detail || typeof detail !== 'object') {
-    return [];
-  }
-  const codes: string[] = [];
-  for (const [key, value] of Object.entries(detail)) {
-    if (key === 'text' || key === '_' || key === '$') {
-      continue;
-    }
-    if (value === '' || value == null || (typeof value === 'object' && !Array.isArray(value))) {
-      codes.push(toPascalCase(key));
-    }
-  }
-  return codes;
-}
-
-/**
- * Normalize SOAP 1.1 (`faultcode` / `faultstring` / `detail`) and SOAP 1.2
- * (`Code` / `Subcode` / `Reason` / `Detail`) into one shape.
+ * Extract SOAP 1.2 Fault fields (`Code` / `Subcode` / `Reason` / `Detail`).
+ * ONVIF mandates SOAP 1.2; SOAP 1.1 `faultcode` / `faultstring` are not handled.
  */
 function extractSoapFault(fault: Record<string, any>): {
   faultCode?: string;
@@ -81,52 +52,26 @@ function extractSoapFault(fault: Record<string, any>): {
   faultReason: string;
   faultDetail: string;
 } {
-  // --- Code ---
   let faultCode: string | undefined;
-  // SOAP 1.1 uses lowercase `faultcode` (kept as-is by camelCase transform).
-  const soap11Code = soapFaultText(fault.faultcode ?? fault.faultCode);
-  if (soap11Code) {
-    faultCode = soap11Code;
-  } else {
-    const codeValue = fault.code?.value ?? fault.code?.Value ?? fault.code;
-    if (typeof codeValue === 'string') {
-      faultCode = codeValue;
-    } else if (codeValue != null && typeof codeValue === 'object') {
-      // Prefer the top-level Code/Value string; nested objects may be Subcode bags
-      const asText = soapFaultText(codeValue);
-      faultCode = asText || undefined;
-    }
+  const codeValue = fault.code?.value ?? fault.code;
+  if (typeof codeValue === 'string') {
+    faultCode = codeValue;
+  } else if (codeValue != null && typeof codeValue === 'object') {
+    const asText = soapFaultText(codeValue);
+    faultCode = asText || undefined;
   }
 
-  // --- Subcodes ---
-  const soap12Subcodes = collectSoap12Subcodes(fault.code?.subcode ?? fault.code?.Subcode);
-  const soap11Subcodes = soap12Subcodes.length ? [] : collectSoap11DetailSubcodes(fault.detail);
-  const faultSubcodes = soap12Subcodes.length ? soap12Subcodes : soap11Subcodes;
+  const faultSubcodes = collectSoapSubcodes(fault.code?.subcode);
   const faultSubcode = faultSubcodes[0];
 
-  // --- Reason / string ---
-  let faultReason = '';
-  try {
-    faultReason =
-      soapFaultText(fault.reason?.text) ||
-      soapFaultText(fault.faultstring ?? fault.faultString) ||
-      faultCode ||
-      '';
-  } catch {
-    // ignore malformed reason
-  }
+  const faultReason = soapFaultText(fault.reason?.text) || faultCode || '';
 
-  // --- Detail ---
   let faultDetail = '';
-  try {
-    const detailText = fault.detail?.text ?? fault.detail?._;
-    if (detailText !== undefined) {
-      faultDetail = soapFaultText(detailText);
-    } else if (typeof fault.detail === 'string' || typeof fault.detail === 'number') {
-      faultDetail = String(fault.detail);
-    }
-  } catch {
-    // ignore malformed detail
+  const detailText = fault.detail?.text ?? fault.detail?._;
+  if (detailText !== undefined) {
+    faultDetail = soapFaultText(detailText);
+  } else if (typeof fault.detail === 'string' || typeof fault.detail === 'number') {
+    faultDetail = String(fault.detail);
   }
 
   return {
@@ -136,122 +81,6 @@ function extractSoapFault(fault: Record<string, any>): {
     faultReason,
     faultDetail,
   };
-}
-
-/** Module-level cache: one {@link XMLParser} per distinct `array` / `rawXML` / xml2js mode. */
-const xmlParserCache = new Map<string, XMLParser>();
-
-function xmlParserCacheKey(options?: ParseSOAPStringOptions): string {
-  if (options?.attributesGroupName === '$') {
-    return `$\0${options.attributeNamePrefix ?? ''}`;
-  }
-  const array = options?.array;
-  const rawXML = options?.rawXML;
-  // Sort so the same tag set hits one entry regardless of call-site order.
-  const arrayKey = array?.length ? [...array].sort().join('\0') : '';
-  const rawKey = rawXML?.length ? [...rawXML].sort().join('\0') : '';
-  return `${arrayKey}\0\0${rawKey}`;
-}
-
-function createXmlParser(options?: ParseSOAPStringOptions): XMLParser {
-  const xml2jsMode = options?.attributesGroupName === '$';
-  // Capture tags at creation time (callers may reuse / mutate option objects).
-  const arrayTags = new Set(options?.array ?? []);
-  const stopNodes = options?.rawXML?.length ? options.rawXML.map((tag) => `..${tag}`) : undefined;
-  return new XMLParser({
-    ignoreAttributes: false,
-    attributesGroupName: options?.attributesGroupName,
-    attributeNamePrefix: options?.attributeNamePrefix ?? '',
-    textNodeName: '_',
-    parseTagValue: false,
-    parseAttributeValue: false,
-    trimValues: true,
-    isArray: xml2jsMode
-      ? (_tagName, _jPath, _isLeafNode, isAttribute) => !isAttribute
-      : (tagName) => arrayTags.has(tagName),
-    removeNSPrefix: !xml2jsMode,
-    ...(!xml2jsMode && {
-      transformTagName: toCamelCase,
-      transformAttributeName: toCamelCase,
-    }),
-    stopNodes,
-  });
-}
-
-function getXmlParser(options?: ParseSOAPStringOptions): XMLParser {
-  const key = xmlParserCacheKey(options);
-  let parser = xmlParserCache.get(key);
-  if (!parser) {
-    parser = createXmlParser(options);
-    xmlParserCache.set(key, parser);
-  }
-  return parser;
-}
-
-function parse(xml: string, options?: ParseSOAPStringOptions) {
-  return getXmlParser(options).parse(xml);
-}
-
-/** @internal Test helper — size of the shared {@link XMLParser} cache. */
-export function xmlParserCacheSize(): number {
-  return xmlParserCache.size;
-}
-
-/** @internal Test helper — drop all cached parsers. */
-export function clearXmlParserCache(): void {
-  xmlParserCache.clear();
-}
-
-function hydrateStopNode(value: any, options: ParseSOAPStringOptions): any {
-  if (Array.isArray(value)) {
-    return value.map((item) => hydrateStopNode(item, options));
-  }
-  // Only use text content as inner XML — never stringify the attribute bag (`[object Object]`).
-  const innerXml =
-    typeof value === 'object' && value !== null ? String(value._ ?? '') : String(value ?? '');
-  const xmlToParse = `<root>${innerXml}</root>`;
-  let parsed: any = parse(xmlToParse, { array: options.array }).root;
-  const wrapped = parse(xmlToParse, { attributesGroupName: '$' }).root;
-  let xsAnyParsed: any = Array.isArray(wrapped) ? wrapped[0] : wrapped;
-
-  // Text-only / empty stop nodes: root may be a string, '', or undefined — always attach xsany to an object.
-  if (parsed == null || parsed === '') {
-    parsed = {};
-  } else if (typeof parsed !== 'object') {
-    parsed = { _: parsed };
-  }
-  if (xsAnyParsed == null || xsAnyParsed === '') {
-    xsAnyParsed = {};
-  } else if (typeof xsAnyParsed !== 'object') {
-    xsAnyParsed = { _: xsAnyParsed };
-  }
-
-  if (typeof value === 'object' && value !== null) {
-    Object.assign(parsed, value);
-    delete parsed._;
-    const $: Record<string, unknown> = {};
-    for (const [key, attrValue] of Object.entries(value)) {
-      if (key !== '_') {
-        $[toPascalCase(key)] = attrValue;
-      }
-    }
-    if (Object.keys($).length) {
-      xsAnyParsed.$ = { ...$, ...xsAnyParsed.$ };
-    }
-    // Text-only ElementItem: keep payload on xsany._ when there are no child elements
-    const hasElementChildren = Object.keys(xsAnyParsed).some((k) => k !== '$' && k !== '_');
-    if (!hasElementChildren && typeof value._ === 'string' && value._ !== '') {
-      xsAnyParsed._ = value._;
-    }
-  }
-  formatXMLValues(parsed, { array: options.array });
-  Object.defineProperty(parsed, xsany, {
-    value: xsAnyParsed,
-    writable: true,
-    enumerable: false,
-    configurable: true,
-  });
-  return parsed;
 }
 
 /**
@@ -269,11 +98,10 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
   }
   let result: any;
   try {
-    result = parse(xml, options);
+    result = parseXml(xml, options);
   } catch (cause) {
     throw new OnvifParseError('Failed to parse ONVIF SOAP XML', { xml, cause });
   }
-  formatXMLValues(result, options);
   const body = result.envelope?.body;
   if (!body) {
     throw new OnvifResponseError('Wrong ONVIF SOAP response, not a SOAP message, envelope and body are expected', {
@@ -283,7 +111,7 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
   if (body.fault) {
     const { faultCode, faultSubcode, faultSubcodes, faultReason, faultDetail } = extractSoapFault(body.fault);
     const parts = [faultReason, faultDetail].filter((part) => part.length > 0);
-    throw new OnvifSoapFaultError(`ONVIF SOAP Fault: ${parts.join(' — ') || 'unknown'}`, {
+    throw new OnvifSoapFaultError(`ONVIF SOAP Fault: ${parts.join(' -- ') || 'unknown'}`, {
       xml,
       faultCode,
       faultSubcode,
@@ -295,19 +123,9 @@ export async function parseSOAPString<T>(xml: string, options?: ParseSOAPStringO
   return [body, xml];
 }
 
-// Compact SOAP like v0.x (no pretty-print). Some cameras (e.g. Pelco) reject or
-// mishandle indented SOAP and return an empty HTTP body — see #497.
-const newBuilder = new XMLBuilder({
-  ignoreAttributes: false,
-  attributesGroupName: '$',
-  attributeNamePrefix: '',
-  textNodeName: '_',
-  format: false,
-  suppressEmptyNode: true,
-});
-
+/** Serialize a JS tree to compact XML (`$` attrs, `_` text). See {@link buildXml}. */
 export function build(object: any) {
-  return newBuilder.build(object);
+  return buildXml(object);
 }
 
 /**
@@ -352,40 +170,4 @@ export function soapActionFromXml(xml: string): string | undefined {
     return undefined;
   }
   return `${nsMatch[1]}/${local}`;
-}
-
-/**
- * Mutable function to convert string values to their appropriate types.
- * Tags in `rawXML` are re-parsed and get `xsany` as the xml2js object.
- */
-export function formatXMLValues(xml: any, options: ParseSOAPStringOptions = {}) {
-  const rawXML = options.rawXML ?? [];
-  // if (Array.isArray(xml)) {
-  //   return xml.forEach((item) => formatXMLValues(item, options));
-  // }
-  if (typeof xml === 'object' && xml !== null) {
-    for (const [key, value] of Object.entries(xml)) {
-      if (rawXML.includes(key)) {
-        xml[key] = hydrateStopNode(value, options);
-        continue;
-      }
-      if (value === 'true') {
-        xml[key] = true;
-      }
-      if (value === 'false') {
-        xml[key] = false;
-      }
-      if (typeof value === 'string') {
-        if (NUMBER_RE.test(value)) {
-          xml[key] = Number.parseFloat(value);
-        }
-        if (DATE_RE.test(value)) {
-          xml[key] = new Date(value);
-        }
-      }
-      if (typeof value === 'object') {
-        formatXMLValues(value, options);
-      }
-    }
-  }
 }

@@ -190,7 +190,7 @@ describe('getMediaProfiles', () => {
     const profiles = await getMediaProfiles(onvif);
     expect(Array.isArray(profiles)).toBe(true);
     expect(profiles).toHaveLength(1);
-    // Numeric tokens are coerced by formatXMLValues; "0" must still be present and usable.
+    // Numeric tokens are coerced by parseXml; "0" must still be present and usable.
     expect(profiles[0].token).toBe(0);
     expect(String(profiles[0].token)).toBe('0');
     expect(profiles[0].name).toBe('Main');

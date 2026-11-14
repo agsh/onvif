@@ -314,37 +314,6 @@ describe('ParseSOAPString', () => {
     expect(isSenderNotAuthorizedFault(new Error('Sender not authorized'))).toBe(false);
   });
 
-  it('normalizes SOAP 1.1 fault fields and detail child subcodes', async () => {
-    const { isSenderNotAuthorizedFault } = await import('../src/utils');
-    const xml =
-      '<?xml version="1.0" encoding="UTF-8"?>' +
-      '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ter="http://www.onvif.org/ver10/error">' +
-      '<s:Body>' +
-      '<s:Fault>' +
-      '<faultcode>s:Client</faultcode>' +
-      '<faultstring>Sender not authorized</faultstring>' +
-      '<detail><s:Text>denied</s:Text><ter:NotAuthorized/></detail>' +
-      '</s:Fault>' +
-      '</s:Body>' +
-      '</s:Envelope>';
-
-    let caught: unknown;
-    try {
-      await parseSOAPString(xml);
-    } catch (e) {
-      caught = e;
-    }
-    expect(caught).toBeInstanceOf(OnvifSoapFaultError);
-    expect(caught).toMatchObject({
-      faultCode: 's:Client',
-      faultReason: 'Sender not authorized',
-      faultDetail: 'denied',
-      faultSubcode: 'NotAuthorized',
-      faultSubcodes: ['NotAuthorized'],
-    });
-    expect(isSenderNotAuthorizedFault(caught)).toBe(true);
-  });
-
   it('collects nested SOAP 1.2 Subcode chain', async () => {
     const xml =
       '<?xml version="1.0" encoding="UTF-8"?>' +
@@ -372,54 +341,35 @@ describe('ParseSOAPString', () => {
 
   it('throws OnvifParseError for malformed XML', async () => {
     const { OnvifParseError } = await import('../src/utils');
-    // Lone '<' is rejected by fast-xml-parser (many unclosed tags are accepted leniently).
+    // Lone '<' is rejected by the XML parser.
     await expect(parseSOAPString('<')).rejects.toBeInstanceOf(OnvifParseError);
   });
 });
 
-describe('XMLParser cache', () => {
+describe('parseSOAPString array / rawXML', () => {
   const envelope = (inner: string) =>
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Body>${inner}</s:Body></s:Envelope>`;
 
-  beforeEach(async () => {
-    const { clearXmlParserCache } = await import('../src/utils/soap');
-    clearXmlParserCache();
-  });
-
-  it('reuses the default parser across calls', async () => {
-    const { xmlParserCacheSize } = await import('../src/utils/soap');
-    const soap = envelope('<GetFooResponse><Token>a</Token></GetFooResponse>');
-    await parseSOAPString(soap);
-    await parseSOAPString(soap);
-    expect(xmlParserCacheSize()).toBe(1);
-  });
-
-  it('reuses one parser for the same array tag set in any order', async () => {
-    const { xmlParserCacheSize } = await import('../src/utils/soap');
+  it('forces array tags and coerces values', async () => {
     const soap = envelope('<GetFooResponse><Item>1</Item><Item>2</Item></GetFooResponse>');
-    const [body1] = await parseSOAPString<any>(soap, { array: ['item'] });
-    const [body2] = await parseSOAPString<any>(soap, { array: ['item'] });
-    expect(body1.getFooResponse.item).toEqual([1, 2]);
-    expect(body2.getFooResponse.item).toEqual([1, 2]);
-    // default unused; one entry for { array: ['item'] }
-    expect(xmlParserCacheSize()).toBe(1);
-
-    await parseSOAPString(soap, { array: ['item', 'other'] });
-    await parseSOAPString(soap, { array: ['other', 'item'] });
-    expect(xmlParserCacheSize()).toBe(2);
+    const [body] = await parseSOAPString<any>(soap, { array: ['item'] });
+    expect(body.getFooResponse.item).toEqual([1, 2]);
   });
 
-  it('caches rawXML / hydrate parsers separately from the default', async () => {
-    const { xmlParserCacheSize } = await import('../src/utils/soap');
+  it('attaches xsany for rawXML tags', async () => {
+    const { xsany } = await import('../src/utils/toOnvifXMLSchemaObject');
     const soap = envelope(
       '<GetFooResponse><ElementItem Name="x"><Child>1</Child></ElementItem></GetFooResponse>',
     );
-    await parseSOAPString(soap, { rawXML: ['elementItem'] });
-    const afterFirst = xmlParserCacheSize();
-    expect(afterFirst).toBeGreaterThanOrEqual(1);
-    await parseSOAPString(soap, { rawXML: ['elementItem'] });
-    expect(xmlParserCacheSize()).toBe(afterFirst);
+    const [body] = await parseSOAPString<any>(soap, { rawXML: ['elementItem'] });
+    const item = body.getFooResponse.elementItem;
+    expect(item.name).toBe('x');
+    expect(item.child).toBe(1);
+    expect(item[xsany]).toEqual({
+      $: { Name: 'x' },
+      Child: ['1'],
+    });
   });
 });
 

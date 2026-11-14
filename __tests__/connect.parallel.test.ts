@@ -241,7 +241,7 @@ describe(`parallel connect × ${PARALLEL} with Digest (one mock port each)`, () 
       );
       const hostnames = await Promise.all(clients.map((c) => c.device.getHostname()));
       for (let i = 0; i < PARALLEL; i += 1) {
-        // Numeric-looking Name is coerced by formatXMLValues → compare as string.
+        // Numeric-looking Name is coerced by parseXml; compare as string.
         expect(String(hostnames[i].name)).toBe(String(mocks[i].port));
         expect(mocks[i].stats.authorized).toBe(6);
       }

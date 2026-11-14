@@ -64,9 +64,7 @@
     "type": "git",
     "url": "git+https://github.com/agsh/onvif.git"
   },
-  "dependencies": {
-    "fast-xml-parser": "^5.12.0"
-  },
+  "dependencies": {},
   "keywords": [
     "onvif",
     "camera",

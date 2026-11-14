@@ -46,7 +46,6 @@ API; keep 0.8 via `npm install onvif@previous` or `onvif/compatibility`.
   Streaming/T).
 - **Request context** - per-request AsyncLocalStorage; request/response XML store; richer debug
   fields on errors.
-- **XMLParser reuse** - `parseSOAPString` caches `fast-xml-parser` instances by options.
 - **`prepare` script** for install-time build; Windows-friendly `rimraf` clean.
 
 ### Changed
@@ -137,8 +136,8 @@ important ways.
 - **Connection lifecycle** - call `await onvif.connect()` before service use (or
   `autoConnect: true`).
 - **Node.js >= 18** required.
-- **XML stack** - `xml2js` replaced with `fast-xml-parser`; SOAP is built/parsed differently
-  (compact XML).
+- **XML stack** - in-repo compact SOAP build/parse (`$` / `_` object model); no external XML
+  runtime dependency.
 - **Typed errors** - `OnvifError` subclasses (`OnvifSoapFaultError`, `OnvifAuthError`,
   `OnvifResponseError`, `OnvifValidationError`) instead of generic `Error` / ad-hoc objects.
 

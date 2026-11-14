@@ -53,23 +53,19 @@ try {
 There is **no** automatic retry on Get* / ordinary SOAP calls. A dead camera and a brief 502 look
 similar at the transport layer — the application decides whether to retry.
 
-## SOAP Faults — 1.1 and 1.2
+## SOAP Faults (SOAP 1.2)
 
-ONVIF prefers SOAP 1.2, but some devices still emit SOAP 1.1 Faults. Field names differ on the wire;
-`parseSOAPString` normalizes both into `OnvifSoapFaultError`:
+ONVIF requires SOAP 1.2. `parseSOAPString` maps Fault fields into `OnvifSoapFaultError`:
 
-| Normalized field | SOAP 1.2 | SOAP 1.1 |
-| --- | --- | --- |
-| `faultCode` | `Code/Value` (`s:Sender`, `s:Receiver`, …) | `faultcode` (`s:Client`, `s:Server`, …) |
-| `faultSubcode` | First `Code/Subcode/Value` | First meaningful `detail` child name (e.g. `NotAuthorized`) |
-| `faultSubcodes` | Full nested Subcode chain, outermost first | Detail-derived codes (same source as `faultSubcode`) |
-| `faultReason` | `Reason/Text` | `faultstring` |
-| `faultDetail` | `Detail` text when present | `detail` text when present |
-
-Wire values are kept as reported (`s:Client` is not rewritten to `s:Sender`).
+| Field | Wire (SOAP 1.2) |
+| --- | --- |
+| `faultCode` | `Code/Value` (`s:Sender`, `s:Receiver`, ...) |
+| `faultSubcode` | First `Code/Subcode/Value` |
+| `faultSubcodes` | Full nested Subcode chain, outermost first |
+| `faultReason` | `Reason/Text` |
+| `faultDetail` | `Detail` text when present |
 
 ```ts
-// SOAP 1.2 example shape after parse
 err.faultCode; // 's:Sender'
 err.faultSubcode; // 'ter:NotAuthorized'
 err.faultSubcodes; // ['ter:NotAuthorized'] or ['ter:InvalidArgVal', 'ter:PasswordTooWeak']
