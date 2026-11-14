@@ -28,11 +28,6 @@ function formatAttributes(attrs: Record<string, unknown>): string {
     if (raw === undefined) {
       continue;
     }
-    if (raw === true || raw === 'true') {
-      // Boolean true / "true" -> bare attribute name (no value).
-      out += ` ${name}`;
-      continue;
-    }
     out += ` ${name}="${encodeXmlValue(raw)}"`;
   }
   return out;

@@ -18,6 +18,14 @@
 - **Acronym / codec tag names** - keep `H264`, `G711DecOptions`, `UTCDateTime`, and similar when the
   second character is not a lowercase letter (matches classic `camelCase` rules).
 
+### Added
+
+- **Profile D docs / recipes** - same AccessControl / DoorControl / Credential modules as C / A;
+  peripheral flow (Request events -> `externalAuthorization` / `feedback` / optional
+  whitelist-blacklist). Discovery treats `Profile/D` as access-only (`defaultMedia: false`).
+  Guides + `examples/access.externalAuthorization.js`; AccessControl topic expressions on
+  `OnvifTopicExpression`.
+
 ## 1.0.0
 
 First stable **1.x** release (Node.js 18+). Supersedes `1.0.0-rc.3` on npm. Prefer the `Onvif`
@@ -60,7 +68,7 @@ API; keep 0.8 via `npm install onvif@previous` or `onvif/compatibility`.
   algorithm (SHA-512-256 > SHA-256 > SHA-1 > MD5); cache Digest headers after the first 401;
   time-shift fixes.
 - **Discovery** - RelatesTo / MessageID matching; multi-interface + `bufferSize` (from 0.x); scopes
-  and types; ProbeMatch sets `defaultMedia` (`false` for access-only Profile C/A without
+  and types; ProbeMatch sets `defaultMedia` (`false` for access-only Profile C/A/D without
   Streaming/T).
 - **Request context** - per-request AsyncLocalStorage; request/response XML store; richer debug
   fields on errors.

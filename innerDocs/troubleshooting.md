@@ -49,6 +49,8 @@ Symptom -> likely cause -> where to look. For vendor-specific firmware limits se
   Media service.
 - **Look:** Pass `{ media: true }` when you need profiles. Recipe:
   [guides.md](guides.md#get-an-rtsp-uri). Door stations: [guides.md](guides.md#unlock-a-door).
+  Access peripherals (Profile D):
+  [guides.md](guides.md#handle-a-profile-d-access-request).
 
 ### Symptom: Media1 missing; only Media2 / Profile T
 

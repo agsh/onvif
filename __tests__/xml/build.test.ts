@@ -23,6 +23,21 @@ describe('Feature: XML serialization (buildXml)', () => {
       expect(buildXml({ Self: { $: { a: '1' } } })).toBe('<Self a="1"/>');
     });
 
+    it('emits boolean true attributes as name="true" (valid XML, not HTML bare flags)', () => {
+      expect(buildXml({ Configuration: { $: { enabled: true } } })).toBe(
+        '<Configuration enabled="true"/>',
+      );
+      expect(buildXml({ Configuration: { $: { enabled: 'true' } } })).toBe(
+        '<Configuration enabled="true"/>',
+      );
+    });
+
+    it('emits boolean false attributes as name="false"', () => {
+      expect(buildXml({ Configuration: { $: { enabled: false } } })).toBe(
+        '<Configuration enabled="false"/>',
+      );
+    });
+
     it('emits mixed attributes, children, and text', () => {
       expect(
         buildXml({

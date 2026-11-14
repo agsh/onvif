@@ -202,9 +202,11 @@ For parallel work across sources, pass explicit `profileToken` / `videoSourceTok
 
 ## Active entity tokens (non-media)
 
-README sketch (door / recording / analytics onboarding):
-[Beyond cameras](../README.md#beyond-cameras-profiles-c--a--g--m). Task recipes:
-[guides.md](guides.md#unlock-a-door), [guides.md](guides.md#replay-a-recording).
+README sketch (door / peripheral / recording / analytics onboarding):
+[Beyond cameras](../README.md#beyond-cameras-profiles-c--a--d--g--m). Task recipes:
+[guides.md](guides.md#unlock-a-door),
+[guides.md](guides.md#handle-a-profile-d-access-request),
+[guides.md](guides.md#replay-a-recording).
 
 Services outside the Media Profile pipeline get their own default tokens. Connect probes
 each advertised XAddr in parallel (`getActiveEntityTokens`):

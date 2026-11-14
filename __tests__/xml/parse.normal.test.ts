@@ -214,4 +214,44 @@ describe('Feature: XML parsing (normal mode)', () => {
     });
   });
 
+  describe('Scenario: prototype-pollution resistant keys', () => {
+    it('rejects __proto__ as an element name', () => {
+      expect(() => parseXml('<R><__proto__><polluted>yes</polluted></__proto__></R>')).toThrow(
+        /Forbidden XML name/,
+      );
+    });
+
+    it('rejects __proto__ as a root element name', () => {
+      expect(() => parseXml('<__proto__><x>1</x></__proto__>')).toThrow(/Forbidden XML name/);
+    });
+
+    it('rejects constructor / prototype element names (incl. PascalCase -> camelCase)', () => {
+      expect(() => parseXml('<R><constructor>x</constructor></R>')).toThrow(/Forbidden XML name/);
+      expect(() => parseXml('<R><Constructor>x</Constructor></R>')).toThrow(/Forbidden XML name/);
+      expect(() => parseXml('<R><prototype>x</prototype></R>')).toThrow(/Forbidden XML name/);
+      expect(() => parseXml('<R><Prototype>x</Prototype></R>')).toThrow(/Forbidden XML name/);
+    });
+
+    it('rejects namespaced forbidden local names', () => {
+      expect(() => parseXml('<R><tt:__proto__ xmlns:tt="urn:t">x</tt:__proto__></R>')).toThrow(
+        /Forbidden XML name/,
+      );
+    });
+
+    it('rejects forbidden attribute names without changing Object.prototype', () => {
+      expect(() => parseXml('<R><Item __proto__="polluted"/></R>')).toThrow(/Forbidden XML name/);
+      expect(() => parseXml('<R><Item constructor="x"/></R>')).toThrow(/Forbidden XML name/);
+      expect(Object.prototype.hasOwnProperty('polluted')).toBe(false);
+    });
+
+    it('keeps a null prototype on parsed object nodes (no inherited setters)', () => {
+      const parsed = parseXml('<R><Item Foo="1"><Child>2</Child></Item></R>');
+      const item = parsed.r.item;
+      expect(Object.getPrototypeOf(item)).toBeNull();
+      expect(Object.getPrototypeOf(parsed)).toBeNull();
+      expect(item.foo).toBe(1);
+      expect(item.child).toBe(2);
+    });
+  });
+
 });

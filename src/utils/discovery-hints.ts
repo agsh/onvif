@@ -36,13 +36,14 @@ function hasVideoConformance(scopes: string[], types: string[]): boolean {
   );
 }
 
-/** Access-control conformance (door stations, Profile C / A). */
+/** Access-control conformance (door stations / peripherals, Profile C / A / D). */
 function hasAccessConformance(scopes: string[], types: string[]): boolean {
   const all = lower([...scopes, ...types]);
   return all.some(
     (token) =>
       token.includes('/profile/c') ||
       token.includes('/profile/a') ||
+      token.includes('/profile/d') ||
       token.includes('doorcontrol') ||
       token.includes('accesscontrol'),
   );

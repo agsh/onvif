@@ -49,7 +49,10 @@ import {
 import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
- * AccessControl service
+ * AccessControl service (Profiles C / A / D).
+ *
+ * Profile D clients listen for Request events and answer with
+ * {@link AccessControl.externalAuthorization} (decision lives in the app, not on the device).
  *
  * @example List access points, inspect state, temporarily disable one:
  * ```ts

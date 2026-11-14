@@ -31,6 +31,12 @@ describe('defaultMediaOnConnect from device-advertised scopes', () => {
     expect(defaultMediaOnConnect(['onvif://www.onvif.org/Profile/A'])).toBe(false);
   });
 
+  it('skips media for Profile D peripheral without video', () => {
+    const scopes = ['onvif://www.onvif.org/Profile/D', 'onvif://www.onvif.org/name/Reader'];
+    expect(isAccessControlOnlyDevice(scopes)).toBe(true);
+    expect(defaultMediaOnConnect(scopes)).toBe(false);
+  });
+
   it('keeps media for video doorbell (Profile C + Streaming)', () => {
     expect(
       defaultMediaOnConnect([

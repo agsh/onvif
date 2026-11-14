@@ -3,7 +3,7 @@
 Short paths from a common goal to working code. Full API: TypeDoc. Lifecycle:
 [connection.md](connection.md). Auth: [auth.md](auth.md). Quirks: [quirks.md](quirks.md).
 README onboarding for non-camera profiles:
-[Beyond cameras](../README.md#beyond-cameras-profiles-c--a--g--m).
+[Beyond cameras](../README.md#beyond-cameras-profiles-c--a--d--g--m).
 
 By goal:
 
@@ -13,13 +13,16 @@ By goal:
 - [Listen for motion events](#listen-for-motion-events) -- core Events (+ analytics topics)
 - [Replay a recording](#replay-a-recording) -- Profile G
 - [Unlock a door](#unlock-a-door) -- Profiles C / A
+- [Handle a Profile D access request](#handle-a-profile-d-access-request) -- Profile D
 
 By profile (quick):
 
 - **S / T (video)** -- RTSP, snapshot, PTZ, imaging
-- **C / A (access)** -- `connect({ media: false })`, `doorControl` / `accessControl` /
+- **C / A (access unit)** -- `connect({ media: false })`, `doorControl` / `accessControl` /
   `credential` / `accessRules` / `schedule`; defaults `activeDoorToken` /
   `activeAccessPointToken`
+- **D (access peripheral)** -- same AccessControl / DoorControl / Credential services;
+  client decides via `externalAuthorization` (+ `feedback`, optional whitelist/blacklist)
 - **G (recording)** -- `recording` / `replay` / `search` / `receiver`; defaults
   `activeRecordingToken` / `activeRecordingJobToken`
 - **M (analytics)** -- `analytics` / `analyticsDevice` (often tied to the Media profile bag)
@@ -224,6 +227,69 @@ pass `{ media: false }` yourself. Access points / credentials live under `access
 `credential` (TypeDoc).
 
 Example: [door.unlock.js](https://github.com/agsh/onvif/blob/master/examples/door.unlock.js).
+
+## Handle a Profile D access request
+
+Goal: Profile D peripheral -- capture identifier / request events, decide grant or deny in
+your app, tell the device with `ExternalAuthorization` (optional Feedback / DoorControl).
+
+Profile D uses the **same** Access Control / Door Control / Credential APIs as C / A. The
+difference is the scenario: the device does not store access rules; the client does.
+
+```ts
+import { Onvif, Subscription } from 'onvif';
+
+const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+await onvif.connect({ media: false });
+
+if (!onvif.uri.accesscontrol) {
+  throw new Error('No AccessControl service');
+}
+
+const { accessPointInfo = [] } = await onvif.accessControl.getAccessPointInfoList();
+const ap = accessPointInfo.find((p) => p.capabilities?.externalAuthorization) ?? accessPointInfo[0];
+if (ap?.token) {
+  await onvif.setActiveAccessPoint(ap.token);
+}
+
+const sub = new Subscription(onvif, {
+  filter: {
+    topicExpression: [{ expression: 'tns1:AccessControl//.' }],
+  },
+});
+sub.on('error', console.error);
+sub.on('data', async (msg) => {
+  const topic = String(msg.topic?._ ?? '');
+  if (!topic.includes('AccessControl/Request/')) {
+    return;
+  }
+  // Replace with your policy / ACS lookup (credential token, card number, etc.)
+  const decision = 'Granted'; // or 'Denied'
+  await onvif.accessControl.externalAuthorization({ decision });
+  // Optional: await onvif.accessControl.feedback({ feedbackType: 'pt:Ok' });
+  // Optional: await onvif.doorControl.accessDoor();
+});
+await sub.subscribe();
+```
+
+Choose:
+
+- Require `accessPoint.capabilities.externalAuthorization` (and often `identifierAccess`)
+  before relying on Request/* events.
+- Filter topics: `Request/Credential`, `Request/Identifier`, `Request/Anonymous`,
+  `Request/Timeout`; also listen for AccessGranted / Denied / AccessTaken when auditing.
+- Optional offline lists: `credential.getWhitelist` / `addToWhitelist` /
+  `getBlacklist` / `addToBlacklist` (+ `getSupportedFormatTypes`) when the device
+  advertises those capabilities.
+- Door pulse after grant: `doorControl.accessDoor` / `unlockDoor` when DoorControl is
+  present (same as C).
+
+Typical failures: AccessControl without `ExternalAuthorization`; Request events never
+arrive because pull-point filter is too narrow; Feedback type not in
+`supportedFeedbackTypes` (device ignores unknown types).
+
+Example:
+[access.externalAuthorization.js](https://github.com/agsh/onvif/blob/master/examples/access.externalAuthorization.js).
 
 ## Related
 

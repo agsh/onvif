@@ -70,6 +70,20 @@ export type OnvifTopicExpression =
   | 'tns1:RecordingConfig/TrackConfiguration'
   | 'tns1:Media/ConfigurationChanged'
   | 'tns1:Media/ProfileChanged'
+  /** Profile D / Access Control request and decision topics (subtree ok with `//.`). */
+  | 'tns1:AccessControl/Request/Credential'
+  | 'tns1:AccessControl/Request/Identifier'
+  | 'tns1:AccessControl/Request/Anonymous'
+  | 'tns1:AccessControl/Request/Timeout'
+  | 'tns1:AccessControl/AccessGranted/Credential'
+  | 'tns1:AccessControl/AccessGranted/Anonymous'
+  | 'tns1:AccessControl/Denied/Credential'
+  | 'tns1:AccessControl/Denied/Anonymous'
+  | 'tns1:AccessControl/AccessTaken/Credential'
+  | 'tns1:AccessControl/AccessTaken/Anonymous'
+  | 'tns1:AccessControl/AccessNotTaken/Credential'
+  | 'tns1:AccessControl/AccessNotTaken/Anonymous'
+  | 'tns1:AccessControl//.'
   /** Vendor-specific topics, e.g. `tns1:RuleEngine/MyRuleDetector/FaceDetect` */
   | 'tns1:RuleEngine/PeopleDetector/People'
   | (string & {});
