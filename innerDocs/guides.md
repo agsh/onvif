@@ -32,9 +32,14 @@ By profile (quick):
 Goal: play live video in VLC / FFmpeg / your RTSP client.
 
 ```ts
-import { Onvif, withUrlCredentials } from 'onvif';
+import { Onvif } from 'onvif';
 
-const onvif = new Onvif({ hostname: '192.168.1.13', username: 'admin', password: 'admin' });
+const onvif = new Onvif({
+  hostname: '192.168.1.13',
+  username: 'admin',
+  password: 'admin',
+  // preserveAddress: true, // also rewrites Media URI host via rewriteUri below
+});
 await onvif.connect();
 
 let uri: string;
@@ -46,10 +51,9 @@ if (onvif.uri.media) {
   uri = await onvif.media2.getStreamUri({ protocol: 'RtspUnicast' });
 }
 
-// Optional: embed credentials for players that need userinfo in the URL.
+// Optional: NAT host rewrite + credentials for VLC / FFmpeg.
 // Do not log `playable` - it embeds the password in cleartext userinfo.
-const playable = withUrlCredentials(uri, onvif.username, onvif.password);
-// Pass `playable` to VLC / FFmpeg / your RTSP client.
+const playable = onvif.rewriteUri(uri, { useCredentials: true });
 console.log(uri); // device URI without credentials
 
 await onvif.close();
@@ -61,8 +65,9 @@ Choose:
   `setActiveMediaProfile(profileToken)` -- [connection.md](connection.md#active-media-profile-token-bag).
 - Prefer `onvif.media` when Media1 works; use `onvif.media2` for Profile T encoder/stream helpers
   (`getStreamUri` unwraps to a string).
-- `preserveAddress` rewrites SOAP XAddrs, **not** the host inside the RTSP string -- fix that in
-  the app if the camera returns a LAN/loopback host you cannot reach.
+- `preserveAddress` rewrites SOAP XAddrs, **not** the host inside the RTSP string -- use
+  `onvif.rewriteUri(uri)` (optional `{ useCredentials: true }`) when the camera returns a
+  LAN/loopback host you cannot reach.
 
 Typical failures: empty profiles (`connect({ media: true })`), NVR stub profiles without encoder
 ([quirks.md](quirks.md)), wrong channel bag.

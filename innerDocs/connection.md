@@ -50,14 +50,21 @@ Pull-point / events reconnection is separate - see
 the client cannot use: `127.0.0.1`, a private IP behind NAT, or the camera's local `:80`
 while you dial a forwarded `:8080`.
 
-| `preserveAddress` | Behaviour |
-| --- | --- |
-| `false` (default) | `parseUrl` keeps the XAddr host/port. Normal service HTTP still uses the constructor host/port; only pathname (+ query) is taken from the XAddr. |
-| `true` | `parseUrl` replaces XAddr host/port with the constructor `hostname` / `port` (pathname + query kept). Use for SOAP `a:To` and pull-point URLs that are dialed as a full `options.url`. |
+- `preserveAddress: false` (default) -- `parseUrl` keeps the XAddr host/port. Service HTTP
+  still uses the constructor host/port; only pathname (+ query) comes from the XAddr.
+- `preserveAddress: true` -- `parseUrl` replaces XAddr host/port with constructor
+  `hostname` / `port` (path + query kept). Needed for SOAP `a:To` and pull-point URLs
+  dialed as a full `options.url`.
 
 Port comparison uses the effective port (scheme default 80/443 when `URL.port` is empty).
-Raw RTSP / snapshot URI strings in Media SOAP bodies are **not** rewritten - only URLs that
-go through `parseUrl` (service `uri` map, subscription Address, etc.).
+
+URI helpers:
+
+- `parseUrl(address)` -- SOAP XAddrs -> `URL` (constructor host+port when
+  `preserveAddress`).
+- `rewriteUri(uri, opts?)` -- Media/Replay strings (host follows `preserveAddress`;
+  keeps stream port unless `port` set; optional `useCredentials`).
+- `withUrlCredentials(...)` -- standalone userinfo helper (no `Onvif` instance).
 
 ## Active Media Profile (token bag)
 

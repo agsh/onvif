@@ -24,6 +24,7 @@ import {
   parseSOAPString,
   soapActionFromBody,
   soapActionFromXml,
+  withUrlCredentials,
 } from './utils';
 import {
   digestAuth as buildDigestAuth,
@@ -168,7 +169,7 @@ export interface OnvifOptions {
    *
    * Comparison uses the effective port (scheme defaults 80/443), not the empty
    * `URL.port` string. Does not rewrite raw RTSP/snapshot URI strings inside Media
-   * responses - only URLs passed through {@link Onvif.parseUrl}.
+   * responses - use {@link Onvif.rewriteUri} for those.
    */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */
@@ -183,6 +184,33 @@ export interface OnvifOptions {
    * @default true
    */
   defaultMedia?: boolean;
+}
+
+/**
+ * Options for {@link Onvif.rewriteUri} (Media / Replay URI strings).
+ * Default host rewrite follows {@link OnvifOptions.preserveAddress}; port stays unless
+ * you pass `port` (do not use the SOAP constructor port for RTSP unless you mean to).
+ */
+export interface RewriteUriOptions {
+  /** Target hostname (overrides `preserveAddress` / empty-host default). */
+  host?: string;
+  /** Target port. Omit to keep the URI port (e.g. RTSP 554). */
+  port?: number | string;
+  /** Target scheme, with or without trailing `:` (e.g. `rtsp` / `rtsps:`). */
+  protocol?: string;
+  /**
+   * Embed {@link Onvif.username}/{@link Onvif.password} via {@link withUrlCredentials}.
+   * Result contains cleartext userinfo -- do not log it.
+   */
+  useCredentials?: boolean;
+}
+
+/** Internal options for {@link Onvif.transformUri} (SOAP + Media). */
+interface TransformUriOptions {
+  host?: string;
+  /** `'client'` = SOAP {@link Onvif.port} (parseUrl / preserveAddress). */
+  port?: number | string | 'client';
+  protocol?: string;
 }
 
 export interface OnvifServices {
@@ -1152,21 +1180,66 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Parse a device XAddr into a {@link URL}.
-   * When {@link OnvifOptions.preserveAddress} is set, replace host/port with the
-   * constructor values (path and query kept). Used when filling {@link uri} and for
-   * event subscription Addresses.
+   * When {@link preserveAddress} is set, replace host/port with the constructor values
+   * (path and query kept). Used when filling {@link uri} and for event subscription
+   * Addresses. For Media/Replay URI **strings**, use {@link rewriteUri}.
    */
-  public parseUrl(address: string) {
-    const parsedAddress = new URL(address);
-    // Compare effective ports, not URL.port strings ("" means scheme default 80/443).
-    if (
-      this.preserveAddress &&
-      (this.hostname !== parsedAddress.hostname || this.port !== Onvif.urlPort(parsedAddress))
-    ) {
-      parsedAddress.hostname = this.hostname;
-      parsedAddress.port = String(this.port);
+  public parseUrl(address: string): URL {
+    if (!this.preserveAddress) {
+      return new URL(address);
     }
-    return parsedAddress;
+    return this.transformUri(address, { port: 'client' });
+  }
+
+  /**
+   * Rewrite a Media/Replay URI string from GetStreamUri / GetSnapshotUri / GetReplayUri /
+   * etc. Host follows {@link preserveAddress} (or fills an empty host); stream port is
+   * kept unless `options.port` is set. Does not force the SOAP constructor port onto RTSP.
+   *
+   * @example
+   * ```ts
+   * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+   * const playable = onvif.rewriteUri(stream.uri, { useCredentials: true });
+   * ```
+   */
+  public rewriteUri(uri: string, options: RewriteUriOptions = {}): string {
+    const url = this.transformUri(uri, options);
+    if (options.useCredentials) {
+      return withUrlCredentials(url, this.username ?? '', this.password ?? '');
+    }
+    return url.toString();
+  }
+
+  /**
+   * Shared host/port/protocol transform for {@link parseUrl} and {@link rewriteUri}.
+   */
+  private transformUri(uri: string, options: TransformUriOptions): URL {
+    // WHATWG rejects `rtsp://:554/...` (empty host + port). Stash a placeholder host so we can
+    // still rewrite firmwares that omit the hostname.
+    const emptyHostWithPort = /^([a-z][a-z0-9+.-]*:\/\/):(\d+)(.*)$/i.exec(uri);
+    const parsed = new URL(
+      emptyHostWithPort ? `${emptyHostWithPort[1]}_:${emptyHostWithPort[2]}${emptyHostWithPort[3]}` : uri,
+    );
+    const emptyHost = emptyHostWithPort !== null || parsed.hostname === '';
+    const targetHost =
+      options.host ?? (this.preserveAddress || emptyHost ? this.hostname : undefined);
+    if (targetHost !== undefined && (emptyHost || parsed.hostname !== targetHost)) {
+      parsed.hostname = targetHost;
+    }
+    if (options.port === 'client') {
+      // Only rewrite port when it would change the effective dial target (same rule as the
+      // former parseUrl preserveAddress path -- empty URL.port means scheme default 80/443).
+      if (this.port !== Onvif.urlPort(parsed)) {
+        parsed.port = String(this.port);
+      }
+    } else if (options.port !== undefined) {
+      parsed.port = String(options.port);
+    }
+    if (options.protocol !== undefined) {
+      const protocol = options.protocol.endsWith(':') ? options.protocol : `${options.protocol}:`;
+      parsed.protocol = protocol;
+    }
+    return parsed;
   }
 
   /**

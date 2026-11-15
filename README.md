@@ -226,8 +226,12 @@ constructor `hostname`:`port` (or host/port from `url`); from each XAddr only th
 (and query) is used. Set `preserveAddress: true` when the full URL must be rewritten to
 that constructor host/port (path/query kept) - needed for SOAP `a:To` and for PullMessages /
 Renew / Unsubscribe, which dial the subscription Address as `options.url`. Effective ports
-are compared (empty `URL.port` means 80/443). This does not rewrite RTSP/snapshot URI
-strings inside Media response bodies.
+are compared (empty `URL.port` means 80/443). RTSP/snapshot strings from Media bodies are
+not rewritten by this flag -- use `onvif.rewriteUri(...)` after GetStreamUri /
+GetSnapshotUri. With `preserveAddress: true` it replaces the URI host with the constructor
+hostname and keeps the stream port; pass `{ host, port, protocol, useCredentials }` to
+override. SOAP XAddrs use `parseUrl` (constructor host+port when `preserveAddress`).
+Standalone `withUrlCredentials` embeds userinfo without an `Onvif` instance.
 
 ```ts
 const onvif = new Onvif({
@@ -237,6 +241,10 @@ const onvif = new Onvif({
   password: 'admin',
   preserveAddress: true,
 });
+
+const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+// Camera may return rtsp://192.168.1.50:554/... -- rewrite host for NAT; keep :554
+const playable = onvif.rewriteUri(stream.uri, { useCredentials: true });
 ```
 
 When finished, call `await onvif.close()` to stop the pull-point subscription (if any) and release
@@ -398,8 +406,8 @@ Full catalog: [troubleshooting.md](https://github.com/agsh/onvif/blob/master/inn
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md).
 - **Empty profiles / no RTSP** - media skipped, wrong bag, or Media2-only. Access-only C/A/D:
   [Beyond cameras](#beyond-cameras-profiles-c--a--d--g--m). Else troubleshooting Media / RTSP.
-- **RTSP host wrong; SOAP OK with `preserveAddress`** - flag does not rewrite RTSP body URLs.
-  See troubleshooting + [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port).
+- **RTSP host wrong; SOAP OK with `preserveAddress`** - use `onvif.rewriteUri(uri)` (or
+  troubleshooting + [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port)).
 - **PTZ AbsoluteMove Fault** - check SupportedPTZSpaces; prefer ContinuousMove.
 - **Events stop / process exit** -`eventError`; always `sub.on('error')` on own Subscription.
 - **Discovery finds nothing** - `Discovery.on('status')`; bind NIC / family.

@@ -60,7 +60,8 @@ https://docs.google.com/forms/d/e/1FAIpQLSfXsVZv802YFDISGCZaLaJaC_isw2wKQpJ11Uur
   [#287](https://github.com/agsh/onvif/issues/287).
 - **RTSP host inside GetStreamUri** -- `preserveAddress` rewrites service / subscription XAddrs
   for SOAP, but does **not** rewrite RTSP/snapshot URI strings inside Media response bodies.
-  Fix the URL in the app (or camera network settings). [#170](https://github.com/agsh/onvif/issues/170),
+  Use `onvif.rewriteUri(uri)` (or camera network settings).
+  [#170](https://github.com/agsh/onvif/issues/170),
   README [`preserveAddress`](../README.md#preserveaddress-nat--wrong-xaddr-host-or-port).
 - **WS-Security time check failed** -- large client/camera clock skew; ensure connect time sync
   ran, or fix NTP on either side. [#249](https://github.com/agsh/onvif/issues/249).

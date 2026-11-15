@@ -91,6 +91,7 @@ const ONVIF_INSTANCE_METHODS = [
   'digestAuth',
   'updateNC',
   'parseUrl',
+  'rewriteUri',
 ] as const;
 
 const ONVIF_LAZY_SERVICES = [
