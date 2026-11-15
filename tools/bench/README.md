@@ -20,10 +20,14 @@ Out-of-process peers (skipped if tooling / deps missing):
 npm run build
 npm install --no-save @2bad/onvif@2.3.0 fast-xml-parser
 npm run bench:xml
+# snapshot-style multi-run (example: 15 runs, drop 2 best + 2 worst):
+BENCH_RUNS=15 BENCH_DROP=2 npm run bench:xml
 ```
 
 The script warms up, prints per-section detail, then a compact summary table
 (docs/s, ~500 KiB median ms, notif/s, burst wall ms, CPU ms/req, cold start).
+With `BENCH_RUNS` / `BENCH_DROP`, each metric is sampled that many times and the
+summary is a trimmed mean (sorted ascending; drop DROP lowest and DROP highest).
 
 Fixtures live in `__tests__/fixtures/soap/`. Numbers are machine-local.
 

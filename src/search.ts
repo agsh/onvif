@@ -167,9 +167,7 @@ export default class Search extends Service {
    * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingInformation(
-    options: Partial<GetRecordingInformation> = {},
-  ): Promise<RecordingInformation> {
+  async getRecordingInformation(options: Partial<GetRecordingInformation> = {}): Promise<RecordingInformation> {
     const response = await this.request({
       GetRecordingInformation: {
         RecordingToken: this.recordingToken(options.recordingToken),
@@ -196,7 +194,6 @@ export default class Search extends Service {
     );
     return coerceMediaAttributesList(response.getMediaAttributesResponse.mediaAttributes);
   }
-
 
   /**
    * Starts a search for recordings matching the scope.
@@ -274,7 +271,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return coerceFindResultList(response.getEventSearchResultsResponse.resultList);
+    const list = response.getEventSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**
@@ -313,7 +311,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return coerceFindResultList(response.getPTZPositionSearchResultsResponse.resultList);
+    const list = response.getPTZPositionSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**
@@ -352,7 +351,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return coerceFindResultList(response.getMetadataSearchResultsResponse.resultList);
+    const list = response.getMetadataSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**

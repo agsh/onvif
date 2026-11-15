@@ -34,6 +34,7 @@ function setDate(value: DateLike | null | undefined): Date | undefined {
   return toDate(value);
 }
 
+/** parseXml may leave a single sibling as an object; services often request arrays. */
 function asList<T>(value: T | T[] | undefined | null): T[] {
   if (value == null) {
     return [];
@@ -73,9 +74,7 @@ export function coerceMediaAttributes(item: MediaAttributes): MediaAttributes {
   return item;
 }
 
-export function coerceMediaAttributesList(
-  items: MediaAttributes[] | null | undefined,
-): MediaAttributes[] {
+export function coerceMediaAttributesList(items: MediaAttributes[] | null | undefined): MediaAttributes[] {
   if (items == null) {
     return [];
   }
@@ -145,9 +144,7 @@ export function coerceCredentialEntity<T extends CredentialInfo | Credential>(it
   return item;
 }
 
-export function coerceCredentialEntityList<T extends CredentialInfo | Credential>(
-  items: T[] | null | undefined,
-): T[] {
+export function coerceCredentialEntityList<T extends CredentialInfo | Credential>(items: T[] | null | undefined): T[] {
   if (items == null) {
     return [];
   }
@@ -176,9 +173,7 @@ export function coerceCertificateInformation<T extends object>(info: T): T {
 }
 
 /** Notification message: `message.message.utcTime` (ONVIF tt:Message attribute). */
-export function coerceNotificationMessage<T extends { message?: { message?: { utcTime?: DateLike } } }>(
-  msg: T,
-): T {
+export function coerceNotificationMessage<T extends { message?: { message?: { utcTime?: DateLike } } }>(msg: T): T {
   const inner = msg.message?.message;
   if (inner?.utcTime != null) {
     inner.utcTime = toDate(inner.utcTime);

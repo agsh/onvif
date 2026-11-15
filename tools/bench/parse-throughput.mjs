@@ -8,6 +8,12 @@
  * Usage (from repo root, after npm run build):
  *   npm install --no-save @2bad/onvif@2.3.0 fast-xml-parser
  *   npm run bench:xml
+ *
+ * Multi-run (optional env):
+ *   BENCH_RUNS=15 BENCH_DROP=2 npm run bench:xml
+ * Collects BENCH_RUNS samples per metric, drops BENCH_DROP best and BENCH_DROP worst
+ * (sorted ascending: first DROP + last DROP), reports mean of the middle.
+ * Defaults: RUNS=1 DROP=0 (single pass, matches older one-shot output).
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -22,6 +28,26 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const fixturesDir = path.join(root, '__tests__/fixtures/soap');
 const peersDir = path.join(root, 'tools/bench/peers');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'onvif-bench-'));
+
+const BENCH_RUNS = Math.max(1, Number.parseInt(process.env.BENCH_RUNS || '1', 10) || 1);
+const BENCH_DROP = Math.max(0, Number.parseInt(process.env.BENCH_DROP || '0', 10) || 0);
+if (BENCH_DROP * 2 >= BENCH_RUNS) {
+  throw new Error(`BENCH_DROP=${BENCH_DROP} leaves no samples for BENCH_RUNS=${BENCH_RUNS}`);
+}
+
+/** Sort ascending, drop DROP lowest and DROP highest, mean of the rest. */
+function trimmedMean(samples, drop = BENCH_DROP) {
+  if (!samples.length) return NaN;
+  const sorted = [...samples].sort((a, b) => a - b);
+  const kept = drop > 0 ? sorted.slice(drop, sorted.length - drop) : sorted;
+  if (!kept.length) return NaN;
+  return kept.reduce((a, b) => a + b, 0) / kept.length;
+}
+
+function pushSample(bag, name, key, value) {
+  if (!bag[name][key]) bag[name][key] = [];
+  bag[name][key].push(value);
+}
 
 function loadOptional(name) {
   try {
@@ -339,6 +365,7 @@ console.log('Workloads (bytes):', {
 });
 console.log('In-process:', Object.keys(inProcess).join(', '));
 console.log('External:', external.map((p) => p.name).join(', ') || '(none)');
+console.log(`Runs: ${BENCH_RUNS} (drop ${BENCH_DROP} best + ${BENCH_DROP} worst)`);
 console.log('');
 
 for (const [name, parse] of Object.entries(inProcess)) {
@@ -361,9 +388,10 @@ for (const peer of external) {
 }
 console.log('Smoke OK\n');
 
-const summary = {};
+/** @type {Record<string, Record<string, number[]>>} */
+const samples = {};
 for (const name of [...Object.keys(inProcess), ...external.map((p) => p.name)]) {
-  summary[name] = {};
+  samples[name] = {};
 }
 
 console.log('Warm-up...');
@@ -376,71 +404,6 @@ for (const peer of external) {
   peer.run('throughput', fixtureFiles.small, 0.2);
 }
 console.log('Warm-up done\n');
-
-console.log('=== Parse throughput (docs/s, higher better) ===');
-for (const [wname, { xml, file, key }] of Object.entries(workloads)) {
-  console.log(`\n-- ${wname} --`);
-  for (const [pname, parse] of Object.entries(inProcess)) {
-    const r = measureThroughput(() => parse(xml), 1.2);
-    console.log(`  ${pname.padEnd(22)} ${r.perSec.toFixed(0).padStart(8)} /s`);
-    summary[pname][key] = Math.round(r.perSec);
-  }
-  for (const peer of external) {
-    const r = peer.run('throughput', file, 1.2);
-    console.log(`  ${peer.name.padEnd(22)} ${r.perSec.toFixed(0).padStart(8)} /s`);
-    summary[peer.name][key] = Math.round(r.perSec);
-  }
-}
-
-console.log('\n=== Parsing ~500 KiB response (ms/parse, lower better) ===');
-for (const [pname, parse] of Object.entries(inProcess)) {
-  const r = measureLatencyMs(() => parse(nvrProfiles), 30);
-  console.log(
-    `  ${pname.padEnd(22)} mean ${r.mean.toFixed(2)} ms  median ${r.median.toFixed(2)} ms`,
-  );
-  summary[pname].kiB_median_ms = Number(r.median.toFixed(2));
-}
-for (const peer of external) {
-  const r = peer.run('latency', fixtureFiles.nvrProfiles, 30);
-  console.log(
-    `  ${peer.name.padEnd(22)} mean ${r.mean.toFixed(2)} ms  median ${r.median.toFixed(2)} ms`,
-  );
-  summary[peer.name].kiB_median_ms = Number(r.median.toFixed(2));
-}
-
-console.log('\n=== Event notif/s from eventBatch (higher better) ===');
-for (const [pname, parse] of Object.entries(inProcess)) {
-  const r = measureThroughput(() => parse(eventBatch), 1.5);
-  const notifPerSec = r.perSec * batchNotifs;
-  console.log(`  ${pname.padEnd(22)} ${notifPerSec.toFixed(0).padStart(8)} notif/s`);
-  summary[pname].notif_per_s = Math.round(notifPerSec);
-}
-for (const peer of external) {
-  const r = peer.run('throughput', fixtureFiles.eventBatch, 1.5);
-  const notifPerSec = r.perSec * batchNotifs;
-  console.log(`  ${peer.name.padEnd(22)} ${notifPerSec.toFixed(0).padStart(8)} notif/s`);
-  summary[peer.name].notif_per_s = Math.round(notifPerSec);
-}
-
-const burstDocs = Math.ceil(5000 / batchNotifs);
-console.log('\n=== Burst of ~5,000 events via eventBatch (wall ms, lower better) ===');
-for (const [pname, parse] of Object.entries(inProcess)) {
-  const r = measureBurst(() => parse(eventBatch), batchNotifs, 5000);
-  console.log(`  ${pname.padEnd(22)} wall ${r.wallMs.toFixed(0).padStart(6)} ms`);
-  summary[pname].burst_wall_ms = Math.round(r.wallMs);
-}
-for (const peer of external) {
-  const r = peer.run('burst', fixtureFiles.eventBatch, burstDocs);
-  console.log(`  ${peer.name.padEnd(22)} wall ${r.wallMs.toFixed(0).padStart(6)} ms`);
-  summary[peer.name].burst_wall_ms = Math.round(r.wallMs);
-}
-
-console.log('\n=== CPU time per request (GetProfiles parse, Node in-process only) ===');
-for (const [pname, parse] of Object.entries(inProcess)) {
-  const r = measureCpuPerRequest(() => parse(large), 600);
-  console.log(`  ${pname.padEnd(22)} cpu ${r.cpuPerOpMs.toFixed(3).padStart(7)} ms/req`);
-  summary[pname].cpu_ms_req = Number(r.cpuPerOpMs.toFixed(3));
-}
 
 const coldXml = JSON.stringify(small);
 const coldScripts = {
@@ -471,16 +434,97 @@ if (fxpMod) {
   `;
 }
 
-console.log('\n=== Cold start (import/process + 1 tiny parse, ms, lower better) ===');
-for (const [pname, code] of Object.entries(coldScripts)) {
-  const r = measureColdStartMs(code);
-  console.log(`  ${pname.padEnd(22)} median ${r.median.toFixed(1).padStart(6)} ms`);
-  summary[pname].cold_median_ms = Number(r.median.toFixed(1));
+const burstDocs = Math.ceil(5000 / batchNotifs);
+
+for (let run = 1; run <= BENCH_RUNS; run++) {
+  console.log(`=== Run ${run}/${BENCH_RUNS} ===`);
+
+  console.log('=== Parse throughput (docs/s, higher better) ===');
+  for (const [wname, { xml, file, key }] of Object.entries(workloads)) {
+    console.log(`\n-- ${wname} --`);
+    for (const [pname, parse] of Object.entries(inProcess)) {
+      const r = measureThroughput(() => parse(xml), 1.2);
+      console.log(`  ${pname.padEnd(22)} ${r.perSec.toFixed(0).padStart(8)} /s`);
+      pushSample(samples, pname, key, r.perSec);
+    }
+    for (const peer of external) {
+      const r = peer.run('throughput', file, 1.2);
+      console.log(`  ${peer.name.padEnd(22)} ${r.perSec.toFixed(0).padStart(8)} /s`);
+      pushSample(samples, peer.name, key, r.perSec);
+    }
+  }
+
+  console.log('\n=== Parsing ~500 KiB response (ms/parse, lower better) ===');
+  for (const [pname, parse] of Object.entries(inProcess)) {
+    const r = measureLatencyMs(() => parse(nvrProfiles), 30);
+    console.log(
+      `  ${pname.padEnd(22)} mean ${r.mean.toFixed(2)} ms  median ${r.median.toFixed(2)} ms`,
+    );
+    pushSample(samples, pname, 'kiB_median_ms', r.median);
+  }
+  for (const peer of external) {
+    const r = peer.run('latency', fixtureFiles.nvrProfiles, 30);
+    console.log(
+      `  ${peer.name.padEnd(22)} mean ${r.mean.toFixed(2)} ms  median ${r.median.toFixed(2)} ms`,
+    );
+    pushSample(samples, peer.name, 'kiB_median_ms', r.median);
+  }
+
+  console.log('\n=== Event notif/s from eventBatch (higher better) ===');
+  for (const [pname, parse] of Object.entries(inProcess)) {
+    const r = measureThroughput(() => parse(eventBatch), 1.5);
+    const notifPerSec = r.perSec * batchNotifs;
+    console.log(`  ${pname.padEnd(22)} ${notifPerSec.toFixed(0).padStart(8)} notif/s`);
+    pushSample(samples, pname, 'notif_per_s', notifPerSec);
+  }
+  for (const peer of external) {
+    const r = peer.run('throughput', fixtureFiles.eventBatch, 1.5);
+    const notifPerSec = r.perSec * batchNotifs;
+    console.log(`  ${peer.name.padEnd(22)} ${notifPerSec.toFixed(0).padStart(8)} notif/s`);
+    pushSample(samples, peer.name, 'notif_per_s', notifPerSec);
+  }
+
+  console.log('\n=== Burst of ~5,000 events via eventBatch (wall ms, lower better) ===');
+  for (const [pname, parse] of Object.entries(inProcess)) {
+    const r = measureBurst(() => parse(eventBatch), batchNotifs, 5000);
+    console.log(`  ${pname.padEnd(22)} wall ${r.wallMs.toFixed(0).padStart(6)} ms`);
+    pushSample(samples, pname, 'burst_wall_ms', r.wallMs);
+  }
+  for (const peer of external) {
+    const r = peer.run('burst', fixtureFiles.eventBatch, burstDocs);
+    console.log(`  ${peer.name.padEnd(22)} wall ${r.wallMs.toFixed(0).padStart(6)} ms`);
+    pushSample(samples, peer.name, 'burst_wall_ms', r.wallMs);
+  }
+
+  console.log('\n=== CPU time per request (GetProfiles parse, Node in-process only) ===');
+  for (const [pname, parse] of Object.entries(inProcess)) {
+    const r = measureCpuPerRequest(() => parse(large), 600);
+    console.log(`  ${pname.padEnd(22)} cpu ${r.cpuPerOpMs.toFixed(3).padStart(7)} ms/req`);
+    pushSample(samples, pname, 'cpu_ms_req', r.cpuPerOpMs);
+  }
+
+  console.log('\n=== Cold start (import/process + 1 tiny parse, ms, lower better) ===');
+  for (const [pname, code] of Object.entries(coldScripts)) {
+    const r = measureColdStartMs(code);
+    console.log(`  ${pname.padEnd(22)} median ${r.median.toFixed(1).padStart(6)} ms`);
+    pushSample(samples, pname, 'cold_median_ms', r.median);
+  }
+  for (const peer of external) {
+    const median = peer.cold(fixtureFiles.small);
+    console.log(`  ${peer.name.padEnd(22)} median ${median.toFixed(1).padStart(6)} ms`);
+    pushSample(samples, peer.name, 'cold_median_ms', median);
+  }
+
+  console.log('');
 }
-for (const peer of external) {
-  const median = peer.cold(fixtureFiles.small);
-  console.log(`  ${peer.name.padEnd(22)} median ${median.toFixed(1).padStart(6)} ms`);
-  summary[peer.name].cold_median_ms = Number(median.toFixed(1));
+
+/** @type {Record<string, Record<string, number>>} */
+const summary = {};
+for (const name of Object.keys(samples)) {
+  summary[name] = {};
+  for (const [key, vals] of Object.entries(samples[name])) {
+    summary[name][key] = trimmedMean(vals);
+  }
 }
 
 function cell(v, digits = 0) {
@@ -489,14 +533,17 @@ function cell(v, digits = 0) {
 }
 
 const names = Object.keys(summary);
-console.log('\n=== Summary (parse step only; cross-runtime peers included when available) ===');
+const keep = BENCH_RUNS - BENCH_DROP * 2;
+console.log(
+  `\n=== Summary (trimmed mean of ${BENCH_RUNS} runs, drop ${BENCH_DROP}+${BENCH_DROP}, keep ${keep}) ===`,
+);
 console.log('| Metric | ' + names.join(' | ') + ' |');
 console.log('| --- | ' + names.map(() => '---:').join(' | ') + ' |');
 for (const [label, key, digits] of [
   ['small docs/s', 'small', 0],
   ['medium docs/s', 'medium', 0],
   ['large docs/s', 'large', 0],
-  ['~500 KiB median ms', 'kiB_median_ms', 2],
+  ['~500 KiB median ms', 'kiB_median_ms', 1],
   ['eventBatch notif/s', 'notif_per_s', 0],
   ['burst ~5k wall ms', 'burst_wall_ms', 0],
   ['CPU ms/req (GetProfiles)', 'cpu_ms_req', 3],
