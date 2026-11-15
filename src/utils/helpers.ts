@@ -3,7 +3,10 @@ import { OnvifValidationError } from './errors';
 
 /** Shared patterns for coercing XML text nodes to JS values */
 export const NUMBER_RE = /^-?([1-9]\d*|0)(\.\d*)?$/;
+/** Used by linerase / service-side Date conversion (parseXml leaves ISO strings). */
 export const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?Z$/;
+
+export { toDate, type DateLike } from './dates';
 
 const ISO_DURATION_RE = /^P(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d+)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?$/;
 

@@ -11,7 +11,34 @@ export {
   assignErrorContext,
   isSenderNotAuthorizedFault,
 } from './errors';
-export { type CommonDuration, toIsoDuration, toMs, guid, struct, withUrlCredentials } from './helpers';
+export {
+  type CommonDuration,
+  toIsoDuration,
+  toMs,
+  toDate,
+  type DateLike,
+  guid,
+  struct,
+  withUrlCredentials,
+} from './helpers';
+export {
+  coerceRecordingSummary,
+  coerceRecordingInformation,
+  coerceMediaAttributes,
+  coerceMediaAttributesList,
+  coerceFindResultList,
+  coerceStatusTimes,
+  coercePTZStatus,
+  coerceAppInfo,
+  coerceAppInfoList,
+  coerceCredentialValidity,
+  coerceCredentialEntity,
+  coerceCredentialEntityList,
+  coerceCertificateInformation,
+  coerceNotificationMessage,
+  coerceNotificationMessages,
+} from './dates';
+
 export { requestContext, type OnvifRequestContext } from './request-context';
 export { splitArgs, getDigestHeaders } from './digest';
 export { camelCase } from './naming';

@@ -2,21 +2,22 @@
  * Stack / indexOf XML parser for ONVIF SOAP.
  *
  * Normal mode: strip NS prefixes, camelCase, flatten attrs, trim text;
- * coerce leaf text and attrs (`true`/`false`, numbers without leading zeros, ISO UTC `...Z`
- * dates -- needed for ONVIF `UtcTime` attributes on event messages).
+ * coerce leaf text and attrs (`true`/`false`, numbers without leading zeros).
+ * ISO datetimes stay strings -- services convert where typed as `Date` (e.g. event `UtcTime`).
  * `xsanyTree` mode: keep prefixes, `$` attrs, every element an array; **no** coercion (write-back).
  * `rawXML` tags (normal mode): camelCase flatten (coerced) + non-enumerable `xsany` (strings).
  * Under `rawXML`, children are dual-accumulated in one stack pass (normal + xsany), no re-parse.
  */
-import { DATE_RE, NUMBER_RE } from './helpers';
+import { NUMBER_RE } from './helpers';
 import { xsany } from './toOnvifXMLSchemaObject';
 
 /**
- * Coerce a trimmed XML **leaf text** string for ONVIF response trees.
- * `001` stays a string; `42` -> number; `true`/`false` -> boolean; `...T...Z` -> Date.
- * Fast path: skip NUMBER_RE / DATE_RE unless the first character looks numeric.
+ * Coerce a trimmed XML leaf / attr string for ONVIF response trees.
+ * `001` stays a string; `42` -> number; `true`/`false` -> boolean.
+ * ISO UTC `...Z` stays a string (no `Date` here -- convert in service code).
+ * Fast path: skip NUMBER_RE unless the first character looks numeric.
  */
-function coerceXmlValue(value: string): string | number | boolean | Date {
+function coerceXmlValue(value: string): string | number | boolean {
   const len = value.length;
   if (len === 0) {
     return value;
@@ -35,20 +36,12 @@ function coerceXmlValue(value: string): string | number | boolean | Date {
     }
     return value;
   }
+  // Letter-led tokens / ISO dates / URIs: leave as string (no DATE_RE on the hot path).
   if (c0 < 0x30 || c0 > 0x39) {
     return value;
   }
   if (NUMBER_RE.test(value)) {
     return Number.parseFloat(value);
-  }
-  if (
-    len >= 20 &&
-    value.charCodeAt(len - 1) === 0x5a &&
-    value.charCodeAt(4) === 0x2d &&
-    value.indexOf('T') !== -1 &&
-    DATE_RE.test(value)
-  ) {
-    return new Date(value);
   }
   return value;
 }

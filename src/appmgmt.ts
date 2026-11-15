@@ -17,6 +17,7 @@ import {
   InstallLicense,
   Uninstall,
 } from './interfaces/appmgmt';
+import { coerceAppInfoList } from './utils';
 
 /**
  * Application Management service
@@ -80,7 +81,7 @@ export default class AppManagement extends Service {
       },
       { array: ['info', 'licenses', 'privileges', 'interfaceDescription'] },
     );
-    return response.getAppsInfoResponse?.info ?? [];
+    return coerceAppInfoList(response.getAppsInfoResponse?.info ?? []);
   }
 
   /**

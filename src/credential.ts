@@ -7,6 +7,7 @@
 import { Onvif } from './onvif';
 import Service from './service';
 import { Attribute } from './interfaces/types';
+import { coerceCredentialEntityList, coerceCredentialValidity } from './utils';
 import {
   AddToBlacklist,
   AddToWhitelist,
@@ -191,7 +192,7 @@ export default class Credential extends Service {
    */
   async getCredentialInfo({ token }: GetCredentialInfo): Promise<CredentialInfo[]> {
     const response = await this.request({ GetCredentialInfo: { Token: token } }, { array: ['credentialInfo'] });
-    return response.getCredentialInfoResponse?.credentialInfo ?? [];
+    return coerceCredentialEntityList(response.getCredentialInfoResponse?.credentialInfo ?? []);
   }
 
   /**
@@ -209,7 +210,9 @@ export default class Credential extends Service {
       },
       { array: ['credentialInfo'] },
     );
-    return response.getCredentialInfoListResponse ?? {};
+    const list = response.getCredentialInfoListResponse ?? {};
+    coerceCredentialEntityList(list.credentialInfo);
+    return list;
   }
 
   /**
@@ -222,7 +225,7 @@ export default class Credential extends Service {
       { GetCredentials: { Token: token } },
       { array: ['credential', 'credentialIdentifier', 'credentialAccessProfile', 'attribute'] },
     );
-    return response.getCredentialsResponse?.credential ?? [];
+    return coerceCredentialEntityList(response.getCredentialsResponse?.credential ?? []);
   }
 
   /**
@@ -240,7 +243,9 @@ export default class Credential extends Service {
       },
       { array: ['credential', 'credentialIdentifier', 'credentialAccessProfile', 'attribute'] },
     );
-    return response.getCredentialListResponse ?? {};
+    const list = response.getCredentialListResponse ?? {};
+    coerceCredentialEntityList(list.credential);
+    return list;
   }
 
   /**
@@ -376,7 +381,11 @@ export default class Credential extends Service {
       },
       { array: ['credentialAccessProfile'] },
     );
-    return response.getCredentialAccessProfilesResponse.credentialAccessProfile ?? [];
+    const profiles = response.getCredentialAccessProfilesResponse.credentialAccessProfile ?? [];
+    for (const profile of profiles) {
+      coerceCredentialValidity(profile);
+    }
+    return profiles;
   }
 
   /**

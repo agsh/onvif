@@ -234,9 +234,10 @@ Parse path under test: this package `parseXml` (stack / `indexOf` / `charCodeAt`
 coerce, zero runtime XML deps). Same-machine peers from `npm run bench:xml`.
 
 Caveat: this package's normal-mode tree applies camelCase and heuristic coerce (`true`/`false`,
-numbers, ISO UTC `Date`). Node peers that build a usable ONVIF-shaped object are closest to an
-apples-to-apples "usable response" cost. Python / Go / Rust peers are mostly lexer or DOM builds
-(token walk / ElementTree / quick-xml) -- raw parse cost, not ONVIF client trees.
+numbers; ISO datetimes stay strings until a service calls `toDate`). Node peers that build a
+usable ONVIF-shaped object are closest to an apples-to-apples "usable response" cost. Python /
+Go / Rust peers are mostly lexer or DOM builds (token walk / ElementTree / quick-xml) -- raw
+parse cost, not ONVIF client trees.
 
 #### Node (in-process)
 

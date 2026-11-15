@@ -106,19 +106,20 @@ describe('Feature: XML parsing (normal mode)', () => {
       expect(r.count).toBe(2);
       expect(r.flag).toBe(true);
       expect(r.off).toBe(false);
-      expect(r.when).toEqual(new Date('2015-01-20T16:33:03Z'));
+      // ISO UTC stays a string in parseXml; services convert via toDate where needed.
+      expect(r.when).toBe('2015-01-20T16:33:03Z');
       expect(r.neg).toBe(-1.5);
       // Leading zeros and date-only (no T...Z) stay strings.
       expect(r.pad).toBe('001');
       expect(r.day).toBe('2026-11-14');
     });
 
-    it('coerces attribute booleans, numbers, and ISO UTC dates (e.g. UtcTime)', () => {
+    it('coerces attribute booleans and numbers; ISO UTC attrs stay strings', () => {
       const parsed = parseXml(soapEnvelope('<R><Cell Columns="13" Rows="18" Flag="true"/></R>'));
       expect(parsed.envelope.body.r.cell).toEqual({ columns: 13, rows: 18, flag: true });
-      // ONVIF event messages put UtcTime on the attribute, not leaf text.
+      // UtcTime-style attrs stay strings (Events converts with toDate on emit).
       const dated = parseXml(soapEnvelope('<R><Cell When="2015-01-20T16:33:03Z"/></R>'));
-      expect(dated.envelope.body.r.cell.when).toEqual(new Date('2015-01-20T16:33:03Z'));
+      expect(dated.envelope.body.r.cell.when).toBe('2015-01-20T16:33:03Z');
     });
   });
 

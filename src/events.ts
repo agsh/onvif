@@ -16,7 +16,16 @@ import {
   GetEventPropertiesResponse,
   PullMessages,
 } from './interfaces/event';
-import { CommonDuration, OnvifValidationError, toMs, toIsoDuration } from './utils';
+import {
+  CommonDuration,
+  OnvifValidationError,
+  toMs,
+  toIsoDuration,
+  toDate,
+  coerceStatusTimes,
+  coerceNotificationMessage,
+  coerceNotificationMessages,
+} from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
@@ -25,8 +34,8 @@ import http, { Agent as HttpAgent } from 'http';
 import { toError } from './utils/errors';
 
 interface TerminationTimeResponse {
-  currentTime: Date;
-  terminationTime: Date;
+  currentTime: Date | string;
+  terminationTime: Date | string;
 }
 
 /** ONVIF topic expression dialects from WS-Topics and [event.wsdl](https://www.onvif.org/ver10/events/wsdl/event.wsdl). */
@@ -158,7 +167,9 @@ function isRetryableNetworkError(error: unknown): error is { code: string } {
 }
 
 function localTerminationTime(response: TerminationTimeResponse): Date {
-  return new Date(Date.now() - response.currentTime.getTime() + response.terminationTime.getTime());
+  const current = toDate(response.currentTime).getTime();
+  const termination = toDate(response.terminationTime).getTime();
+  return new Date(Date.now() - current + termination);
 }
 
 export interface PullPointSubscription {
@@ -333,8 +344,7 @@ export default class Events {
       },
     };
     const [data] = await this.onvif.request({ service: 'events', body });
-    const pullPointSubscription: PullPointSubscription = data.createPullPointSubscriptionResponse;
-    return pullPointSubscription;
+    return coerceStatusTimes(data.createPullPointSubscriptionResponse as PullPointSubscription);
   }
 
   private static eventBrokerToBuild(eventBroker: EventBrokerConfig) {
@@ -448,7 +458,7 @@ export default class Events {
         }
       }, toMs(initialTerminationTime));
     }
-    return data.subscribeResponse;
+    return coerceStatusTimes(data.subscribeResponse as PullPointSubscription);
   }
 
   /**
@@ -491,7 +501,7 @@ export default class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.agent,
     });
-    return data.renewResponse;
+    return coerceStatusTimes(data.renewResponse as StatusResponse);
   }
 
   /**
@@ -512,7 +522,7 @@ export default class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.agent,
     });
-    return data.getStatusResponse;
+    return coerceStatusTimes(data.getStatusResponse as StatusResponse);
   }
 }
 
@@ -656,6 +666,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   private dispatchNotificationMessages(messages: NotificationMessage[]) {
     for (const msg of messages) {
       try {
+        coerceNotificationMessage(msg);
         this.emit('data', msg);
       } catch (listenerError) {
         if (this.listenerCount('error') > 0) {
@@ -784,7 +795,13 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       agent: this.onvif.events.agent,
       array: ['notificationMessage'],
     });
-    return { notificationMessage: [], ...data.pullMessagesResponse };
+    const response: PullMessagesResponse = {
+      notificationMessage: [],
+      ...data.pullMessagesResponse,
+    };
+    coerceStatusTimes(response);
+    coerceNotificationMessages(response.notificationMessage);
+    return response;
   }
 
   /**
