@@ -16,6 +16,7 @@ import pkg from '../package.json';
 /** Runtime value exports from `require('onvif')` / `import * as onvif`. Service classes are type-only. */
 const MAIN_RUNTIME_EXPORTS = [
   'ANALYTICS_CONFIG_PARSE',
+  'DEFAULT_MAX_RESPONSE_BYTES',
   'DEFAULT_TIMEOUT_MS',
   'Discovery',
   'DiscoverySingleton',

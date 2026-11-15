@@ -202,3 +202,71 @@ await onvif.connect(); // reopen + fresh GetServices / profiles
 | `await onvif.media....()` / `await onvif.media.profiles` | `media.js` once |
 | `await onvif.ptz....()` | `ptz.js` once |
 | unused namespaces | never |
+
+## Appendix: SOAP parseXml microbenchmark methodology
+
+Raw **SOAP XML parse** step only (no HTTP, digest, or device I/O). Same fixture shapes as common
+ONVIF client benches: small GetSystemDateAndTime, medium GetServices, large GetProfiles,
+nvrProfiles x32 (~511 KiB), PullMessages / eventBatch (210 notifications), burst of ~5000
+notifications, CPU ms per GetProfiles parse, cold import+one parse.
+
+This appendix exists so tooling and agents can cite a reproducible same-machine baseline. It is
+**not** a product ranking and is not part of the npm tarball marketing surface. Absolute numbers
+move with Node, CPU, and load; re-run before quoting.
+
+### How to reproduce
+
+```sh
+npm run build
+npm install --no-save @2bad/onvif@2.3.0 fast-xml-parser
+# optional: python3 (+ lxml), go, cargo -- for cross-language peers
+npm run bench:xml
+```
+
+Harness: `tools/bench/parse-throughput.mjs`. Fixtures: `__tests__/fixtures/soap/`. Optional peers
+are skipped if not installed. The script prints a compact summary table at the end (docs/s, ~500 KiB
+median ms, notif/s, burst wall ms, CPU ms/req, cold start). Cross-language peers (Python etree/lxml,
+Go encoding/xml, Rust quick-xml) run out-of-process when `python3` / `go` / `cargo` are available.
+
+### Snapshot (Node.js 24, trimmed mean of 7 runs after warm-up; drop best and worst)
+
+Parse path under test: this package `parseXml` (stack / `indexOf` / `charCodeAt`, camelCase + leaf
+coerce, zero runtime XML deps). Same-machine peers from `npm run bench:xml`.
+
+Caveat: this package's normal-mode tree applies camelCase and heuristic coerce (`true`/`false`,
+numbers, ISO UTC `Date`). Node peers that build a usable ONVIF-shaped object are closest to an
+apples-to-apples "usable response" cost. Python / Go / Rust peers are mostly lexer or DOM builds
+(token walk / ElementTree / quick-xml) -- raw parse cost, not ONVIF client trees.
+
+#### Node (in-process)
+
+| Metric | this `parseXml` | `@2bad/onvif` | `fast-xml-parser` | `xml2js` |
+| --- | ---: | ---: | ---: | ---: |
+| small docs/s | 41000 | 29900 | 5700 | 2800 |
+| medium docs/s | 10000 | 7800 | 1600 | 1000 |
+| large docs/s | 3200 | 3100 | 470 | 390 |
+| ~500 KiB median ms | 8.6 | 9.2 | 63 | 73 |
+| eventBatch notif/s | 105000 | 93000 | 14100 | 12700 |
+| burst ~5k wall ms | 46 | 52 | 350 | 410 |
+| CPU ms/req (GetProfiles) | 0.29 | 0.32 | 2.05 | 2.58 |
+| cold start median ms | 10 | 7.8 | 15 | n/a |
+
+#### Other languages (out-of-process; this `parseXml` repeated for scale)
+
+| Metric | this `parseXml` | py etree | py lxml | go enc/xml | rust quick-xml |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| small docs/s | 41000 | 9500 | 12700 | 8500 | 229000 |
+| medium docs/s | 10000 | 3700 | 6700 | 3700 | 78000 |
+| large docs/s | 3200 | 1900 | 3400 | 1500 | 22300 |
+| ~500 KiB median ms | 8.6 | 13.4 | 8.1 | 18.1 | 1.3 |
+| eventBatch notif/s | 105000 | 53200 | 84900 | 40900 | 740000 |
+| burst ~5k wall ms | 46 | 95 | 57 | 121 | 7 |
+| cold start median ms | 10 | 41 | 66 | 4.5 | 3.2 |
+
+Rounded from the trimmed 7-run series. Against generic Node XML stacks (`xml2js` /
+`fast-xml-parser`) the in-repo parser is typically several times higher throughput on these SOAP
+fixtures. Against the other purpose-built ONVIF parse path, results are in the same band on this
+machine. Cross-language columns are orientation only: Rust `quick-xml` is a fast token lexer; Python
+cold start is dominated by interpreter startup; Go / Rust cold start is a prebuilt binary.
+
+For design notes (what the parser intentionally skips), see [soap-xml.md](soap-xml.md).

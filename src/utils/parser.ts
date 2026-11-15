@@ -2,7 +2,8 @@
  * Stack / indexOf XML parser for ONVIF SOAP.
  *
  * Normal mode: strip NS prefixes, camelCase, flatten attrs, trim text;
- * coerce leaf strings (`true`/`false`, numbers without leading zeros, ISO UTC dates).
+ * coerce leaf text and attrs (`true`/`false`, numbers without leading zeros, ISO UTC `...Z`
+ * dates -- needed for ONVIF `UtcTime` attributes on event messages).
  * `xsanyTree` mode: keep prefixes, `$` attrs, every element an array; **no** coercion (write-back).
  * `rawXML` tags (normal mode): camelCase flatten (coerced) + non-enumerable `xsany` (strings).
  * Under `rawXML`, children are dual-accumulated in one stack pass (normal + xsany), no re-parse.
@@ -11,7 +12,7 @@ import { DATE_RE, NUMBER_RE } from './helpers';
 import { xsany } from './toOnvifXMLSchemaObject';
 
 /**
- * Coerce a trimmed XML text/attr string for ONVIF response trees.
+ * Coerce a trimmed XML **leaf text** string for ONVIF response trees.
  * `001` stays a string; `42` -> number; `true`/`false` -> boolean; `...T...Z` -> Date.
  * Fast path: skip NUMBER_RE / DATE_RE unless the first character looks numeric.
  */
@@ -34,14 +35,12 @@ function coerceXmlValue(value: string): string | number | boolean | Date {
     }
     return value;
   }
-  // Digit -> maybe number or ISO UTC date
   if (c0 < 0x30 || c0 > 0x39) {
     return value;
   }
   if (NUMBER_RE.test(value)) {
     return Number.parseFloat(value);
   }
-  // Cheap reject before DATE_RE: needs `T`, ends with `Z`, looks like YYYY-...
   if (
     len >= 20 &&
     value.charCodeAt(len - 1) === 0x5a &&
@@ -152,7 +151,7 @@ function tagSetFrom(tags: readonly string[] | undefined): ReadonlySet<string> {
   }
   let key = tags[0]!;
   for (let i = 1; i < tags.length; i++) {
-    key += '\0' + tags[i];
+    key += `\0${tags[i]}`;
   }
   const byKey = TAG_SET_BY_KEY.get(key);
   if (byKey !== undefined) {
@@ -171,8 +170,7 @@ function tagSetFrom(tags: readonly string[] | undefined): ReadonlySet<string> {
   return set;
 }
 
-const isWhitespace = (code: number): boolean =>
-  code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
+const isWhitespace = (code: number): boolean => code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
 
 /**
  * Like `String.prototype.trim`, but skip the scan/alloc when edges are already non-ws
@@ -419,8 +417,9 @@ function attachXsany(parsed: Record<string, any>, xsAnyParsed: any, textRaw: str
 /**
  * Parse a document that is a single root element; return that element's key/value
  * (without the outer `{ key: value }` document wrap / root array wrap).
+ * `start` skips BOM / `<?xml?>` without copying the body (`xmlContentStart`).
  */
-function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string; value: any } {
+function parseElementTree(xml: string, options?: ParseXmlOptions, start = 0): { key: string; value: any } {
   const xsanyTree = options?.xsanyTree === true;
   const arrayTags = tagSetFrom(options?.array);
   const rawXMLTags = xsanyTree ? EMPTY_SET : tagSetFrom(options?.rawXML);
@@ -439,7 +438,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
   };
   const stack: Frame[] = [root];
   let current = root;
-  let position = 0;
+  let position = start;
   let seenRoot = false;
   let rootKey = '';
   let rootValue: any;
@@ -646,8 +645,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
       if (isRawXML) {
         // Self-closing rawXML: keep flat attr strings; attach xsany (reuse flatAttrs map).
         const value: Record<string, any> = flatAttrs !== undefined ? flatAttrs : {};
-        const xsObj: Record<string, any> =
-          rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? {} : { $: rawAttrs };
+        const xsObj: Record<string, any> = rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? {} : { $: rawAttrs };
         Object.defineProperty(value, xsany, {
           value: xsObj,
           writable: true,
@@ -660,31 +658,18 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           rootValue = value;
         } else if (underDual) {
           assignChild((current.children ??= {}), localCamel, value, arrayTags.has(localCamel));
-          assignChild(
-            (current.xsChildren ??= {}),
-            rawName,
-            finalizeXml2js(rawAttrs, undefined, ''),
-            true,
-          );
+          assignChild((current.xsChildren ??= {}), rawName, finalizeXml2js(rawAttrs, undefined, ''), true);
         } else {
           assignChild((current.children ??= {}), key, value, arrayTags.has(key));
         }
       } else if (isDual) {
         const normalVal =
-          flatAttrs === undefined || !hasOwnKeys(flatAttrs)
-            ? ''
-            : finalizeNormal(flatAttrs, undefined, '');
-        const xsVal =
-          rawAttrs === undefined || !hasOwnKeys(rawAttrs)
-            ? ''
-            : finalizeXml2js(rawAttrs, undefined, '');
+          flatAttrs === undefined || !hasOwnKeys(flatAttrs) ? '' : finalizeNormal(flatAttrs, undefined, '');
+        const xsVal = rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? '' : finalizeXml2js(rawAttrs, undefined, '');
         assignChild((current.children ??= {}), localCamel, normalVal, arrayTags.has(localCamel));
         assignChild((current.xsChildren ??= {}), rawName, xsVal, true);
       } else if (xsanyTree) {
-        const value =
-          rawAttrs === undefined || !hasOwnKeys(rawAttrs)
-            ? ''
-            : finalizeXml2js(rawAttrs, undefined, '');
+        const value = rawAttrs === undefined || !hasOwnKeys(rawAttrs) ? '' : finalizeXml2js(rawAttrs, undefined, '');
         if (current === root) {
           seenRoot = true;
           rootKey = key;
@@ -693,10 +678,7 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
           assignChild((current.children ??= {}), key, value, true);
         }
       } else {
-        const value =
-          flatAttrs === undefined || !hasOwnKeys(flatAttrs)
-            ? ''
-            : finalizeNormal(flatAttrs, undefined, '');
+        const value = flatAttrs === undefined || !hasOwnKeys(flatAttrs) ? '' : finalizeNormal(flatAttrs, undefined, '');
         if (current === root) {
           seenRoot = true;
           rootKey = key;
@@ -736,25 +718,29 @@ function parseElementTree(xml: string, options?: ParseXmlOptions): { key: string
   return { key: rootKey, value: rootValue };
 }
 
-/** Strip leading BOM and optional `<?xml ...?>` declaration (only PI we accept in SOAP). */
-function stripXmlPreamble(xml: string): string {
-  let s = xml.charCodeAt(0) === 0xfeff ? xml.slice(1) : xml;
-  let i = 0;
-  while (i < s.length) {
-    const c = s.charCodeAt(i);
+/**
+ * Index where SOAP body parsing starts: after optional UTF-8 BOM and `<?xml ...?>`.
+ * Does not copy the document -- only returns an offset into `xml`.
+ */
+function xmlContentStart(xml: string): number {
+  const bom = xml.length > 0 && xml.charCodeAt(0) === 0xfeff;
+  let i = bom ? 1 : 0;
+  while (i < xml.length) {
+    const c = xml.charCodeAt(i);
     if (c !== 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d) {
       break;
     }
     i++;
   }
-  if (s.startsWith('<?xml', i)) {
-    const close = s.indexOf('?>', i + 5);
+  if (xml.startsWith('<?xml', i)) {
+    const close = xml.indexOf('?>', i + 5);
     if (close === -1) {
       throw new Error('Unclosed XML declaration');
     }
-    s = s.slice(close + 2);
+    return close + 2;
   }
-  return s;
+  // No declaration: keep leading whitespace for the tree parser; only drop BOM.
+  return bom ? 1 : 0;
 }
 
 /**
@@ -764,7 +750,7 @@ export function parseXml(xml: string, options?: ParseXmlOptions): any {
   if (typeof xml !== 'string') {
     throw new Error('XML data must be a string');
   }
-  const { key, value } = parseElementTree(stripXmlPreamble(xml), options);
+  const { key, value } = parseElementTree(xml, options, xmlContentStart(xml));
   // xsanyTree wraps every element in an array, including the document root.
   assertSafeName(key);
   return { [key]: options?.xsanyTree === true ? [value] : value };

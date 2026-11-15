@@ -948,7 +948,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         let length = 0;
         const statusCode = response.statusCode;
         const maxBytes = this.maxResponseBytes;
-        const contentLengthHeader = response.headers['content-length'];
+        const contentLengthHeader = response.headers?.['content-length'];
         const declaredLength =
           typeof contentLengthHeader === 'string' ? Number.parseInt(contentLengthHeader, 10) : Number.NaN;
         if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {

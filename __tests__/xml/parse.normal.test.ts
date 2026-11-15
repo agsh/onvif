@@ -113,9 +113,12 @@ describe('Feature: XML parsing (normal mode)', () => {
       expect(r.day).toBe('2026-11-14');
     });
 
-    it('coerces attribute values the same way', () => {
+    it('coerces attribute booleans, numbers, and ISO UTC dates (e.g. UtcTime)', () => {
       const parsed = parseXml(soapEnvelope('<R><Cell Columns="13" Rows="18" Flag="true"/></R>'));
       expect(parsed.envelope.body.r.cell).toEqual({ columns: 13, rows: 18, flag: true });
+      // ONVIF event messages put UtcTime on the attribute, not leaf text.
+      const dated = parseXml(soapEnvelope('<R><Cell When="2015-01-20T16:33:03Z"/></R>'));
+      expect(dated.envelope.body.r.cell.when).toEqual(new Date('2015-01-20T16:33:03Z'));
     });
   });
 
@@ -241,7 +244,7 @@ describe('Feature: XML parsing (normal mode)', () => {
     it('rejects forbidden attribute names without changing Object.prototype', () => {
       expect(() => parseXml('<R><Item __proto__="polluted"/></R>')).toThrow(/Forbidden XML name/);
       expect(() => parseXml('<R><Item constructor="x"/></R>')).toThrow(/Forbidden XML name/);
-      expect(Object.prototype.hasOwnProperty('polluted')).toBe(false);
+      expect(Object.hasOwn(Object.prototype, 'polluted')).toBe(false);
     });
 
     it('uses plain objects and does not pollute Object.prototype', () => {
@@ -251,7 +254,7 @@ describe('Feature: XML parsing (normal mode)', () => {
       expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
       expect(item.foo).toBe(1);
       expect(item.child).toBe(2);
-      expect(Object.prototype.hasOwnProperty('polluted')).toBe(false);
+      expect(Object.hasOwn(Object.prototype, 'polluted')).toBe(false);
       expect(({} as any).polluted).toBeUndefined();
     });
   });

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsdd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:wsa5="http://www.w3.org/2005/08/addressing" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:tpa="http://www.onvif.org/ver10/pacs" xmlns:xmime="http://tempuri.org/xmime.xsd" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:wsrfbf="http://docs.oasis-open.org/wsrf/bf-2" xmlns:tt="http://www.onvif.org/ver10/schema" xmlns:wstop="http://docs.oasis-open.org/wsn/t-1" xmlns:wsrfr="http://docs.oasis-open.org/wsrf/r-2" xmlns:tac="http://www.onvif.org/ver10/accesscontrol/wsdl" xmlns:tad="http://www.onvif.org/ver10/analyticsdevice/wsdl" xmlns:tae="http://www.onvif.org/ver10/actionengine/wsdl" xmlns:tana="http://www.onvif.org/ver20/analytics/wsdl/AnalyticsEngineBinding" xmlns:tanr="http://www.onvif.org/ver20/analytics/wsdl/RuleEngineBinding" xmlns:tan="http://www.onvif.org/ver20/analytics/wsdl" xmlns:tar="http://www.onvif.org/ver10/accessrules/wsdl" xmlns:tasa="http://www.onvif.org/ver10/advancedsecurity/wsdl/AdvancedSecurityServiceBinding" xmlns:tasd="http://www.onvif.org/ver10/advancedsecurity/wsdl/Dot1XBinding" xmlns:task="http://www.onvif.org/ver10/advancedsecurity/wsdl/KeystoreBinding" xmlns:tast="http://www.onvif.org/ver10/advancedsecurity/wsdl/TLSServerBinding" xmlns:tas="http://www.onvif.org/ver10/advancedsecurity/wsdl" xmlns:tds="http://www.onvif.org/ver10/device/wsdl" xmlns:tec="http://www.onvif.org/ver10/events/wsdl/CreatePullPointBinding" xmlns:tee="http://www.onvif.org/ver10/events/wsdl/EventBinding" xmlns:tenc="http://www.onvif.org/ver10/events/wsdl/NotificationConsumerBinding" xmlns:tenp="http://www.onvif.org/ver10/events/wsdl/NotificationProducerBinding" xmlns:tep="http://www.onvif.org/ver10/events/wsdl/PullPointBinding" xmlns:tepa="http://www.onvif.org/ver10/events/wsdl/PausableSubscriptionManagerBinding" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:tepu="http://www.onvif.org/ver10/events/wsdl/PullPointSubscriptionBinding" xmlns:tev="http://www.onvif.org/ver10/events/wsdl" xmlns:tesm="http://www.onvif.org/ver10/events/wsdl/SubscriptionManagerBinding" xmlns:timg="http://www.onvif.org/ver20/imaging/wsdl" xmlns:tls="http://www.onvif.org/ver10/display/wsdl" xmlns:tmd="http://www.onvif.org/ver10/deviceIO/wsdl" xmlns:tndl="http://www.onvif.org/ver10/network/wsdl/DiscoveryLookupBinding" xmlns:tdn="http://www.onvif.org/ver10/network/wsdl" xmlns:tnrd="http://www.onvif.org/ver10/network/wsdl/RemoteDiscoveryBinding" xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl" xmlns:trc="http://www.onvif.org/ver10/recording/wsdl" xmlns:trp="http://www.onvif.org/ver10/replay/wsdl" xmlns:trt="http://www.onvif.org/ver10/media/wsdl" xmlns:trt2="http://www.onvif.org/ver20/media/wsdl" xmlns:trv="http://www.onvif.org/ver10/receiver/wsdl" xmlns:tse="http://www.onvif.org/ver10/search/wsdl" xmlns:tss="http://www.onvif.org/ver10/schedule/wsdl" xmlns:tth="http://www.onvif.org/ver10/thermal/wsdl" xmlns:tns1="http://www.onvif.org/ver10/topics" xmlns:ter="http://www.onvif.org/ver10/error"><SOAP-ENV:Header><wsa5:To SOAP-ENV:mustUnderstand="true">http://192.0.2.14:80/onvif/event/subsription_3</wsa5:To><wsa5:Action SOAP-ENV:mustUnderstand="true">http://www.onvif.org/ver10/events/wsdl/PullPointSubscription/PullMessagesResponse</wsa5:Action></SOAP-ENV:Header><SOAP-ENV:Body><tev:PullMessagesResponse><tev:CurrentTime>2026-09-28T04:01:39Z</tev:CurrentTime><tev:TerminationTime>2026-09-28T04:02:39Z</tev:TerminationTime><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:Device/Trigger/DigitalInput</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="InputToken" Value="1"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="LogicalState" Value="false"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:Device/Trigger/Relay</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="RelayToken" Value="0"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="LogicalState" Value="inactive"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:RecordingConfig/JobState</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="RecordingJobToken" Value="recordingJobToken1"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="State" Value="idle"/>
+        <tt:ElementItem Name="Information">
+            <tt:RecordingJobStateInformation>
+                <tt:RecordingToken>tokenRecording1</tt:RecordingToken>
+                <tt:State>idle</tt:State>
+                <tt:Sources>
+                    <tt:SourceToken Type="http://www.onvif.org/ver10/schema/Profile">
+                        <tt:Token>videoSourceToken1</tt:Token>
+                    </tt:SourceToken>
+                    <tt:State>idle</tt:State>
+                    <tt:Tracks>
+                        <tt:Track>
+                            <tt:SourceTag>videoTrackSoruceTag1</tt:SourceTag>
+                            <tt:Destination>videoTrack</tt:Destination>
+                            <tt:State>idle</tt:State>
+                        </tt:Track>
+                        <tt:Track>
+                            <tt:SourceTag>audioTrackSoruceTag1</tt:SourceTag>
+                            <tt:Destination>audioTrack</tt:Destination>
+                            <tt:State>idle</tt:State>
+                        </tt:Track>
+                        <tt:Track>
+                            <tt:SourceTag>metaTrackSoruceTag1</tt:SourceTag>
+                            <tt:Destination>metaTrack</tt:Destination>
+                            <tt:State>idle</tt:State>
+                        </tt:Track>
+                    </tt:Tracks>
+                </tt:Sources>
+            </tt:RecordingJobStateInformation>
+        </tt:ElementItem>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:VideoSource/MotionAlarm</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="Source" Value="VideoSource_token_1"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="State" Value="false"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:VideoSource/GlobalSceneChange/AnalyticsService</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="Source" Value="VideoSource_token_1"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="State" Value="false"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:VideoSource/ImageTooBlurry/AnalyticsService</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="Source" Value="VideoSource_token_1"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="State" Value="false"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage><wsnt:NotificationMessage><wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">tns1:RuleEngine/CellMotionDetector/Motion</wsnt:Topic><wsnt:Message><tt:Message UtcTime="2026-09-28T04:01:39.352Z" PropertyOperation="Initialized">
+    <tt:Source>
+        <tt:SimpleItem Name="VideoSourceConfigurationToken" Value="VideoSource_token_1"/>
+        <tt:SimpleItem Name="VideoAnalyticsConfigurationToken" Value="VideoAnalytics0"/>
+        <tt:SimpleItem Name="Rule" Value="MotionDetectorRule"/>
+    </tt:Source>
+    <tt:Data>
+        <tt:SimpleItem Name="IsMotion" Value="false"/>
+    </tt:Data>
+</tt:Message>
+</wsnt:Message></wsnt:NotificationMessage></tev:PullMessagesResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

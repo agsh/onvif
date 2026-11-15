@@ -283,6 +283,7 @@ describe('Service options and builders', () => {
       req.end = jest.fn(() => {
         const res = new EventEmitter() as any;
         res.statusCode = 200;
+        res.headers = {};
         res.rawHeaders = [];
         queueMicrotask(() => {
           cb(res);

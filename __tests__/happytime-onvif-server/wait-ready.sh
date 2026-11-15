@@ -9,7 +9,8 @@ URL="http://${HOST}:${PORT}/"
 
 # Happytime ships old OpenSSL; never inherit LD_LIBRARY_PATH when calling system curl.
 curl_http_code() {
-	LD_LIBRARY_PATH= curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 "$1" 2>/dev/null
+	# --max-time: TCP can succeed while Happytime is wedged and never sends HTTP.
+	LD_LIBRARY_PATH= curl -s -o /dev/null -w "%{http_code}" --connect-timeout 1 --max-time 2 "$1" 2>/dev/null
 }
 
 i=0
