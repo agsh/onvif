@@ -177,6 +177,33 @@ describe('getVideoSources Media2 fallback responses', () => {
       }),
     );
   });
+
+  it('rethrows Media1 error when Media2 fallback also fails (Error and non-Error)', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    onvif.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
+    onvif.media2Support = true;
+
+    jest
+      .spyOn(onvif, 'request')
+      .mockRejectedValueOnce(new Error('media1 down'))
+      .mockRejectedValueOnce(new Error('media2 down'));
+    await expect(getVideoSources(onvif)).rejects.toThrow('media1 down');
+
+    jest
+      .spyOn(onvif, 'request')
+      .mockRejectedValueOnce('media1-string')
+      .mockRejectedValueOnce('media2-string');
+    await expect(getVideoSources(onvif)).rejects.toMatchObject({ message: 'media1-string' });
+  });
+
+  it('wraps non-Error Media1 failures when Media2 is unavailable', async () => {
+    const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
+    onvif.uri.media = new URL('http://127.0.0.1/onvif/media');
+    onvif.media2Support = false;
+    jest.spyOn(onvif, 'request').mockRejectedValue('no media1');
+    await expect(getVideoSources(onvif)).rejects.toMatchObject({ message: 'no media1' });
+  });
 });
 
 describe('media2ProfileToMedia1 / probeMedia2Profiles shape', () => {
@@ -206,6 +233,28 @@ describe('media2ProfileToMedia1 / probeMedia2Profiles shape', () => {
       extension: { audioOutputConfiguration: { token: 'aout1' } },
     });
     expect((mapped as { configurations?: unknown }).configurations).toBeUndefined();
+  });
+
+  it('maps audio / analytics / metadata / audioDecoder configuration bags', () => {
+    const mapped = media2ProfileToMedia1({
+      token: 'p2',
+      name: 'Full',
+      configurations: {
+        audioSource: { token: 'asc', sourceToken: 'asrc' },
+        audioEncoder: { token: 'aenc', encoding: 'G711' },
+        analytics: { token: 'an1' },
+        metadata: { token: 'meta1' },
+        audioDecoder: { token: 'adec1' },
+      },
+    } as never);
+
+    expect(mapped).toMatchObject({
+      audioSourceConfiguration: { token: 'asc', sourceToken: 'asrc' },
+      audioEncoderConfiguration: { token: 'aenc', encoding: 'G711' },
+      videoAnalyticsConfiguration: { token: 'an1' },
+      metadataConfiguration: { token: 'meta1' },
+      extension: { audioDecoderConfiguration: { token: 'adec1' } },
+    });
   });
 
   it('probeMedia2Profiles skips bad entries and keeps valid Media1-shaped rows', async () => {

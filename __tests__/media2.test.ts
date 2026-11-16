@@ -372,6 +372,40 @@ describe('setVideoEncoderConfiguration', () => {
   });
 });
 
+describe('updateVideoEncoderConfiguration', () => {
+  it('should patch bitrate via Get-merge-Set and restore afterwards', async () => {
+    const [original] = await cam.media2.getVideoEncoderConfigurations({});
+    expect(original).toBeDefined();
+    const nextBitrate = (original.rateControl?.bitrateLimit ?? 2048) === 1024 ? 1536 : 1024;
+    const merged = await cam.media2.updateVideoEncoderConfiguration({
+      configurationToken: original.token,
+      bitrateLimit: nextBitrate,
+    });
+    expect(merged.rateControl?.bitrateLimit).toBe(nextBitrate);
+    const after = await cam.media2.getVideoEncoderConfigurations({
+      configurationToken: original.token,
+    });
+    expect(after[0]?.rateControl?.bitrateLimit).toBe(nextBitrate);
+    await cam.media2.setVideoEncoderConfiguration(original);
+    const restored = await cam.media2.getVideoEncoderConfigurations({
+      configurationToken: original.token,
+    });
+    expect(restored[0]?.rateControl?.bitrateLimit).toBe(original.rateControl?.bitrateLimit);
+  });
+
+  it('should throw when configurationToken cannot be resolved', async () => {
+    const saved = cam.activeMediaProfile;
+    (cam as { activeMediaProfile?: typeof saved }).activeMediaProfile = undefined;
+    try {
+      await expect(cam.media2.updateVideoEncoderConfiguration({ bitrateLimit: 1 })).rejects.toThrow(
+        /configurationToken is required/,
+      );
+    } finally {
+      (cam as { activeMediaProfile?: typeof saved }).activeMediaProfile = saved;
+    }
+  });
+});
+
 describe('getAudioSourceConfigurations', () => {
   it('should return a list with expected fields', async () => {
     const result = await cam.media2.getAudioSourceConfigurations({});

@@ -237,6 +237,39 @@ describe('Feature: XML parsing (normal mode)', () => {
     it('throws on a lone open angle bracket', () => {
       expect(() => parseXml('<')).toThrow();
     });
+
+    it('rejects CDATA at root, unclosed CDATA, PIs, and bad close tags', () => {
+      expect(() => parseXml('<![CDATA[x]]>')).toThrow(/CDATA outside/);
+      expect(() => parseXml('<R><![CDATA[unterminated</R>')).toThrow(/Unclosed CDATA/);
+      expect(() => parseXml('<?pi?><R/>')).toThrow(/Processing instructions/);
+      expect(() => parseXml('<R></')).toThrow(/Unterminated closing tag/);
+      expect(() => parseXml('</R>')).toThrow(/Unexpected closing tag/);
+      expect(() => parseXml('<R></X>')).toThrow(/Mismatched close tag/);
+      expect(() => parseXml('<R>')).toThrow(/Unclosed tag/);
+      expect(() => parseXml('')).toThrow(/Start tag expected/);
+    });
+
+    it('rejects broken attributes and self-closing slash forms', () => {
+      expect(() => parseXml('<R a')).toThrow();
+      expect(() => parseXml('<R a=1>')).toThrow(/Expected attribute quote/);
+      expect(() => parseXml('<R a="unterminated>')).toThrow(/Unclosed attribute value/);
+      expect(() => parseXml('<R /x>')).toThrow(/Expected '>' after '\/'/);
+      expect(() => parseXml('<R a>')).toThrow(/Expected '='/);
+    });
+
+    it('decodes numeric character references and leaves unknown entities', () => {
+      expect(parseXml('<R>&#65;&#x42;&unknown;</R>')).toEqual({ r: 'AB&unknown;' });
+      expect(parseXml('<R>&#x110000;</R>')).toEqual({ r: '&#x110000;' });
+    });
+
+    it('coerces negative numbers and underscore-led / single-letter tag names', () => {
+      expect(parseXml('<R><N>-12</N><S>-abc</S><A>x</A></R>')).toEqual({
+        r: { n: -12, s: '-abc', a: 'x' },
+      });
+      expect(parseXml('<R><X>1</X></R>')).toEqual({ r: { x: 1 } });
+      // Non A-Z first char + lowercase second hits toCamelCaseFast's final branch.
+      expect(parseXml('<R><_bc>1</_bc></R>')).toEqual({ r: { _bc: 1 } });
+    });
   });
 
   describe('Scenario: prototype-pollution resistant keys', () => {
