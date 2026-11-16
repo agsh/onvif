@@ -19,7 +19,7 @@ All of these extend `OnvifError` and may carry:
 | `OnvifTimeoutError` | HTTP socket timeout. `code === 'ETIMEDOUT'` (same as the old plain errno Error). |
 | `OnvifTransportError` | Other network failures (`ECONNRESET`, `ECONNREFUSED`, DNS, …). `code` mirrors the errno when present. |
 | `OnvifParseError` | Response body is not well-formed XML. |
-| `OnvifResponseError` | Empty body, or a non-SOAP HTTP body (HTML / proxy noise) that is not a Fault envelope. |
+| `OnvifResponseError` | Empty body, oversize (`maxResponseBytes`), or non-SOAP HTTP body (not a Fault). |
 | `OnvifSoapFaultError` | Device returned a SOAP `Fault` (see below). |
 | `OnvifAuthError` | Digest / credentials rejected (missing challenge, failed auth after retry). |
 | `OnvifValidationError` | Bad client-side arguments or unexpected response shape in a helper. |
@@ -53,23 +53,20 @@ try {
 There is **no** automatic retry on Get* / ordinary SOAP calls. A dead camera and a brief 502 look
 similar at the transport layer — the application decides whether to retry.
 
-## SOAP Faults — 1.1 and 1.2
+## SOAP Faults (1.2 preferred, 1.1 accepted)
 
-ONVIF prefers SOAP 1.2, but some devices still emit SOAP 1.1 Faults. Field names differ on the wire;
-`parseSOAPString` normalizes both into `OnvifSoapFaultError`:
+ONVIF requires SOAP 1.2, but many firmwares still emit SOAP 1.1 Faults. `parseSOAPString`
+normalizes both into `OnvifSoapFaultError`:
 
-| Normalized field | SOAP 1.2 | SOAP 1.1 |
+| Field | Wire (SOAP 1.2) | Wire (SOAP 1.1) |
 | --- | --- | --- |
-| `faultCode` | `Code/Value` (`s:Sender`, `s:Receiver`, …) | `faultcode` (`s:Client`, `s:Server`, …) |
-| `faultSubcode` | First `Code/Subcode/Value` | First meaningful `detail` child name (e.g. `NotAuthorized`) |
-| `faultSubcodes` | Full nested Subcode chain, outermost first | Detail-derived codes (same source as `faultSubcode`) |
+| `faultCode` | `Code/Value` (`s:Sender`, ...) | `faultcode` (`s:Client`, ...) |
+| `faultSubcode` | First `Code/Subcode/Value` | First empty detail child (`ter:NotAuthorized`) |
+| `faultSubcodes` | Nested Subcode chain | Detail child local names (PascalCase) |
 | `faultReason` | `Reason/Text` | `faultstring` |
 | `faultDetail` | `Detail` text when present | `detail` text when present |
 
-Wire values are kept as reported (`s:Client` is not rewritten to `s:Sender`).
-
 ```ts
-// SOAP 1.2 example shape after parse
 err.faultCode; // 's:Sender'
 err.faultSubcode; // 'ter:NotAuthorized'
 err.faultSubcodes; // ['ter:NotAuthorized'] or ['ter:InvalidArgVal', 'ter:PasswordTooWeak']

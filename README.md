@@ -11,7 +11,8 @@ ONVIF client for all ONVIF devices with TypeScript types.
 - Typed ONVIF/WSDL interfaces (26.06)
 - Profiles [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
   [G](https://www.onvif.org/profiles/profile-g/), [M](https://www.onvif.org/profiles/profile-m/),
-  [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/)
+  [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/),
+  [D](https://www.onvif.org/profiles/profile-d/)
 - WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256)
 - Lazy-loaded service modules
 - Built to work around real-camera quirks across vendors
@@ -104,9 +105,13 @@ RTSP preview + Socket.IO / FFmpeg demo:
 - Auth: WS-Security + HTTP Digest -
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
 - WS-Discovery - [Discovery](#discovery)
-- Media profile bag and non-camera profiles (C / A / G / M) -
+- Stack SOAP XML parser (zero deps) - about ~4x faster than `1.0.0`, 
+  one of the fastest TypeScript-based parsers purpose-built for ONVIF SOAP XML payloads. -
+  [soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md),
+  [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md)
+- Media profile bag and non-camera profiles (C / A / D / G / M) -
   [Connection](#default-media-profile-activemediaprofile),
-  [Beyond cameras](#beyond-cameras-profiles-c--a--g--m)
+  [Beyond cameras](#beyond-cameras-profiles-c--a--d--g--m)
 - Typed errors, vendor `xs:any`, SOAP helpers - see [Deep docs](#deep-docs)
 
 ## Constructor options
@@ -116,6 +121,8 @@ Address the device with `url` **or** `hostname` / `port` / `path` / `useSecure`,
 
 - `timeout` - HTTP socket timeout for ordinary SOAP (ms; default 10000). PullMessages uses its own
   longer timeout (pull wait + margin)
+- `maxResponseBytes` - abort SOAP body read above this size (default 1 MiB); enforced on HTTP,
+  not inside `parseXml`
 - `useWSSecurity` - SOAP PasswordDigest headers (default `true`; HTTP Digest still applies; see
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md))
 - `autoConnect` - call `connect()` from the constructor (default `false`)
@@ -135,7 +142,7 @@ via `GetServices` with `IncludeCapability: false` (or `GetCapabilities` if that 
 Media is available - loads profiles and video sources. Media1 is preferred; Media2 `GetProfiles` runs
 only if Media1 is missing or fails. Pass `{ media: false }` to skip media probing (door stations,
 reachability checks). `Discovery.probe` sets `defaultMedia: false` on access-only devices
-(Profile C/A without Streaming/T in ProbeMatch); `connect()` honors that when `media` is omitted.
+(Profile C/A/D without Streaming/T in ProbeMatch); `connect()` honors that when `media` is omitted.
 Override with `{ media: true | false }`. For capability blocks from GetServices, call
 `device.getServices({ includeCapability: true })` after connect.
 
@@ -159,16 +166,16 @@ const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
 Details:
 [connection.md](https://github.com/agsh/onvif/blob/master/innerDocs/connection.md#active-media-profile-token-bag).
 
-### Beyond cameras (Profiles C / A / G / M)
+### Beyond cameras (Profiles C / A / D / G / M)
 
 Profiles [S](https://www.onvif.org/profiles/profile-s/) / [T](https://www.onvif.org/profiles/profile-t/)
 are the video path above (`media` / `media2` / `ptz` / `imaging`). The same `Onvif` client also
 covers access control, recording, and analytics - without treating every device as a camera.
 
 **Profile [C](https://www.onvif.org/profiles/profile-c/) / [A](https://www.onvif.org/profiles/profile-a/)
-(door / access):** skip Media probing. Discovery sets `defaultMedia: false` when ProbeMatch scopes
-look access-only (no Streaming/T); or pass `{ media: false }` yourself. After connect, omit-token
-DoorControl / AccessControl calls use `activeDoorToken` / `activeAccessPointToken`.
+(door / access unit):** skip Media probing. Discovery sets `defaultMedia: false` when ProbeMatch
+scopes look access-only (no Streaming/T); or pass `{ media: false }` yourself. After connect,
+omit-token DoorControl / AccessControl calls use `activeDoorToken` / `activeAccessPointToken`.
 
 ```ts
 await onvif.connect({ media: false });
@@ -179,6 +186,22 @@ await onvif.setActiveDoor('DoorToken_2');
 
 Recipe: [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#unlock-a-door) /
 [door.unlock.js](examples/door.unlock.js).
+
+**Profile [D](https://www.onvif.org/profiles/profile-d/) (access peripheral):** same services as
+C / A (`accessControl`, `doorControl`, optional `credential`), different role. The peripheral
+captures identifiers and raises Request events; **your client** stores rules and answers with
+`accessControl.externalAuthorization` (and optional `feedback`, whitelist/blacklist). Discovery
+treats Profile D scopes like other access-only devices (`defaultMedia: false`).
+
+```ts
+await onvif.connect({ media: false });
+// After AccessControl/Request/* event:
+await onvif.accessControl.externalAuthorization({ decision: 'Granted' });
+```
+
+Recipe:
+[guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md#handle-a-profile-d-access-request)
+/ [access.externalAuthorization.js](examples/access.externalAuthorization.js).
 
 **Profile [G](https://www.onvif.org/profiles/profile-g/) (recording / replay / search):** connect
 still probes Media when present. Defaults: `activeRecordingToken` /
@@ -203,8 +226,12 @@ constructor `hostname`:`port` (or host/port from `url`); from each XAddr only th
 (and query) is used. Set `preserveAddress: true` when the full URL must be rewritten to
 that constructor host/port (path/query kept) - needed for SOAP `a:To` and for PullMessages /
 Renew / Unsubscribe, which dial the subscription Address as `options.url`. Effective ports
-are compared (empty `URL.port` means 80/443). This does not rewrite RTSP/snapshot URI
-strings inside Media response bodies.
+are compared (empty `URL.port` means 80/443). RTSP/snapshot strings from Media bodies are
+not rewritten by this flag -- use `onvif.rewriteUri(...)` after GetStreamUri /
+GetSnapshotUri. With `preserveAddress: true` it replaces the URI host with the constructor
+hostname and keeps the stream port; pass `{ host, port, protocol, useCredentials }` to
+override. SOAP XAddrs use `parseUrl` (constructor host+port when `preserveAddress`).
+Standalone `withUrlCredentials` embeds userinfo without an `Onvif` instance.
 
 ```ts
 const onvif = new Onvif({
@@ -214,6 +241,10 @@ const onvif = new Onvif({
   password: 'admin',
   preserveAddress: true,
 });
+
+const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+// Camera may return rtsp://192.168.1.50:554/... -- rewrite host for NAT; keep :554
+const playable = onvif.rewriteUri(stream.uri, { useCredentials: true });
 ```
 
 When finished, call `await onvif.close()` to stop the pull-point subscription (if any) and release
@@ -276,7 +307,7 @@ What `probe` does (beyond a single-interface IPv4 multicast):
 - **Dedup & filtering** - devices are keyed by ProbeMatch `EndpointReference` (same NVT on
   IPv4+IPv6 -> one result); `RelatesTo` / MessageID drops replies meant for another client's Probe;
   `types` / `scopes` narrow the Probe; ProbeMatch scopes set `defaultMedia` (`false` for
-  access-only Profile C/A without Streaming/T).
+  access-only Profile C/A/D without Streaming/T).
 - **Other options** - `timeout`, `bufferSize`, `listeningPort`, `resolve: false` (raw ProbeMatch
   instead of `Onvif`).
 
@@ -373,10 +404,10 @@ Full catalog: [troubleshooting.md](https://github.com/agsh/onvif/blob/master/inn
 - **Auth / Unauthorized after connect** - `connect()` is not a login check; call
   `getDeviceInformation()`. See troubleshooting Auth +
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md).
-- **Empty profiles / no RTSP** - media skipped, wrong bag, or Media2-only. Access-only C/A:
-  [Beyond cameras](#beyond-cameras-profiles-c--a--g--m). Else troubleshooting Media / RTSP.
-- **RTSP host wrong; SOAP OK with `preserveAddress`** - flag does not rewrite RTSP body URLs.
-  See troubleshooting + [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port).
+- **Empty profiles / no RTSP** - media skipped, wrong bag, or Media2-only. Access-only C/A/D:
+  [Beyond cameras](#beyond-cameras-profiles-c--a--d--g--m). Else troubleshooting Media / RTSP.
+- **RTSP host wrong; SOAP OK with `preserveAddress`** - use `onvif.rewriteUri(uri)` (or
+  troubleshooting + [`preserveAddress`](#preserveaddress-nat--wrong-xaddr-host-or-port)).
 - **PTZ AbsoluteMove Fault** - check SupportedPTZSpaces; prefer ContinuousMove.
 - **Events stop / process exit** -`eventError`; always `sub.on('error')` on own Subscription.
 - **Discovery finds nothing** - `Discovery.on('status')`; bind NIC / family.
@@ -406,6 +437,8 @@ Samples in [`examples/`](examples/):
 - [analytics.rules.js](examples/analytics.rules.js) - analytics rules and modules
 - [deviceio.relay.js](examples/deviceio.relay.js) - DeviceIO relays / digital inputs
 - [door.unlock.js](examples/door.unlock.js) - Profile C/A door unlock / lock
+- [access.externalAuthorization.js](examples/access.externalAuthorization.js) -
+  Profile D request events + ExternalAuthorization
 - [rtsp.socketio.ptz.js](examples/rtsp.socketio.ptz.js) - RTSP preview + PTZ over Socket.IO
 - [ptz.nodes.js](examples/ptz.nodes.js) - GetNodes / SupportedPTZSpaces
 - [ptz.keyboard.js](examples/ptz.keyboard.js) - keyboard ContinuousMove + presets

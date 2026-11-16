@@ -5,7 +5,7 @@
 
 import { Onvif, SetSystemDateAndTimeExtended } from './onvif';
 import Service from './service';
-import { OnvifResponseError } from './utils';
+import { coerceCertificateInformation, OnvifResponseError } from './utils';
 import {
   AddIPAddressFilter,
   AddScopes,
@@ -1378,7 +1378,7 @@ export default class Device extends Service {
     const response = await this.request({
       GetCertificateInformation: { CertificateID: certificateID },
     });
-    return response.getCertificateInformationResponse.certificateInformation;
+    return coerceCertificateInformation(response.getCertificateInformationResponse.certificateInformation);
   }
 
   /**

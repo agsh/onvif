@@ -2,7 +2,23 @@
 
 Footprint details, methodology, heap notes, and a longer walkthrough of how lazy proxies interact with
 Promises. Short feature list: [README Features](../README.md#features). For agents / timers / `close()`
-ownership, see [resources.md](resources.md).
+ownership, see [resources.md](resources.md). SOAP XML parse design:
+[soap-xml.md](soap-xml.md).
+
+## SOAP XML parse speed (1.1.0+)
+
+Responses are parsed by an in-repo **stack** ONVIF SOAP XML parser (`parseXml`: `indexOf` /
+`charCodeAt`, no DOM, no `xml2js` / `fast-xml-parser` at runtime).
+
+Relative to **`onvif@1.0.0`** on the same machine and the same SOAP fixtures (GetSystemDateAndTime /
+GetServices / GetProfiles, PullMessages batches, ~500 KiB NVR-style profile lists):
+
+- Parse throughput and latency are about **~4x** better (docs/s up, ms/parse and event-burst wall
+  time down by a similar factor).
+- Among ONVIF clients for Node.js, the parse path is in the **top tier** for SOAP XML throughput.
+
+Absolute numbers vary with Node, CPU, and fixture shape; treat the ~4x figure as order-of-magnitude
+guidance, not a guarantee for every device response.
 
 ## Compiled JS footprint (approx.)
 
@@ -186,3 +202,75 @@ await onvif.connect(); // reopen + fresh GetServices / profiles
 | `await onvif.media....()` / `await onvif.media.profiles` | `media.js` once |
 | `await onvif.ptz....()` | `ptz.js` once |
 | unused namespaces | never |
+
+## Appendix: SOAP parseXml microbenchmark methodology
+
+Raw **SOAP XML parse** step only (no HTTP, digest, or device I/O). Same fixture shapes as common
+ONVIF client benches: small GetSystemDateAndTime, medium GetServices, large GetProfiles,
+nvrProfiles x32 (~511 KiB), PullMessages / eventBatch (210 notifications), burst of ~5000
+notifications, CPU ms per GetProfiles parse, cold import+one parse.
+
+This appendix exists so tooling and agents can cite a reproducible same-machine baseline. It is
+**not** a product ranking and is not part of the npm tarball marketing surface. Absolute numbers
+move with Node, CPU, and load; re-run before quoting.
+
+### How to reproduce
+
+```sh
+npm run build
+npm install --no-save @2bad/onvif@2.3.0 fast-xml-parser
+# optional: python3 (+ lxml), go, cargo -- for cross-language peers
+BENCH_RUNS=15 BENCH_DROP=2 npm run bench:xml
+```
+
+Harness: `tools/bench/parse-throughput.mjs`. Fixtures: `__tests__/fixtures/soap/`. Optional peers
+are skipped if not installed. The script prints a compact summary table at the end (docs/s, ~500 KiB
+median ms, notif/s, burst wall ms, CPU ms/req, cold start). With `BENCH_RUNS` / `BENCH_DROP`, each
+metric is sampled that many times; the summary is a trimmed mean (sorted ascending; drop DROP
+lowest and DROP highest). Cross-language peers (Python etree/lxml, Go encoding/xml, Rust quick-xml)
+run out-of-process when `python3` / `go` / `cargo` are available.
+
+### Snapshot (Node.js 26, trimmed mean of 15 runs after warm-up; drop 2 best + 2 worst)
+
+Parse path under test: this package `parseXml` (stack / `indexOf` / `charCodeAt`, camelCase + leaf
+coerce, zero runtime XML deps; datetimes stay strings until a service calls `toDate`). Same-machine
+peers from `BENCH_RUNS=15 BENCH_DROP=2 npm run bench:xml`.
+
+Caveat: this package's normal-mode tree applies camelCase and heuristic coerce (`true`/`false`,
+numbers; ISO datetimes stay strings until a service calls `toDate`). Node peers that build a
+usable ONVIF-shaped object are closest to an apples-to-apples "usable response" cost. Python /
+Go / Rust peers are mostly lexer or DOM builds (token walk / ElementTree / quick-xml) -- raw
+parse cost, not ONVIF client trees.
+
+#### Node (in-process)
+
+| Metric | this `parseXml` | `@2bad/onvif` | `fast-xml-parser` | `xml2js` |
+| --- | ---: | ---: | ---: | ---: |
+| small docs/s | 41200 | 30000 | 5900 | 2900 |
+| medium docs/s | 9700 | 7800 | 1700 | 1100 |
+| large docs/s | 3300 | 3200 | 480 | 400 |
+| ~500 KiB median ms | 9.0 | 9.2 | 61 | 71 |
+| eventBatch notif/s | 106000 | 91000 | 14200 | 12600 |
+| burst ~5k wall ms | 48 | 54 | 346 | 402 |
+| CPU ms/req (GetProfiles) | 0.31 | 0.31 | 1.97 | 2.45 |
+| cold start median ms | 10.3 | 7.5 | 14.6 | n/a |
+
+#### Other languages (out-of-process; this `parseXml` repeated for scale)
+
+| Metric | this `parseXml` | py etree | py lxml | go enc/xml | rust quick-xml |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| small docs/s | 41200 | 9800 | 13100 | 8300 | 235000 |
+| medium docs/s | 9700 | 3900 | 6700 | 3700 | 80300 |
+| large docs/s | 3300 | 2000 | 3500 | 1500 | 22400 |
+| ~500 KiB median ms | 9.0 | 13.1 | 7.8 | 18.0 | 1.3 |
+| eventBatch notif/s | 106000 | 54300 | 88800 | 42700 | 794000 |
+| burst ~5k wall ms | 48 | 92 | 55 | 119 | 7 |
+| cold start median ms | 10.3 | 39.6 | 62.0 | 4.5 | 3.2 |
+
+Rounded from the trimmed 15-run series (keep 11). Against generic Node XML stacks (`xml2js` /
+`fast-xml-parser`) the in-repo parser is typically several times higher throughput on these SOAP
+fixtures. Against the other purpose-built ONVIF parse path, results are in the same band on this
+machine. Cross-language columns are orientation only: Rust `quick-xml` is a fast token lexer; Python
+cold start is dominated by interpreter startup; Go / Rust cold start is a prebuilt binary.
+
+For design notes (what the parser intentionally skips), see [soap-xml.md](soap-xml.md).

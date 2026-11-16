@@ -8,7 +8,7 @@
 import { Onvif } from './onvif';
 import Service from './service';
 import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
-import { OnvifValidationError } from './utils';
+import { coercePTZStatus, OnvifValidationError } from './utils';
 import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 import {
   AuxiliaryData,
@@ -742,7 +742,7 @@ export default class PTZ extends Service {
     const response = await this.request({
       GetStatus: { ProfileToken: profileToken },
     });
-    return response.getStatusResponse.PTZStatus;
+    return coercePTZStatus(response.getStatusResponse.PTZStatus);
   }
 
   /**

@@ -1,0 +1,9 @@
+[package]
+name = "onvif_bench_quickxml"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+quick-xml = "0.37"
+serde_json = "1"

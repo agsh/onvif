@@ -48,4 +48,37 @@ add_config ProfileToken_2 AddVideoEncoderConfiguration VideoEncoderConfiguration
 add_config ProfileToken_2 AddAudioSourceConfiguration AudioSourceConfigurationToken_1
 add_config ProfileToken_2 AddAudioEncoderConfiguration AudioEncoderConfigurationToken_1
 
+# Reset main encoder to H264. Media suite may leave Token_1 as MPEG4 after failed/partial sets.
+soap "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">
+  <s:Body>
+    <trt:SetVideoEncoderConfiguration xmlns:trt=\"http://www.onvif.org/ver10/media/wsdl\" xmlns:tt=\"http://www.onvif.org/ver10/schema\">
+      <trt:Configuration token=\"VideoEncoderConfigurationToken_1\">
+        <tt:Name>VideoEncoderConfigurationName_1</tt:Name>
+        <tt:UseCount>1</tt:UseCount>
+        <tt:Encoding>H264</tt:Encoding>
+        <tt:Resolution><tt:Width>1280</tt:Width><tt:Height>720</tt:Height></tt:Resolution>
+        <tt:Quality>5</tt:Quality>
+        <tt:RateControl>
+          <tt:FrameRateLimit>25</tt:FrameRateLimit>
+          <tt:EncodingInterval>1</tt:EncodingInterval>
+          <tt:BitrateLimit>2048</tt:BitrateLimit>
+        </tt:RateControl>
+        <tt:H264>
+          <tt:GovLength>25</tt:GovLength>
+          <tt:H264Profile>Main</tt:H264Profile>
+        </tt:H264>
+        <tt:Multicast>
+          <tt:Address><tt:Type>IPv4</tt:Type><tt:IPv4Address>0.0.0.0</tt:IPv4Address></tt:Address>
+          <tt:Port>0</tt:Port>
+          <tt:TTL>1</tt:TTL>
+          <tt:AutoStart>false</tt:AutoStart>
+        </tt:Multicast>
+        <tt:SessionTimeout>PT60S</tt:SessionTimeout>
+      </trt:Configuration>
+      <trt:ForcePersistence>true</trt:ForcePersistence>
+    </trt:SetVideoEncoderConfiguration>
+  </s:Body>
+</s:Envelope>"
+
 echo "Happytime media profiles hydrated at ${HOST}:${PORT}"

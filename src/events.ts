@@ -16,7 +16,16 @@ import {
   GetEventPropertiesResponse,
   PullMessages,
 } from './interfaces/event';
-import { CommonDuration, OnvifValidationError, toMs, toIsoDuration } from './utils';
+import {
+  CommonDuration,
+  OnvifValidationError,
+  toMs,
+  toIsoDuration,
+  toDate,
+  coerceStatusTimes,
+  coerceNotificationMessage,
+  coerceNotificationMessages,
+} from './utils';
 import { AnyURI } from './interfaces/basics';
 import { ItemList } from './interfaces/onvif';
 import { EventEmitter } from 'events';
@@ -25,8 +34,8 @@ import http, { Agent as HttpAgent } from 'http';
 import { toError } from './utils/errors';
 
 interface TerminationTimeResponse {
-  currentTime: Date;
-  terminationTime: Date;
+  currentTime: Date | string;
+  terminationTime: Date | string;
 }
 
 /** ONVIF topic expression dialects from WS-Topics and [event.wsdl](https://www.onvif.org/ver10/events/wsdl/event.wsdl). */
@@ -70,6 +79,20 @@ export type OnvifTopicExpression =
   | 'tns1:RecordingConfig/TrackConfiguration'
   | 'tns1:Media/ConfigurationChanged'
   | 'tns1:Media/ProfileChanged'
+  /** Profile D / Access Control request and decision topics (subtree ok with `//.`). */
+  | 'tns1:AccessControl/Request/Credential'
+  | 'tns1:AccessControl/Request/Identifier'
+  | 'tns1:AccessControl/Request/Anonymous'
+  | 'tns1:AccessControl/Request/Timeout'
+  | 'tns1:AccessControl/AccessGranted/Credential'
+  | 'tns1:AccessControl/AccessGranted/Anonymous'
+  | 'tns1:AccessControl/Denied/Credential'
+  | 'tns1:AccessControl/Denied/Anonymous'
+  | 'tns1:AccessControl/AccessTaken/Credential'
+  | 'tns1:AccessControl/AccessTaken/Anonymous'
+  | 'tns1:AccessControl/AccessNotTaken/Credential'
+  | 'tns1:AccessControl/AccessNotTaken/Anonymous'
+  | 'tns1:AccessControl//.'
   /** Vendor-specific topics, e.g. `tns1:RuleEngine/MyRuleDetector/FaceDetect` */
   | 'tns1:RuleEngine/PeopleDetector/People'
   | (string & {});
@@ -144,7 +167,9 @@ function isRetryableNetworkError(error: unknown): error is { code: string } {
 }
 
 function localTerminationTime(response: TerminationTimeResponse): Date {
-  return new Date(Date.now() - response.currentTime.getTime() + response.terminationTime.getTime());
+  const current = toDate(response.currentTime).getTime();
+  const termination = toDate(response.terminationTime).getTime();
+  return new Date(Date.now() - current + termination);
 }
 
 export interface PullPointSubscription {
@@ -319,8 +344,7 @@ export default class Events {
       },
     };
     const [data] = await this.onvif.request({ service: 'events', body });
-    const pullPointSubscription: PullPointSubscription = data.createPullPointSubscriptionResponse;
-    return pullPointSubscription;
+    return coerceStatusTimes(data.createPullPointSubscriptionResponse as PullPointSubscription);
   }
 
   private static eventBrokerToBuild(eventBroker: EventBrokerConfig) {
@@ -434,7 +458,7 @@ export default class Events {
         }
       }, toMs(initialTerminationTime));
     }
-    return data.subscribeResponse;
+    return coerceStatusTimes(data.subscribeResponse as PullPointSubscription);
   }
 
   /**
@@ -477,7 +501,7 @@ export default class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.agent,
     });
-    return data.renewResponse;
+    return coerceStatusTimes(data.renewResponse as StatusResponse);
   }
 
   /**
@@ -498,7 +522,7 @@ export default class Events {
       soapHeaders: subscriptionParams.additionalSoapHeaders,
       agent: this.agent,
     });
-    return data.getStatusResponse;
+    return coerceStatusTimes(data.getStatusResponse as StatusResponse);
   }
 }
 
@@ -642,6 +666,7 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   private dispatchNotificationMessages(messages: NotificationMessage[]) {
     for (const msg of messages) {
       try {
+        coerceNotificationMessage(msg);
         this.emit('data', msg);
       } catch (listenerError) {
         if (this.listenerCount('error') > 0) {
@@ -770,7 +795,13 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
       agent: this.onvif.events.agent,
       array: ['notificationMessage'],
     });
-    return { notificationMessage: [], ...data.pullMessagesResponse };
+    const response: PullMessagesResponse = {
+      notificationMessage: [],
+      ...data.pullMessagesResponse,
+    };
+    coerceStatusTimes(response);
+    coerceNotificationMessages(response.notificationMessage);
+    return response;
   }
 
   /**

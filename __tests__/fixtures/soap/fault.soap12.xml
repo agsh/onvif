@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error">
+  <s:Body>
+    <s:Fault>
+      <s:Code>
+        <s:Value>s:Sender</s:Value>
+        <s:Subcode><s:Value>ter:NotAuthorized</s:Value></s:Subcode>
+      </s:Code>
+      <s:Reason><s:Text xml:lang="en">Sender not authorized</s:Text></s:Reason>
+      <s:Detail><s:Text>denied</s:Text></s:Detail>
+    </s:Fault>
+  </s:Body>
+</s:Envelope>

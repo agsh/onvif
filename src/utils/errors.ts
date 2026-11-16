@@ -105,15 +105,18 @@ export class OnvifTransportError extends OnvifError {
   }
 }
 
-/** SOAP Fault from the device (SOAP 1.1 or 1.2 fields normalized).
+/**
+ * SOAP Fault from the device.
+ * Prefers SOAP 1.2 (`Code` / `Subcode` / `Reason` / `Detail`); also accepts SOAP 1.1
+ * (`faultcode` / `faultstring` / `detail`) from non-compliant firmwares.
  * @category Errors
  */
 export class OnvifSoapFaultError extends OnvifError {
-  /** Top-level fault code (`s:Sender` / `s:Client`, `s:Receiver` / `s:Server`, …). */
+  /** Top-level fault code (`s:Sender`, `s:Receiver`, ...). */
   public readonly faultCode?: string;
-  /** First SOAP 1.2 Subcode Value, or a SOAP 1.1 detail child name when present. */
+  /** First `Code/Subcode/Value`. */
   public readonly faultSubcode?: string;
-  /** Full Subcode chain (SOAP 1.2) or detail-derived codes (SOAP 1.1), outermost first. */
+  /** Full Subcode chain, outermost first. */
   public readonly faultSubcodes?: string[];
   public readonly faultReason?: string;
   public readonly faultDetail?: string;

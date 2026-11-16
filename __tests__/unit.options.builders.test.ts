@@ -142,6 +142,61 @@ describe('Service options and builders', () => {
     expect((secure as any).updateNC()).toBe('00000002');
   });
 
+  it('rewriteUri for Media strings; parseUrl for SOAP XAddrs (shared transform)', () => {
+    const withPreserve = new Onvif({
+      hostname: '203.0.113.10',
+      port: 8080,
+      username: 'admin',
+      password: 'secret',
+      preserveAddress: true,
+      autoConnect: false,
+    });
+    // Media: host rewrite, keep RTSP port
+    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe(
+      'rtsp://203.0.113.10:554/stream1',
+    );
+    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1', { port: 8554 })).toBe(
+      'rtsp://203.0.113.10:8554/stream1',
+    );
+    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1', { useCredentials: true })).toBe(
+      'rtsp://admin:secret@203.0.113.10:554/stream1',
+    );
+    expect(
+      withPreserve.rewriteUri('http://192.168.1.50/onvif/snapshot', {
+        host: 'proxy.example',
+        protocol: 'https',
+        port: 443,
+      }),
+    ).toBe('https://proxy.example/onvif/snapshot');
+
+    // SOAP: parseUrl uses constructor host+port under preserveAddress
+    const xaddr = withPreserve.parseUrl('http://192.168.1.50:80/onvif/media_service');
+    expect(xaddr.hostname).toBe('203.0.113.10');
+    expect(xaddr.port).toBe('8080');
+    // rewriteUri must not apply SOAP port to RTSP by default
+    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).not.toContain(':8080');
+
+    const noPreserve = new Onvif({
+      hostname: '203.0.113.10',
+      port: 8080,
+      preserveAddress: false,
+      autoConnect: false,
+    });
+    expect(noPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe(
+      'rtsp://192.168.1.50:554/stream1',
+    );
+    expect(noPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1', { host: '203.0.113.10' })).toBe(
+      'rtsp://203.0.113.10:554/stream1',
+    );
+    // Empty host (some NVR firmwares): fill from constructor even without preserveAddress
+    expect(noPreserve.rewriteUri('rtsp://:554/unicast/c1/s1/live')).toBe(
+      'rtsp://203.0.113.10:554/unicast/c1/s1/live',
+    );
+    expect(noPreserve.parseUrl('http://192.168.1.50/onvif/device_service').hostname).toBe(
+      '192.168.1.50',
+    );
+  });
+
   it('retries getSystemDateAndTime when SOAP Fault is NotAuthorized', async () => {
     const onvif = new Onvif({
       hostname: '127.0.0.1',
@@ -228,6 +283,7 @@ describe('Service options and builders', () => {
       req.end = jest.fn(() => {
         const res = new EventEmitter() as any;
         res.statusCode = 200;
+        res.headers = {};
         res.rawHeaders = [];
         queueMicrotask(() => {
           cb(res);

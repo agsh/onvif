@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.1.0
+
+### Changed
+
+- **Stack ONVIF SOAP XML parser** - `parseXml` is a zero-dependency, single-pass stack walker
+  (`indexOf` / `charCodeAt`), with cheap entity decoding, name cache, lean finalize, and one-pass
+  `rawXML` dual trees. Typical SOAP parse throughput / latency is about **~4x** vs `1.0.0` on the
+  same workloads (GetProfiles-sized docs, PullMessages batches, ~500 KiB NVR-style envelopes). Among
+  ONVIF clients for Node.js, the parse path is in the top tier for SOAP XML throughput. Same public
+  tree shape (camelCase + leaf coerce; `xsany` / `rawXML` unchanged). Details:
+  [innerDocs/soap-xml.md](innerDocs/soap-xml.md),
+  [innerDocs/performance.md](innerDocs/performance.md).
+
+### Fixed
+
+- **Acronym / codec tag names** - keep `H264`, `G711DecOptions`, `UTCDateTime`, and similar when the
+  second character is not a lowercase letter (matches classic `camelCase` rules).
+
+### Added
+
+- **Profile D docs / recipes** - same AccessControl / DoorControl / Credential modules as C / A;
+  peripheral flow (Request events -> `externalAuthorization` / `feedback` / optional
+  whitelist-blacklist). Discovery treats `Profile/D` as access-only (`defaultMedia: false`).
+  Guides + `examples/access.externalAuthorization.js`; AccessControl topic expressions on
+  `OnvifTopicExpression`.
+
 ## 1.0.0
 
 First stable **1.x** release (Node.js 18+). Supersedes `1.0.0-rc.3` on npm. Prefer the `Onvif`
@@ -42,11 +68,10 @@ API; keep 0.8 via `npm install onvif@previous` or `onvif/compatibility`.
   algorithm (SHA-512-256 > SHA-256 > SHA-1 > MD5); cache Digest headers after the first 401;
   time-shift fixes.
 - **Discovery** - RelatesTo / MessageID matching; multi-interface + `bufferSize` (from 0.x); scopes
-  and types; ProbeMatch sets `defaultMedia` (`false` for access-only Profile C/A without
+  and types; ProbeMatch sets `defaultMedia` (`false` for access-only Profile C/A/D without
   Streaming/T).
 - **Request context** - per-request AsyncLocalStorage; request/response XML store; richer debug
   fields on errors.
-- **XMLParser reuse** - `parseSOAPString` caches `fast-xml-parser` instances by options.
 - **`prepare` script** for install-time build; Windows-friendly `rimraf` clean.
 
 ### Changed
@@ -137,8 +162,8 @@ important ways.
 - **Connection lifecycle** - call `await onvif.connect()` before service use (or
   `autoConnect: true`).
 - **Node.js >= 18** required.
-- **XML stack** - `xml2js` replaced with `fast-xml-parser`; SOAP is built/parsed differently
-  (compact XML).
+- **XML stack** - in-repo compact SOAP build/parse (`$` / `_` object model); no external XML
+  runtime dependency.
 - **Typed errors** - `OnvifError` subclasses (`OnvifSoapFaultError`, `OnvifAuthError`,
   `OnvifResponseError`, `OnvifValidationError`) instead of generic `Error` / ad-hoc objects.
 

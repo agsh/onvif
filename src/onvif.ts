@@ -24,6 +24,7 @@ import {
   parseSOAPString,
   soapActionFromBody,
   soapActionFromXml,
+  withUrlCredentials,
 } from './utils';
 import {
   digestAuth as buildDigestAuth,
@@ -68,8 +69,8 @@ import { lazyService, XMLNS } from './service';
 import type { ConnectOptions } from './connection';
 import { requestContext } from './utils/request-context';
 
-/** Default HTTP timeout for ordinary SOAP calls (ms). PullMessages overrides per request. */
-export const DEFAULT_TIMEOUT_MS = 10_000;
+export const DEFAULT_TIMEOUT_MS = 10000;
+export const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 const DEFAULT_DEVICE_PATH = '/onvif/device_service';
 
@@ -97,16 +98,8 @@ function resolveDeviceLocation(options: OnvifOptions): {
       throw new OnvifValidationError('`url` must use http: or https:');
     }
     const useSecure = parsed.protocol === 'https:';
-    const path =
-      parsed.pathname && parsed.pathname !== '/'
-        ? parsed.pathname + parsed.search
-        : DEFAULT_DEVICE_PATH;
-    const port =
-      parsed.port !== ''
-        ? Number.parseInt(parsed.port, 10)
-        : useSecure
-          ? 443
-          : 80;
+    const path = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname + parsed.search : DEFAULT_DEVICE_PATH;
+    const port = parsed.port !== '' ? Number.parseInt(parsed.port, 10) : useSecure ? 443 : 80;
     return { hostname: parsed.hostname, port, path, useSecure };
   }
   if (!options.hostname) {
@@ -151,6 +144,12 @@ export interface OnvifOptions {
    * timeout (pull wait + margin) and is not limited by this value.
    */
   timeout?: number;
+  /**
+   * Maximum SOAP response body size in bytes while reading HTTP.
+   * Defaults to {@link DEFAULT_MAX_RESPONSE_BYTES} (2 MiB). Oversized bodies are aborted
+   * mid-stream (`OnvifResponseError`); there is no separate size check in `parseXml`.
+   */
+  maxResponseBytes?: number;
   urn?: string;
   /** Supports things like https://www.npmjs.com/package/proxy-agent which provide SOCKS5 and other connections. */
   agent?: HttpsAgent | HttpAgent | boolean;
@@ -170,7 +169,7 @@ export interface OnvifOptions {
    *
    * Comparison uses the effective port (scheme defaults 80/443), not the empty
    * `URL.port` string. Does not rewrite raw RTSP/snapshot URI strings inside Media
-   * responses - only URLs passed through {@link Onvif.parseUrl}.
+   * responses - use {@link Onvif.rewriteUri} for those.
    */
   preserveAddress?: boolean;
   /** Set true if the camera should connect automatically, defaults false. */
@@ -185,6 +184,33 @@ export interface OnvifOptions {
    * @default true
    */
   defaultMedia?: boolean;
+}
+
+/**
+ * Options for {@link Onvif.rewriteUri} (Media / Replay URI strings).
+ * Default host rewrite follows {@link OnvifOptions.preserveAddress}; port stays unless
+ * you pass `port` (do not use the SOAP constructor port for RTSP unless you mean to).
+ */
+export interface RewriteUriOptions {
+  /** Target hostname (overrides `preserveAddress` / empty-host default). */
+  host?: string;
+  /** Target port. Omit to keep the URI port (e.g. RTSP 554). */
+  port?: number | string;
+  /** Target scheme, with or without trailing `:` (e.g. `rtsp` / `rtsps:`). */
+  protocol?: string;
+  /**
+   * Embed {@link Onvif.username}/{@link Onvif.password} via {@link withUrlCredentials}.
+   * Result contains cleartext userinfo -- do not log it.
+   */
+  useCredentials?: boolean;
+}
+
+/** Internal options for {@link Onvif.transformUri} (SOAP + Media). */
+interface TransformUriOptions {
+  host?: string;
+  /** `'client'` = SOAP {@link Onvif.port} (parseUrl / preserveAddress). */
+  port?: number | string | 'client';
+  protocol?: string;
 }
 
 export interface OnvifServices {
@@ -549,6 +575,8 @@ export class Onvif extends EventEmitter<OnvifEvents> {
    */
   public path: string;
   public timeout: number;
+  /** Max SOAP response body size in bytes (see {@link OnvifOptions.maxResponseBytes}). */
+  public maxResponseBytes: number;
   public agent: HttpsAgent | HttpAgent | boolean;
   /** True when the default keep-alive agent was created by this instance (not a caller-supplied agent). */
   private readonly ownsAgent: boolean;
@@ -649,6 +677,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.port = location.port;
     this.path = location.path;
     this.timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
+    this.maxResponseBytes = options.maxResponseBytes ?? DEFAULT_MAX_RESPONSE_BYTES;
     this.urn = options.urn;
     this.xaddrs = options.xaddrs;
     this.defaultMedia = options.defaultMedia ?? true;
@@ -918,10 +947,32 @@ export class Onvif extends EventEmitter<OnvifEvents> {
         const bufs: Buffer[] = [];
         let length = 0;
         const statusCode = response.statusCode;
+        const maxBytes = this.maxResponseBytes;
+        const contentLengthHeader = response.headers?.['content-length'];
+        const declaredLength =
+          typeof contentLengthHeader === 'string' ? Number.parseInt(contentLengthHeader, 10) : Number.NaN;
+        if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+          alreadyReturned = true;
+          response.destroy();
+          fail(new OnvifResponseError(`ONVIF SOAP response exceeds maximum size (${maxBytes} bytes)`, { statusCode }));
+          return undefined;
+        }
 
-        response.on('data', (chunk) => {
-          bufs.push(chunk);
+        response.on('data', (chunk: Buffer) => {
+          if (alreadyReturned) {
+            return;
+          }
           length += chunk.length;
+          if (length > maxBytes) {
+            alreadyReturned = true;
+            bufs.length = 0;
+            response.destroy();
+            fail(
+              new OnvifResponseError(`ONVIF SOAP response exceeds maximum size (${maxBytes} bytes)`, { statusCode }),
+            );
+            return;
+          }
+          bufs.push(chunk);
         });
 
         response.on('end', () => {
@@ -1129,21 +1180,66 @@ export class Onvif extends EventEmitter<OnvifEvents> {
 
   /**
    * Parse a device XAddr into a {@link URL}.
-   * When {@link OnvifOptions.preserveAddress} is set, replace host/port with the
-   * constructor values (path and query kept). Used when filling {@link uri} and for
-   * event subscription Addresses.
+   * When {@link preserveAddress} is set, replace host/port with the constructor values
+   * (path and query kept). Used when filling {@link uri} and for event subscription
+   * Addresses. For Media/Replay URI **strings**, use {@link rewriteUri}.
    */
-  public parseUrl(address: string) {
-    const parsedAddress = new URL(address);
-    // Compare effective ports, not URL.port strings ("" means scheme default 80/443).
-    if (
-      this.preserveAddress &&
-      (this.hostname !== parsedAddress.hostname || this.port !== Onvif.urlPort(parsedAddress))
-    ) {
-      parsedAddress.hostname = this.hostname;
-      parsedAddress.port = String(this.port);
+  public parseUrl(address: string): URL {
+    if (!this.preserveAddress) {
+      return new URL(address);
     }
-    return parsedAddress;
+    return this.transformUri(address, { port: 'client' });
+  }
+
+  /**
+   * Rewrite a Media/Replay URI string from GetStreamUri / GetSnapshotUri / GetReplayUri /
+   * etc. Host follows {@link preserveAddress} (or fills an empty host); stream port is
+   * kept unless `options.port` is set. Does not force the SOAP constructor port onto RTSP.
+   *
+   * @example
+   * ```ts
+   * const stream = await onvif.media.getStreamUri({ protocol: 'RTSP' });
+   * const playable = onvif.rewriteUri(stream.uri, { useCredentials: true });
+   * ```
+   */
+  public rewriteUri(uri: string, options: RewriteUriOptions = {}): string {
+    const url = this.transformUri(uri, options);
+    if (options.useCredentials) {
+      return withUrlCredentials(url, this.username ?? '', this.password ?? '');
+    }
+    return url.toString();
+  }
+
+  /**
+   * Shared host/port/protocol transform for {@link parseUrl} and {@link rewriteUri}.
+   */
+  private transformUri(uri: string, options: TransformUriOptions): URL {
+    // WHATWG rejects `rtsp://:554/...` (empty host + port). Stash a placeholder host so we can
+    // still rewrite firmwares that omit the hostname.
+    const emptyHostWithPort = /^([a-z][a-z0-9+.-]*:\/\/):(\d+)(.*)$/i.exec(uri);
+    const parsed = new URL(
+      emptyHostWithPort ? `${emptyHostWithPort[1]}_:${emptyHostWithPort[2]}${emptyHostWithPort[3]}` : uri,
+    );
+    const emptyHost = emptyHostWithPort !== null || parsed.hostname === '';
+    const targetHost =
+      options.host ?? (this.preserveAddress || emptyHost ? this.hostname : undefined);
+    if (targetHost !== undefined && (emptyHost || parsed.hostname !== targetHost)) {
+      parsed.hostname = targetHost;
+    }
+    if (options.port === 'client') {
+      // Only rewrite port when it would change the effective dial target (same rule as the
+      // former parseUrl preserveAddress path -- empty URL.port means scheme default 80/443).
+      if (this.port !== Onvif.urlPort(parsed)) {
+        parsed.port = String(this.port);
+      }
+    } else if (options.port !== undefined) {
+      parsed.port = String(options.port);
+    }
+    if (options.protocol !== undefined) {
+      const protocol = options.protocol.endsWith(':') ? options.protocol : `${options.protocol}:`;
+      parsed.protocol = protocol;
+    }
+    return parsed;
   }
 
   /**

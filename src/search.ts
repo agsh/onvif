@@ -40,6 +40,13 @@ import {
   GetSearchState,
 } from './interfaces/search';
 import { OnvifValidationError } from './utils/errors';
+import {
+  coerceFindResultList,
+  coerceMediaAttributesList,
+  coerceRecordingInformation,
+  coerceRecordingSummary,
+  toDate,
+} from './utils';
 import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
 
 /**
@@ -152,7 +159,7 @@ export default class Search extends Service {
    */
   async getRecordingSummary(_options: GetRecordingSummary = {}): Promise<RecordingSummary> {
     const response = await this.request({ GetRecordingSummary: {} });
-    return response.getRecordingSummaryResponse.summary;
+    return coerceRecordingSummary(response.getRecordingSummaryResponse.summary);
   }
 
   /**
@@ -160,15 +167,13 @@ export default class Search extends Service {
    * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingInformation(
-    options: Partial<GetRecordingInformation> = {},
-  ): Promise<RecordingInformation> {
+  async getRecordingInformation(options: Partial<GetRecordingInformation> = {}): Promise<RecordingInformation> {
     const response = await this.request({
       GetRecordingInformation: {
         RecordingToken: this.recordingToken(options.recordingToken),
       },
     });
-    return response.getRecordingInformationResponse.recordingInformation;
+    return coerceRecordingInformation(response.getRecordingInformationResponse.recordingInformation);
   }
 
   /**
@@ -187,7 +192,7 @@ export default class Search extends Service {
       },
       { array: ['mediaAttributes'] },
     );
-    return response.getMediaAttributesResponse.mediaAttributes ?? [];
+    return coerceMediaAttributesList(response.getMediaAttributesResponse.mediaAttributes);
   }
 
   /**
@@ -216,7 +221,16 @@ export default class Search extends Service {
       },
       { array: ['recordingInformation'] },
     );
-    return response.getRecordingSearchResultsResponse.resultList;
+    const list = response.getRecordingSearchResultsResponse.resultList;
+    const infos = list?.recordingInformation;
+    if (Array.isArray(infos)) {
+      for (const info of infos) {
+        coerceRecordingInformation(info);
+      }
+    } else if (infos) {
+      coerceRecordingInformation(infos);
+    }
+    return list;
   }
 
   /**
@@ -257,7 +271,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return response.getEventSearchResultsResponse.resultList;
+    const list = response.getEventSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**
@@ -296,7 +311,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return response.getPTZPositionSearchResultsResponse.resultList;
+    const list = response.getPTZPositionSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**
@@ -335,7 +351,8 @@ export default class Search extends Service {
       },
       { array: ['result'] },
     );
-    return response.getMetadataSearchResultsResponse.resultList;
+    const list = response.getMetadataSearchResultsResponse.resultList;
+    return list != null ? coerceFindResultList(list) : list;
   }
 
   /**
@@ -361,6 +378,6 @@ export default class Search extends Service {
         SearchToken: searchToken,
       },
     });
-    return response.endSearchResponse.endpoint;
+    return toDate(response.endSearchResponse.endpoint);
   }
 }

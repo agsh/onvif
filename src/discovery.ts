@@ -28,7 +28,7 @@ export type Types =
  * WS-Discovery Probe Scopes (ONVIF absolute URIs, scheme `onvif://www.onvif.org/...`).
  * Profile and type values are fixed by ONVIF specs; hardware / name / location accept any path.
  * ProbeMatch scopes/types are used here to set {@link OnvifOptions.defaultMedia}
- * (access-only Profile C/A without Streaming/T → `false`).
+ * (access-only Profile C/A/D without Streaming/T -> `false`).
  */
 export type Scopes =
   | 'onvif://www.onvif.org'
