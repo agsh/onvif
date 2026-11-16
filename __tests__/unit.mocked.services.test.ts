@@ -3,16 +3,16 @@
  * @jest-environment node
  */
 
-import AccessControl from '../src/accesscontrol';
-import AdvancedSecurity from '../src/advancedsecurity';
-import AnalyticsDevice from '../src/analyticsdevice';
+import AccessControl from '../src/services/accesscontrol';
+import AdvancedSecurity from '../src/services/advancedsecurity';
+import AnalyticsDevice from '../src/services/analyticsdevice';
 import Credential from '../src/credential';
-import Device from '../src/device';
-import DeviceIO from '../src/deviceio';
-import DoorControl from '../src/doorcontrol';
+import Device from '../src/services/device';
+import DeviceIO from '../src/services/deviceio';
+import DoorControl from '../src/services/doorcontrol';
 import Events from '../src/events';
-import Recording from '../src/recording';
-import Schedule from '../src/schedule';
+import Recording from '../src/services/recording';
+import Schedule from '../src/services/schedule';
 import { Onvif } from '../src/onvif';
 
 function mockServiceRequest(service: { request: (...args: any[]) => any }, impl?: (body: any) => any) {
@@ -1073,7 +1073,7 @@ describe('Mocked service unit tests', () => {
     } as any);
     await security.deleteAuthorizationServerConfiguration({ token: 'as1' });
 
-    const Analytics = (await import('../src/analytics')).default;
+    const Analytics = (await import('../src/services/analytics')).default;
     const analytics = new Analytics(onvif);
     const A = Analytics as any;
     expect(A.namesToBuild(undefined)).toBeUndefined();
@@ -1104,7 +1104,7 @@ describe('Mocked service unit tests', () => {
       analyticsModule: [{ name: 'm', type: 't', parameters: { simpleItem: [{ name: 'p', value: '1' }] } }],
     } as any);
 
-    const Media2 = (await import('../src/media2')).default;
+    const Media2 = (await import('../src/services/media2')).default;
     const media2 = new Media2(onvif);
     mockServiceRequest(media2, () => ({
       getWebRTCConfigurationsResponse: { webRTCConfiguration: [] },
@@ -1144,10 +1144,10 @@ describe('Mocked service unit tests', () => {
     await deviceIO.getAudioSourceConfigurationOptions({ audioSourceConfigurationToken: 'a1' } as any);
 
     // Replace lazy proxies with concrete instances so spies work without a live device.
-    const PTZ = (await import('../src/ptz')).default;
-    const Imaging = (await import('../src/imaging')).default;
+    const PTZ = (await import('../src/services/ptz')).default;
+    const Imaging = (await import('../src/services/imaging')).default;
     const EventsMod = (await import('../src/events')).default;
-    const RecordingMod = (await import('../src/recording')).default;
+    const RecordingMod = (await import('../src/services/recording')).default;
     Object.defineProperty(onvif, 'ptz', { value: new PTZ(onvif), configurable: true });
     Object.defineProperty(onvif, 'imaging', { value: new Imaging(onvif), configurable: true });
     Object.defineProperty(onvif, 'events', { value: new EventsMod(onvif), configurable: true });

@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/receiver/wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { Receiver as ReceiverInfo, ReceiverConfiguration, ReceiverStateInformation } from './interfaces/onvif';
+import { Receiver as ReceiverInfo, ReceiverConfiguration, ReceiverStateInformation } from '../interfaces/onvif';
 import {
   Capabilities,
   ConfigureReceiver,
@@ -16,8 +16,8 @@ import {
   GetReceiver,
   GetReceiverState,
   SetReceiverMode,
-} from './interfaces/receiver';
-import { streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/receiver';
+import { streamSetupToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * Receiver service — configure stream receivers on the device.

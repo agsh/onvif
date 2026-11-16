@@ -21,16 +21,13 @@ function promisify<T>(fn: (callback: Callback) => void): Promise<T> {
 
 beforeAll(async () => {
   await new Promise<void>((resolve, reject) => {
-    cam = new Cam(
-      happytimeOnvifOptions,
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve();
-      },
-    );
+    cam = new Cam(happytimeOnvifOptions, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
   });
 });
 
@@ -244,9 +241,9 @@ describe('Compatibility Cam', () => {
     });
 
     it('should reject setUsers when required fields are missing', async () => {
-      await expect(
-        promisify<void>((callback) => cam.setUsers([{ username: 'x' }] as any, callback)),
-      ).rejects.toThrow('Missing username, password or user level');
+      await expect(promisify<void>((callback) => cam.setUsers([{ username: 'x' }] as any, callback))).rejects.toThrow(
+        'Missing username, password or user level',
+      );
     });
   });
 
@@ -284,9 +281,8 @@ describe('Compatibility Cam', () => {
       cam.media2Support = true;
     });
 
-
     it('should call underlying media methods once when options and callback are both passed', async () => {
-      const Media = (await import('../src/media')).default;
+      const Media = (await import('../src/services/media')).default;
       const streamSpy = jest.spyOn(Media.prototype, 'getStreamUri');
       const snapshotSpy = jest.spyOn(Media.prototype, 'getSnapshotUri');
 
@@ -294,23 +290,19 @@ describe('Compatibility Cam', () => {
       await promisify<any>((callback) => cam.getSnapshotUri({}, callback));
 
       expect(streamSpy).toHaveBeenCalledTimes(1);
-      expect(streamSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ protocol: 'RTSP' }),
-      );
+      expect(streamSpy).toHaveBeenCalledWith(expect.objectContaining({ protocol: 'RTSP' }));
       expect(snapshotSpy).toHaveBeenCalledTimes(1);
       streamSpy.mockRestore();
       snapshotSpy.mockRestore();
     });
 
     it('should forward stream/protocol to Media.getStreamUri without profileToken', async () => {
-      const Media = (await import('../src/media')).default;
+      const Media = (await import('../src/services/media')).default;
       const streamSpy = jest.spyOn(Media.prototype, 'getStreamUri').mockResolvedValue({
         uri: 'rtsp://example/stream',
       } as any);
 
-      await promisify<any>((callback) =>
-        cam.getStreamUri({ stream: 'RTP-Unicast', protocol: 'RTSP' }, callback),
-      );
+      await promisify<any>((callback) => cam.getStreamUri({ stream: 'RTP-Unicast', protocol: 'RTSP' }, callback));
 
       expect(streamSpy).toHaveBeenCalledWith({
         stream: 'RTP-Unicast',
@@ -407,9 +399,7 @@ describe('Compatibility Cam', () => {
 
     it('should return presets keyed by token (v0.8.1+)', async () => {
       const presetName = `compat-map-${Date.now()}`;
-      const presetToken = await promisify<string>((callback) =>
-        cam.setPreset({ presetName } as any, callback),
-      );
+      const presetToken = await promisify<string>((callback) => cam.setPreset({ presetName } as any, callback));
       expect(typeof presetToken).toBe('string');
 
       const presets = await promisify<Record<string, { name?: string; token?: string }>>((callback) =>
@@ -424,7 +414,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should keep duplicate preset names when keyed by token', async () => {
-      const PTZ = (await import('../src/ptz')).default;
+      const PTZ = (await import('../src/services/ptz')).default;
       const duplicateName = 'Home';
       jest.spyOn(PTZ.prototype, 'getPresetsExtended').mockResolvedValue({
         'tok-a': { name: duplicateName, token: 'tok-a' },
@@ -442,7 +432,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should call underlying ptz methods once when options and callback are both passed', async () => {
-      const PTZ = (await import('../src/ptz')).default;
+      const PTZ = (await import('../src/services/ptz')).default;
       const presetsSpy = jest.spyOn(PTZ.prototype, 'getPresetsExtended');
       const statusSpy = jest.spyOn(PTZ.prototype, 'getStatus');
 
@@ -469,7 +459,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should omit missing absoluteMove/relativeMove axes instead of sending undefined', async () => {
-      const PTZ = (await import('../src/ptz')).default;
+      const PTZ = (await import('../src/services/ptz')).default;
       const absoluteSpy = jest.spyOn(PTZ.prototype, 'absoluteMove').mockResolvedValue(undefined as never);
       const relativeSpy = jest.spyOn(PTZ.prototype, 'relativeMove').mockResolvedValue(undefined as never);
 
@@ -515,7 +505,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should pass zero continuousMove velocities (not treat 0 as missing)', async () => {
-      const PTZ = (await import('../src/ptz')).default;
+      const PTZ = (await import('../src/services/ptz')).default;
       const spy = jest.spyOn(PTZ.prototype, 'continuousMove').mockResolvedValue(undefined as never);
 
       await promisify<void>((callback) => cam.continuousMove({ x: 0, y: 0, zoom: 0 } as any, callback));
@@ -532,7 +522,7 @@ describe('Compatibility Cam', () => {
     });
 
     it('should honor onlySendPanTilt / onlySendZoom with zero velocities', async () => {
-      const PTZ = (await import('../src/ptz')).default;
+      const PTZ = (await import('../src/services/ptz')).default;
       const spy = jest.spyOn(PTZ.prototype, 'continuousMove').mockResolvedValue(undefined as never);
 
       await promisify<void>((callback) =>
@@ -557,9 +547,7 @@ describe('Compatibility Cam', () => {
 
     it('should support preset round-trip helpers', async () => {
       const presetName = `compat-goto-${Date.now()}`;
-      const presetToken = await promisify<string>((callback) =>
-        cam.setPreset({ presetName } as any, callback),
-      );
+      const presetToken = await promisify<string>((callback) => cam.setPreset({ presetName } as any, callback));
       const presets = await promisify<Record<string, { name?: string; token?: string }>>((callback) =>
         cam.getPresets(callback),
       );
@@ -588,7 +576,9 @@ describe('Compatibility Cam', () => {
     });
 
     it('should return imaging settings using v0.x token option', async () => {
-      const settings = await promisify<any>((callback) => cam.getImagingSettings({ token: VIDEO_SOURCE_TOKEN }, callback));
+      const settings = await promisify<any>((callback) =>
+        cam.getImagingSettings({ token: VIDEO_SOURCE_TOKEN }, callback),
+      );
       expect(settings).toHaveProperty('brightness');
       expect(settings).toHaveProperty('contrast');
       expect(settings).toHaveProperty('exposure');
@@ -596,7 +586,9 @@ describe('Compatibility Cam', () => {
     });
 
     it('should return imaging options through getVideoSourceOptions alias', async () => {
-      const options = await promisify<any>((callback) => cam.getVideoSourceOptions({ token: VIDEO_SOURCE_TOKEN }, callback));
+      const options = await promisify<any>((callback) =>
+        cam.getVideoSourceOptions({ token: VIDEO_SOURCE_TOKEN }, callback),
+      );
       expect(options).toBeDefined();
     });
 
@@ -708,7 +700,9 @@ describe('Compatibility Cam', () => {
     });
 
     it('should return recording job state using v0.x JobToken option', async () => {
-      const state = await promisify<any>((callback) => cam.getRecordingJobState({ JobToken: RECORDING_JOB_TOKEN }, callback));
+      const state = await promisify<any>((callback) =>
+        cam.getRecordingJobState({ JobToken: RECORDING_JOB_TOKEN }, callback),
+      );
       expect(state).toBeDefined();
       expect(cam.recordingJobState).toEqual(state);
     });

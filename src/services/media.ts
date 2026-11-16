@@ -5,7 +5,7 @@
  * @see https://www.onvif.org/specs/srv/media/ONVIF-Media-Service-Spec.pdf
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   AudioDecoderConfiguration,
@@ -31,8 +31,8 @@ import {
   VideoSourceConfigurationOptions,
   MediaUri,
   TransportProtocol as OnvifTransportProtocol,
-} from './interfaces/onvif';
-import { ReferenceToken } from './interfaces/common';
+} from '../interfaces/onvif';
+import { ReferenceToken } from '../interfaces/common';
 import {
   GetSnapshotUri,
   CreateProfile,
@@ -100,15 +100,15 @@ import {
   DeleteOSD,
   GetOSDOptions,
   GetOSDs,
-} from './interfaces/media';
+} from '../interfaces/media';
 import {
   MEDIA_CONFIGURATION_PARSE,
   MEDIA_NESTED_PARSE,
   OnvifValidationError,
   applyVideoEncoderPatch,
   type UpdateVideoEncoderConfiguration,
-} from './utils';
-import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
+} from '../utils';
+import { config, multicastConfiguration, streamSetupToBuild, xsany } from '../utils/toOnvifXMLSchemaObject';
 
 export interface GetStreamUriOptions {
   profileToken?: ReferenceToken;
@@ -218,7 +218,7 @@ export default class Media extends Service {
    * a device. The client does not need to know the media profile in order to use the command.
    */
   async getProfiles(): Promise<Profile[]> {
-    const { getMediaProfiles } = await import('./connection');
+    const { getMediaProfiles } = await import('../connection');
     this.profiles = await getMediaProfiles(this.onvif);
     return this.profiles;
   }
@@ -543,7 +543,7 @@ export default class Media extends Service {
    * GetVideoSourceConfigurations (unique sourceToken values).
    */
   async getVideoSources(): Promise<VideoSource[]> {
-    const { getVideoSources } = await import('./connection');
+    const { getVideoSources } = await import('../connection');
     this.videoSources = await getVideoSources(this.onvif);
     return this.videoSources;
   }
@@ -848,9 +848,7 @@ export default class Media extends Service {
    * through the GetVideoSourceConfiguration command
    * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.videoSourceConfigurationToken
    */
-  getVideoSourceConfiguration(
-    options: Partial<GetVideoSourceConfiguration> = {},
-  ): Promise<VideoSourceConfiguration> {
+  getVideoSourceConfiguration(options: Partial<GetVideoSourceConfiguration> = {}): Promise<VideoSourceConfiguration> {
     return this.getConfiguration({
       entityName: 'VideoSource',
       configurationToken: this.resolveConfigurationToken(
@@ -884,9 +882,7 @@ export default class Media extends Service {
    * the retrieval of a specific audio source configuration through the GetAudioSourceConfiguration command.
    * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioSourceConfigurationToken
    */
-  getAudioSourceConfiguration(
-    options: Partial<GetAudioSourceConfiguration> = {},
-  ): Promise<AudioSourceConfiguration> {
+  getAudioSourceConfiguration(options: Partial<GetAudioSourceConfiguration> = {}): Promise<AudioSourceConfiguration> {
     return this.getConfiguration({
       entityName: 'AudioSource',
       configurationToken: this.resolveConfigurationToken(
@@ -938,9 +934,7 @@ export default class Media extends Service {
    * configuration through the GetMetadataConfiguration command.
    * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.metadataConfigurationToken
    */
-  async getMetadataConfiguration(
-    options: Partial<GetMetadataConfiguration> = {},
-  ): Promise<MetadataConfiguration> {
+  async getMetadataConfiguration(options: Partial<GetMetadataConfiguration> = {}): Promise<MetadataConfiguration> {
     return this.getConfiguration({
       entityName: 'Metadata',
       configurationToken: this.resolveConfigurationToken(
@@ -957,9 +951,7 @@ export default class Media extends Service {
    * GetAudioOutputConfiguration command.
    * @param options.configurationToken defaults to {@link Onvif.activeMediaProfile}.audioOutputConfigurationToken
    */
-  getAudioOutputConfiguration(
-    options: Partial<GetAudioOutputConfiguration> = {},
-  ): Promise<AudioOutputConfiguration> {
+  getAudioOutputConfiguration(options: Partial<GetAudioOutputConfiguration> = {}): Promise<AudioOutputConfiguration> {
     return this.getConfiguration({
       entityName: 'AudioOutput',
       configurationToken: this.resolveConfigurationToken(
@@ -1305,9 +1297,7 @@ export default class Media extends Service {
    * @param patch.forcePersistence - Defaults to `true` (ONVIF marks the flag obsolete).
    * @returns The merged configuration that was sent to Set (not a fresh Get).
    */
-  async updateVideoEncoderConfiguration(
-    patch: UpdateVideoEncoderConfiguration,
-  ): Promise<VideoEncoderConfiguration> {
+  async updateVideoEncoderConfiguration(patch: UpdateVideoEncoderConfiguration): Promise<VideoEncoderConfiguration> {
     const configurationToken = this.resolveConfigurationToken(
       patch.configurationToken,
       this.onvif.activeMediaProfile?.videoEncoderConfigurationToken,
@@ -1845,7 +1835,8 @@ export default class Media extends Service {
    * @returns OSD configuration options
    */
   async getOSDOptions(options?: GetOSDOptions): Promise<OSDConfigurationOptions> {
-    const configurationToken = options?.configurationToken ?? this.onvif.activeMediaProfile!.videoSourceConfigurationToken;
+    const configurationToken =
+      options?.configurationToken ?? this.onvif.activeMediaProfile!.videoSourceConfigurationToken;
     const response = await this.request({
       GetOSDOptions: {
         ConfigurationToken: configurationToken,

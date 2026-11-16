@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/advancedsecurity/wsdl/advancedsecurity.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
+import { stringListToBuild } from '../utils/toOnvifXMLSchemaObject';
 import {
   AddCertPathValidationPolicyAssignment,
   AddDot1XConfiguration,
@@ -108,7 +108,7 @@ import {
   UploadPassphraseResponse,
   X509v3Extension,
   AddDot1XConfigurationResponse,
-} from './interfaces/advancedsecurity';
+} from '../interfaces/advancedsecurity';
 
 /**
  * AdvancedSecurity service

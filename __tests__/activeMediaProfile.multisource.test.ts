@@ -6,10 +6,10 @@
 
 import { Onvif, type ActiveMediaProfile } from '../src';
 import { getActiveMediaProfiles, setActiveMediaProfile } from '../src/connection';
-import Media from '../src/media';
-import Imaging from '../src/imaging';
-import PTZ from '../src/ptz';
-import Analytics from '../src/analytics';
+import Media from '../src/services/media';
+import Imaging from '../src/services/imaging';
+import PTZ from '../src/services/ptz';
+import Analytics from '../src/services/analytics';
 
 function profile(opts: {
   token: string;

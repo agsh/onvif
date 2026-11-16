@@ -4,15 +4,10 @@
  * @see https://www.onvif.org/ver10/uplink/wsdl/uplink.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
-import {
-  Capabilities,
-  Configuration,
-  DeleteUplink,
-  SetUplink,
-} from './interfaces/uplink';
+import { stringListToBuild } from '../utils/toOnvifXMLSchemaObject';
+import { Capabilities, Configuration, DeleteUplink, SetUplink } from '../interfaces/uplink';
 
 /**
  * Uplink service

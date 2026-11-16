@@ -4,7 +4,7 @@
  */
 
 import { Onvif, OnvifValidationError } from '../src';
-import Media2 from '../src/media2';
+import Media2 from '../src/services/media2';
 import type { VideoEncoder2Configuration } from '../src/interfaces/onvif';
 
 describe('Media2.updateVideoEncoderConfiguration (mocked)', () => {

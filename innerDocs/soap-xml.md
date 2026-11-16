@@ -24,8 +24,7 @@ the same subtree). Leaf coerce and camelCase keep the same public shapes as `1.0
 fast path + name cache.
 
 On representative ONVIF SOAP workloads (device / media / events / large NVR-style envelopes),
-parse speed is about **~4x** vs `1.0.0`. Among ONVIF clients for Node.js, this parse path sits in
-the top tier for SOAP XML throughput. See also [performance.md](performance.md).
+parse speed is about **~4x** vs `1.0.0`. See also [performance.md](performance.md).
 
 ## Object model (`$` / `_`)
 
@@ -135,7 +134,7 @@ strictly. This library deliberately uses soft bounds and accepts common deviatio
 Faults, tolerant entities, BOM / declaration quirks, heuristic coercion) instead of failing
 closed on every non-spec response. That is intentional product policy, not incomplete hardening.
 
-**Size bound:** HTTP transport enforces `maxResponseBytes` (default 1 MiB) while reading the
+**Size bound:** HTTP transport enforces `maxResponseBytes` (default 2 MiB) while reading the
 response body and aborts mid-stream. There is intentionally **no** `maxLength` / `maxDepth` /
 `maxNodes` check inside `parseXml` -- the wire cap already bounds ONVIF envelopes. Same for
 skipping full namespace URIs, comment support, and `1`/`0` -> boolean coercion: product choices

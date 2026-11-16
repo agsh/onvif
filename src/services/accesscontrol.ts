@@ -4,10 +4,10 @@
  * @see https://www.onvif.org/ver10/accesscontrol/wsdl/accesscontrol.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
-import { OnvifValidationError } from './utils/errors';
+import { ReferenceToken } from '../interfaces/common';
+import { OnvifValidationError } from '../utils/errors';
 import {
   AccessPoint,
   AccessPointCapabilities,
@@ -45,8 +45,8 @@ import {
   SetAccessPoint,
   SetAccessPointAuthenticationProfile,
   SetArea,
-} from './interfaces/accesscontrol';
-import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/accesscontrol';
+import { stringListToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * AccessControl service (Profiles C / A / D).

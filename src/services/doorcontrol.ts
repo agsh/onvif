@@ -4,10 +4,10 @@
  * @see https://www.onvif.org/ver10/pacs/doorcontrol.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
-import { OnvifValidationError } from './utils/errors';
+import { ReferenceToken } from '../interfaces/common';
+import { OnvifValidationError } from '../utils/errors';
 import {
   AccessDoor,
   BlockDoor,
@@ -36,7 +36,7 @@ import {
   SetDoor,
   Timings,
   UnlockDoor,
-} from './interfaces/doorcontrol';
+} from '../interfaces/doorcontrol';
 
 /**
  * DoorControl service

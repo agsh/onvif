@@ -4,8 +4,8 @@
  * @see https://www.onvif.org/profiles/specifications/
  */
 
-import { Onvif, OnvifServices, type OnvifSoapBody } from './onvif';
-import { LineraseOptions } from './utils';
+import { Onvif, OnvifServices, type OnvifSoapBody } from '../onvif';
+import { LineraseOptions } from '../utils';
 
 export const XMLNS: Record<keyof OnvifServices, string> = {
   ptz: 'http://www.onvif.org/ver20/ptz/wsdl',

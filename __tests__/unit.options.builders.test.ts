@@ -6,11 +6,11 @@
 import http from 'http';
 import https from 'https';
 import { EventEmitter } from 'events';
-import AccessRules from '../src/accessrules';
+import AccessRules from '../src/services/accessrules';
 import Credential from '../src/credential';
-import Device from '../src/device';
+import Device from '../src/services/device';
 import { Onvif } from '../src/onvif';
-import { lazyService } from '../src/service';
+import { lazyService } from '../src/services/service';
 import Events from '../src/events';
 import { OnvifSoapFaultError } from '../src/utils';
 
@@ -152,9 +152,7 @@ describe('Service options and builders', () => {
       autoConnect: false,
     });
     // Media: host rewrite, keep RTSP port
-    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe(
-      'rtsp://203.0.113.10:554/stream1',
-    );
+    expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe('rtsp://203.0.113.10:554/stream1');
     expect(withPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1', { port: 8554 })).toBe(
       'rtsp://203.0.113.10:8554/stream1',
     );
@@ -182,19 +180,13 @@ describe('Service options and builders', () => {
       preserveAddress: false,
       autoConnect: false,
     });
-    expect(noPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe(
-      'rtsp://192.168.1.50:554/stream1',
-    );
+    expect(noPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1')).toBe('rtsp://192.168.1.50:554/stream1');
     expect(noPreserve.rewriteUri('rtsp://192.168.1.50:554/stream1', { host: '203.0.113.10' })).toBe(
       'rtsp://203.0.113.10:554/stream1',
     );
     // Empty host (some NVR firmwares): fill from constructor even without preserveAddress
-    expect(noPreserve.rewriteUri('rtsp://:554/unicast/c1/s1/live')).toBe(
-      'rtsp://203.0.113.10:554/unicast/c1/s1/live',
-    );
-    expect(noPreserve.parseUrl('http://192.168.1.50/onvif/device_service').hostname).toBe(
-      '192.168.1.50',
-    );
+    expect(noPreserve.rewriteUri('rtsp://:554/unicast/c1/s1/live')).toBe('rtsp://203.0.113.10:554/unicast/c1/s1/live');
+    expect(noPreserve.parseUrl('http://192.168.1.50/onvif/device_service').hostname).toBe('192.168.1.50');
   });
 
   it('retries getSystemDateAndTime when SOAP Fault is NotAuthorized', async () => {
@@ -606,7 +598,7 @@ describe('Service options and builders', () => {
   });
 
   it('builds PTZ preset tours and Search request payloads with optional fields', async () => {
-    const PTZ = (await import('../src/ptz')).default as any;
+    const PTZ = (await import('../src/services/ptz')).default as any;
     expect(PTZ.PTZVectorToXML(undefined)).toBeUndefined();
     expect(PTZ.formatPTZSimpleVector({ x: 1, y: 2, zoom: 3 })).toMatchObject({ panTilt: { x: 1, y: 2 } });
     expect(PTZ.formatPTZSimpleVector({ pan: 1, tilt: 2, zoom: 3 })).toMatchObject({ panTilt: { x: 1, y: 2 } });
@@ -650,7 +642,7 @@ describe('Service options and builders', () => {
     ).toMatchObject({ Name: 'Tour', AutoStart: true });
     expect(PTZ.presetTourToXML({})).toEqual({});
 
-    const Search = (await import('../src/search')).default as any;
+    const Search = (await import('../src/services/search')).default as any;
     expect(Search.recordingTokensToBuild(undefined)).toBeUndefined();
     expect(Search.recordingTokensToBuild([])).toBeUndefined();
     expect(Search.recordingTokensToBuild(['r1'])).toBe('r1');
@@ -690,7 +682,7 @@ describe('Service options and builders', () => {
     expect(Search.searchResultsRequestToBuild({ searchToken: 's1' })).toMatchObject({ SearchToken: 's1' });
 
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
-    const search = new (await import('../src/search')).default(onvif);
+    const search = new (await import('../src/services/search')).default(onvif);
     jest.spyOn(search as any, 'request').mockResolvedValue({
       findRecordingsResponse: { searchToken: 's1' },
       findEventsResponse: { searchToken: 's1' },
@@ -781,7 +773,7 @@ describe('Service options and builders', () => {
   });
 
   it('creates Media OSDs and validates Cam pull/renew without a subscription', async () => {
-    const Media = (await import('../src/media')).default;
+    const Media = (await import('../src/services/media')).default;
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     onvif.activeSource = {
       videoSourceToken: 'vs1',
@@ -822,7 +814,7 @@ describe('Service options and builders', () => {
     await media.getOSDOptions({} as any);
     await media.getOSDOptions({ configurationToken: 'vsc1' });
 
-    const PTZ = (await import('../src/ptz')).default as any;
+    const PTZ = (await import('../src/services/ptz')).default as any;
     expect(PTZ.PTZVectorToXML({ x: 0.1, y: 0.2, zoom: 0.3 })).toBeDefined();
     expect(PTZ.PTZVectorToXML({ pan: 0.1, tilt: 0.2, zoom: 0.3 })).toBeDefined();
     expect(PTZ.PTZVectorToXML({ panTilt: { x: 0, y: 0 }, zoom: { x: 0 } })).toBeDefined();

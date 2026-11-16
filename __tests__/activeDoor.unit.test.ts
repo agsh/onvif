@@ -6,7 +6,7 @@
 
 import { Onvif } from '../src';
 import { connectSteps, getActiveDoor, setActiveDoor } from '../src/connection';
-import DoorControl from '../src/doorcontrol';
+import DoorControl from '../src/services/doorcontrol';
 
 describe('activeDoorToken', () => {
   afterEach(() => {

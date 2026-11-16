@@ -4,14 +4,14 @@
  * @see https://www.onvif.org/ver10/replay.wsdl
  */
 
-import { Onvif } from './onvif';
-import { AnyURI } from './interfaces/basics';
-import { ReferenceToken } from './interfaces/common';
-import { ReplayConfiguration, StreamSetup, StreamType, TransportProtocol } from './interfaces/onvif';
-import { Capabilities, GetReplayUri, SetReplayConfiguration } from './interfaces/replay';
+import { Onvif } from '../onvif';
+import { AnyURI } from '../interfaces/basics';
+import { ReferenceToken } from '../interfaces/common';
+import { ReplayConfiguration, StreamSetup, StreamType, TransportProtocol } from '../interfaces/onvif';
+import { Capabilities, GetReplayUri, SetReplayConfiguration } from '../interfaces/replay';
 import Service from './service';
-import { OnvifValidationError } from './utils/errors';
-import { streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
+import { OnvifValidationError } from '../utils/errors';
+import { streamSetupToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * GetReplayUri with optional stream and transport protocol shortcuts.

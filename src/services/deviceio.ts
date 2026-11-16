@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/deviceio.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
+import { ReferenceToken } from '../interfaces/common';
 import {
   AudioOutputConfiguration,
   AudioOutputConfigurationOptions,
@@ -19,8 +19,8 @@ import {
   VideoOutputConfigurationOptions,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
-} from './interfaces/onvif';
-import { SetRelayOutputState } from './interfaces/devicemgmt';
+} from '../interfaces/onvif';
+import { SetRelayOutputState } from '../interfaces/devicemgmt';
 import {
   Capabilities,
   DigitalInputConfigurationOptions,
@@ -49,8 +49,8 @@ import {
   SetSerialPortConfiguration,
   SetVideoOutputConfiguration,
   SetVideoSourceConfiguration,
-} from './interfaces/deviceio';
-import { OnvifValidationError } from './utils';
+} from '../interfaces/deviceio';
+import { OnvifValidationError } from '../utils';
 
 /**
  * DeviceIO service — relays, digital inputs, serial ports, physical A/V I/O.

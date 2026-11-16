@@ -4,10 +4,10 @@
  * @see https://www.onvif.org/ver20/analytics/wsdl/analytics.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { Config, SupportedAnalyticsModules, SupportedRules } from './interfaces/onvif';
-import type { ReferenceToken } from './interfaces/common';
+import { Config, SupportedAnalyticsModules, SupportedRules } from '../interfaces/onvif';
+import type { ReferenceToken } from '../interfaces/common';
 import {
   Capabilities,
   ConfigOptions,
@@ -25,9 +25,9 @@ import {
   MetadataInfo,
   ModifyAnalyticsModules,
   ModifyRules,
-} from './interfaces/analytics.2';
-import { ITEM_LIST_PARSE, OnvifValidationError } from './utils';
-import { config } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/analytics.2';
+import { ITEM_LIST_PARSE, OnvifValidationError } from '../utils';
+import { config } from '../utils/toOnvifXMLSchemaObject';
 
 /** GetRules / GetAnalyticsModules — Rule and AnalyticsModule lists + ItemList (all unbounded). */
 const CONFIG_LIST_PARSE = {

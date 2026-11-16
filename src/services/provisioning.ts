@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/provisioning/wsdl/provisioning.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   Capabilities,
@@ -16,7 +16,7 @@ import {
   TiltMove,
   Usage,
   ZoomMove,
-} from './interfaces/provisioning';
+} from '../interfaces/provisioning';
 
 /**
  * Provisioning service

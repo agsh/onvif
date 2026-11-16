@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/search.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
+import { ReferenceToken } from '../interfaces/common';
 import {
   FindEventResultList,
   FindMetadataResultList,
@@ -21,7 +21,7 @@ import {
   RecordingSummary,
   SearchScope,
   SearchState,
-} from './interfaces/onvif';
+} from '../interfaces/onvif';
 import {
   Capabilities,
   EndSearch,
@@ -38,16 +38,16 @@ import {
   GetRecordingSearchResults,
   GetRecordingSummary,
   GetSearchState,
-} from './interfaces/search';
-import { OnvifValidationError } from './utils/errors';
+} from '../interfaces/search';
+import { OnvifValidationError } from '../utils/errors';
 import {
   coerceFindResultList,
   coerceMediaAttributesList,
   coerceRecordingInformation,
   coerceRecordingSummary,
   toDate,
-} from './utils';
-import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
+} from '../utils';
+import { ptzVectorToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * Search service (Profile G) — recording / event / PTZ position search.

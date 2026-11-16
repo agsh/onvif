@@ -6,7 +6,7 @@
  */
 import { build, parseSOAPString } from '../src/utils';
 import { config, itemList, xsany } from '../src/utils/toOnvifXMLSchemaObject';
-import AdvancedSecurity from '../src/advancedsecurity';
+import AdvancedSecurity from '../src/services/advancedsecurity';
 
 const TT = 'http://www.onvif.org/ver10/schema';
 const VV = 'http://www.vendor.example/schema';
@@ -58,8 +58,7 @@ describe('README ElementItem CellLayout (xs:any)', () => {
       array: ['elementItem', 'simpleItem', 'analyticsModule'],
       rawXML: ['elementItem'],
     });
-    return body.getVideoAnalyticsConfigurationsResponse.configurations.analyticsEngineConfiguration
-      .analyticsModule[0];
+    return body.getVideoAnalyticsConfigurationsResponse.configurations.analyticsEngineConfiguration.analyticsModule[0];
   }
 
   it('parses camelCase fields and xml2js-style xsany as in README', async () => {

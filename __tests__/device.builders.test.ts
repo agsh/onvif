@@ -1,5 +1,5 @@
-import Device from '../src/device';
-import Imaging from '../src/imaging';
+import Device from '../src/services/device';
+import Imaging from '../src/services/imaging';
 import { Onvif } from '../src/onvif';
 
 const DeviceAny = Device as any;
@@ -189,7 +189,11 @@ describe('Device XML builders', () => {
     jest.spyOn(device, 'getDNS').mockResolvedValue({} as any);
 
     await device.setNTP({ fromDHCP: false, NTPManual: [{ type: 'IPv4', IPv4Address: '8.8.8.8' }] });
-    await device.setDNS({ fromDHCP: false, searchDomain: ['lan'], DNSManual: [{ type: 'IPv4', IPv4Address: '1.1.1.1' }] });
+    await device.setDNS({
+      fromDHCP: false,
+      searchDomain: ['lan'],
+      DNSManual: [{ type: 'IPv4', IPv4Address: '1.1.1.1' }],
+    });
     await device.createUsers({ user: [{ username: 'x', password: 'y', userLevel: 'User' }] });
     await device.deleteUsers({ username: ['x'] });
     await device.setUser({ user: [{ username: 'x', password: 'y', userLevel: 'User' }] });
