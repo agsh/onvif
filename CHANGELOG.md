@@ -12,11 +12,9 @@
   tree shape (camelCase + leaf coerce; `xsany` / `rawXML` unchanged). Details:
   [innerDocs/soap-xml.md](innerDocs/soap-xml.md),
   [innerDocs/performance.md](innerDocs/performance.md).
-
-### Fixed
-
-- **Acronym / codec tag names** - keep `H264`, `G711DecOptions`, `UTCDateTime`, and similar when the
-  second character is not a lowercase letter (matches classic `camelCase` rules).
+- **`xs:dateTime` leaves stay strings in `parseXml`** - ISO UTC `...Z` is not coerced to `Date`
+  on the hot path. Services / helpers convert with `toDate` (and related) where WSDL types expect
+  `Date`. Docs: [innerDocs/soap-xml.md](innerDocs/soap-xml.md).
 
 ### Added
 
@@ -25,6 +23,22 @@
   whitelist-blacklist). Discovery treats `Profile/D` as access-only (`defaultMedia: false`).
   Guides + `examples/access.externalAuthorization.js`; AccessControl topic expressions on
   `OnvifTopicExpression`.
+- **`Onvif.rewriteUri`** - rewrite host / port / protocol / credentials on Media stream and
+  snapshot URI strings (NAT / port-forward). Complements `preserveAddress` (SOAP XAddrs). See
+  README and [innerDocs/connection.md](innerDocs/connection.md).
+- **Video encoder update sugar** - `media.updateVideoEncoderConfiguration` /
+  `media2.updateVideoEncoderConfiguration`: Get -> merge patch (encoding, resolution, quality,
+  frame rate, bitrate, ...) -> Set. Defaults `configurationToken` from `activeMediaProfile` and
+  `forcePersistence: true` (Media 1.0).
+
+### Fixed
+
+- **Acronym / codec tag names** - keep `H264`, `G711DecOptions`, `UTCDateTime`, and similar when the
+  second character is not a lowercase letter (matches classic `camelCase` rules).
+- **Safe integer leaf coerce** - digit-only values outside `Number.MAX_SAFE_INTEGER` (or that would
+  lose precision) stay strings so long serials / tokens are not rounded by `parseFloat`.
+- **Prototype-pollution resistant XML names** - forbid `__proto__` / `constructor` / `prototype` as
+  element or attribute keys (plain `{}` maps + cheap assert).
 
 ## 1.0.0
 

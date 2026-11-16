@@ -112,6 +112,9 @@ RTSP preview + Socket.IO / FFmpeg demo:
 - Media profile bag and non-camera profiles (C / A / D / G / M) -
   [Connection](#default-media-profile-activemediaprofile),
   [Beyond cameras](#beyond-cameras-profiles-c--a--d--g--m)
+- `rewriteUri` (NAT stream/snapshot URIs) and encoder update sugar
+  (`media` / `media2` `updateVideoEncoderConfiguration`) -
+  [guides.md](https://github.com/agsh/onvif/blob/master/innerDocs/guides.md)
 - Typed errors, vendor `xs:any`, SOAP helpers - see [Deep docs](#deep-docs)
 
 ## Constructor options

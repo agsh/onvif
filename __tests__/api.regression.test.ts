@@ -34,6 +34,8 @@ const MAIN_RUNTIME_EXPORTS = [
   'OnvifTransportError',
   'OnvifValidationError',
   'Subscription',
+  'applyVideoEncoder2Patch',
+  'applyVideoEncoderPatch',
   'assignErrorContext',
   'build',
   'buildXml',

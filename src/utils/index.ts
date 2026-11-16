@@ -59,3 +59,10 @@ export {
   soapActionFromXml,
 } from './soap';
 export { type ParseXmlOptions, parseXml, buildXml } from './xml';
+export {
+  type VideoEncoderResolutionPatch,
+  type UpdateVideoEncoderConfiguration,
+  type UpdateVideoEncoder2Configuration,
+  applyVideoEncoderPatch,
+  applyVideoEncoder2Patch,
+} from './videoEncoderPatch';

@@ -101,7 +101,13 @@ import {
   GetOSDOptions,
   GetOSDs,
 } from './interfaces/media';
-import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
+import {
+  MEDIA_CONFIGURATION_PARSE,
+  MEDIA_NESTED_PARSE,
+  OnvifValidationError,
+  applyVideoEncoderPatch,
+  type UpdateVideoEncoderConfiguration,
+} from './utils';
 import { config, multicastConfiguration, streamSetupToBuild, xsany } from './utils/toOnvifXMLSchemaObject';
 
 export interface GetStreamUriOptions {
@@ -176,12 +182,9 @@ type ConfigurationOptionsExtended = VideoSourceConfigurationOptions &
  * const snapshot = await onvif.media.getSnapshotUri({ profileToken });
  * console.log(stream.uri, snapshot.uri);
  *
- * const encoders = await onvif.media.getVideoEncoderConfigurations();
- * const cfg = encoders[0]!;
- * if (cfg.rateControl) cfg.rateControl.bitrateLimit = 2048;
- * await onvif.media.setVideoEncoderConfiguration({
- *   configuration: cfg,
- *   forcePersistence: true,
+ * await onvif.media.updateVideoEncoderConfiguration({
+ *   bitrateLimit: 2048,
+ *   frameRateLimit: 15,
  * });
  * ```
  * @category Services
@@ -1291,6 +1294,31 @@ export default class Media extends Service {
         },
       },
     });
+  }
+
+  /**
+   * Get a video encoder configuration, merge a partial patch, then Set.
+   * Prefer this over hand-editing a full {@link VideoEncoderConfiguration} when only
+   * codec / resolution / quality / fps / bitrate (etc.) change.
+   * @param patch - Fields to overwrite; omitted keys keep the device value.
+   * @param patch.configurationToken - Defaults to {@link Onvif.activeMediaProfile}.videoEncoderConfigurationToken
+   * @param patch.forcePersistence - Defaults to `true` (ONVIF marks the flag obsolete).
+   * @returns The merged configuration that was sent to Set (not a fresh Get).
+   */
+  async updateVideoEncoderConfiguration(
+    patch: UpdateVideoEncoderConfiguration,
+  ): Promise<VideoEncoderConfiguration> {
+    const configurationToken = this.resolveConfigurationToken(
+      patch.configurationToken,
+      this.onvif.activeMediaProfile?.videoEncoderConfigurationToken,
+    );
+    const configuration = await this.getVideoEncoderConfiguration({ configurationToken });
+    applyVideoEncoderPatch(configuration, patch);
+    await this.setVideoEncoderConfiguration({
+      configuration,
+      forcePersistence: patch.forcePersistence ?? true,
+    });
+    return configuration;
   }
 
   /**

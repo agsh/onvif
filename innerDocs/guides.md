@@ -65,6 +65,9 @@ Choose:
   `setActiveMediaProfile(profileToken)` -- [connection.md](connection.md#active-media-profile-token-bag).
 - Prefer `onvif.media` when Media1 works; use `onvif.media2` for Profile T encoder/stream helpers
   (`getStreamUri` unwraps to a string).
+- Partial encoder updates: `media.updateVideoEncoderConfiguration({ bitrateLimit, frameRateLimit,
+  resolution, quality, ... })` (Media2: `media2.updateVideoEncoderConfiguration`) -- Get -> merge
+  -> Set; token defaults from `activeMediaProfile`.
 - `preserveAddress` rewrites SOAP XAddrs, **not** the host inside the RTSP string -- use
   `onvif.rewriteUri(uri)` (optional `{ useCredentials: true }`) when the camera returns a
   LAN/loopback host you cannot reach.
