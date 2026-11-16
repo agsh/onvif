@@ -67,7 +67,8 @@ Choose:
   (`getStreamUri` unwraps to a string).
 - Partial encoder updates: `media.updateVideoEncoderConfiguration({ bitrateLimit, frameRateLimit,
   resolution, quality, ... })` (Media2: `media2.updateVideoEncoderConfiguration`) -- Get -> merge
-  -> Set; token defaults from `activeMediaProfile`.
+  -> Set; token defaults from `activeMediaProfile`. Codec switch (`encoding`) also fetches
+  GetVideoEncoderConfigurationOptions and rebuilds Media1 H264/MPEG4 bags from device lists.
 - `preserveAddress` rewrites SOAP XAddrs, **not** the host inside the RTSP string -- use
   `onvif.rewriteUri(uri)` (optional `{ useCredentials: true }`) when the camera returns a
   LAN/loopback host you cannot reach.

@@ -26,8 +26,10 @@
   snapshot URI strings (NAT / port-forward). Complements `preserveAddress` (SOAP XAddrs). See
   README and [innerDocs/connection.md](innerDocs/connection.md).
 - **Video encoder update sugar** - `media.updateVideoEncoderConfiguration` /
-  `media2.updateVideoEncoderConfiguration`: Get -> merge patch (encoding, resolution, quality,
-  frame rate, bitrate, ...) -> Set. Defaults `configurationToken` from `activeMediaProfile` and
+  `media2.updateVideoEncoderConfiguration`: Get -> merge patch (resolution, quality, frame rate,
+  bitrate, ...) -> Set. Changing `encoding` also calls GetVideoEncoderConfigurationOptions,
+  clears foreign Media1 codec bags, and builds the target bag / Media2 profile from device
+  options (no hardcoded Main/SP). Defaults `configurationToken` from `activeMediaProfile` and
   `forcePersistence: true` (Media 1.0).
 
 ### Fixed

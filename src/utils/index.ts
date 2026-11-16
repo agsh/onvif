@@ -65,4 +65,7 @@ export {
   type UpdateVideoEncoder2Configuration,
   applyVideoEncoderPatch,
   applyVideoEncoder2Patch,
+  applyMedia1EncodingSwitch,
+  applyMedia2EncodingSwitch,
+  findVideoEncoder2Options,
 } from './videoEncoderPatch';

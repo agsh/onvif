@@ -71,6 +71,7 @@ import {
   MEDIA_NESTED_PARSE,
   OnvifValidationError,
   applyVideoEncoder2Patch,
+  findVideoEncoder2Options,
   type UpdateVideoEncoder2Configuration,
 } from '../utils';
 import { config, multicastConfiguration } from '../utils/toOnvifXMLSchemaObject';
@@ -521,6 +522,8 @@ export default class Media2 extends Service {
 
   /**
    * Get a Media2 video encoder configuration, merge a partial patch, then Set.
+   * When `patch.encoding` differs from the current codec, also calls
+   * {@link getVideoEncoderConfigurationOptions} and applies the matching options entry.
    * @param patch - Fields to overwrite; omitted keys keep the device value.
    * @param patch.configurationToken - Defaults to {@link Onvif.activeMediaProfile}.videoEncoderConfigurationToken
    * @returns The merged configuration that was sent to Set (not a fresh Get).
@@ -539,7 +542,23 @@ export default class Media2 extends Service {
     if (!configuration) {
       throw new OnvifValidationError(`Video encoder configuration not found: ${configurationToken}`);
     }
-    applyVideoEncoder2Patch(configuration, patch);
+    const switching =
+      patch.encoding !== undefined &&
+      patch.encoding.localeCompare(configuration.encoding, undefined, { sensitivity: 'accent' }) !== 0;
+    let options;
+    if (switching) {
+      const allOptions = await this.getVideoEncoderConfigurationOptions({
+        configurationToken,
+        profileToken: this.onvif.activeMediaProfile?.profileToken,
+      });
+      options = findVideoEncoder2Options(allOptions, patch.encoding!);
+      if (!options) {
+        throw new OnvifValidationError(
+          `Video encoding "${patch.encoding}" is not reported in GetVideoEncoderConfigurationOptions`,
+        );
+      }
+    }
+    applyVideoEncoder2Patch(configuration, patch, options);
     await this.setVideoEncoderConfiguration(configuration);
     return configuration;
   }
