@@ -12,8 +12,23 @@ import { NUMBER_RE } from './helpers';
 import { xsany } from './toOnvifXMLSchemaObject';
 
 /**
+ * After NUMBER_RE matched: parseFloat for normal ONVIF numbers; keep long ints as
+ * strings when they would lose precision / exceed Number.MAX_SAFE_INTEGER.
+ * Hot path (len <= 15, or 16 with leading '-'): same as pre-guard parseFloat.
+ */
+function coerceNumberLeaf(value: string, len: number): string | number {
+  // Short / signed-15 / decimal: parseFloat. Long int: safe-int (NUMBER_RE: no leading zeros).
+  if (len <= 15 || (len === 16 && value.charCodeAt(0) === 0x2d) || value.includes('.')) {
+    return Number.parseFloat(value);
+  }
+  const n = Number(value);
+  return Number.isSafeInteger(n) ? n : value;
+}
+
+/**
  * Coerce a trimmed XML leaf / attr string for ONVIF response trees.
  * `001` stays a string; `42` -> number; `true`/`false` -> boolean.
+ * Long digit-only integers that do not fit a safe JS integer stay strings.
  * ISO UTC `...Z` stays a string (no `Date` here -- convert in service code).
  * Fast path: skip NUMBER_RE unless the first character looks numeric.
  */
@@ -32,7 +47,7 @@ function coerceXmlValue(value: string): string | number | boolean {
   // '-' then digit -> maybe number
   if (c0 === 0x2d) {
     if (len > 1 && NUMBER_RE.test(value)) {
-      return Number.parseFloat(value);
+      return coerceNumberLeaf(value, len);
     }
     return value;
   }
@@ -41,7 +56,7 @@ function coerceXmlValue(value: string): string | number | boolean {
     return value;
   }
   if (NUMBER_RE.test(value)) {
-    return Number.parseFloat(value);
+    return coerceNumberLeaf(value, len);
   }
   return value;
 }

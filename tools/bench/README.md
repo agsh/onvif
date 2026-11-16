@@ -34,3 +34,10 @@ Fixtures live in `__tests__/fixtures/soap/`. Numbers are machine-local.
 A longer write-up of methodology + a snapshot table lives at the **end** of
 `innerDocs/performance.md` (appendix; not linked from README Features). Prefer
 that appendix for agents; keep RELEASE / README soft on named head-to-head claims.
+
+Optional A/B (this package only), e.g. safe-integer coerce guard:
+
+```sh
+# build/utils/parser.before-safeint.js = compile of pre-change parser.ts (same dir)
+BENCH_RUNS=15 BENCH_DROP=2 node tools/bench/parse-safeint-ab.mjs
+```

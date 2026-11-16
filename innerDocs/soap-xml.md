@@ -123,7 +123,7 @@ The parser targets **machine-generated SOAP 1.2** from cameras / NVRs, not full 
 | Elements, attributes, text, entities (`&amp;` / `&#...;`) | Comments (`<!-- -->`) |
 | CDATA -> text (mixed with entities; several CDATA ok) for vendor / `xs:any` | DOCTYPE / DTD / external entities |
 | SOAP 1.2 + SOAP 1.1 Faults (`faultcode` / `faultstring` / `detail`) | Strict 1.2-only rejection of 1.1 Faults |
-| Leaf/attr coerce: bool / number; ISO `...Z` stays string | `Date` via service `toDate`; no full XSD typing |
+| Leaf/attr coerce: bool / safe int; ISO `...Z` string | `toDate` in services; no XSD; long digit serials stay string |
 | Duplicate siblings -> arrays; optional `array` force | -- |
 
 Why keep it narrow: less code, predictable trees for ONVIF services, and no security surface from

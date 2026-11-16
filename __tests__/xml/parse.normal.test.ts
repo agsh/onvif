@@ -121,6 +121,27 @@ describe('Feature: XML parsing (normal mode)', () => {
       const dated = parseXml(soapEnvelope('<R><Cell When="2015-01-20T16:33:03Z"/></R>'));
       expect(dated.envelope.body.r.cell.when).toBe('2015-01-20T16:33:03Z');
     });
+
+    it('keeps long digit-only serials / tokens as strings (safe-integer guard)', () => {
+      // Beyond Number.MAX_SAFE_INTEGER (9007199254740991): Number() would round.
+      const longSerial = '9007199254740993';
+      const maxSafe = '9007199254740991';
+      const parsed = parseXml(
+        soapEnvelope(
+          '<R>' +
+            `<SerialNumber>${longSerial}</SerialNumber>` +
+            `<HardwareId>${maxSafe}</HardwareId>` +
+            '<Token>-9007199254740993</Token>' +
+            '</R>',
+        ),
+      );
+      const r = parsed.envelope.body.r;
+      expect(r.serialNumber).toBe(longSerial);
+      expect(typeof r.serialNumber).toBe('string');
+      expect(r.hardwareId).toBe(9007199254740991);
+      expect(r.token).toBe('-9007199254740993');
+      expect(typeof r.token).toBe('string');
+    });
   });
 
   describe('Scenario: repeated tags and array option', () => {
