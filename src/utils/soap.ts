@@ -194,7 +194,7 @@ export function soapActionFromXml(xml: string): string | undefined {
   if (!bodyMatch) {
     return undefined;
   }
-  const opMatch = bodyMatch[1].match(/<([\w-]+)([^>]*)\/?>/);
+  const opMatch = bodyMatch[1].match(/<((?:[\w-]+:)?[\w-]+)([^>]*)\/?>/);
   if (!opMatch) {
     return undefined;
   }

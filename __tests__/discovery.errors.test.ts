@@ -37,6 +37,7 @@ class MockDgramSocket extends EventEmitter {
   send = jest.fn();
   bind = jest.fn();
   close = jest.fn();
+  setRecvBufferSize = jest.fn();
 }
 
 describe('Discovery error handling (mocked)', () => {
@@ -91,6 +92,63 @@ describe('Discovery error handling (mocked)', () => {
     await jest.advanceTimersByTimeAsync(50);
     await expect(probePromise).resolves.toEqual([]);
     expect(onError).toHaveBeenCalledWith(parseErr, undefined);
+  });
+
+  it('wraps non-Error parse failures as OnvifResponseError', async () => {
+    mockedParseSOAPString.mockRejectedValue('boom');
+    const onError = jest.fn();
+    Discovery.once('error', onError);
+
+    const probePromise = Discovery.probe({ timeout: 20 });
+    getMessageListener()(Buffer.from('x'), { address: '10.0.0.2', family: 'IPv4', port: 3702, size: 0 });
+    await jest.advanceTimersByTimeAsync(20);
+    await expect(probePromise).resolves.toEqual([]);
+    expect(onError.mock.calls[0][0]).toBeInstanceOf(OnvifResponseError);
+    expect(onError.mock.calls[0][0].message).toBe('boom');
+  });
+
+  it('accepts ProbeMatch when RelatesTo xml is missing (undefined)', async () => {
+    mockedParseSOAPString.mockResolvedValue([validProbeBody, undefined as unknown as string]);
+    const onDevice = jest.fn();
+    Discovery.on('device', onDevice);
+    try {
+      const probePromise = Discovery.probe({ timeout: 20 });
+      await getMessageListener()(Buffer.from('<soap/>'), {
+        address: '192.168.1.10',
+        family: 'IPv4',
+        port: 3702,
+        size: 0,
+      });
+      await jest.advanceTimersByTimeAsync(20);
+      const cams = await probePromise;
+      expect(cams).toHaveLength(1);
+      expect(onDevice).toHaveBeenCalled();
+    } finally {
+      Discovery.off('device', onDevice);
+    }
+  });
+
+  it('applies bufferSize and tolerates close() throwing on finish', async () => {
+    mockSocket.bind.mockImplementation(() => {
+      mockSocket.emit('listening');
+      return mockSocket as unknown as dgram.Socket;
+    });
+    mockSocket.close.mockImplementation(() => {
+      throw new Error('already closed');
+    });
+    mockedParseSOAPString.mockResolvedValue([validProbeBody, '<xml/>']);
+
+    const probePromise = Discovery.probe({ timeout: 15, bufferSize: 65536 });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(mockSocket.setRecvBufferSize).toHaveBeenCalledWith(65536);
+    await getMessageListener()(Buffer.from('<soap/>'), {
+      address: '192.168.1.10',
+      family: 'IPv4',
+      port: 3702,
+      size: 0,
+    });
+    await jest.advanceTimersByTimeAsync(15);
+    await expect(probePromise).resolves.toHaveLength(1);
   });
 
   it('resolves empty and emits when the SOAP body has no probeMatches', async () => {
@@ -552,6 +610,8 @@ describe('Discovery error handling (mocked)', () => {
             scopeid: 0,
           },
         ],
+        // undefined address list hits `interfaces[name] ?? []`
+        ghost: undefined as unknown as os.NetworkInterfaceInfo[],
         eth0: [
           {
             address: 'fe80::1',

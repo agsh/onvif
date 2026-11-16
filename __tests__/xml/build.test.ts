@@ -152,4 +152,27 @@ describe('Feature: XML serialization (buildXml)', () => {
       expect(buildXml({ GetFoo: { $: { xmlns: TDS_NS } } })).toBe(`<GetFoo xmlns="${TDS_NS}"/>`);
     });
   });
+
+  describe('Scenario: top-level and empty-array edge cases', () => {
+    it('returns empty string for undefined / null roots', () => {
+      expect(buildXml(undefined)).toBe('');
+      expect(buildXml(null)).toBe('');
+    });
+
+    it('serializes a bare scalar or Date as text (no wrapper element)', () => {
+      expect(buildXml('hi')).toBe('hi');
+      expect(buildXml(7)).toBe('7');
+      expect(buildXml(new Date('2015-01-20T16:33:03.000Z'))).toBe('2015-01-20T16:33:03.000Z');
+    });
+
+    it('concatenates array roots and omits empty array children', () => {
+      expect(buildXml([{ A: 1 }, { B: 2 }])).toBe('<A>1</A><B>2</B>');
+      expect(buildXml({ Parent: { Child: [], Keep: 'x' } })).toBe('<Parent><Keep>x</Keep></Parent>');
+    });
+
+    it('omits an undefined root element value via renderElement', () => {
+      // buildXml walks entries; undefined children are skipped, empty arrays omitted.
+      expect(buildXml({ A: undefined, B: { C: [] } })).toBe('<B/>');
+    });
+  });
 });
