@@ -66,7 +66,13 @@ import {
   VideoSourceConfigurationOptions,
 } from './interfaces/onvif';
 import { AnyURI } from './interfaces/basics';
-import { MEDIA_CONFIGURATION_PARSE, MEDIA_NESTED_PARSE, OnvifValidationError } from './utils';
+import {
+  MEDIA_CONFIGURATION_PARSE,
+  MEDIA_NESTED_PARSE,
+  OnvifValidationError,
+  applyVideoEncoder2Patch,
+  type UpdateVideoEncoder2Configuration,
+} from './utils';
 import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
 
 /**
@@ -511,6 +517,33 @@ export default class Media2 extends Service {
         },
       },
     });
+  }
+
+  /**
+   * Get a Media2 video encoder configuration, merge a partial patch, then Set.
+   * @param patch - Fields to overwrite; omitted keys keep the device value.
+   * @param patch.configurationToken - Defaults to {@link Onvif.activeMediaProfile}.videoEncoderConfigurationToken
+   * @returns The merged configuration that was sent to Set (not a fresh Get).
+   */
+  @v2
+  async updateVideoEncoderConfiguration(
+    patch: UpdateVideoEncoder2Configuration,
+  ): Promise<VideoEncoder2Configuration> {
+    const configurationToken =
+      patch.configurationToken ?? this.onvif.activeMediaProfile?.videoEncoderConfigurationToken;
+    if (!configurationToken) {
+      throw new OnvifValidationError(
+        'configurationToken is required (pass it or connect with a profile that exposes this configuration)',
+      );
+    }
+    const list = await this.getVideoEncoderConfigurations({ configurationToken });
+    const configuration = list[0];
+    if (!configuration) {
+      throw new OnvifValidationError(`Video encoder configuration not found: ${configurationToken}`);
+    }
+    applyVideoEncoder2Patch(configuration, patch);
+    await this.setVideoEncoderConfiguration(configuration);
+    return configuration;
   }
 
   /**

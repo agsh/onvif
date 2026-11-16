@@ -817,6 +817,28 @@ describe('OSD (Media)', () => {
   });
 });
 
+describe('updateVideoEncoderConfiguration', () => {
+  it('should patch bitrate via Get-merge-Set and restore afterwards', async () => {
+    const [original] = await cam.media.getVideoEncoderConfigurations();
+    expect(original).toBeDefined();
+    const nextBitrate = (original.rateControl?.bitrateLimit ?? 2048) === 1024 ? 1536 : 1024;
+    const merged = await cam.media.updateVideoEncoderConfiguration({
+      configurationToken: original.token,
+      bitrateLimit: nextBitrate,
+    });
+    expect(merged.rateControl?.bitrateLimit).toBe(nextBitrate);
+    const after = await cam.media.getVideoEncoderConfiguration({
+      configurationToken: original.token,
+    });
+    expect(after.rateControl?.bitrateLimit).toBe(nextBitrate);
+    await cam.media.setVideoEncoderConfiguration({ configuration: original, forcePersistence: true });
+    const restored = await cam.media.getVideoEncoderConfiguration({
+      configurationToken: original.token,
+    });
+    expect(restored.rateControl?.bitrateLimit).toBe(original.rateControl?.bitrateLimit);
+  });
+});
+
 describe('setVideoEncoderConfiguration', () => {
   it('should accept an existing video encoder configuration unchanged', async () => {
     const [configuration] = await cam.media.getVideoEncoderConfigurations();
