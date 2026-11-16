@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/appmgmt/wsdl/appmgmt.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   Activate,
@@ -16,8 +16,8 @@ import {
   GetDeviceIdResponse,
   InstallLicense,
   Uninstall,
-} from './interfaces/appmgmt';
-import { coerceAppInfoList } from './utils';
+} from '../interfaces/appmgmt';
+import { coerceAppInfoList } from '../utils';
 
 /**
  * Application Management service

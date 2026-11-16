@@ -1,5 +1,5 @@
 import { camelCase, Onvif } from '../src';
-import type Media from '../src/media';
+import type Media from '../src/services/media';
 import { getMediaProfiles } from '../src/connection';
 import { ReferenceToken } from '../src/interfaces/common';
 import { VideoSourceMode } from '../src/interfaces/media';
@@ -741,7 +741,6 @@ describe('OSD (Media)', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
     });
-
   });
 
   describe('getOSD', () => {

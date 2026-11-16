@@ -5,7 +5,7 @@
  * @see http://www.onvif.org/ver20/media/wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   MediaProfile,
@@ -44,8 +44,8 @@ import {
   MaskOptions,
   DeleteMask,
   Capabilities2,
-} from './interfaces/media.2';
-import { ReferenceToken } from './interfaces/common';
+} from '../interfaces/media.2';
+import { ReferenceToken } from '../interfaces/common';
 import {
   AudioDecoderConfiguration,
   AudioDecoderConfigurationOptions,
@@ -64,16 +64,16 @@ import {
   VideoEncoder2ConfigurationOptions,
   VideoSourceConfiguration,
   VideoSourceConfigurationOptions,
-} from './interfaces/onvif';
-import { AnyURI } from './interfaces/basics';
+} from '../interfaces/onvif';
+import { AnyURI } from '../interfaces/basics';
 import {
   MEDIA_CONFIGURATION_PARSE,
   MEDIA_NESTED_PARSE,
   OnvifValidationError,
   applyVideoEncoder2Patch,
   type UpdateVideoEncoder2Configuration,
-} from './utils';
-import { config, multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
+} from '../utils';
+import { config, multicastConfiguration } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * Media2 GetProfiles — `Configurations` is one ConfigurationSet (object), not a list.
@@ -526,9 +526,7 @@ export default class Media2 extends Service {
    * @returns The merged configuration that was sent to Set (not a fresh Get).
    */
   @v2
-  async updateVideoEncoderConfiguration(
-    patch: UpdateVideoEncoder2Configuration,
-  ): Promise<VideoEncoder2Configuration> {
+  async updateVideoEncoderConfiguration(patch: UpdateVideoEncoder2Configuration): Promise<VideoEncoder2Configuration> {
     const configurationToken =
       patch.configurationToken ?? this.onvif.activeMediaProfile?.videoEncoderConfigurationToken;
     if (!configurationToken) {

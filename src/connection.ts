@@ -19,7 +19,7 @@ import type { MediaProfile } from './interfaces/media.2';
 import type { ReferenceToken } from './interfaces/common';
 import { OnvifError, OnvifValidationError, toError } from './utils/errors';
 import { MEDIA_NESTED_PARSE, type LineraseOptions } from './utils/linerase';
-import { XMLNS } from './service';
+import { XMLNS } from './services/service';
 
 /** Media1 GetProfiles - `Profiles` unbounded; nested configs are single entities. */
 const MEDIA_PROFILE_PARSE: LineraseOptions = {

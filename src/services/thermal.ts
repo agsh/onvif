@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/thermal/wsdl/thermal.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import type { ReferenceToken } from './interfaces/common';
+import type { ReferenceToken } from '../interfaces/common';
 import {
   Capabilities,
   ColorPalette,
@@ -24,8 +24,8 @@ import {
   RadiometryGlobalParameters,
   SetConfiguration,
   SetRadiometryConfiguration,
-} from './interfaces/thermal';
-import { OnvifValidationError } from './utils';
+} from '../interfaces/thermal';
+import { OnvifValidationError } from '../utils';
 
 /**
  * Thermal service

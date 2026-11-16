@@ -5,11 +5,11 @@
  * @see https://www.onvif.org/specs/srv/ptz/ONVIF-PTZ-Service-Spec-v1712.pdf
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from './interfaces/common';
-import { coercePTZStatus, OnvifValidationError } from './utils';
-import { ptzVectorToBuild } from './utils/toOnvifXMLSchemaObject';
+import { GeoLocation, PTZStatus, PTZVector, ReferenceToken } from '../interfaces/common';
+import { coercePTZStatus, OnvifValidationError } from '../utils';
+import { ptzVectorToBuild } from '../utils/toOnvifXMLSchemaObject';
 import {
   AuxiliaryData,
   PTZConfiguration,
@@ -21,7 +21,7 @@ import {
   PTZPresetTourPresetDetail,
   PTZPresetTourSpot,
   PTZSpeed,
-} from './interfaces/onvif';
+} from '../interfaces/onvif';
 import {
   AbsoluteMove,
   Capabilities,
@@ -49,7 +49,7 @@ import {
   SetHomePosition,
   SetPreset,
   Stop,
-} from './interfaces/ptz.2';
+} from '../interfaces/ptz.2';
 
 /**
  * Simplified structure of PTZ vector to use as an input argument for position and speed in movement commands.

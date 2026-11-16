@@ -6,7 +6,7 @@
 
 import { build, parseSOAPString } from '../src/utils';
 import { config, itemList, xsany } from '../src/utils/toOnvifXMLSchemaObject';
-import AdvancedSecurity from '../src/advancedsecurity';
+import AdvancedSecurity from '../src/services/advancedsecurity';
 
 const TT = 'http://www.onvif.org/ver10/schema';
 const WSNT = 'http://docs.oasis-open.org/wsn/b-2';
@@ -104,8 +104,7 @@ describe('vendor-extensions.md — Hikvision CellMotion module', () => {
       array: ['elementItem', 'simpleItem', 'analyticsModule'],
       rawXML: ['elementItem'],
     });
-    return body.getVideoAnalyticsConfigurationsResponse.configurations.analyticsEngineConfiguration
-      .analyticsModule[0];
+    return body.getVideoAnalyticsConfigurationsResponse.configurations.analyticsEngineConfiguration.analyticsModule[0];
   }
 
   it('parses engineId anyAttribute, SimpleItems, and Layout xsany', async () => {
@@ -308,9 +307,7 @@ describe('vendor-extensions.md — NotificationMessage ElementItem BoundingBox',
     const msg = body.pullMessagesResponse.notificationMessage[0].message.message;
     expect(msg.propertyOperation).toBe('Changed');
     expect(msg.source.simpleItem).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: 'Rule', value: 'MyMotion' }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ name: 'Rule', value: 'MyMotion' })]),
     );
     expect(msg.data.simpleItem[0]).toMatchObject({ name: 'IsMotion', value: true });
     const box = msg.data.elementItem[0];

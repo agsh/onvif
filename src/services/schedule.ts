@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/schedule/wsdl/schedule.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   Capabilities,
@@ -38,7 +38,7 @@ import {
   SpecialDayGroupInfo,
   SpecialDaysSchedule,
   TimePeriod,
-} from './interfaces/schedule';
+} from '../interfaces/schedule';
 
 /**
  * Schedule service

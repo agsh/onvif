@@ -69,7 +69,7 @@ describe('compatibility promises unit', () => {
     it('setNetworkInterfaces resolves to { rebootNeeded } (not bare boolean)', async () => {
       const cam = new Cam({ hostname: '127.0.0.1', autoconnect: false });
       const onvif = (cam._cam as unknown as { onvif: Onvif }).onvif;
-      const Device = (await import('../src/device')).default;
+      const Device = (await import('../src/services/device')).default;
       Object.defineProperty(onvif, 'device', { value: new Device(onvif), configurable: true });
       jest.spyOn(onvif.device, 'setNetworkInterfaces').mockResolvedValue(false);
 
@@ -81,7 +81,7 @@ describe('compatibility promises unit', () => {
     it('createOSD resolves to { OSDToken } (not bare token string)', async () => {
       const cam = new Cam({ hostname: '127.0.0.1', autoconnect: false });
       const onvif = (cam._cam as unknown as { onvif: Onvif }).onvif;
-      const Media = (await import('../src/media')).default;
+      const Media = (await import('../src/services/media')).default;
       Object.defineProperty(onvif, 'media', { value: new Media(onvif), configurable: true });
       jest.spyOn(onvif.media, 'createOSD').mockResolvedValue('osd-p' as any);
 
@@ -130,9 +130,7 @@ describe('compatibility promises unit', () => {
     it('lazily bridges event listeners and starts/stops pull subscription', async () => {
       const cam = new CallbackCam({ hostname: '127.0.0.1', autoconnect: false });
       const onvif = (cam as unknown as { onvif: Onvif }).onvif;
-      const subscribe = jest
-        .spyOn(onvif.events.globalSubscription, 'subscribe')
-        .mockResolvedValue(undefined as never);
+      const subscribe = jest.spyOn(onvif.events.globalSubscription, 'subscribe').mockResolvedValue(undefined as never);
       const unsubscribe = jest
         .spyOn(onvif.events.globalSubscription, 'unsubscribe')
         .mockResolvedValue(undefined as never);
@@ -441,10 +439,14 @@ describe('compatibility promises unit', () => {
         cam.uri.media2 = new URL('http://127.0.0.1/onvif/media2');
         return [] as never;
       });
-      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
-        { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
-      ]);
-      jest.spyOn(connectSteps, 'getVideoSources').mockRejectedValue(new Error('Media2 GetVideoSourceConfigurations failed'));
+      jest
+        .spyOn(connectSteps, 'probeMedia2Profiles')
+        .mockResolvedValue([
+          { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
+        ]);
+      jest
+        .spyOn(connectSteps, 'getVideoSources')
+        .mockRejectedValue(new Error('Media2 GetVideoSourceConfigurations failed'));
       const getActiveMediaProfiles = jest.spyOn(connectSteps, 'getActiveMediaProfiles');
 
       await expect(onvif.connect()).resolves.toBe(onvif);

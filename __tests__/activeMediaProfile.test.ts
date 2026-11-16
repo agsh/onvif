@@ -28,9 +28,7 @@ afterAll(async () => {
 describe('activeMediaProfile (happytime)', () => {
   describe('connect fills the token bag', () => {
     it('selects ProfileToken_1 and copies all available configuration tokens', () => {
-      expect(cam.profiles.map((p) => p.token)).toEqual(
-        expect.arrayContaining(['ProfileToken_1', 'ProfileToken_2']),
-      );
+      expect(cam.profiles.map((p) => p.token)).toEqual(expect.arrayContaining(['ProfileToken_1', 'ProfileToken_2']));
       expect(cam.videoSources.map((v) => v.token)).toContain('VideoSourceToken_1');
       expect(cam.activeMediaProfile).toMatchObject({
         profileToken: 'ProfileToken_1',
@@ -69,19 +67,13 @@ describe('activeMediaProfile (happytime)', () => {
       expect(bag.videoSourceConfigurationToken).toBe('VideoSourceConfigurationToken_1');
       expect(cam.activeMediaProfile).toBe(bag);
       expect(cam.defaultProfile?.token).toBe('ProfileToken_2');
-      expect(cam.defaultProfile?.videoEncoderConfiguration?.token).toBe(
-        'VideoEncoderConfigurationToken_2',
-      );
+      expect(cam.defaultProfile?.videoEncoderConfiguration?.token).toBe('VideoEncoderConfigurationToken_2');
       expect(cam.activeMediaProfiles[0]?.profileToken).toBe('ProfileToken_2');
     });
 
     it('rejects an unknown profile token', async () => {
-      await expect(cam.setActiveMediaProfile('ProfileToken_???')).rejects.toBeInstanceOf(
-        OnvifValidationError,
-      );
-      await expect(cam.setActiveMediaProfile('ProfileToken_???')).rejects.toThrow(
-        /Unknown media profile token/,
-      );
+      await expect(cam.setActiveMediaProfile('ProfileToken_???')).rejects.toBeInstanceOf(OnvifValidationError);
+      await expect(cam.setActiveMediaProfile('ProfileToken_???')).rejects.toThrow(/Unknown media profile token/);
       expect(cam.activeMediaProfile?.profileToken).toBe('ProfileToken_1');
     });
 
@@ -187,7 +179,13 @@ describe('setActiveMediaProfile validation (unit)', () => {
     const bag = activeMediaProfileFromProfile({
       token: 'p1',
       name: 'Main',
-      videoSourceConfiguration: { token: 'vsc1', sourceToken: 'vs1', name: 's', useCount: 1, bounds: { x: 0, y: 0, width: 1, height: 1 } },
+      videoSourceConfiguration: {
+        token: 'vsc1',
+        sourceToken: 'vs1',
+        name: 's',
+        useCount: 1,
+        bounds: { x: 0, y: 0, width: 1, height: 1 },
+      },
       videoEncoderConfiguration: { token: 'vec1' } as never,
       audioSourceConfiguration: { token: 'asc1' } as never,
       PTZConfiguration: { token: 'ptz1', name: 'PTZ' } as never,
@@ -212,9 +210,9 @@ describe('setActiveMediaProfile validation (unit)', () => {
   });
 
   it('throws when the profile has no video source token', () => {
-    expect(() =>
-      activeMediaProfileFromProfile({ token: 'p1', name: 'Empty' } as never),
-    ).toThrow(/no VideoSourceConfiguration.sourceToken/);
+    expect(() => activeMediaProfileFromProfile({ token: 'p1', name: 'Empty' } as never)).toThrow(
+      /no VideoSourceConfiguration.sourceToken/,
+    );
   });
 
   it('throws when profileToken is unknown on the device', () => {
@@ -295,7 +293,7 @@ describe('setActiveMediaProfile validation (unit)', () => {
 
   it('deviceIO getVideoSourceConfiguration defaults VideoSourceToken from the bag', async () => {
     // Happytime does not implement DeviceIO GetVideoSourceConfiguration; assert the SOAP body instead.
-    const DeviceIO = (await import('../src/deviceio')).default;
+    const DeviceIO = (await import('../src/services/deviceio')).default;
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     onvif.activeMediaProfile = {
       sourceToken: 'vs1',

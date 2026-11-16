@@ -13,9 +13,8 @@ Responses are parsed by an in-repo **stack** ONVIF SOAP XML parser (`parseXml`: 
 Relative to **`onvif@1.0.0`** on the same machine and the same SOAP fixtures (GetSystemDateAndTime /
 GetServices / GetProfiles, PullMessages batches, ~500 KiB NVR-style profile lists):
 
-- Parse throughput and latency are about **~4x** better (docs/s up, ms/parse and event-burst wall
-  time down by a similar factor).
-- Among ONVIF clients for Node.js, the parse path is in the **top tier** for SOAP XML throughput.
+Parse throughput and latency are about **~4x** better (docs/s up, ms/parse and event-burst wall
+time down by a similar factor).
 
 Absolute numbers vary with Node, CPU, and fixture shape; treat the ~4x figure as order-of-magnitude
 guidance, not a guarantee for every device response.
@@ -267,10 +266,9 @@ parse cost, not ONVIF client trees.
 | burst ~5k wall ms | 48 | 92 | 55 | 119 | 7 |
 | cold start median ms | 10.3 | 39.6 | 62.0 | 4.5 | 3.2 |
 
-Rounded from the trimmed 15-run series (keep 11). Against generic Node XML stacks (`xml2js` /
-`fast-xml-parser`) the in-repo parser is typically several times higher throughput on these SOAP
-fixtures. Against the other purpose-built ONVIF parse path, results are in the same band on this
-machine. Cross-language columns are orientation only: Rust `quick-xml` is a fast token lexer; Python
-cold start is dominated by interpreter startup; Go / Rust cold start is a prebuilt binary.
+Rounded from the trimmed 15-run series (keep 11). Read the Node table as relative order on this
+machine, not a product ranking. Cross-language columns are orientation only: Rust `quick-xml` is a
+fast token lexer; Python cold start is dominated by interpreter startup; Go / Rust cold start is a
+prebuilt binary.
 
 For design notes (what the parser intentionally skips), see [soap-xml.md](soap-xml.md).

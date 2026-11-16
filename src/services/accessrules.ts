@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/accessrules/wsdl/accessrules.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   AccessPolicy,
@@ -22,7 +22,7 @@ import {
   GetAccessProfiles,
   ModifyAccessProfile,
   SetAccessProfile,
-} from './interfaces/accessrules';
+} from '../interfaces/accessrules';
 
 /**
  * AccessRules service

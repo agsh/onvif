@@ -16,11 +16,11 @@ import {
   toDate,
 } from '../src/utils';
 import { parseXml } from '../src/utils/parser';
-import Search from '../src/search';
-import PTZ from '../src/ptz';
-import AppMgmt from '../src/appmgmt';
+import Search from '../src/services/search';
+import PTZ from '../src/services/ptz';
+import AppMgmt from '../src/services/appmgmt';
 import Credential from '../src/credential';
-import Device from '../src/device';
+import Device from '../src/services/device';
 import Events, { Subscription } from '../src/events';
 import { Onvif } from '../src/onvif';
 

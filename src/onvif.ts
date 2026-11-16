@@ -32,10 +32,10 @@ import {
   passwordDigest as createPasswordDigest,
   preferredDigestChallenge,
 } from './utils/auth';
-import type Device from './device';
-import type Media from './media';
-import type Media2 from './media2';
-import type PTZ from './ptz';
+import type Device from './services/device';
+import type Media from './services/media';
+import type Media2 from './services/media2';
+import type PTZ from './services/ptz';
 import type { Capabilities, Profile, SystemDateTime, VideoSource } from './interfaces/onvif';
 import type {
   GetDeviceInformationResponse,
@@ -45,27 +45,27 @@ import type {
 } from './interfaces/devicemgmt';
 import type { ReferenceToken } from './interfaces/common';
 import Events, { type NotificationMessage } from './events';
-import type Replay from './replay';
-import type Imaging from './imaging';
-import type Recording from './recording';
-import type DoorControl from './doorcontrol';
-import type AccessControl from './accesscontrol';
+import type Replay from './services/replay';
+import type Imaging from './services/imaging';
+import type Recording from './services/recording';
+import type DoorControl from './services/doorcontrol';
+import type AccessControl from './services/accesscontrol';
 import type Credential from './credential';
-import type AccessRules from './accessrules';
-import type Schedule from './schedule';
-import type Provisioning from './provisioning';
-import type AdvancedSecurity from './advancedsecurity';
-import type Thermal from './thermal';
-import type Uplink from './uplink';
-import type AppManagement from './appmgmt';
-import type Analytics from './analytics';
-import type DeviceIO from './deviceio';
-import type Display from './display';
-import type ActionEngine from './actionengine';
-import type Search from './search';
-import type AnalyticsDevice from './analyticsdevice';
-import type Receiver from './receiver';
-import { lazyService, XMLNS } from './service';
+import type AccessRules from './services/accessrules';
+import type Schedule from './services/schedule';
+import type Provisioning from './services/provisioning';
+import type AdvancedSecurity from './services/advancedsecurity';
+import type Thermal from './services/thermal';
+import type Uplink from './services/uplink';
+import type AppManagement from './services/appmgmt';
+import type Analytics from './services/analytics';
+import type DeviceIO from './services/deviceio';
+import type Display from './services/display';
+import type ActionEngine from './services/actionengine';
+import type Search from './services/search';
+import type AnalyticsDevice from './services/analyticsdevice';
+import type Receiver from './services/receiver';
+import { lazyService, XMLNS } from './services/service';
 import type { ConnectOptions } from './connection';
 import { requestContext } from './utils/request-context';
 
@@ -689,31 +689,31 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.uri = {};
     this.capabilities = {};
 
-    this.device = lazyService<Device>(this, () => import('./device'));
-    this.media = lazyService<Media>(this, () => import('./media'));
-    this.media2 = lazyService<Media2>(this, () => import('./media2'));
-    this.ptz = lazyService<PTZ>(this, () => import('./ptz'));
+    this.device = lazyService<Device>(this, () => import('./services/device'));
+    this.media = lazyService<Media>(this, () => import('./services/media'));
+    this.media2 = lazyService<Media2>(this, () => import('./services/media2'));
+    this.ptz = lazyService<PTZ>(this, () => import('./services/ptz'));
     this.events = new Events(this); // mandatory module for events
-    this.replay = lazyService<Replay>(this, () => import('./replay'));
-    this.imaging = lazyService<Imaging>(this, () => import('./imaging'));
-    this.recording = lazyService<Recording>(this, () => import('./recording'));
-    this.doorControl = lazyService<DoorControl>(this, () => import('./doorcontrol'));
-    this.accessControl = lazyService<AccessControl>(this, () => import('./accesscontrol'));
+    this.replay = lazyService<Replay>(this, () => import('./services/replay'));
+    this.imaging = lazyService<Imaging>(this, () => import('./services/imaging'));
+    this.recording = lazyService<Recording>(this, () => import('./services/recording'));
+    this.doorControl = lazyService<DoorControl>(this, () => import('./services/doorcontrol'));
+    this.accessControl = lazyService<AccessControl>(this, () => import('./services/accesscontrol'));
     this.credential = lazyService<Credential>(this, () => import('./credential'));
-    this.accessRules = lazyService<AccessRules>(this, () => import('./accessrules'));
-    this.schedule = lazyService<Schedule>(this, () => import('./schedule'));
-    this.provisioning = lazyService<Provisioning>(this, () => import('./provisioning'));
-    this.advancedSecurity = lazyService<AdvancedSecurity>(this, () => import('./advancedsecurity'));
-    this.thermal = lazyService<Thermal>(this, () => import('./thermal'));
-    this.uplink = lazyService<Uplink>(this, () => import('./uplink'));
-    this.appManagement = lazyService<AppManagement>(this, () => import('./appmgmt'));
-    this.analytics = lazyService<Analytics>(this, () => import('./analytics'));
-    this.deviceIO = lazyService<DeviceIO>(this, () => import('./deviceio'));
-    this.display = lazyService<Display>(this, () => import('./display'));
-    this.actionEngine = lazyService<ActionEngine>(this, () => import('./actionengine'));
-    this.search = lazyService<Search>(this, () => import('./search'));
-    this.analyticsDevice = lazyService<AnalyticsDevice>(this, () => import('./analyticsdevice'));
-    this.receiver = lazyService<Receiver>(this, () => import('./receiver'));
+    this.accessRules = lazyService<AccessRules>(this, () => import('./services/accessrules'));
+    this.schedule = lazyService<Schedule>(this, () => import('./services/schedule'));
+    this.provisioning = lazyService<Provisioning>(this, () => import('./services/provisioning'));
+    this.advancedSecurity = lazyService<AdvancedSecurity>(this, () => import('./services/advancedsecurity'));
+    this.thermal = lazyService<Thermal>(this, () => import('./services/thermal'));
+    this.uplink = lazyService<Uplink>(this, () => import('./services/uplink'));
+    this.appManagement = lazyService<AppManagement>(this, () => import('./services/appmgmt'));
+    this.analytics = lazyService<Analytics>(this, () => import('./services/analytics'));
+    this.deviceIO = lazyService<DeviceIO>(this, () => import('./services/deviceio'));
+    this.display = lazyService<Display>(this, () => import('./services/display'));
+    this.actionEngine = lazyService<ActionEngine>(this, () => import('./services/actionengine'));
+    this.search = lazyService<Search>(this, () => import('./services/search'));
+    this.analyticsDevice = lazyService<AnalyticsDevice>(this, () => import('./services/analyticsdevice'));
+    this.receiver = lazyService<Receiver>(this, () => import('./services/receiver'));
 
     /** Bind event handling to the `event` event */
     this.onEventNewListener = (name) => {
@@ -1221,8 +1221,7 @@ export class Onvif extends EventEmitter<OnvifEvents> {
       emptyHostWithPort ? `${emptyHostWithPort[1]}_:${emptyHostWithPort[2]}${emptyHostWithPort[3]}` : uri,
     );
     const emptyHost = emptyHostWithPort !== null || parsed.hostname === '';
-    const targetHost =
-      options.host ?? (this.preserveAddress || emptyHost ? this.hostname : undefined);
+    const targetHost = options.host ?? (this.preserveAddress || emptyHost ? this.hostname : undefined);
     if (targetHost !== undefined && (emptyHost || parsed.hostname !== targetHost)) {
       parsed.hostname = targetHost;
     }

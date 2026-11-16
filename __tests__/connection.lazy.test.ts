@@ -84,9 +84,11 @@ describe('connection module isolation', () => {
         cam.services = [];
         return [] as never;
       });
-      jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
-        { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
-      ]);
+      jest
+        .spyOn(connectSteps, 'probeMedia2Profiles')
+        .mockResolvedValue([
+          { token: 'p1', name: 'Main', videoSourceConfiguration: { token: 'vsc1', sourceToken: 'src1' } } as never,
+        ]);
       jest.spyOn(connectSteps, 'getVideoSources').mockImplementation(async (cam) => {
         cam.videoSources = [{ token: 'src1', framerate: 0, resolution: { width: 1, height: 1 } }];
         return cam.videoSources;
@@ -111,7 +113,7 @@ describe('connection module isolation', () => {
     onvif.profiles = [{ token: 'p1', name: 'Profile1' } as never];
     onvif.videoSources = [{ token: 'vs1' } as never];
 
-    const Media = (await import('../src/media')).default;
+    const Media = (await import('../src/services/media')).default;
     const media = new Media(onvif);
     expect(media.profiles).toEqual(onvif.profiles);
     expect(media.videoSources).toEqual(onvif.videoSources);

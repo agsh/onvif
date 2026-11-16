@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/analyticsDevice/wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { AnyURI } from './interfaces/basics';
+import { AnyURI } from '../interfaces/basics';
 import {
   AnalyticsDeviceEngineConfiguration,
   AnalyticsEngine,
@@ -19,7 +19,7 @@ import {
   SourceIdentification,
   VideoAnalyticsConfiguration,
   VideoEncoderConfiguration,
-} from './interfaces/onvif';
+} from '../interfaces/onvif';
 import {
   Capabilities,
   CreateAnalyticsEngineControl,
@@ -35,9 +35,9 @@ import {
   SetAnalyticsEngineControl,
   SetAnalyticsEngineInput,
   SetVideoAnalyticsConfiguration,
-} from './interfaces/analyticsdevice';
-import { ANALYTICS_CONFIG_PARSE, ITEM_LIST_PARSE } from './utils';
-import { config, multicastConfiguration, streamSetupToBuild } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/analyticsdevice';
+import { ANALYTICS_CONFIG_PARSE, ITEM_LIST_PARSE } from '../utils';
+import { config, multicastConfiguration, streamSetupToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * Nested unbounded lists inside AnalyticsDevice entities (EngineConfiguration*, MetadataConfig*,

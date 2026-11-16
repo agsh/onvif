@@ -72,7 +72,7 @@ Maintainer method checklist (v0 surface vs v1 coverage): [CHECKED.md](CHECKED.md
 - Linux-friendly environment for HappyTime binaries (CI uses Ubuntu). Scripts live under
   `__tests__/happytime-onvif-server/` (`start.sh`, `stop.sh`, `wait-ready.sh`, `hydrate-profiles.sh`,
   `mklinks.sh`).
-- For `compatibility.golden.test.ts`, npm must be able to resolve `onvif@0.8.2` as `onvif-v0`
+- For `compatibility.golden.test.ts`, npm must be able to resolve `onvif@0.8.5` as `onvif-v0`
   (devDependency / install layout used by that suite).
 
 ## Pointing tests at another device

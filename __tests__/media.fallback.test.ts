@@ -7,8 +7,8 @@
 
 import { Onvif } from '../src';
 import { connectSteps, getVideoSources, media2ProfileToMedia1, probeMedia2Profiles } from '../src/connection';
-import Media from '../src/media';
-import Media2 from '../src/media2';
+import Media from '../src/services/media';
+import Media2 from '../src/services/media2';
 
 describe('Media1 / Media2 connect fallback', () => {
   afterEach(() => {
@@ -30,9 +30,9 @@ describe('Media1 / Media2 connect fallback', () => {
       dualStackServices(cam);
       return [] as never;
     });
-    const probeMedia2 = jest.spyOn(connectSteps, 'probeMedia2Profiles').mockResolvedValue([
-      { token: 'm2', name: 'Media2' } as never,
-    ]);
+    const probeMedia2 = jest
+      .spyOn(connectSteps, 'probeMedia2Profiles')
+      .mockResolvedValue([{ token: 'm2', name: 'Media2' } as never]);
     jest.spyOn(connectSteps, 'getMediaProfiles').mockImplementation(async (cam) => {
       cam.profiles = media1;
       return media1;
@@ -190,10 +190,7 @@ describe('getVideoSources Media2 fallback responses', () => {
       .mockRejectedValueOnce(new Error('media2 down'));
     await expect(getVideoSources(onvif)).rejects.toThrow('media1 down');
 
-    jest
-      .spyOn(onvif, 'request')
-      .mockRejectedValueOnce('media1-string')
-      .mockRejectedValueOnce('media2-string');
+    jest.spyOn(onvif, 'request').mockRejectedValueOnce('media1-string').mockRejectedValueOnce('media2-string');
     await expect(getVideoSources(onvif)).rejects.toMatchObject({ message: 'media1-string' });
   });
 

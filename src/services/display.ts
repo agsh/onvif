@@ -4,10 +4,10 @@
  * @see https://www.onvif.org/ver10/display.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { AudioEncoderConfiguration, Layout, PaneConfiguration, PaneLayout } from './interfaces/onvif';
-import { ReferenceToken } from './interfaces/common';
+import { AudioEncoderConfiguration, Layout, PaneConfiguration, PaneLayout } from '../interfaces/onvif';
+import { ReferenceToken } from '../interfaces/common';
 import {
   Capabilities,
   CreatePaneConfiguration,
@@ -20,8 +20,8 @@ import {
   SetLayout,
   SetPaneConfiguration,
   SetPaneConfigurations,
-} from './interfaces/display';
-import { multicastConfiguration } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/display';
+import { multicastConfiguration } from '../utils/toOnvifXMLSchemaObject';
 
 /**
  * Display service — video output layout and pane configurations.

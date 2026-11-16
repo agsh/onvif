@@ -4,7 +4,7 @@
  * @see https://www.onvif.org/ver10/recording.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
 import {
   GetRecordingsResponseItem,
@@ -17,9 +17,9 @@ import {
   SearchScope,
   StorageReferencePath,
   TrackConfiguration,
-} from './interfaces/onvif';
-import { ReferenceToken } from './interfaces/common';
-import { OnvifValidationError } from './utils/errors';
+} from '../interfaces/onvif';
+import { ReferenceToken } from '../interfaces/common';
+import { OnvifValidationError } from '../utils/errors';
 import {
   Capabilities,
   RecordingOptions,
@@ -46,7 +46,7 @@ import {
   SetTrackConfiguration,
   StopExportRecordedData,
   StopExportRecordedDataResponse,
-} from './interfaces/recording';
+} from '../interfaces/recording';
 
 /**
  * Recording service (Profile G) — recordings, tracks, and recording jobs.
@@ -254,9 +254,7 @@ export default class Recording extends Service {
    * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async getRecordingConfiguration(
-    options: Partial<GetRecordingConfiguration> = {},
-  ): Promise<RecordingConfiguration> {
+  async getRecordingConfiguration(options: Partial<GetRecordingConfiguration> = {}): Promise<RecordingConfiguration> {
     const response = await this.request({
       GetRecordingConfiguration: {
         RecordingToken: this.recordingToken(options.recordingToken),
@@ -284,9 +282,7 @@ export default class Recording extends Service {
    * When `recordingToken` is omitted, uses {@link Onvif.activeRecordingToken}.
    * @param options
    */
-  async createTrack(
-    options: Partial<CreateTrack> & Pick<CreateTrack, 'trackConfiguration'>,
-  ): Promise<ReferenceToken> {
+  async createTrack(options: Partial<CreateTrack> & Pick<CreateTrack, 'trackConfiguration'>): Promise<ReferenceToken> {
     const response = await this.request({
       CreateTrack: {
         RecordingToken: this.recordingToken(options.recordingToken),
@@ -417,9 +413,7 @@ export default class Recording extends Service {
    * When `jobToken` is omitted, uses {@link Onvif.activeRecordingJobToken}.
    * @param options
    */
-  async setRecordingJobMode(
-    options: Partial<SetRecordingJobMode> & Pick<SetRecordingJobMode, 'mode'>,
-  ): Promise<void> {
+  async setRecordingJobMode(options: Partial<SetRecordingJobMode> & Pick<SetRecordingJobMode, 'mode'>): Promise<void> {
     await this.request({
       SetRecordingJobMode: {
         JobToken: this.recordingJobToken(options.jobToken),

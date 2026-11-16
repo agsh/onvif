@@ -5,7 +5,7 @@
  */
 
 import { Onvif } from './onvif';
-import Service from './service';
+import Service from './services/service';
 import { Attribute } from './interfaces/types';
 import { coerceCredentialEntityList, coerceCredentialValidity } from './utils';
 import {

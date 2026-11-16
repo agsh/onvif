@@ -3,9 +3,9 @@
  * @author Andrew D.Laptev <a.d.laptev@gmail.com>
  */
 
-import { Onvif, SetSystemDateAndTimeExtended } from './onvif';
+import { Onvif, SetSystemDateAndTimeExtended } from '../onvif';
 import Service from './service';
-import { coerceCertificateInformation, OnvifResponseError } from './utils';
+import { coerceCertificateInformation, OnvifResponseError } from '../utils';
 import {
   AddIPAddressFilter,
   AddScopes,
@@ -75,7 +75,7 @@ import {
   UpgradeFirmware,
   UpgradeSystemFirmware,
   UserCredential,
-} from './interfaces/devicemgmt';
+} from '../interfaces/devicemgmt';
 import {
   AttachmentData,
   BackupFile,
@@ -103,9 +103,9 @@ import {
   Scope,
   User,
   UserRole,
-} from './interfaces/onvif';
-import { AnyURI, Duration } from './interfaces/basics';
-import { LocationEntity, ReferenceToken } from './interfaces/common';
+} from '../interfaces/onvif';
+import { AnyURI, Duration } from '../interfaces/basics';
+import { LocationEntity, ReferenceToken } from '../interfaces/common';
 
 /**
  * Device management service (network, users, scopes, system).
@@ -416,7 +416,7 @@ export default class Device extends Service {
    * @returns Service list (unwrapped from GetServicesResponse)
    */
   async getServices({ includeCapability }: GetServices = { includeCapability: false }): Promise<DeviceService[]> {
-    const { getServices } = await import('./connection');
+    const { getServices } = await import('../connection');
     const result = await getServices(this.onvif, { includeCapability });
     this.#services = this.onvif.services;
     return result;
@@ -429,7 +429,7 @@ export default class Device extends Service {
    * @param options.category
    */
   async getCapabilities(options?: GetCapabilities): Promise<Capabilities> {
-    const { getCapabilities } = await import('./connection');
+    const { getCapabilities } = await import('../connection');
     return getCapabilities(this.onvif, options);
   }
 

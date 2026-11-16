@@ -7,9 +7,8 @@
 - **Stack ONVIF SOAP XML parser** - `parseXml` is a zero-dependency, single-pass stack walker
   (`indexOf` / `charCodeAt`), with cheap entity decoding, name cache, lean finalize, and one-pass
   `rawXML` dual trees. Typical SOAP parse throughput / latency is about **~4x** vs `1.0.0` on the
-  same workloads (GetProfiles-sized docs, PullMessages batches, ~500 KiB NVR-style envelopes). Among
-  ONVIF clients for Node.js, the parse path is in the top tier for SOAP XML throughput. Same public
-  tree shape (camelCase + leaf coerce; `xsany` / `rawXML` unchanged). Details:
+  same workloads (GetProfiles-sized docs, PullMessages batches, ~500 KiB NVR-style envelopes). Same
+  public tree shape (camelCase + leaf coerce; `xsany` / `rawXML` unchanged). Details:
   [innerDocs/soap-xml.md](innerDocs/soap-xml.md),
   [innerDocs/performance.md](innerDocs/performance.md).
 - **`xs:dateTime` leaves stay strings in `parseXml`** - ISO UTC `...Z` is not coerced to `Date`

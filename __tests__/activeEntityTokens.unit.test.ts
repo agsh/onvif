@@ -15,11 +15,11 @@ import {
   setActiveRecordingJob,
   setActiveRelayOutput,
 } from '../src/connection';
-import AccessControl from '../src/accesscontrol';
-import Recording from '../src/recording';
-import DeviceIO from '../src/deviceio';
-import Replay from '../src/replay';
-import Search from '../src/search';
+import AccessControl from '../src/services/accesscontrol';
+import Recording from '../src/services/recording';
+import DeviceIO from '../src/services/deviceio';
+import Replay from '../src/services/replay';
+import Search from '../src/services/search';
 
 describe('activeAccessPointToken', () => {
   afterEach(() => {
@@ -63,12 +63,8 @@ describe('activeRecordingToken / activeRecordingJobToken', () => {
   it('getActiveRecording sets first recording and job tokens', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     onvif.uri.recording = new URL('http://127.0.0.1/onvif/recording');
-    jest.spyOn(onvif.recording, 'getRecordings').mockResolvedValue([
-      { recordingToken: 'RecordingToken_1' } as never,
-    ]);
-    jest.spyOn(onvif.recording, 'getRecordingJobs').mockResolvedValue([
-      { jobToken: 'JobToken_1' } as never,
-    ]);
+    jest.spyOn(onvif.recording, 'getRecordings').mockResolvedValue([{ recordingToken: 'RecordingToken_1' } as never]);
+    jest.spyOn(onvif.recording, 'getRecordingJobs').mockResolvedValue([{ jobToken: 'JobToken_1' } as never]);
 
     await getActiveRecording(onvif);
     expect(onvif.activeRecordingToken).toBe('RecordingToken_1');
@@ -123,10 +119,9 @@ describe('activeRelayOutputToken', () => {
   it('getActiveRelayOutput sets the first relay', async () => {
     const onvif = new Onvif({ hostname: '127.0.0.1', autoConnect: false });
     onvif.uri.deviceIO = new URL('http://127.0.0.1/onvif/deviceio');
-    jest.spyOn(onvif.deviceIO, 'getRelayOutputs').mockResolvedValue([
-      { token: 'RelayToken_1' } as never,
-      { token: 'RelayToken_2' } as never,
-    ]);
+    jest
+      .spyOn(onvif.deviceIO, 'getRelayOutputs')
+      .mockResolvedValue([{ token: 'RelayToken_1' } as never, { token: 'RelayToken_2' } as never]);
 
     await getActiveRelayOutput(onvif);
     expect(onvif.activeRelayOutputToken).toBe('RelayToken_1');

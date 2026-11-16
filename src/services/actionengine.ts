@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver10/actionengine.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
+import { ReferenceToken } from '../interfaces/common';
 import {
   Action,
   ActionConfiguration,
@@ -23,9 +23,9 @@ import {
   ModifyActionTriggers,
   ModifyActions,
   SupportedActions,
-} from './interfaces/actionengine';
-import { ITEM_LIST_PARSE } from './utils';
-import { itemList } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/actionengine';
+import { ITEM_LIST_PARSE } from '../utils';
+import { itemList } from '../utils/toOnvifXMLSchemaObject';
 
 /** Get/CreateActions — Parameters ItemList for itemList() round-trip. */
 const ACTION_PARSE = {

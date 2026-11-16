@@ -4,9 +4,9 @@
  * @see https://www.onvif.org/ver20/imaging/wsdl/imaging.wsdl
  */
 
-import { Onvif } from './onvif';
+import { Onvif } from '../onvif';
 import Service from './service';
-import { ReferenceToken } from './interfaces/common';
+import { ReferenceToken } from '../interfaces/common';
 import {
   BacklightCompensation20,
   Exposure20,
@@ -18,7 +18,7 @@ import {
   MoveOptions20,
   WhiteBalance20,
   WideDynamicRange20,
-} from './interfaces/onvif';
+} from '../interfaces/onvif';
 import {
   Capabilities,
   GetCurrentPreset,
@@ -32,8 +32,8 @@ import {
   SetCurrentPreset,
   SetImagingSettings,
   Stop,
-} from './interfaces/imaging.2';
-import { stringListToBuild } from './utils/toOnvifXMLSchemaObject';
+} from '../interfaces/imaging.2';
+import { stringListToBuild } from '../utils/toOnvifXMLSchemaObject';
 
 interface VideoSourceTokenExtended {
   videoSourceToken?: ReferenceToken;

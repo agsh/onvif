@@ -3,19 +3,19 @@
  * @jest-environment node
  */
 
-import AccessControl from '../src/accesscontrol';
-import AccessRules from '../src/accessrules';
-import ActionEngine from '../src/actionengine';
-import AdvancedSecurity from '../src/advancedsecurity';
-import Analytics from '../src/analytics';
+import AccessControl from '../src/services/accesscontrol';
+import AccessRules from '../src/services/accessrules';
+import ActionEngine from '../src/services/actionengine';
+import AdvancedSecurity from '../src/services/advancedsecurity';
+import Analytics from '../src/services/analytics';
 import Credential from '../src/credential';
-import Device from '../src/device';
-import DeviceIO from '../src/deviceio';
-import Display from '../src/display';
-import DoorControl from '../src/doorcontrol';
-import Recording from '../src/recording';
-import Schedule from '../src/schedule';
-import Media from '../src/media';
+import Device from '../src/services/device';
+import DeviceIO from '../src/services/deviceio';
+import Display from '../src/services/display';
+import DoorControl from '../src/services/doorcontrol';
+import Recording from '../src/services/recording';
+import Schedule from '../src/services/schedule';
+import Media from '../src/services/media';
 import { Onvif } from '../src/onvif';
 
 function mockEmpty(service: { request: (...args: any[]) => any }) {
@@ -90,9 +90,9 @@ describe('Optional payloads and empty responses', () => {
 
     const schedule = new Schedule(onvif);
     const ScheduleAny = Schedule as any;
-    expect(
-      ScheduleAny.timePeriodToBuild({ from: 'PT9H', until: 'PT17H', extension: { x: 1 } }),
-    ).toMatchObject({ Extension: { x: 1 } });
+    expect(ScheduleAny.timePeriodToBuild({ from: 'PT9H', until: 'PT17H', extension: { x: 1 } })).toMatchObject({
+      Extension: { x: 1 },
+    });
     mockEmpty(schedule);
     expect(await schedule.getServiceCapabilities()).toEqual({});
     expect(await schedule.getScheduleInfoList(page)).toEqual({});
@@ -128,9 +128,9 @@ describe('Optional payloads and empty responses', () => {
 
   it('covers Device builder optional fields and empty user/protocol responses', async () => {
     const DeviceAny = Device as any;
-    expect(
-      DeviceAny.networkHostToBuild({ type: 'DNS', DNSname: 'cam.local', extension: { e: 1 } }),
-    ).toMatchObject({ Extension: { e: 1 } });
+    expect(DeviceAny.networkHostToBuild({ type: 'DNS', DNSname: 'cam.local', extension: { e: 1 } })).toMatchObject({
+      Extension: { e: 1 },
+    });
     expect(
       DeviceAny.ipAddressFilterToBuild({
         type: 'Deny',
@@ -417,9 +417,7 @@ describe('Optional payloads and empty responses', () => {
     expect(await analytics.getServiceCapabilities()).toEqual({});
     expect(await analytics.getRules({ configurationToken: 'c1' })).toEqual([]);
     expect(await analytics.getAnalyticsModules({ configurationToken: 'c1' })).toEqual([]);
-    expect(await analytics.getRuleOptions({ configurationToken: 'c1', ruleType: 'tt:CellMotion' })).toEqual(
-      [],
-    );
+    expect(await analytics.getRuleOptions({ configurationToken: 'c1', ruleType: 'tt:CellMotion' })).toEqual([]);
     expect(
       await analytics.getAnalyticsModuleOptions({
         configurationToken: 'c1',
@@ -462,12 +460,13 @@ describe('Optional payloads and empty responses', () => {
     expect(await deviceIO.getRelayOutputOptions({})).toEqual([]);
 
     const AS = AdvancedSecurity as any;
-    expect(
-      AS.algorithmIdentifierToBuild({ algorithm: '1.2.3', parameters: 'p', anyParameters: {} }),
-    ).toMatchObject({ anyParameters: {} });
-    expect(
-      AS.certificationPathToBuild({ certificateID: ['c1'], alias: 'a', anyElement: {} }),
-    ).toMatchObject({ Alias: 'a', anyElement: {} });
+    expect(AS.algorithmIdentifierToBuild({ algorithm: '1.2.3', parameters: 'p', anyParameters: {} })).toMatchObject({
+      anyParameters: {},
+    });
+    expect(AS.certificationPathToBuild({ certificateID: ['c1'], alias: 'a', anyElement: {} })).toMatchObject({
+      Alias: 'a',
+      anyElement: {},
+    });
 
     const security = new AdvancedSecurity(onvif);
     mockEmpty(security);

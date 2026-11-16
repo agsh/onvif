@@ -5,7 +5,7 @@
 [cov-badge]: https://raw.githubusercontent.com/agsh/onvif/refs/heads/gh-pages/badges/coverage.svg
 [cov-link]: https://github.com/agsh/onvif/tree/master
 
-ONVIF client for all ONVIF devices with TypeScript types.
+General-purpose ONVIF library for Node.js with TypeScript support.
 
 - TypeScript + Promise API
 - Typed ONVIF/WSDL interfaces (26.06)
@@ -16,6 +16,11 @@ ONVIF client for all ONVIF devices with TypeScript types.
 - WS-Discovery, WS-Security, Digest (MD5 / SHA-1 / SHA-256 / SHA-512-256)
 - Lazy-loaded service modules
 - Built to work around real-camera quirks across vendors
+
+> [!IMPORTANT]
+> Profile labels mean this library implements the matching ONVIF services and operations.
+> That does **not** imply every device supports every call - support depends on the device
+> profile, advertised capabilities, and firmware (especially PTZ, Media2, and Access Control).
 
 > [!NOTE]
 > Coming from the classic `Cam` API (0.x / 0.8)? You can stay on
@@ -105,8 +110,7 @@ RTSP preview + Socket.IO / FFmpeg demo:
 - Auth: WS-Security + HTTP Digest -
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md)
 - WS-Discovery - [Discovery](#discovery)
-- Stack SOAP XML parser (zero deps) - about ~4x faster than `1.0.0`, 
-  one of the fastest TypeScript-based parsers purpose-built for ONVIF SOAP XML payloads. -
+- Stack SOAP XML parser (zero deps) - about ~4x faster than `1.0.0` -
   [soap-xml.md](https://github.com/agsh/onvif/blob/master/innerDocs/soap-xml.md),
   [performance.md](https://github.com/agsh/onvif/blob/master/innerDocs/performance.md)
 - Media profile bag and non-camera profiles (C / A / D / G / M) -
@@ -124,7 +128,7 @@ Address the device with `url` **or** `hostname` / `port` / `path` / `useSecure`,
 
 - `timeout` - HTTP socket timeout for ordinary SOAP (ms; default 10000). PullMessages uses its own
   longer timeout (pull wait + margin)
-- `maxResponseBytes` - abort SOAP body read above this size (default 1 MiB); enforced on HTTP,
+- `maxResponseBytes` - abort SOAP body read above this size (default 2 MiB); enforced on HTTP,
   not inside `parseXml`
 - `useWSSecurity` - SOAP PasswordDigest headers (default `true`; HTTP Digest still applies; see
   [auth.md](https://github.com/agsh/onvif/blob/master/innerDocs/auth.md))

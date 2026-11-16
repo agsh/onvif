@@ -6,3 +6,5 @@ node_modules
 .nyc_output/
 build
 docs
+# Cargo build output (bench peer tools/bench/peers/rust_quickxml)
+**/target/
