@@ -40,6 +40,9 @@
   lose precision) stay strings so long serials / tokens are not rounded by `parseFloat`.
 - **Prototype-pollution resistant XML names** - forbid `__proto__` / `constructor` / `prototype` as
   element or attribute keys (plain `{}` maps + cheap assert).
+- **Package types resolution** - export `Events` as a named CJS export (ESM `import { Events }` /
+  NodeNext), and add `typesVersions` so `onvif/compatibility` (+ promises) resolve under older
+  `moduleResolution: node` / node10. Verified with `@arethetypeswrong/cli` (`npm run attw`).
 
 ## 1.0.0
 

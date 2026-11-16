@@ -225,7 +225,7 @@ interface SubscribeOptions {
  * ```
  * @category Services
  */
-export default class Events {
+export class Events {
   private readonly onvif: Onvif;
   public agent: HttpsAgent | HttpAgent;
   public globalSubscription: Subscription;
@@ -525,6 +525,8 @@ export default class Events {
     return coerceStatusTimes(data.getStatusResponse as StatusResponse);
   }
 }
+
+export default Events;
 
 interface SubscriptionEvents {
   data: [msg: NotificationMessage];

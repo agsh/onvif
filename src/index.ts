@@ -15,7 +15,6 @@
  */
 export * from './onvif';
 export * from './events';
-export { default as Events } from './events';
 export * from './discovery';
 export * from './utils';
 export { xsany } from './utils/toOnvifXMLSchemaObject';
