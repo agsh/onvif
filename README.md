@@ -40,6 +40,8 @@ npm install onvif
 
 One build covers **CommonJS**, **ESM**, and **TypeScript** (`require` / `import` + `.d.ts`).
 ESM `import` loads the same CJS build via `exports.import` - examples: [Quick start](#quick-start).
+`exports` + `typesVersions` keep `.d.ts` resolving under `node10` / `node16` / `NodeNext` /
+`bundler` (checked with `@arethetypeswrong/cli`: `npm run attw`).
 
 Subpaths: `onvif/compatibility`, `onvif/compatibility/promises` (callback / Promise `Cam`
 wrappers), `onvif/interfaces/*` (WSDL types, e.g. `onvif/interfaces/onvif`).

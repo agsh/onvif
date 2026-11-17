@@ -1292,6 +1292,8 @@ export default class Media extends Service {
    * Get a video encoder configuration, merge a partial patch, then Set.
    * Prefer this over hand-editing a full {@link VideoEncoderConfiguration} when only
    * codec / resolution / quality / fps / bitrate (etc.) change.
+   * When `patch.encoding` differs from the current codec, also calls
+   * {@link getVideoEncoderConfigurationOptions} and rebuilds H264/MPEG4 bags from device lists.
    * @param patch - Fields to overwrite; omitted keys keep the device value.
    * @param patch.configurationToken - Defaults to {@link Onvif.activeMediaProfile}.videoEncoderConfigurationToken
    * @param patch.forcePersistence - Defaults to `true` (ONVIF marks the flag obsolete).
@@ -1303,7 +1305,14 @@ export default class Media extends Service {
       this.onvif.activeMediaProfile?.videoEncoderConfigurationToken,
     );
     const configuration = await this.getVideoEncoderConfiguration({ configurationToken });
-    applyVideoEncoderPatch(configuration, patch);
+    const switching = patch.encoding !== undefined && patch.encoding !== configuration.encoding;
+    const options = switching
+      ? await this.getVideoEncoderConfigurationOptions({
+          configurationToken,
+          profileToken: this.onvif.activeMediaProfile?.profileToken,
+        })
+      : undefined;
+    applyVideoEncoderPatch(configuration, patch, options);
     await this.setVideoEncoderConfiguration({
       configuration,
       forcePersistence: patch.forcePersistence ?? true,

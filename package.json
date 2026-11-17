@@ -2,7 +2,7 @@
   "name": "onvif",
   "version": "1.1.0",
   "author": "Andrew D.Laptev <a.d.laptev@gmail.com>",
-  "description": "General-purpose ONVIF library for Node.js with TypeScript support. Supports Profiles S/T/G/M/C/A, WS-Discovery, WS-Security/Digest, Events, Media/Media2, PTZ, Recording/Replay, and a 0.x compatibility layer.",
+  "description": "TypeScript-first ONVIF library for Node.js.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "files": [
@@ -37,6 +37,19 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "compatibility": [
+        "build/compatibility/index.d.ts"
+      ],
+      "compatibility/promises": [
+        "build/compatibility/promises/index.d.ts"
+      ],
+      "interfaces/*": [
+        "build/interfaces/*"
+      ]
+    }
+  },
   "scripts": {
     "build": "rimraf build && tsc --build",
     "prepublishOnly": "npm run build",
@@ -47,7 +60,8 @@
     "pretest": "npm run build && npm run lint",
     "test-local": "jest --env=node --runInBand --colors --coverage --forceExit",
     "test": "sh -c './__tests__/happytime-onvif-server/stop.sh; ./__tests__/happytime-onvif-server/start.sh & ./__tests__/happytime-onvif-server/wait-ready.sh && ./__tests__/happytime-onvif-server/hydrate-profiles.sh && jest --env=node --runInBand --colors --coverageReporters=json-summary --coverage --forceExit; code=$?; ./__tests__/happytime-onvif-server/stop.sh; exit $code'",
-    "bench:xml": "node tools/bench/parse-throughput.mjs"
+    "bench:xml": "node tools/bench/parse-throughput.mjs",
+    "attw": "attw --pack ."
   },
   "contributors": [
     {
@@ -65,7 +79,6 @@
     "type": "git",
     "url": "git+https://github.com/agsh/onvif.git"
   },
-  "dependencies": {},
   "keywords": [
     "onvif",
     "camera",
@@ -96,6 +109,7 @@
     "node": ">=18.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^9.39.0",
     "@types/jest": "^29.5.14",
     "@types/keypress": "^2.0.30",
