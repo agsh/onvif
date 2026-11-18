@@ -378,6 +378,62 @@ describe('Subscription resubscribe (SOAP mock server)', () => {
     await sub.unsubscribe();
   });
 
+  it('overlapping subscribe calls leave a single pull-point (no orphan Create)', async () => {
+    let releaseFirst!: () => void;
+    mock.createGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    mock.pullBehavior = 'ok';
+    const sub = (activeSub = prepareSub(cam));
+
+    const first = sub.subscribe();
+    await waitFor(() => mock.stats.create >= 1, 5000, 'first create started');
+
+    // Second subscribe while Create is gated — previously could orphan the first pull-point.
+    const second = sub.subscribe();
+    releaseFirst();
+    mock.createGate = null;
+    await Promise.all([first, second]);
+
+    await waitFor(() => mock.stats.pull >= 1, 5000, 'single session pull');
+    // First create is disposed when superseded; second create owns the live subscription.
+    expect(mock.stats.create).toBe(2);
+    expect(mock.stats.unsubscribe).toBeGreaterThanOrEqual(1);
+
+    await sub.unsubscribe();
+    await delay(RECONNECT_MS);
+    const pullsAtStop = mock.stats.pull;
+    await delay(RECONNECT_MS * 2);
+    expect(mock.stats.pull).toBe(pullsAtStop);
+  });
+
+  it('Onvif event listener on/off/on during gated Create does not leave a zombie pull loop', async () => {
+    let releaseCreate!: () => void;
+    mock.createGate = new Promise<void>((resolve) => {
+      releaseCreate = resolve;
+    });
+    mock.pullBehavior = 'ok';
+    // Use globalSubscription via Onvif auto hooks (same path as broviki WS refcount).
+    const handler = () => undefined;
+    cam.on('event', handler);
+    await waitFor(() => mock.stats.create >= 1, 5000, 'auto create started');
+
+    cam.off('event', handler);
+    cam.on('event', handler);
+    releaseCreate();
+    mock.createGate = null;
+
+    await waitFor(() => mock.stats.pull >= 1, 8000, 'pull after rapid re-subscribe');
+    // At least one Create was abandoned (unsubscribe after first listener drop / supersede).
+    expect(mock.stats.unsubscribe).toBeGreaterThanOrEqual(1);
+
+    cam.off('event', handler);
+    await delay(RECONNECT_MS * 2);
+    const pullsAtStop = mock.stats.pull;
+    await delay(RECONNECT_MS * 2);
+    expect(mock.stats.pull).toBe(pullsAtStop);
+  });
+
   it('retries CreatePullPointSubscription after create failures then starts pulling', async () => {
     mock.createFailuresLeft = 2;
     mock.pullBehavior = 'ok';

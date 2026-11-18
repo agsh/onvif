@@ -9,7 +9,8 @@ General-purpose ONVIF library for Node.js with TypeScript support.
 
 - TypeScript + Promise API
 - Typed ONVIF/WSDL interfaces (26.06)
-- Profiles [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
+- Compatible with devices advertising Profiles
+  [S](https://www.onvif.org/profiles/profile-s/), [T](https://www.onvif.org/profiles/profile-t/),
   [G](https://www.onvif.org/profiles/profile-g/), [M](https://www.onvif.org/profiles/profile-m/),
   [C](https://www.onvif.org/profiles/profile-c/), [A](https://www.onvif.org/profiles/profile-a/),
   [D](https://www.onvif.org/profiles/profile-d/)
@@ -26,8 +27,6 @@ General-purpose ONVIF library for Node.js with TypeScript support.
 > Coming from the classic `Cam` API (0.x / 0.8)? You can stay on
 > `npm install onvif@previous`, use the `onvif/compatibility` layer with this package, or browse
 > [branch v0.x](https://github.com/agsh/onvif/tree/v0.x).
-
-[![ONVIF](https://github.com/user-attachments/assets/f58fb3c8-6bf6-406c-bcc7-883c1da33c5d)](http://onvif.org)
 
 ## Installation
 
@@ -493,6 +492,8 @@ Thanks to [HappyTimeSoft](https://www.happytimesoft.com/index.html) for
 used in integration tests, to [@RogerHardiman](https://github.com/RogerHardiman) for support
 and real-camera testing, and to everyone who filed issues over the years.
 
-[![OBEY!][obey-img]](https://www.onvif.org/resources/)
+## Disclaimer
 
-[obey-img]: https://github.com/user-attachments/assets/8cc43a86-4610-4e1a-8700-3a46aa2c1da3
+ONVIF is a registered trademark of ONVIF, Inc. This project is an independent open-source
+client for the ONVIF protocol. It is not affiliated with, endorsed by, or sponsored by
+ONVIF. No ONVIF conformance or certification is claimed.
