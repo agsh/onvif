@@ -459,6 +459,8 @@ Samples in [`examples/`](examples/):
 - [replay.uri.js](examples/replay.uri.js) - Profile G replay URI
 - [compatibility.cjs](examples/compatibility.cjs) /
   [compatibilityPromises.cjs](examples/compatibilityPromises.cjs) - Cam layer
+- [broviki](https://github.com/agsh/broviki) - NestJS + Next.js ONVIF camera manager
+  (discovery, live WebRTC, events, PTZ) built on this library
 
 ## Device compatibility
 
