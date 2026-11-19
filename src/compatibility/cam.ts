@@ -182,6 +182,8 @@ export class Cam extends EventEmitter {
     // v0.x used `warning`; Onvif emits `warn`
     this.onvif.on(Onvif.WARN, relay('warning'));
 
+    // Same newListener/removeListener timing as Onvif: length === 0 is correct
+    // (newListener fires before add; removeListener fires after remove).
     this.on('newListener', (name) => {
       if (name === 'event' && this.listeners('event').length === 0) {
         this.onvif.on(Onvif.EVENT, this.onOnvifEvent);

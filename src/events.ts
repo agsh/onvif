@@ -612,6 +612,12 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
    * @private
    */
   private dontWantToRestartEvent = false;
+  /**
+   * Bumped on every subscribe/unsubscribe intent so an in-flight CreatePullPoint can tell
+   * it was superseded (rapid on/off/on via Onvif `event` listeners, overlapping subscribe()).
+   * Do not gate unsubscribe behind an in-flight Create — that deadlocks when Create is slow.
+   */
+  private lifecycleGen = 0;
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private reconnectTimerResolve?: () => void;
 
@@ -639,23 +645,46 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     });
   }
 
+  private isLifecycleCurrent(gen: number): boolean {
+    return !this.dontWantToRestartEvent && gen === this.lifecycleGen;
+  }
+
   /**
    * Create a pull-point subscription and start the background {@link eventPull} loop.
+   *
+   * Overlapping subscribe/unsubscribe is coordinated with {@link lifecycleGen}: a Create that
+   * loses the race Unsubscribes its *own* pull-point by reference (without touching a newer
+   * winner's {@link subscription}). Unsubscribe stays non-blocking w.r.t. in-flight Create.
    */
   async subscribe() {
     this.dontWantToRestartEvent = false;
-    this.subscription = await this.onvif.events.createPullPointSubscription({
+    const gen = ++this.lifecycleGen;
+
+    const created = await this.onvif.events.createPullPointSubscription({
       initialTerminationTime: PULL_TERMINATION_TIME,
       ...this.options,
     });
     // Store expiry in local wall clock so later Date.now() comparisons survive device clock skew.
-    if (this.subscription.currentTime && this.subscription.terminationTime) {
-      this.subscription.terminationTime = localTerminationTime(this.subscription);
+    if (created.currentTime && created.terminationTime) {
+      created.terminationTime = localTerminationTime(created);
     }
-    if (this.dontWantToRestartEvent) {
-      await this.unsubscribe(false);
+
+    if (!this.isLifecycleCurrent(gen)) {
+      // Lost to unsubscribe or a newer subscribe — do not clobber this.subscription.
+      await this.unsubscribePullPoint(created);
       return;
     }
+
+    // Replace any previous live pull-point (rebuild / rare overlap).
+    if (this.subscription) {
+      await this.disposePullPoint(true);
+      if (!this.isLifecycleCurrent(gen)) {
+        await this.unsubscribePullPoint(created);
+        return;
+      }
+    }
+
+    this.subscription = created;
     this.pulling = true;
     void this.eventPull();
   }
@@ -857,6 +886,8 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
   async unsubscribe(resetAgent = true) {
     this.dontWantToRestartEvent = true;
     this.pulling = false;
+    // Invalidate in-flight subscribe() immediately (must not await Create — would deadlock).
+    this.lifecycleGen += 1;
     this.clearReconnectTimer();
     await this.disposePullPoint(resetAgent);
   }
@@ -874,6 +905,11 @@ export class Subscription extends EventEmitter<SubscriptionEvents> {
     if (resetAgent) {
       this.onvif.events.resetAgent();
     }
+    await this.unsubscribePullPoint(subscription);
+  }
+
+  /** Unsubscribe a concrete pull-point (including one that never became {@link subscription}). */
+  private async unsubscribePullPoint(subscription: PullPointSubscription): Promise<void> {
     try {
       const subscriptionParams = getSubscriptionUrlAndHeaders(
         this.onvif,

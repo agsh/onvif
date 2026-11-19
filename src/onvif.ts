@@ -715,12 +715,13 @@ export class Onvif extends EventEmitter<OnvifEvents> {
     this.analyticsDevice = lazyService<AnalyticsDevice>(this, () => import('./services/analyticsdevice'));
     this.receiver = lazyService<Receiver>(this, () => import('./services/receiver'));
 
-    /** Bind event handling to the `event` event */
+    /**
+     * Auto pull-point: first `event` listener → subscribe, last removal → unsubscribe.
+     */
     this.onEventNewListener = (name) => {
       if (this.closed) {
         return;
       }
-      // if this is the first listener, start pulling subscription
       if (name === 'event' && this.listeners(name).length === 0) {
         this.events.globalSubscription.subscribe().catch((error) => this.emit(Onvif.EVENT_ERROR, error));
       }
